@@ -66,9 +66,6 @@
     .slot-empty.droppable { cursor: pointer; }
     .slot-empty.droppable:hover { border-color: #f97316 !important; background: #f9731615 !important; }
 
-    /* Mode card hover */
-    .mode-card:hover { border-color: #f97316 !important; }
-
     /* Slot machine */
     .slot-badge { transition: all 0.12s; }
     .slot-spinning .slot-badge { animation: spinTick 0.08s steps(1) infinite; }
@@ -567,22 +564,17 @@ function simulateSeason(roster) {
 // GAME STATE
 // =============================================================================
 let S = {
-  phase:     'mode-select', // 'mode-select' | 'drafting' | 'results'
-  mode:      null,          // 'classic' | 'hoopiq' | 'team-draft'
+  phase:     'drafting',    // 'drafting' | 'results'
   round:     0,             // 0-indexed current draft round
   usedDecades: [],          // decades already locked in
   teamSkips:   1,
   decadeSkips: 1,
   spinState: 'idle',        // 'idle' | 'spinning' | 'done'
-  spinInterval: null,       // ref to animation interval
   currentSpin: null,        // { team, decade }
   availablePlayers: [],
   selectedPlayer:   null,
   roster: { PG:null, SG:null, SF:null, PF:null, C:null },
   result: null,
-  // team-draft mode
-  tdSelectedTeam:   null,
-  tdSelectedDecade: null,
 };
 
 // =============================================================================
@@ -622,9 +614,8 @@ function rosterFull() {
 // =============================================================================
 const $app = document.getElementById('app');
 function render() {
-  if      (S.phase === 'mode-select') $app.innerHTML = renderModeSelect();
-  else if (S.phase === 'drafting')    $app.innerHTML = renderDrafting();
-  else if (S.phase === 'results')     $app.innerHTML = renderResults();
+  if      (S.phase === 'drafting') $app.innerHTML = renderDrafting();
+  else if (S.phase === 'results')  $app.innerHTML = renderResults();
   bindEvents();
 }
 
@@ -645,24 +636,20 @@ function iconPlus(cls='') {
 }
 
 // ─── HEADER ───────────────────────────────────────────────────────────────────
-function renderHeader(showBack=false, showRestart=false) {
+function renderHeader(showRestart=false) {
   return `
   <header class="sticky top-0 z-50 w-full border-b border-border" style="background:rgba(9,9,11,0.92);backdrop-filter:blur(10px)">
     <div class="mx-auto flex h-12 max-w-2xl items-center justify-between px-4">
-      <button data-action="home" class="flex items-center gap-2 font-bold text-base hover:opacity-75 transition-opacity cursor-pointer">
+      <div class="flex items-center gap-2 font-bold text-base">
         ${iconBall('h-6 w-6 text-primary')}
         <span class="text-foreground">82-0</span>
-      </button>
+      </div>
       <div class="flex items-center gap-2">
-        ${S.mode ? `<span class="text-xs px-2.5 py-1 rounded-full font-semibold bg-card2 text-muted-fg border border-border">${modeLabel(S.mode)}</span>` : ''}
+        <span class="text-xs px-2.5 py-1 rounded-full font-semibold bg-card2 text-muted-fg border border-border">Classic Mode</span>
         ${showRestart ? `<button data-action="restart" class="text-xs px-3 py-1.5 rounded-full border border-border text-muted-fg hover:text-foreground hover:border-primary/60 transition-all cursor-pointer">Restart</button>` : ''}
       </div>
     </div>
   </header>`;
-}
-
-function modeLabel(m) {
-  return { classic:'Classic', hoopiq:'HoopIQ', 'team-draft':'Team Draft' }[m] || '';
 }
 
 // ─── FOOTER ───────────────────────────────────────────────────────────────────
@@ -673,57 +660,17 @@ function renderFooter() {
   </footer>`;
 }
 
-// ─── MODE SELECT ─────────────────────────────────────────────────────────────
-function renderModeSelect() {
-  return `
-  <div class="flex flex-col min-h-screen main-gradient">
-    ${renderHeader()}
-    <main class="flex-1 flex flex-col items-center justify-center px-4 py-8">
-      <div class="w-full max-w-lg animate-fade-up">
-        <div class="text-center mb-8">
-          <div class="flex justify-center mb-4">
-            ${iconBall('h-16 w-16 text-primary mx-auto')}
-          </div>
-          <h1 class="text-3xl sm:text-4xl font-black text-foreground mb-2">Can you go 82-0?</h1>
-          <p class="text-muted-fg text-sm sm:text-base">Draft an all-time NBA roster and simulate an undefeated season.</p>
-        </div>
-        <p class="text-xs font-bold uppercase tracking-widest text-muted-fg mb-3">Choose Your Mode</p>
-        <div class="flex flex-col gap-3">
-          ${modeCard('classic',    '💯', 'Classic',    'Draft with full player stats visible — make informed picks.',       'Play Classic')}
-          ${modeCard('hoopiq',     '🧠', 'HoopIQ',     'Stats hidden — draft by memory and test your ball knowledge.',     'Play HoopIQ')}
-          ${modeCard('team-draft', '📋', 'Team Draft', 'Skip roulette — manually pick team and decade each round.',        'Play Team Draft')}
-        </div>
-      </div>
-    </main>
-    ${renderFooter()}
-  </div>`;
-}
-
-function modeCard(mode, emoji, title, desc, cta) {
-  return `
-  <button data-action="start-${mode}" class="mode-card w-full text-left p-4 rounded-xl border border-border bg-card cursor-pointer transition-all hover:border-primary/60 hover:bg-card2 group">
-    <div class="flex items-center gap-3">
-      <span class="text-2xl flex-shrink-0">${emoji}</span>
-      <div class="flex-1 min-w-0">
-        <p class="font-bold text-sm text-foreground">${title}</p>
-        <p class="text-xs text-muted-fg mt-0.5 leading-relaxed">${desc}</p>
-      </div>
-      <span class="flex-shrink-0 text-xs font-bold px-3 py-1.5 rounded-full bg-primary text-white group-hover:bg-primary/90 transition-colors">${cta}</span>
-    </div>
-  </button>`;
-}
-
 // ─── DRAFTING SCREEN ─────────────────────────────────────────────────────────
 function renderDrafting() {
   const full = rosterFull();
   return `
   <div class="flex flex-col min-h-screen main-gradient">
-    ${renderHeader(true, true)}
+    ${renderHeader(true)}
     <main class="flex-1 flex flex-col items-center px-4 pt-4 pb-8">
       <div class="w-full max-w-2xl flex flex-col gap-4">
         ${renderRoundBar()}
-        ${full ? renderSimulateCard() : (S.mode === 'team-draft' ? renderTeamDraftPanel() : renderSlotMachine())}
-        ${S.spinState === 'done' || S.mode === 'team-draft' ? renderPlayerPool() : ''}
+        ${full ? renderSimulateCard() : renderSlotMachine()}
+        ${S.spinState === 'done' ? renderPlayerPool() : ''}
         ${renderRoster()}
       </div>
     </main>
@@ -798,54 +745,11 @@ function renderSlotMachine() {
   </div>`;
 }
 
-// ─── TEAM DRAFT PANEL (manual mode) ──────────────────────────────────────────
-function renderTeamDraftPanel() {
-  const hasCombo = S.tdSelectedTeam && S.tdSelectedDecade && getPlayers(S.tdSelectedTeam, S.tdSelectedDecade).length > 0;
-  const decadePool = availableDecades();
-
-  return `
-  <div class="rounded-2xl border border-border bg-card p-4 animate-scale-in">
-    <p class="text-xs font-bold uppercase tracking-widest text-muted-fg mb-3">Team Draft — Pick Your Combo</p>
-    <div class="flex flex-col gap-3">
-      <div>
-        <p class="text-xs text-muted-fg mb-2 font-medium">Select Team</p>
-        <div class="flex flex-wrap gap-2">
-          ${TEAMS.map(t => {
-            const sel = S.tdSelectedTeam === t;
-            const tc  = TEAM_COLORS[t];
-            return `<button data-action="td-team-${t}" class="text-xs px-3 py-1.5 rounded-full font-semibold border transition-all cursor-pointer"
-              style="background:${sel ? tc.bg : 'transparent'};color:${sel ? tc.accent : '#a1a1aa'};border-color:${sel ? tc.bg : '#27272a'}">${t}</button>`;
-          }).join('')}
-        </div>
-      </div>
-      <div>
-        <p class="text-xs text-muted-fg mb-2 font-medium">Select Decade <span class="text-muted-fg/50">(${decadePool.length} remaining)</span></p>
-        <div class="flex flex-wrap gap-2">
-          ${DECADES.map(d => {
-            const used = S.usedDecades.includes(d);
-            const sel  = S.tdSelectedDecade === d;
-            const hasPl = S.tdSelectedTeam ? getPlayers(S.tdSelectedTeam, d).length > 0 : true;
-            return `<button data-action="td-decade-${d}" ${used ? 'disabled' : ''} class="text-xs px-3 py-1.5 rounded-full font-semibold border transition-all ${used ? 'opacity-30 cursor-not-allowed' : hasPl ? 'cursor-pointer' : 'opacity-50 cursor-pointer'}"
-              style="background:${sel ? '#f97316' : 'transparent'};color:${sel ? '#fff' : '#a1a1aa'};border-color:${sel ? '#f97316' : '#27272a'}">${d}</button>`;
-          }).join('')}
-        </div>
-      </div>
-      ${S.tdSelectedTeam && S.tdSelectedDecade && !hasCombo ? `<p class="text-xs text-red-400">No players found for ${S.tdSelectedTeam} in the ${S.tdSelectedDecade}. Try a different combo.</p>` : ''}
-      ${hasCombo ? `
-        <button data-action="td-confirm" class="w-full py-3 rounded-xl font-black text-sm uppercase tracking-widest bg-primary text-white hover:bg-primary/90 transition-all cursor-pointer">
-          Confirm: ${S.tdSelectedTeam} · ${S.tdSelectedDecade}
-        </button>
-      ` : ''}
-    </div>
-  </div>`;
-}
-
 // ─── PLAYER POOL ──────────────────────────────────────────────────────────────
 function renderPlayerPool() {
   if (!S.availablePlayers.length) return '';
-  const hideStats = S.mode === 'hoopiq';
-  const team   = S.currentSpin?.team   || S.tdSelectedTeam;
-  const decade = S.currentSpin?.decade || S.tdSelectedDecade;
+  const team   = S.currentSpin?.team;
+  const decade = S.currentSpin?.decade;
   const tc     = team ? TEAM_COLORS[team] : null;
 
   return `
@@ -855,12 +759,12 @@ function renderPlayerPool() {
       <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">${team} · ${decade}</p>
     </div>
     <div class="flex flex-col gap-2">
-      ${S.availablePlayers.map(p => renderPlayerCard(p, hideStats)).join('')}
+      ${S.availablePlayers.map(p => renderPlayerCard(p)).join('')}
     </div>
   </div>`;
 }
 
-function renderPlayerCard(p, hideStats) {
+function renderPlayerCard(p) {
   const sel = S.selectedPlayer?.id === p.id;
   return `
   <div data-action="pick-${p.id}" class="player-card rounded-xl border cursor-pointer p-3 ${sel ? 'selected' : ''}"
@@ -872,14 +776,11 @@ function renderPlayerCard(p, hideStats) {
       </div>
       <div class="flex-1 min-w-0">
         <p class="font-semibold text-sm text-foreground truncate">${p.name}</p>
-        ${hideStats
-          ? `<p class="text-xs text-muted-fg mt-0.5">Stats hidden — HoopIQ Mode</p>`
-          : `<div class="flex flex-wrap gap-x-2 gap-y-0.5 mt-0.5">
-              ${[['PPG',p.ppg],['RPG',p.rpg],['APG',p.apg],['SPG',p.spg],['BPG',p.bpg]].map(([l,v])=>`
-                <span class="text-xs text-muted-fg"><span class="font-semibold text-foreground/80">${v}</span> ${l}</span>
-              `).join('')}
-            </div>`
-        }
+        <div class="flex flex-wrap gap-x-2 gap-y-0.5 mt-0.5">
+          ${[['PPG',p.ppg],['RPG',p.rpg],['APG',p.apg],['SPG',p.spg],['BPG',p.bpg]].map(([l,v])=>`
+            <span class="text-xs text-muted-fg"><span class="font-semibold text-foreground/80">${v}</span> ${l}</span>
+          `).join('')}
+        </div>
       </div>
       <div class="flex-shrink-0">
         ${sel
@@ -1062,42 +963,13 @@ function handleClick(e) {
 }
 
 function dispatch(action) {
-  // Home / restart
-  if (action === 'home')    { confirmLeave(() => { S.phase='mode-select'; S.mode=null; render(); }); return; }
-  if (action === 'restart') { confirmLeave(() => startGame(S.mode || 'classic')); return; }
-
-  // Mode select
-  if (action.startsWith('start-')) {
-    const m = action.slice(6);
-    startGame(m); return;
-  }
+  // Restart
+  if (action === 'restart') { confirmLeave(() => startGame('classic')); return; }
 
   // Spin
   if (action === 'spin')         { doSpin(); return; }
   if (action === 'skip-team')    { doSkipTeam(); return; }
   if (action === 'skip-decade')  { doSkipDecade(); return; }
-
-  // Team Draft
-  if (action.startsWith('td-team-')) {
-    S.tdSelectedTeam = action.slice(8);
-    S.tdSelectedDecade = null;
-    S.availablePlayers = [];
-    S.selectedPlayer   = null;
-    render(); return;
-  }
-  if (action.startsWith('td-decade-')) {
-    S.tdSelectedDecade = action.slice(10);
-    S.selectedPlayer   = null;
-    render(); return;
-  }
-  if (action === 'td-confirm') {
-    if (!S.tdSelectedTeam || !S.tdSelectedDecade) { render(); return; }
-    S.currentSpin = { team: S.tdSelectedTeam, decade: S.tdSelectedDecade };
-    S.availablePlayers = getPlayers(S.tdSelectedTeam, S.tdSelectedDecade);
-    S.selectedPlayer   = null;
-    S.spinState = 'done';
-    render(); return;
-  }
 
   // Pick player
   if (action.startsWith('pick-')) {
@@ -1132,24 +1004,22 @@ function dispatch(action) {
 // ACTIONS
 // =============================================================================
 function confirmLeave(fn) {
-  if (S.phase === 'mode-select' || S.phase === 'results') { fn(); return; }
+  if (S.phase === 'results') { fn(); return; }
   if (confirm('Leave this game? Your progress will be lost.')) fn();
   else render();
 }
 
-function startGame(mode) {
+function startGame() {
   S = {
-    phase: 'drafting', mode,
+    phase: 'drafting',
     round: 0, usedDecades: [],
     teamSkips: 1, decadeSkips: 1,
-    spinState: mode === 'team-draft' ? 'done' : 'idle',
-    spinInterval: null,
+    spinState: 'idle',
     currentSpin: null,
     availablePlayers: [],
     selectedPlayer:   null,
     roster: { PG:null, SG:null, SF:null, PF:null, C:null },
     result: null,
-    tdSelectedTeam: null, tdSelectedDecade: null,
   };
   render();
 }
@@ -1216,17 +1086,10 @@ function placePlayer(pos) {
   S.roster[pos] = player;
   S.usedDecades.push(spin?.decade);
   S.round++;
-  S.spinState = S.mode === 'team-draft' ? 'idle' : 'idle';
+  S.spinState = 'idle';
   S.currentSpin = null;
   S.availablePlayers = [];
   S.selectedPlayer   = null;
-
-  // Team Draft: reset selections for next round
-  if (S.mode === 'team-draft') {
-    S.tdSelectedTeam   = null;
-    S.tdSelectedDecade = null;
-  }
-
   render();
 }
 
@@ -1256,7 +1119,7 @@ function doShare() {
 // =============================================================================
 // BOOT
 // =============================================================================
-render();
+startGame();
 </script>
 </body>
 </html>
