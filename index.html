@@ -88,6 +88,10 @@
       box-shadow: 0 0 40px rgba(249, 115, 22, 0.35), 0 0 80px rgba(249, 115, 22, 0.15);
     }
 
+    /* Era card hover */
+    .era-card { transition: border-color 0.15s, background 0.15s, transform 0.1s; }
+    .era-card:hover { transform: translateY(-1px); }
+
     /* Bottom safe area for mobile */
     @supports (padding-bottom: env(safe-area-inset-bottom)) {
       .safe-bottom { padding-bottom: calc(1rem + env(safe-area-inset-bottom)); }
@@ -470,8 +474,20 @@ const DB = {
 const TEAMS   = ['Lakers','Bulls','Warriors','Celtics','Heat','Spurs','Knicks',
                  'Jazz','Pistons','Magic','Suns','Nuggets','Sixers'];
 const DECADES = ['1960s','1970s','1980s','1990s','2000s','2010s','2020s'];
-const POSITIONS = ['PG','SG','SF','PF','C'];
-const TOTAL_ROUNDS = 5;
+const POSITIONS       = ['PG','SG','SF','PF','C'];
+const BENCH_POSITIONS = ['B1','B2','B3'];
+const ALL_POSITIONS   = [...POSITIONS, ...BENCH_POSITIONS];
+const TOTAL_ROUNDS    = 8;
+
+const ERA_DESC = {
+  '1960s': 'Chamberlain · West · Russell',
+  '1970s': 'Kareem · Erving · Frazier',
+  '1980s': 'Bird · Magic · Jordan',
+  '1990s': 'Jordan · Shaq · Barkley',
+  '2000s': 'Kobe · AI · T-Mac',
+  '2010s': 'LeBron · Curry · Durant',
+  '2020s': 'Jokic · LeBron · Booker',
+};
 
 const TEAM_COLORS = {
   Lakers:   { bg:'#552583', accent:'#FDB927' },
@@ -491,36 +507,49 @@ const TEAM_COLORS = {
 
 // =============================================================================
 // SIMULATION ALGORITHM
-// How it works:
-//   1. Sum all 5 players' stats across PPG, RPG, APG, SPG, BPG.
-//   2. Compare each sum to a "league-average starting 5" baseline.
-//   3. Compute a weighted strength score (0.0 → weak, 1.5+ → elite).
-//   4. Apply a balance penalty if any single category is severely below average.
-//   5. Feed strength into a sigmoid curve to produce win probability per game.
-//   6. Simulate each of 82 games independently with that win probability.
-//   7. To achieve 82-0, a team needs ppg≈150+, balanced rebounding,
-//      assists, and at least decent defense — requiring elite multi-stat players.
+// 8-man roster: 5 starters (78% of team strength) + 3 bench (22%).
+// Each group is compared to its own baseline so bench depth matters but
+// elite starters still drive wins. Sigmoid curve converts strength → win%.
 // =============================================================================
-function simulateSeason(roster) {
-  const totals = roster.reduce(
+function simulateSeason(starters, bench) {
+  const sumStats = arr => arr.reduce(
     (acc, p) => ({ ppg: acc.ppg+p.ppg, rpg: acc.rpg+p.rpg,
                    apg: acc.apg+p.apg, spg: acc.spg+p.spg, bpg: acc.bpg+p.bpg }),
     { ppg:0, rpg:0, apg:0, spg:0, bpg:0 }
   );
 
-  // League-average 5-man starting lineup baselines
-  const BASELINE = { ppg:95, rpg:42, apg:22, spg:7.5, bpg:5 };
+  const sTotals = sumStats(starters);
+  const bTotals = sumStats(bench);
 
-  // Per-category normalized ratios (1.0 = average)
-  const ratio = {
-    ppg: totals.ppg / BASELINE.ppg,
-    rpg: totals.rpg / BASELINE.rpg,
-    apg: totals.apg / BASELINE.apg,
-    spg: totals.spg / BASELINE.spg,
-    bpg: totals.bpg / BASELINE.bpg,
+  // Baselines: average 5-man starting unit vs. average 3-man bench unit
+  const STARTER_BASE = { ppg:95,  rpg:42,   apg:22,  spg:7.5, bpg:5   };
+  const BENCH_BASE   = { ppg:57,  rpg:25,   apg:13,  spg:4.5, bpg:3   };
+
+  const sRatio = {
+    ppg: sTotals.ppg / STARTER_BASE.ppg,
+    rpg: sTotals.rpg / STARTER_BASE.rpg,
+    apg: sTotals.apg / STARTER_BASE.apg,
+    spg: sTotals.spg / STARTER_BASE.spg,
+    bpg: sTotals.bpg / STARTER_BASE.bpg,
+  };
+  const bRatio = {
+    ppg: bTotals.ppg / BENCH_BASE.ppg,
+    rpg: bTotals.rpg / BENCH_BASE.rpg,
+    apg: bTotals.apg / BENCH_BASE.apg,
+    spg: bTotals.spg / BENCH_BASE.spg,
+    bpg: bTotals.bpg / BENCH_BASE.bpg,
   };
 
-  // Weighted strength: offense matters most, defense meaningful
+  // Combined ratio: starters 78%, bench 22%
+  const SW = 0.78, BW = 0.22;
+  const ratio = {
+    ppg: sRatio.ppg * SW + bRatio.ppg * BW,
+    rpg: sRatio.rpg * SW + bRatio.rpg * BW,
+    apg: sRatio.apg * SW + bRatio.apg * BW,
+    spg: sRatio.spg * SW + bRatio.spg * BW,
+    bpg: sRatio.bpg * SW + bRatio.bpg * BW,
+  };
+
   const strength =
     ratio.ppg * 0.35 +
     ratio.rpg * 0.20 +
@@ -528,53 +557,36 @@ function simulateSeason(roster) {
     ratio.spg * 0.15 +
     ratio.bpg * 0.10;
 
-  // Balance penalty: a team lacking any one category can't sustain an 82-0.
-  // Each category below 0.80 reduces overall strength.
-  const minRatio = Math.min(...Object.values(ratio));
-  const balancePenalty = minRatio < 0.80 ? (0.80 - minRatio) * 0.6 : 0;
+  // Balance penalty driven by starters (they must be well-rounded for 82-0)
+  const minStarterRatio = Math.min(...Object.values(sRatio));
+  const balancePenalty = minStarterRatio < 0.80 ? (0.80 - minStarterRatio) * 0.6 : 0;
   const adjustedStrength = Math.max(0, strength - balancePenalty);
 
-  // Sigmoid curve: maps strength → win probability per game.
-  //   strength ≈ 1.00 → winPct ≈ 50% → ~41 wins
-  //   strength ≈ 1.35 → winPct ≈ 90% → ~74 wins
-  //   strength ≈ 1.55 → winPct ≈ 98% → ~80 wins
-  //   strength ≈ 1.70 → winPct ≈ 99.5% → ~82 wins (possible but requires god squad)
-  const k = 14;
-  const midpoint = 1.12;
-  const winPct = 1 / (1 + Math.exp(-k * (adjustedStrength - midpoint)));
+  const winPct = 1 / (1 + Math.exp(-14 * (adjustedStrength - 1.12)));
 
-  // Simulate 82 independent games
   let wins = 0;
   for (let i = 0; i < 82; i++) {
     if (Math.random() < winPct) wins++;
   }
   wins = Math.max(0, Math.min(82, wins));
 
-  return {
-    wins,
-    losses: 82 - wins,
-    winPct:  +(winPct * 100).toFixed(1),
-    strength: +adjustedStrength.toFixed(2),
-    totals,
-    ratio,
+  const totals = {
+    ppg: sTotals.ppg + bTotals.ppg,
+    rpg: sTotals.rpg + bTotals.rpg,
+    apg: sTotals.apg + bTotals.apg,
+    spg: sTotals.spg + bTotals.spg,
+    bpg: sTotals.bpg + bTotals.bpg,
   };
+
+  return { wins, losses: 82-wins, winPct: +(winPct*100).toFixed(1), strength: +adjustedStrength.toFixed(2), totals, ratio, sTotals, bTotals };
 }
 
 // =============================================================================
 // GAME STATE
 // =============================================================================
 let S = {
-  phase:     'drafting',    // 'drafting' | 'results'
-  round:     0,             // 0-indexed current draft round
-  usedDecades: [],          // decades already locked in
-  teamSkips:   1,
-  decadeSkips: 1,
-  spinState: 'idle',        // 'idle' | 'spinning' | 'done'
-  currentSpin: null,        // { team, decade }
-  availablePlayers: [],
-  selectedPlayer:   null,
-  roster: { PG:null, SG:null, SF:null, PF:null, C:null },
-  result: null,
+  phase:       'era-select', // 'era-select' | 'drafting' | 'results'
+  selectedEra: null,
 };
 
 // =============================================================================
@@ -587,7 +599,9 @@ function getPlayers(team, decade) {
 }
 
 function availableDecades() {
-  return DECADES.filter(d => !S.usedDecades.includes(d));
+  if (S.selectedEra && S.selectedEra !== 'all') return [S.selectedEra];
+  const remaining = DECADES.filter(d => !S.usedDecades.includes(d));
+  return remaining.length > 0 ? remaining : DECADES.slice();
 }
 
 function spinResult(fixedTeam=null, fixedDecade=null) {
@@ -606,7 +620,7 @@ function spinResult(fixedTeam=null, fixedDecade=null) {
 }
 
 function rosterFull() {
-  return POSITIONS.every(p => S.roster[p] !== null);
+  return ALL_POSITIONS.every(p => S.roster[p] !== null);
 }
 
 // =============================================================================
@@ -614,8 +628,9 @@ function rosterFull() {
 // =============================================================================
 const $app = document.getElementById('app');
 function render() {
-  if      (S.phase === 'drafting') $app.innerHTML = renderDrafting();
-  else if (S.phase === 'results')  $app.innerHTML = renderResults();
+  if      (S.phase === 'era-select') $app.innerHTML = renderEraSelect();
+  else if (S.phase === 'drafting')   $app.innerHTML = renderDrafting();
+  else if (S.phase === 'results')    $app.innerHTML = renderResults();
   bindEvents();
 }
 
@@ -645,7 +660,7 @@ function renderHeader(showRestart=false) {
         <span class="text-foreground">82-0</span>
       </div>
       <div class="flex items-center gap-2">
-        <span class="text-xs px-2.5 py-1 rounded-full font-semibold bg-card2 text-muted-fg border border-border">Classic Mode</span>
+        <span class="text-xs px-2.5 py-1 rounded-full font-semibold bg-card2 text-muted-fg border border-border">${S.selectedEra && S.selectedEra !== 'all' ? 'Classic · ' + S.selectedEra : 'Classic Mode'}</span>
         ${showRestart ? `<button data-action="restart" class="text-xs px-3 py-1.5 rounded-full border border-border text-muted-fg hover:text-foreground hover:border-primary/60 transition-all cursor-pointer">Restart</button>` : ''}
       </div>
     </div>
@@ -658,6 +673,50 @@ function renderFooter() {
   <footer class="w-full py-3 text-center border-t border-border mt-auto">
     <p class="text-xs text-muted-fg/60">82-0.com is an independent fan project — not affiliated with the NBA.</p>
   </footer>`;
+}
+
+// ─── ERA SELECTION SCREEN ────────────────────────────────────────────────────
+function renderEraSelect() {
+  return `
+  <div class="flex flex-col min-h-screen main-gradient">
+    ${renderHeader(false)}
+    <main class="flex-1 flex flex-col items-center px-4 pt-4 pb-8">
+      <div class="w-full max-w-2xl flex flex-col gap-4 animate-fade-up">
+
+        <!-- Title -->
+        <div class="text-center py-4">
+          <p class="text-xs font-bold uppercase tracking-widest text-primary mb-2">Draft Setup</p>
+          <h1 class="text-2xl font-black text-foreground mb-2">Choose Your Era</h1>
+          <p class="text-sm text-muted-fg">Pick a decade — your 8 draft picks will come from that era's player pool. Or let fate decide.</p>
+        </div>
+
+        <!-- All Eras (featured) -->
+        <button data-action="era-all" class="era-card w-full rounded-2xl border p-5 text-left cursor-pointer"
+          style="background:#f9731610;border-color:#f9731650">
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex-1 min-w-0">
+              <p class="text-[10px] font-bold uppercase tracking-widest text-primary mb-1">Recommended</p>
+              <p class="font-black text-xl text-foreground mb-1">All Eras</p>
+              <p class="text-sm text-muted-fg">Random decade each spin — full 7-era gauntlet across every NBA generation</p>
+            </div>
+            <div class="flex-shrink-0 mt-1">${iconBall('h-8 w-8 text-primary/60')}</div>
+          </div>
+        </button>
+
+        <!-- Decade grid -->
+        <div class="grid grid-cols-2 gap-3">
+          ${DECADES.map(d => `
+            <button data-action="era-${d}" class="era-card rounded-xl border border-border bg-card p-4 text-left cursor-pointer hover:border-primary/50 hover:bg-card2">
+              <p class="font-black text-lg text-foreground mb-1">${d}</p>
+              <p class="text-xs text-muted-fg">${ERA_DESC[d]}</p>
+            </button>
+          `).join('')}
+        </div>
+
+      </div>
+    </main>
+    ${renderFooter()}
+  </div>`;
 }
 
 // ─── DRAFTING SCREEN ─────────────────────────────────────────────────────────
@@ -678,17 +737,23 @@ function renderDrafting() {
 }
 
 function renderRoundBar() {
-  const filled = POSITIONS.filter(p => S.roster[p]).length;
+  const filled = ALL_POSITIONS.filter(p => S.roster[p]).length;
+  const startersFilled = POSITIONS.filter(p => S.roster[p]).length;
+  const benchFilled = BENCH_POSITIONS.filter(p => S.roster[p]).length;
+  const roleLabel = S.round < 5 ? `Filling starter · ${startersFilled}/5` : `Filling bench · ${benchFilled}/3`;
   return `
   <div class="flex items-center justify-between">
     <div>
       <p class="text-sm font-bold text-foreground">Round ${S.round + 1} <span class="text-muted-fg font-normal">/ ${TOTAL_ROUNDS}</span></p>
-      <p class="text-xs text-muted-fg mt-0.5">${filled} / 5 roster spots filled</p>
+      <p class="text-xs text-muted-fg mt-0.5">${filled} / 8 roster spots filled &nbsp;·&nbsp; ${roleLabel}</p>
     </div>
-    <div class="flex gap-1.5 items-center">
-      ${Array.from({length:TOTAL_ROUNDS}, (_,i) => `
-        <div class="rounded-full transition-all" style="width:8px;height:8px;background:${i < S.round ? '#f97316' : i === S.round ? '#f97316' : '#27272a'};opacity:${i <= S.round ? 1 : 0.5}"></div>
-      `).join('')}
+    <div class="flex gap-1 items-center">
+      ${Array.from({length:TOTAL_ROUNDS}, (_,i) => {
+        const isStarter = i < 5;
+        const filled2 = i < S.round;
+        const active = i === S.round;
+        return `<div class="rounded-full transition-all" style="width:7px;height:7px;background:${filled2||active ? (isStarter?'#f97316':'#a1a1aa') : '#27272a'};opacity:${filled2||active ? 1 : 0.4}"></div>`;
+      }).join('')}
     </div>
   </div>`;
 }
@@ -705,7 +770,7 @@ function renderSlotMachine() {
       <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Draft Slot — Round ${S.round + 1}</p>
       <div class="ml-auto flex gap-2">
         ${isDone && S.teamSkips > 0   ? `<button data-action="skip-team"   class="text-xs px-2.5 py-1 rounded-full border border-border text-muted-fg hover:text-foreground hover:border-primary/60 transition-all cursor-pointer">Skip Team (${S.teamSkips})</button>` : ''}
-        ${isDone && S.decadeSkips > 0 ? `<button data-action="skip-decade" class="text-xs px-2.5 py-1 rounded-full border border-border text-muted-fg hover:text-foreground hover:border-primary/60 transition-all cursor-pointer">Skip Era (${S.decadeSkips})</button>` : ''}
+        ${isDone && S.decadeSkips > 0 && S.selectedEra === 'all' ? `<button data-action="skip-decade" class="text-xs px-2.5 py-1 rounded-full border border-border text-muted-fg hover:text-foreground hover:border-primary/60 transition-all cursor-pointer">Skip Era (${S.decadeSkips})</button>` : ''}
       </div>
     </div>
 
@@ -795,29 +860,39 @@ function renderPlayerCard(p) {
 // ─── ROSTER ───────────────────────────────────────────────────────────────────
 function renderRoster() {
   const hasSelected = !!S.selectedPlayer;
-  const filledCount = POSITIONS.filter(p => S.roster[p]).length;
+  const filledCount = ALL_POSITIONS.filter(p => S.roster[p]).length;
   return `
   <div>
-    <div class="flex items-center justify-between mb-3">
-      <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Your Roster <span class="text-primary">${filledCount}/5</span></p>
-      ${hasSelected ? `<p class="text-xs text-primary animate-fade-up font-medium">Tap a position to place ${S.selectedPlayer.name}</p>` : ''}
+    <div class="flex items-center justify-between mb-2">
+      <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Your Roster <span class="text-primary">${filledCount}/8</span></p>
+      ${hasSelected ? `<p class="text-xs text-primary animate-fade-up font-medium">Tap a slot to place ${S.selectedPlayer.name}</p>` : ''}
     </div>
-    <div class="grid grid-cols-5 gap-2">
-      ${POSITIONS.map(pos => renderRosterSlot(pos, hasSelected)).join('')}
+
+    <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg/50 mb-1.5">Starters</p>
+    <div class="grid grid-cols-5 gap-2 mb-3">
+      ${POSITIONS.map(pos => renderRosterSlot(pos, hasSelected, false)).join('')}
+    </div>
+
+    <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg/50 mb-1.5">Bench</p>
+    <div class="grid grid-cols-3 gap-2">
+      ${BENCH_POSITIONS.map(pos => renderRosterSlot(pos, hasSelected, true)).join('')}
     </div>
   </div>`;
 }
 
-function renderRosterSlot(pos, canPlace) {
-  const p   = S.roster[pos];
+function renderRosterSlot(pos, canPlace, isBench) {
+  const p       = S.roster[pos];
   const canDrop = canPlace && !p;
   const canSwap = canPlace && !!p;
+  const label   = isBench ? 'BN' : pos;
+  const filledBorder = isBench ? '#3f3f46' : '#f97316';
+  const filledLabelColor = isBench ? '#a1a1aa' : '#f97316';
 
   if (p) {
     return `
     <div data-action="swap-${pos}" class="rounded-xl border p-2 flex flex-col items-center gap-1 text-center transition-all ${canSwap ? 'cursor-pointer hover:border-yellow-500/70' : ''}"
-      style="background:#18181b;border-color:#f97316;" title="${canSwap ? 'Click to replace' : p.name}">
-      <span class="text-[10px] font-black uppercase text-primary">${pos}</span>
+      style="background:#18181b;border-color:${filledBorder};" title="${canSwap ? 'Click to replace' : p.name}">
+      <span class="text-[10px] font-black uppercase" style="color:${filledLabelColor}">${label}</span>
       <span class="text-xs font-semibold text-foreground leading-tight">${p.name.split(' ').pop()}</span>
       <span class="text-[10px] text-muted-fg">${p.ppg}pt</span>
     </div>`;
@@ -826,7 +901,7 @@ function renderRosterSlot(pos, canPlace) {
   return `
   <div data-action="${canDrop ? 'place-'+pos : ''}" class="rounded-xl border-2 border-dashed p-2 flex flex-col items-center gap-1 text-center transition-all ${canDrop ? 'slot-empty droppable' : ''}"
     style="background:${canDrop?'#f9731608':'#18181b'};border-color:${canDrop?'#f9731688':'#27272a'}">
-    <span class="text-[10px] font-black uppercase" style="color:${canDrop?'#f97316':'#3f3f46'}">${pos}</span>
+    <span class="text-[10px] font-black uppercase" style="color:${canDrop?'#f97316':'#3f3f46'}">${label}</span>
     <span class="text-xs" style="color:${canDrop?'#a1a1aa':'#3f3f46'}">${canDrop ? 'Place' : 'Empty'}</span>
   </div>`;
 }
@@ -837,7 +912,7 @@ function renderSimulateCard() {
   <div class="rounded-2xl border border-primary/50 bg-card p-5 text-center animate-scale-in" style="box-shadow:0 0 30px rgba(249,115,22,0.12)">
     <div class="flex justify-center mb-3">${iconBall('h-10 w-10 text-primary')}</div>
     <p class="font-black text-lg text-foreground mb-1">Roster Complete!</p>
-    <p class="text-sm text-muted-fg mb-5">All 5 positions are locked in. Time to find out.</p>
+    <p class="text-sm text-muted-fg mb-5">All 8 spots locked in — starters and bench. Time to find out.</p>
     <button data-action="simulate" class="w-full py-3.5 rounded-xl font-black text-sm uppercase tracking-widest bg-primary text-white hover:bg-primary/90 transition-all cursor-pointer animate-pulse-glow">
       Simulate 82 Games →
     </button>
@@ -859,8 +934,8 @@ function renderResults() {
   else if (isPlayoff)  { label='Playoff Contender';      labelColor='#3b82f6'; emoji='✅'; }
   else                 { label='Back to the Draft';       labelColor='#ef4444'; emoji='💀'; }
 
-  // Stat bar helper: max possible ≈ 200 for ppg, 80 for reb, etc.
-  const maxes = { ppg:180, rpg:80, apg:50, spg:15, bpg:12 };
+  // Stat bar maxes scaled for 8-player totals
+  const maxes = { ppg:280, rpg:120, apg:75, spg:22, bpg:18 };
   const statBar = (key, label, val) => {
     const pct = Math.min(100, (val / maxes[key]) * 100);
     const color = pct >= 70 ? '#f97316' : pct >= 45 ? '#eab308' : '#3b82f6';
@@ -878,7 +953,7 @@ function renderResults() {
 
   return `
   <div class="flex flex-col min-h-screen main-gradient">
-    ${renderHeader(false, false)}
+    ${renderHeader(false)}
     <main class="flex-1 flex flex-col items-center px-4 py-6">
       <div class="w-full max-w-2xl flex flex-col gap-4 animate-fade-up">
 
@@ -909,15 +984,37 @@ function renderResults() {
 
         <!-- Lineup -->
         <div class="rounded-2xl border border-border bg-card p-4">
-          <p class="text-xs font-bold uppercase tracking-widest text-muted-fg mb-3">Starting Lineup</p>
-          <div class="flex flex-col divide-y" style="divide-color:#27272a">
+          <p class="text-xs font-bold uppercase tracking-widest text-muted-fg mb-3">Final Roster</p>
+
+          <p class="text-[10px] font-bold uppercase tracking-wider text-primary mb-1.5">Starters</p>
+          <div class="flex flex-col divide-y mb-4" style="divide-color:#27272a">
             ${POSITIONS.map(pos => {
               const p = S.roster[pos];
               if (!p) return '';
-              const tc = TEAM_COLORS[p.team] || {};
               return `
               <div class="flex items-center gap-3 py-2.5">
                 <span class="text-xs font-black w-8 flex-shrink-0 text-primary">${pos}</span>
+                <div class="flex-1 min-w-0">
+                  <p class="font-semibold text-sm text-foreground truncate">${p.name}</p>
+                  <p class="text-xs text-muted-fg">${p.team || ''} ${p.decade || ''}</p>
+                </div>
+                <div class="flex gap-3 text-xs text-muted-fg flex-shrink-0">
+                  <span><span class="font-semibold text-foreground/80">${p.ppg}</span> PPG</span>
+                  <span><span class="font-semibold text-foreground/80">${p.rpg}</span> RPG</span>
+                  <span class="hidden sm:inline"><span class="font-semibold text-foreground/80">${p.apg}</span> APG</span>
+                </div>
+              </div>`;
+            }).join('')}
+          </div>
+
+          <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg mb-1.5">Bench</p>
+          <div class="flex flex-col divide-y" style="divide-color:#27272a">
+            ${BENCH_POSITIONS.map(pos => {
+              const p = S.roster[pos];
+              if (!p) return '';
+              return `
+              <div class="flex items-center gap-3 py-2.5">
+                <span class="text-xs font-black w-8 flex-shrink-0 text-muted-fg">${p.pos}</span>
                 <div class="flex-1 min-w-0">
                   <p class="font-semibold text-sm text-foreground truncate">${p.name}</p>
                   <p class="text-xs text-muted-fg">${p.team || ''} ${p.decade || ''}</p>
@@ -963,8 +1060,11 @@ function handleClick(e) {
 }
 
 function dispatch(action) {
-  // Restart
-  if (action === 'restart') { confirmLeave(() => startGame('classic')); return; }
+  // Era selection
+  if (action.startsWith('era-')) { startGame(action.slice(4)); return; }
+
+  // Restart → back to era selection
+  if (action === 'restart') { confirmLeave(() => { S.phase = 'era-select'; render(); }); return; }
 
   // Spin
   if (action === 'spin')         { doSpin(); return; }
@@ -1004,21 +1104,22 @@ function dispatch(action) {
 // ACTIONS
 // =============================================================================
 function confirmLeave(fn) {
-  if (S.phase === 'results') { fn(); return; }
+  if (S.phase === 'era-select' || S.phase === 'results') { fn(); return; }
   if (confirm('Leave this game? Your progress will be lost.')) fn();
   else render();
 }
 
-function startGame() {
+function startGame(era = 'all') {
   S = {
     phase: 'drafting',
+    selectedEra: era,
     round: 0, usedDecades: [],
     teamSkips: 1, decadeSkips: 1,
     spinState: 'idle',
     currentSpin: null,
     availablePlayers: [],
     selectedPlayer:   null,
-    roster: { PG:null, SG:null, SF:null, PF:null, C:null },
+    roster: { PG:null, SG:null, SF:null, PF:null, C:null, B1:null, B2:null, B3:null },
     result: null,
   };
   render();
@@ -1064,6 +1165,7 @@ function doSkipTeam() {
 }
 
 function doSkipDecade() {
+  if (S.selectedEra !== 'all') { render(); return; }
   if (S.decadeSkips <= 0 || !S.currentSpin) { render(); return; }
   S.decadeSkips--;
   const pool = availableDecades().filter(d => d !== S.currentSpin.decade);
@@ -1094,8 +1196,9 @@ function placePlayer(pos) {
 }
 
 function doSimulate() {
-  const roster = POSITIONS.map(p => S.roster[p]).filter(Boolean);
-  S.result = simulateSeason(roster);
+  const starters = POSITIONS.map(p => S.roster[p]).filter(Boolean);
+  const bench    = BENCH_POSITIONS.map(p => S.roster[p]).filter(Boolean);
+  S.result = simulateSeason(starters, bench);
   S.phase = 'results';
   render();
 }
@@ -1103,8 +1206,9 @@ function doSimulate() {
 function doShare() {
   const r = S.result;
   if (!r) return;
-  const lineup = POSITIONS.map(p => S.roster[p]?.name || '—').join(', ');
-  const text   = `I went ${r.wins}-${r.losses} in 82-0! 🏀\nMy squad: ${lineup}\nCan you beat it? https://82-0.com`;
+  const starters = POSITIONS.map(p => S.roster[p]?.name || '—').join(', ');
+  const bench    = BENCH_POSITIONS.map(p => S.roster[p]?.name || '—').join(', ');
+  const text = `I went ${r.wins}-${r.losses} in 82-0! 🏀\nStarters: ${starters}\nBench: ${bench}\nCan you beat it? https://82-0.com`;
   if (navigator.share) {
     navigator.share({ title:'82-0', text }).catch(()=>{});
   } else {
@@ -1119,7 +1223,7 @@ function doShare() {
 // =============================================================================
 // BOOT
 // =============================================================================
-startGame();
+render();
 </script>
 </body>
 </html>
