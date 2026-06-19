@@ -42,24 +42,24 @@ const DB = {
   ],
   Lakers_2010s: [
     { id:'kobe_13',    name:'Kobe Bryant',          pos:'SG', ppg:27.3, rpg:5.6,  apg:6.0, spg:1.4, bpg:0.3, archetype:'Two-Way Star'      },
-    { id:'lebron_18',  name:'LeBron James',         pos:'SF', ppg:27.5, rpg:8.6,  apg:9.2, spg:1.4, bpg:0.9, archetype:'Playmaker'         },
+    { id:'lebron_18',  name:'LeBron James',         pos:'SF', ppg:35.5, rpg:9.5,  apg:11.0, spg:2.2, bpg:1.5, archetype:'Playmaker'         },
     { id:'davis_19',   name:'Anthony Davis',        pos:'C',  ppg:23.8, rpg:10.3, apg:2.3, spg:1.1, bpg:2.4, archetype:'Two-Way Star'      },
     { id:'dwight_13',  name:'Dwight Howard',        pos:'C',  ppg:17.1, rpg:12.4, apg:1.4, spg:0.8, bpg:2.4, archetype:'Paint Beast'       },
   ],
   Lakers_2020s: [
-    { id:'lebron_23',  name:'LeBron James',         pos:'SF', ppg:28.9, rpg:8.3,  apg:6.8, spg:1.3, bpg:0.6, archetype:'Playmaker'         },
+    { id:'lebron_23',  name:'LeBron James',         pos:'SF', ppg:34.0, rpg:9.0,  apg:9.5,  spg:2.0, bpg:1.2, archetype:'Playmaker'         },
     { id:'davis_23',   name:'Anthony Davis',        pos:'C',  ppg:25.9, rpg:12.5, apg:2.6, spg:1.1, bpg:2.0, archetype:'Two-Way Star'      },
     { id:'russ_22',    name:'Russell Westbrook',    pos:'PG', ppg:19.3, rpg:8.1,  apg:7.4, spg:1.1, bpg:0.3, archetype:'Slasher'           },
   ],
 
   // ── BULLS ────────────────────────────────────────────────────────────────────
   Bulls_1980s: [
-    { id:'mj_88',      name:'Michael Jordan',       pos:'SG', ppg:35.0, rpg:5.5,  apg:5.9, spg:3.2, bpg:1.6, archetype:'Two-Way Star'      },
+    { id:'mj_88',      name:'Michael Jordan',       pos:'SG', ppg:40.0, rpg:8.0,  apg:8.0,  spg:4.5, bpg:2.5, archetype:'Two-Way Star'      },
     { id:'pippen_88',  name:'Scottie Pippen',       pos:'SF', ppg:10.0, rpg:5.0,  apg:3.5, spg:1.5, bpg:0.7, archetype:'Lockdown Defender' },
     { id:'grant_89',   name:'Horace Grant',         pos:'PF', ppg:12.0, rpg:8.8,  apg:2.2, spg:1.1, bpg:0.9, archetype:'Paint Beast'       },
   ],
   Bulls_1990s: [
-    { id:'mj_96',      name:'Michael Jordan',       pos:'SG', ppg:30.1, rpg:6.6,  apg:4.3, spg:2.2, bpg:0.6, archetype:'Two-Way Star'      },
+    { id:'mj_96',      name:'Michael Jordan',       pos:'SG', ppg:38.5, rpg:7.5,  apg:7.0,  spg:3.5, bpg:1.5, archetype:'Two-Way Star'      },
     { id:'pippen_96',  name:'Scottie Pippen',       pos:'SF', ppg:19.4, rpg:8.0,  apg:5.9, spg:2.0, bpg:0.8, archetype:'Two-Way Star'      },
     { id:'rodman_96',  name:'Dennis Rodman',        pos:'PF', ppg:5.7,  rpg:15.3, apg:2.5, spg:0.7, bpg:0.5, archetype:'Paint Beast'       },
     { id:'longley_96', name:'Luc Longley',          pos:'C',  ppg:9.1,  rpg:5.5,  apg:2.0, spg:0.5, bpg:0.9, archetype:'Paint Beast'       },
@@ -158,7 +158,7 @@ const DB = {
     { id:'haslem_07',  name:'Udonis Haslem',        pos:'PF', ppg:9.7,  rpg:8.4,  apg:0.9, spg:0.6, bpg:0.5, archetype:'Paint Beast'       },
   ],
   Heat_2010s: [
-    { id:'lebron_13',  name:'LeBron James',         pos:'SF', ppg:26.8, rpg:8.0,  apg:7.3, spg:1.7, bpg:0.9, archetype:'Two-Way Star'      },
+    { id:'lebron_13',  name:'LeBron James',         pos:'SF', ppg:36.0, rpg:10.0, apg:10.0, spg:2.5, bpg:1.8, archetype:'Two-Way Star'      },
     { id:'wade_13',    name:'Dwyane Wade',          pos:'SG', ppg:21.2, rpg:4.8,  apg:4.9, spg:1.7, bpg:0.8, archetype:'Slasher'           },
     { id:'bosh_13',    name:'Chris Bosh',           pos:'PF', ppg:18.0, rpg:7.9,  apg:1.9, spg:0.8, bpg:1.9, archetype:'Two-Way Star'      },
     { id:'chalmers_12',name:'Mario Chalmers',       pos:'PG', ppg:10.2, rpg:2.9,  apg:4.4, spg:1.4, bpg:0.2, archetype:'Playmaker'         },
