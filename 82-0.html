@@ -616,6 +616,32 @@ function calculateChemistry(starters, bench) {
     chemReport.push(`🟢 Second Unit General: ${benchPlaymaker.name} runs the offense off the bench (+4%)`);
   }
 
+  // Three-and-D Paradigm — 2+ Sharpshooters AND 2+ Lockdown Defenders on roster
+  if (aSharpCount >= 2 && aLockdownCount >= 2) {
+    chemBonus += 0.06;
+    chemReport.push('🟢 Three-and-D Paradigm: Multiple shooters and defenders create the modern ideal (+6%)');
+  }
+
+  // Era Monolith — 4+ players sharing the exact same decade
+  const decadeCounts = {};
+  for (const p of allPlayers) {
+    if (p.decade) decadeCounts[p.decade] = (decadeCounts[p.decade] || 0) + 1;
+  }
+  const monolithDecade = Object.keys(decadeCounts).find(d => decadeCounts[d] >= 4);
+  if (monolithDecade) {
+    chemBonus += 0.05;
+    chemReport.push(`🟢 Era Monolith: ${decadeCounts[monolithDecade]} ${monolithDecade} legends dominate the roster (+5%)`);
+  }
+
+  // Perimeter Clamps — starting PG + SG combined SPG ≥ 3.6
+  const startingPG   = starters.find(p => p.pos === 'PG');
+  const startingSG   = starters.find(p => p.pos === 'SG');
+  const perimClampSpg = (startingPG?.spg || 0) + (startingSG?.spg || 0);
+  if (perimClampSpg >= 3.6) {
+    chemBonus += 0.05;
+    chemReport.push(`🟢 Perimeter Clamps: Backcourt combines for ${perimClampSpg.toFixed(1)} SPG — thieves at the top (+5%)`);
+  }
+
   // ── PENALTIES ───────────────────────────────────────────────────────────────
 
   // No Spacing — 1.5× penalty if all violators are in the Starting 5
@@ -715,8 +741,6 @@ function calculateChemistry(starters, bench) {
   }
 
   // Turnstile Guards — starting PG and SG both average < 1.1 SPG
-  const startingPG = starters.find(p => p.pos === 'PG');
-  const startingSG = starters.find(p => p.pos === 'SG');
   if (startingPG && startingSG && startingPG.spg < 1.1 && startingSG.spg < 1.1) {
     chemBonus -= 0.05;
     chemReport.push('🔴 Turnstile Guards: Both guards lack perimeter defensive pressure (-5%)');
@@ -728,9 +752,28 @@ function calculateChemistry(starters, bench) {
     chemReport.push(`🔴 Old School Fatigue: ${oldEraCount} classic-era players struggle with modern pacing (-6%)`);
   }
 
-  // Map to 0–100 score — divisor at 1.50 for 27-rule range
-  // (a solid team at ~+0.40 → ~63%; only elite rosters approach 100%)
-  const chemScore = Math.round(Math.max(0, Math.min(100, 50 + (chemBonus / 1.50) * 50)));
+  // No Paint Protection — starting PF + C combined BPG < 1.5
+  if (startingPF && startingC && paintPatrolBpg < 1.5) {
+    chemBonus -= 0.07;
+    chemReport.push(`🔴 No Paint Protection: Frontcourt combines for only ${paintPatrolBpg.toFixed(1)} BPG — rim is wide open (-7%)`);
+  }
+
+  // Combo Guard Crisis — starting PG averages > 22.0 PPG but < 4.5 APG
+  if (startingPG && startingPG.ppg > 22.0 && startingPG.apg < 4.5) {
+    chemBonus -= 0.06;
+    chemReport.push(`🔴 Combo Guard Crisis: ${startingPG.name} scores but won't pass (-6%)`);
+  }
+
+  // Barren Bench — combined bench PPG < 32.0
+  const benchTotalPpg = bench.reduce((sum, p) => sum + p.ppg, 0);
+  if (benchTotalPpg < 32.0) {
+    chemBonus -= 0.06;
+    chemReport.push(`🔴 Barren Bench: Bench combines for only ${benchTotalPpg.toFixed(1)} PPG — starters can't rest (-6%)`);
+  }
+
+  // Map to 0–100 score — divisor at 1.85 for 33-rule range
+  // (a solid team at ~+0.46 → ~62%; only elite rosters approach 100%)
+  const chemScore = Math.round(Math.max(0, Math.min(100, 50 + (chemBonus / 1.85) * 50)));
   return { chemBonus, chemScore, chemReport };
 }
 
