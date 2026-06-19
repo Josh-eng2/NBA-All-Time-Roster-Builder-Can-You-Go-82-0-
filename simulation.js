@@ -286,7 +286,7 @@ function simulateSeason(starters, bench) {
   const { chemBonus, chemScore, chemReport } = calculateChemistry(starters, bench);
 
   const adjustedStrength = Math.max(0, strength - balancePenalty + chemBonus);
-  const winPct = 1 / (1 + Math.exp(-14 * (adjustedStrength - 1.12)));
+  const winPct = Math.min(0.965, 1 / (1 + Math.exp(-15 * (adjustedStrength - 1.18))));
 
   let wins = 0;
   for (let i = 0; i < 82; i++) { if (Math.random() < winPct) wins++; }

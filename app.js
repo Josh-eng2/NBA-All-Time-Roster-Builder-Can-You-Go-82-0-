@@ -5,7 +5,8 @@
 // ╚══════════════════════════════════════════════════════════════════════════════╝
 
 const TEAMS   = ['Lakers','Bulls','Warriors','Celtics','Heat','Spurs','Knicks',
-                 'Jazz','Pistons','Magic','Suns','Nuggets','Sixers'];
+                 'Jazz','Pistons','Magic','Suns','Nuggets','Sixers',
+                 'Rockets','Thunder','Bucks','Mavericks','Cavaliers'];
 const DECADES = ['1960s','1970s','1980s','1990s','2000s','2010s','2020s'];
 
 const POSITIONS       = ['PG','SG','SF','PF','C'];
@@ -36,7 +37,12 @@ const TEAM_COLORS = {
   Magic:    { bg:'#0077C0', accent:'#C4CED4' },
   Suns:     { bg:'#1D1160', accent:'#E56020' },
   Nuggets:  { bg:'#0E2240', accent:'#FEC524' },
-  Sixers:   { bg:'#006BB6', accent:'#ED174C' },
+  Sixers:     { bg:'#006BB6', accent:'#ED174C' },
+  Rockets:    { bg:'#CE1141', accent:'#000000' },
+  Thunder:    { bg:'#007AC3', accent:'#FDBB30' },
+  Bucks:      { bg:'#00471B', accent:'#EEE1C6' },
+  Mavericks:  { bg:'#00538C', accent:'#B8C4CA' },
+  Cavaliers:  { bg:'#860038', accent:'#FDBB30' },
 };
 
 const ARCHETYPE_STYLE = {
