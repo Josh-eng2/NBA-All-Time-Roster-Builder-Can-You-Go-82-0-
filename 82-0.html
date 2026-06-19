@@ -84,6 +84,7 @@
     }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
 <body class="dark">
 
@@ -1038,6 +1039,7 @@ function renderHeader(showRestart = false) {
       <div class="flex items-center gap-2">
         ${coachObj ? `<span class="text-xs px-2.5 py-1 rounded-full font-semibold border" style="background:${coachObj.accent}18;color:${coachObj.accent};border-color:${coachObj.accent}44">${coachObj.system}</span>` : ''}
         <span class="text-xs px-2.5 py-1 rounded-full font-semibold bg-card2 text-muted-fg border border-border">${eraLabel}</span>
+        ${S.phase === 'drafting' ? `<span class="text-xs px-2.5 py-1 rounded-full font-semibold border ${S.hasMulligan ? '' : 'opacity-40'}" style="${S.hasMulligan ? 'background:#22c55e12;color:#4ade80;border-color:#22c55e40' : 'background:transparent;color:#71717a;border-color:#27272a'}">🎲 ${S.hasMulligan ? 'Mulligan' : 'Used'}</span>` : ''}
         ${showRestart ? `<button data-action="restart" class="text-xs px-3 py-1.5 rounded-full border border-border text-muted-fg hover:text-foreground hover:border-primary/60 transition-all cursor-pointer">Restart</button>` : ''}
       </div>
     </div>
@@ -1224,6 +1226,15 @@ function renderSlotMachine() {
       </button>
     ` : `
       <p class="text-center text-xs text-muted-fg py-1">Select a player below, then tap a roster slot to place them</p>
+      ${S.hasMulligan ? `
+        <button data-action="use-mulligan"
+          class="mt-2 w-full py-2.5 rounded-xl font-bold text-sm border border-dashed transition-all cursor-pointer"
+          style="border-color:#22c55e50;background:#22c55e0a;color:#4ade80"
+          onmouseenter="this.style.borderColor='#22c55e90';this.style.background='#22c55e18'"
+          onmouseleave="this.style.borderColor='#22c55e50';this.style.background='#22c55e0a'">
+          🎲 Use Mulligan <span style="color:#71717a;font-weight:normal;font-size:0.75rem">(1 Remaining)</span>
+        </button>
+      ` : ''}
     `}
   </div>`;
 }
@@ -1548,6 +1559,7 @@ function dispatch(action) {
   if (action === 'draft-new-roster')   { S.phase='coach-select'; S.coach=null; render(); return; }
   if (action === 'view-trophies')      { S.phase = 'trophy-room'; render(); return; }
   if (action === 'back-to-menu')       { S.phase = 'coach-select'; render(); return; }
+  if (action === 'use-mulligan')       { if (!S.hasMulligan) return; S.hasMulligan = false; S.spinState = 'idle'; S.selectedPlayer = null; S.currentSpin = null; doSpin(); return; }
 
   if (action.startsWith('pick-')) {
     const id = action.slice(5);
@@ -1586,6 +1598,7 @@ function startGame(era = 'all') {
     usedPlayerIds: [],
     teamSkips:   1,
     decadeSkips: 1,
+    hasMulligan: true,
     spinState:   'idle',
     currentSpin: null,
     availablePlayers: [],
@@ -1949,6 +1962,11 @@ function renderChampionship() {
   if (!po.hasSavedTrophy) {
     po.hasSavedTrophy = true;
     saveToTrophyRoom();
+    setTimeout(() => {
+      if (typeof confetti !== 'undefined') {
+        confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#f97316', '#eab308', '#ffffff'] });
+      }
+    }, 200);
   }
 
   const finalsResult = po.rounds[po.rounds.length - 1].find(
