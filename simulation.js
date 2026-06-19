@@ -308,3 +308,15 @@ function simulateSeason(starters, bench) {
     chemScore, chemReport,
   };
 }
+
+function simulateSeries(playerStrength, opponentStrength) {
+  const pWin = 1 / (1 + Math.exp(-14 * (playerStrength - opponentStrength)));
+  let playerWins = 0, oppWins = 0;
+  const games = [];
+  while (playerWins < 4 && oppWins < 4) {
+    const won = Math.random() < pWin;
+    if (won) playerWins++; else oppWins++;
+    games.push(won ? 'W' : 'L');
+  }
+  return { playerWins, oppWins, games, won: playerWins === 4 };
+}
