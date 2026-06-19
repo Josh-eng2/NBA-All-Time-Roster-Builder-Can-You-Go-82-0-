@@ -12,12 +12,14 @@ function calculateChemistry(starters, bench) {
   const aA = [...sA, ...bench.map(p => p.archetype || '')];
 
   // Starter-only flags
-  const sHasPlaymaker    = sA.includes('Playmaker');
-  const sHasSharpshooter = sA.includes('Sharpshooter');
-  const sHasPaintBeast   = sA.includes('Paint Beast');
-  const sHasLockdown     = sA.includes('Lockdown Defender');
-  const sSlashPaintCount = sA.filter(a => a === 'Slasher' || a === 'Paint Beast').length;
-  const sDemandCount     = sA.filter(a => a === 'Two-Way Star' || a === 'Playmaker').length;
+  const sHasPlaymaker     = sA.includes('Playmaker');
+  const sHasSharpshooter  = sA.includes('Sharpshooter');
+  const sHasPaintBeast    = sA.includes('Paint Beast');
+  const sHasLockdown      = sA.includes('Lockdown Defender');
+  const sSlashPaintCount  = sA.filter(a => a === 'Slasher' || a === 'Paint Beast').length;
+  const sDemandCount      = sA.filter(a => a === 'Two-Way Star' || a === 'Playmaker').length;
+  const sLockdownCount    = sA.filter(a => a === 'Lockdown Defender').length;
+  const sSlashTwoWayCount = sA.filter(a => a === 'Slasher' || a === 'Two-Way Star').length;
 
   // All-roster flags
   const aHasPlaymaker    = aA.includes('Playmaker');
@@ -26,11 +28,14 @@ function calculateChemistry(starters, bench) {
   const aHasLockdown     = aA.includes('Lockdown Defender');
   const aSharpCount      = aA.filter(a => a === 'Sharpshooter').length;
   const aSlashPaintCount = aA.filter(a => a === 'Slasher' || a === 'Paint Beast').length;
+  const aSlasherCount    = aA.filter(a => a === 'Slasher').length;
 
   let chemBonus = 0;
   const chemReport = [];
 
-  // Synergy 1: Drive & Kick — 1.5× bonus if both are in the Starting 5
+  // ── SYNERGIES ───────────────────────────────────────────────────────────────
+
+  // Drive & Kick — 1.5× bonus if both are in the Starting 5
   if (sHasPlaymaker && sHasSharpshooter) {
     chemBonus += 0.075;
     chemReport.push('🟢 Drive & Kick (Elite ×1.5): Starter Playmaker feeds Starter Shooters (+7.5%)');
@@ -39,7 +44,7 @@ function calculateChemistry(starters, bench) {
     chemReport.push('🟢 Drive & Kick: Playmaker feeds the shooters (+5%)');
   }
 
-  // Synergy 2: Twin Towers — 1.5× bonus if both are in the Starting 5
+  // Twin Towers — 1.5× bonus if both are in the Starting 5
   if (sHasPaintBeast && sHasLockdown) {
     chemBonus += 0.075;
     chemReport.push('🟢 Twin Towers (Elite ×1.5): Interior dominance in the Starting 5 (+7.5%)');
@@ -48,13 +53,13 @@ function calculateChemistry(starters, bench) {
     chemReport.push('🟢 Twin Towers: Interior dominance on both ends (+5%)');
   }
 
-  // Synergy 3: Floor General Boost — Playmaker in Starting 5 + ≥2 Sharpshooters on roster
+  // Floor General Boost — Playmaker in Starting 5 + ≥2 Sharpshooters on roster
   if (sHasPlaymaker && aSharpCount >= 2) {
     chemBonus += 0.06;
     chemReport.push('🟢 Floor General: Starter Playmaker unlocks multiple shooters (+6%)');
   }
 
-  // Synergy 4: Defensive Anchor — elite defender anchoring the Starting 5
+  // Defensive Anchor — elite defender in Starting 5 with spg+bpg ≥ 2.5
   const defAnchor = starters.find(
     p => (p.archetype === 'Lockdown Defender' || p.archetype === 'Paint Beast') &&
          (p.spg + p.bpg) >= 2.5
@@ -64,21 +69,84 @@ function calculateChemistry(starters, bench) {
     chemReport.push(`🟢 Defensive Anchor: ${defAnchor.name} anchors the defense (+6%)`);
   }
 
-  // Penalty 1: No Spacing — 1.5× penalty if violators are all in the Starting 5
+  // Pick & Roll Maestros — 1.5× bonus if both are in the Starting 5
+  if (sHasPlaymaker && sHasPaintBeast) {
+    chemBonus += 0.075;
+    chemReport.push('🟢 Pick & Roll Maestros (Elite ×1.5): Starter Playmaker + Starter Paint Beast own the P&R (+7.5%)');
+  } else if (aHasPlaymaker && aHasPaintBeast) {
+    chemBonus += 0.05;
+    chemReport.push('🟢 Pick & Roll Maestros: Playmaker + Paint Beast create an unstoppable P&R (+5%)');
+  }
+
+  // Perimeter Lockdown — 2+ Lockdown Defenders in Starting 5
+  if (sLockdownCount >= 2) {
+    chemBonus += 0.06;
+    chemReport.push('🟢 Perimeter Lockdown: Multiple elite defenders suffocate the perimeter (+6%)');
+  }
+
+  // Pace & Space Blitz — 1+ Playmaker + 2+ Slashers anywhere on roster
+  if (aHasPlaymaker && aSlasherCount >= 2) {
+    chemBonus += 0.06;
+    chemReport.push('🟢 Pace & Space Blitz: Playmaker + multiple Slashers create a dangerous transition offense (+6%)');
+  }
+
+  // Small Ball Heat — 3+ Sharpshooters on total roster
+  if (aSharpCount >= 3) {
+    chemBonus += 0.05;
+    chemReport.push('🟢 Small Ball Heat: Spacing overload with 3+ shooters on the roster (+5%)');
+  }
+
+  // Sixth Man Spark — any bench player with > 18.0 PPG
+  const sixthMan = bench.find(p => p.ppg > 18.0);
+  if (sixthMan) {
+    chemBonus += 0.04;
+    chemReport.push(`🟢 Sixth Man Spark: ${sixthMan.name} provides elite scoring punch off the bench (+4%)`);
+  }
+
+  // ── PENALTIES ───────────────────────────────────────────────────────────────
+
+  // No Spacing — 1.5× penalty if all violators are in the Starting 5
   if (aSlashPaintCount >= 3 && !aHasSharpshooter) {
     const penalty = sSlashPaintCount >= 3 ? 0.12 : 0.08;
     chemBonus -= penalty;
     chemReport.push(`🔴 No Spacing: Too many paint-cloggers, no shooters (-${Math.round(penalty * 100)}%)`);
   }
 
-  // Penalty 2: Clashing Egos — 3+ ball-dominant archetypes in the Starting 5
+  // Clashing Egos — 3+ ball-dominant archetypes in the Starting 5
   if (sDemandCount >= 3) {
     chemBonus -= 0.07;
     chemReport.push('🔴 Clashing Egos: Too many ball-dominant players in the Starting 5 (-7%)');
   }
 
-  // Map to 0–100 score (50 = neutral, max bonus ≈ +0.285, max penalty ≈ −0.19)
-  const chemScore = Math.round(Math.max(0, Math.min(100, 50 + (chemBonus / 0.30) * 50)));
+  // No Playmaking — zero Playmakers on the entire 8-man roster
+  if (!aHasPlaymaker) {
+    chemBonus -= 0.10;
+    chemReport.push('🔴 No Playmaking: Zero Playmakers on the roster — no one to run the offense (-10%)');
+  }
+
+  // Defensive Liability — 3+ starters with (spg + bpg) < 1.5
+  const defLiabilityCount = starters.filter(p => (p.spg + p.bpg) < 1.5).length;
+  if (defLiabilityCount >= 3) {
+    chemBonus -= 0.07;
+    chemReport.push(`🔴 Defensive Liability: ${defLiabilityCount} starters are defensive liabilities (-7%)`);
+  }
+
+  // Rebounding Crisis — zero Paint Beasts on roster AND starting C averages < 8.0 RPG
+  const startingC = starters.find(p => p.pos === 'C');
+  if (!aHasPaintBeast && (!startingC || startingC.rpg < 8.0)) {
+    chemBonus -= 0.06;
+    chemReport.push('🔴 Rebounding Crisis: No Paint Beasts and weak rebounding at center (-6%)');
+  }
+
+  // Ball Stoppers — 3+ Slashers or Two-Way Stars in the Starting 5
+  if (sSlashTwoWayCount >= 3) {
+    chemBonus -= 0.06;
+    chemReport.push('🔴 Ball Stoppers: Too many isolation-heavy players in the Starting 5 (-6%)');
+  }
+
+  // Map to 0–100 score — divisor widened to 0.55 to scale for expanded bonus/penalty range
+  // (max theoretical bonus ≈ +0.555 → hits 100; a strong team at +0.30 → ~77%)
+  const chemScore = Math.round(Math.max(0, Math.min(100, 50 + (chemBonus / 0.55) * 50)));
   return { chemBonus, chemScore, chemReport };
 }
 
