@@ -875,7 +875,7 @@ function doSimulate() {
   render();
 }
 
-function doShare() {
+function doShareText() {
   const r = S.result;
   if (!r) return;
   const starters = POSITIONS.map(p => S.roster[p]?.name || '—').join(', ');
@@ -889,6 +889,30 @@ function doShare() {
       .then(() => alert('Result copied to clipboard! 🏀'))
       .catch(() => prompt('Copy this:', text));
   }
+}
+
+function doShare() {
+  if (typeof html2canvas === 'undefined') { doShareText(); return; }
+  const target = document.querySelector('main');
+  if (!target) { doShareText(); return; }
+  const btn = document.querySelector('[data-action="share"]');
+  const origText = btn ? btn.textContent.trim() : '';
+  if (btn) { btn.textContent = 'Capturing...'; btn.disabled = true; }
+  html2canvas(target, { backgroundColor: '#09090b', scale: 2, useCORS: true, logging: false })
+    .then(canvas => {
+      const link = document.createElement('a');
+      link.download = 'my-82-0-roster.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      if (btn) {
+        btn.textContent = 'Image Downloaded! ✓';
+        setTimeout(() => { btn.textContent = origText; btn.disabled = false; }, 2000);
+      }
+    })
+    .catch(() => {
+      if (btn) { btn.textContent = origText; btn.disabled = false; }
+      doShareText();
+    });
 }
 
 
@@ -910,6 +934,7 @@ function doAdvanceToPlayoffs() {
     bracket,          // current round matchups
     eliminated: false,
     champion: false,
+    tickState: null,
     roundNames: ['Conference Quarterfinals', 'Conference Semifinals', 'NBA Finals'],
   };
   S.phase = 'playoffs';
@@ -918,42 +943,52 @@ function doAdvanceToPlayoffs() {
 
 function doSimNextRound() {
   const po = S.playoffs;
-  const matchups = po.bracket;
-  const results  = matchups.map(([teamA, teamB]) => {
+  if (po.tickState) return; // guard against double-click during animation
+
+  const results = po.bracket.map(([teamA, teamB]) => {
     const series = simulateSeries(teamA.strength, teamB.strength);
     return { teamA, teamB, ...series };
   });
-  po.rounds.push(results);
 
-  // Find player's series result
   const playerResult = results.find(r => r.teamA.isPlayer || r.teamB.isPlayer);
-  if (playerResult) {
-    const playerWon = (playerResult.teamA.isPlayer && playerResult.won) ||
-                      (playerResult.teamB.isPlayer && !playerResult.won);
-    if (!playerWon) {
-      po.eliminated = true;
-      po.eliminatedIn = po.roundNames[po.currentRound];
-      render(); return;
-    }
-  }
+  const playerWon = playerResult
+    ? (playerResult.teamA.isPlayer ? playerResult.won : !playerResult.won)
+    : true;
 
-  // Advance winners
-  const winners = results.map(r => r.won ? r.teamA : r.teamB);
-
-  po.currentRound++;
-
-  if (po.currentRound === 3) {
-    po.champion = true;
-    render(); return;
-  }
-
-  // Build next round bracket (pair winners: 0v1, 2v3 → then 0v1 in finals)
-  const nextBracket = [];
-  for (let i = 0; i < winners.length; i += 2) {
-    nextBracket.push([winners[i], winners[i + 1]]);
-  }
-  po.bracket = nextBracket;
+  const maxGames = Math.max(...results.map(r => r.games.length));
+  po.tickState = { results, revealedGames: 0, maxGames, done: false, playerWon };
   render();
+
+  const ticker = setInterval(() => {
+    po.tickState.revealedGames++;
+    render();
+    if (po.tickState.revealedGames >= po.tickState.maxGames) {
+      clearInterval(ticker);
+      po.tickState.done = true;
+      render();
+      setTimeout(() => {
+        po.rounds.push(po.tickState.results);
+        const { results: r2, playerWon: pw } = po.tickState;
+        po.tickState = null;
+        if (!pw) {
+          po.eliminated = true;
+          po.eliminatedIn = po.roundNames[po.currentRound];
+        } else {
+          const winners = r2.map(r => r.won ? r.teamA : r.teamB);
+          po.currentRound++;
+          if (po.currentRound === 3) {
+            po.champion = true;
+          } else {
+            po.bracket = [];
+            for (let i = 0; i < winners.length; i += 2) {
+              po.bracket.push([winners[i], winners[i + 1]]);
+            }
+          }
+        }
+        render();
+      }, 800);
+    }
+  }, 400);
 }
 
 
@@ -998,6 +1033,7 @@ function renderPlayoffs() {
   };
 
   let bracketHTML = '';
+  const ts = po.tickState;
 
   // Show completed rounds
   for (let ri = 0; ri < completedRounds.length; ri++) {
@@ -1011,14 +1047,52 @@ function renderPlayoffs() {
       </div>`;
   }
 
-  // Show current round matchups (not yet simulated)
-  bracketHTML += `
-    <div class="mb-4">
-      <p class="text-[10px] font-bold uppercase tracking-widest text-primary mb-2">${roundName} — Up Next</p>
-      <div class="grid grid-cols-2 gap-3">
-        ${po.bracket.map(([a, b]) => renderMatchup(a, b)).join('')}
-      </div>
-    </div>`;
+  if (ts) {
+    // Ticking state: render current round with game-by-game reveals
+    const renderTickingMatchup = (sr) => {
+      const isPlayerSeries = sr.teamA.isPlayer || sr.teamB.isPlayer;
+      const revealedGames = sr.games.slice(0, ts.revealedGames);
+      const pending = !ts.done && revealedGames.length < sr.games.length;
+      const gameBubbles = revealedGames.map(g => {
+        const win = (sr.teamA.isPlayer || !sr.teamB.isPlayer) ? g === 'W' : g === 'L';
+        return `<span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-[10px] font-black ${g === 'W' ? 'bg-green-500/20 text-green-400 border border-green-500/40' : 'bg-red-500/20 text-red-400 border border-red-500/40'}">${g}</span>`;
+      }).join('');
+      const pendingDot = pending
+        ? `<span class="inline-flex items-center justify-center w-6 h-6 rounded-full border border-border text-muted-fg text-[10px] animate-pulse">·</span>`
+        : '';
+      const pWins = sr.games.slice(0, ts.revealedGames).filter(g => g === 'W').length;
+      const oWins = sr.games.slice(0, ts.revealedGames).filter(g => g === 'L').length;
+      return `
+        <div class="flex flex-col gap-2 p-3 rounded-xl border ${isPlayerSeries ? 'border-primary/40 bg-primary/5' : 'border-border bg-card'}" >
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-xs font-bold ${sr.teamA.isPlayer ? 'text-primary' : 'text-foreground'} truncate">${sr.teamA.isPlayer ? '⭐ ' : ''}${sr.teamA.name}</span>
+            <span class="text-xs font-mono text-foreground font-black">${pWins}–${oWins}</span>
+            <span class="text-xs font-bold ${sr.teamB.isPlayer ? 'text-primary' : 'text-foreground'} truncate text-right">${sr.teamB.isPlayer ? '⭐ ' : ''}${sr.teamB.name}</span>
+          </div>
+          <div class="flex flex-wrap gap-1">${gameBubbles}${pendingDot}</div>
+        </div>`;
+    };
+
+    bracketHTML += `
+      <div class="mb-4">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-primary mb-2">${roundName} — Simulating...</p>
+        <div class="flex flex-col gap-3">
+          ${ts.results.map(sr => renderTickingMatchup(sr)).join('')}
+        </div>
+      </div>`;
+  } else {
+    // Show current round matchups (not yet simulated)
+    bracketHTML += `
+      <div class="mb-4">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-primary mb-2">${roundName} — Up Next</p>
+        <div class="grid grid-cols-2 gap-3">
+          ${po.bracket.map(([a, b]) => renderMatchup(a, b)).join('')}
+        </div>
+      </div>`;
+  }
+
+  const simBtnDisabled = !!ts;
+  const simBtnLabel = ts ? 'Simulating...' : `Simulate ${roundName} →`;
 
   return `
   <div class="min-h-screen flex flex-col" style="background:#09090b">
@@ -1035,9 +1109,9 @@ function renderPlayoffs() {
           ${bracketHTML}
         </div>
 
-        <button data-action="sim-next-round"
-          class="py-4 rounded-xl font-black text-base bg-primary text-white hover:bg-primary/90 transition-all cursor-pointer text-center">
-          Simulate ${roundName} →
+        <button data-action="sim-next-round" ${simBtnDisabled ? 'disabled' : ''}
+          class="py-4 rounded-xl font-black text-base transition-all text-center ${simBtnDisabled ? 'bg-card border border-border text-muted-fg cursor-not-allowed' : 'bg-primary text-white hover:bg-primary/90 cursor-pointer'}">
+          ${simBtnLabel}
         </button>
 
         <button data-action="draft-new-roster"
