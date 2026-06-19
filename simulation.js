@@ -155,6 +155,27 @@ function calculateChemistry(starters, bench) {
     chemReport.push(`🟢 Bully Ball Frontcourt: ${startingPF.name} + ${startingC.name} bully the paint (+5%)`);
   }
 
+  // Dynamic Duo — 2+ starters each averaging > 26.0 PPG
+  const eliteScorers = starters.filter(p => p.ppg > 26.0);
+  if (eliteScorers.length >= 2) {
+    chemBonus += 0.06;
+    chemReport.push(`🟢 Dynamic Duo: ${eliteScorers.map(p => p.name).join(' + ')} — elite co-stars (+6%)`);
+  }
+
+  // Paint Patrol — starting PF + C combined BPG ≥ 3.5
+  const paintPatrolBpg = (startingPF?.bpg || 0) + (startingC?.bpg || 0);
+  if (paintPatrolBpg >= 3.5) {
+    chemBonus += 0.05;
+    chemReport.push(`🟢 Paint Patrol: Frontcourt combines for ${paintPatrolBpg.toFixed(1)} BPG — rim locked down (+5%)`);
+  }
+
+  // Second Unit General — at least one bench player with Playmaker archetype
+  const benchPlaymaker = bench.find(p => p.archetype === 'Playmaker');
+  if (benchPlaymaker) {
+    chemBonus += 0.04;
+    chemReport.push(`🟢 Second Unit General: ${benchPlaymaker.name} runs the offense off the bench (+4%)`);
+  }
+
   // ── PENALTIES ───────────────────────────────────────────────────────────────
 
   // No Spacing — 1.5× penalty if all violators are in the Starting 5
@@ -247,9 +268,29 @@ function calculateChemistry(starters, bench) {
     chemReport.push(`🔴 Chucker Syndrome: ${chuckerCount} high-volume scorers hoard shots and stall the offense (-6%)`);
   }
 
-  // Map to 0–100 score — divisor at 1.15 for 21-rule range
-  // (a solid team at ~+0.34 → ~65%; only elite rosters approach 100%)
-  const chemScore = Math.round(Math.max(0, Math.min(100, 50 + (chemBonus / 1.15) * 50)));
+  // Weak Interior — starting C averages < 1.0 BPG and is not a Paint Beast
+  if (startingC && startingC.bpg < 1.0 && startingC.archetype !== 'Paint Beast') {
+    chemBonus -= 0.06;
+    chemReport.push(`🔴 Weak Interior: ${startingC.name} provides virtually no rim protection (-6%)`);
+  }
+
+  // Turnstile Guards — starting PG and SG both average < 1.1 SPG
+  const startingPG = starters.find(p => p.pos === 'PG');
+  const startingSG = starters.find(p => p.pos === 'SG');
+  if (startingPG && startingSG && startingPG.spg < 1.1 && startingSG.spg < 1.1) {
+    chemBonus -= 0.05;
+    chemReport.push('🔴 Turnstile Guards: Both guards lack perimeter defensive pressure (-5%)');
+  }
+
+  // Old School Fatigue — 4+ players from the 1960s or 1970s on the roster
+  if (oldEraCount >= 4) {
+    chemBonus -= 0.06;
+    chemReport.push(`🔴 Old School Fatigue: ${oldEraCount} classic-era players struggle with modern pacing (-6%)`);
+  }
+
+  // Map to 0–100 score — divisor at 1.50 for 27-rule range
+  // (a solid team at ~+0.40 → ~63%; only elite rosters approach 100%)
+  const chemScore = Math.round(Math.max(0, Math.min(100, 50 + (chemBonus / 1.50) * 50)));
   return { chemBonus, chemScore, chemReport };
 }
 
