@@ -54,6 +54,37 @@ const ARCHETYPE_STYLE = {
   'Two-Way Star':      { bg:'#431407', text:'#fb923c' },
 };
 
+const COACHES = [
+  {
+    id:     'jackson',
+    name:   'Phil Jackson',
+    system: 'Triangle Offense',
+    desc:   'Star-driven — Dynamic Duo and Heliocentric Engine bonuses amplified ×1.5; Clashing Egos penalty softened to −2%.',
+    accent: '#c084fc',
+  },
+  {
+    id:     'popovich',
+    name:   'Gregg Popovich',
+    system: 'The Beautiful Game',
+    desc:   'Bench and ball-movement driven — Second Unit General and Floor General amplified ×1.5; Barren Bench penalty negated.',
+    accent: '#60a5fa',
+  },
+  {
+    id:     'dantoni',
+    name:   "Mike D'Antoni",
+    system: 'Seven Seconds or Less',
+    desc:   'Pace and spacing driven — Small Ball Heat and Pace & Space Blitz amplified ×1.5; Defensive Sieve penalty increased to −8%.',
+    accent: '#fbbf24',
+  },
+  {
+    id:     'riley',
+    name:   'Pat Riley',
+    system: 'Grit & Grind / Showtime',
+    desc:   'Defense and transition driven — Showtime Transition and All-Defensive Team amplified ×1.5; Defensive Liability penalty negated.',
+    accent: '#4ade80',
+  },
+];
+
 
 // ╔══════════════════════════════════════════════════════════════════════════════╗
 // ║  GAME STATE                                                                 ║
@@ -106,7 +137,8 @@ function buildBracket(playerSeed, playerStrength) {
 }
 
 let S = {
-  phase:       'era-select', // 'era-select' | 'drafting' | 'results' | 'playoffs'
+  phase:       'coach-select', // 'coach-select' | 'era-select' | 'drafting' | 'results' | 'playoffs'
+  coach:       null,
   selectedEra: null,
 };
 
@@ -167,10 +199,11 @@ function rosterFull() {
 const $app = document.getElementById('app');
 
 function render() {
-  if      (S.phase === 'era-select') $app.innerHTML = renderEraSelect();
-  else if (S.phase === 'drafting')   $app.innerHTML = renderDrafting();
-  else if (S.phase === 'results')    $app.innerHTML = renderResults();
-  else if (S.phase === 'playoffs')   $app.innerHTML = renderPlayoffs();
+  if      (S.phase === 'coach-select') $app.innerHTML = renderCoachSelect();
+  else if (S.phase === 'era-select')   $app.innerHTML = renderEraSelect();
+  else if (S.phase === 'drafting')     $app.innerHTML = renderDrafting();
+  else if (S.phase === 'results')      $app.innerHTML = renderResults();
+  else if (S.phase === 'playoffs')     $app.innerHTML = renderPlayoffs();
   bindEvents();
 }
 
@@ -199,8 +232,9 @@ function archetypeBadge(arch) {
 
 // ── Shared chrome ──────────────────────────────────────────────────────────────
 function renderHeader(showRestart = false) {
-  const eraLabel = S.selectedEra && S.selectedEra !== 'all'
+  const eraLabel  = S.selectedEra && S.selectedEra !== 'all'
     ? `Classic · ${S.selectedEra}` : 'Classic Mode';
+  const coachObj  = S.coach ? COACHES.find(c => c.id === S.coach) : null;
   return `
   <header class="sticky top-0 z-50 w-full border-b border-border" style="background:rgba(9,9,11,0.92);backdrop-filter:blur(10px)">
     <div class="mx-auto flex h-12 max-w-2xl items-center justify-between px-4">
@@ -209,6 +243,7 @@ function renderHeader(showRestart = false) {
         <span class="text-foreground">82-0</span>
       </div>
       <div class="flex items-center gap-2">
+        ${coachObj ? `<span class="text-xs px-2.5 py-1 rounded-full font-semibold border" style="background:${coachObj.accent}18;color:${coachObj.accent};border-color:${coachObj.accent}44">${coachObj.system}</span>` : ''}
         <span class="text-xs px-2.5 py-1 rounded-full font-semibold bg-card2 text-muted-fg border border-border">${eraLabel}</span>
         ${showRestart ? `<button data-action="restart" class="text-xs px-3 py-1.5 rounded-full border border-border text-muted-fg hover:text-foreground hover:border-primary/60 transition-all cursor-pointer">Restart</button>` : ''}
       </div>
@@ -221,6 +256,49 @@ function renderFooter() {
   <footer class="w-full py-3 text-center border-t border-border mt-auto">
     <p class="text-xs text-muted-fg/60">82-0.com is an independent fan project — not affiliated with the NBA.</p>
   </footer>`;
+}
+
+// ── Coach selection ────────────────────────────────────────────────────────────
+function renderCoachSelect() {
+  const coachIcon = `<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`;
+  return `
+  <div class="flex flex-col min-h-screen main-gradient">
+    ${renderHeader(false)}
+    <main class="flex-1 flex flex-col items-center px-4 pt-4 pb-8">
+      <div class="w-full max-w-2xl flex flex-col gap-4 animate-fade-up">
+
+        <div class="text-center py-4">
+          <p class="text-xs font-bold uppercase tracking-widest text-primary mb-2">Step 1 of 2</p>
+          <h1 class="text-2xl font-black text-foreground mb-2">Choose Your Coach</h1>
+          <p class="text-sm text-muted-fg">Your coach reshapes the chemistry engine — pick a system that fits your drafting philosophy.</p>
+        </div>
+
+        <div class="flex flex-col gap-3">
+          ${COACHES.map(c => `
+            <button data-action="coach-pick-${c.id}"
+              class="w-full rounded-2xl border border-border bg-card p-5 text-left cursor-pointer hover:bg-card2 transition-all"
+              style="--hover-border:${c.accent}55"
+              onmouseenter="this.style.borderColor='${c.accent}55'" onmouseleave="this.style.borderColor=''">
+              <div class="flex items-start gap-4">
+                <div class="flex-shrink-0 mt-0.5 w-10 h-10 rounded-full flex items-center justify-center" style="background:${c.accent}18;border:1.5px solid ${c.accent}44;color:${c.accent}">
+                  ${coachIcon}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex flex-wrap items-center gap-2 mb-1">
+                    <p class="font-black text-base text-foreground">${c.name}</p>
+                    <span class="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full" style="background:${c.accent}22;color:${c.accent}">${c.system}</span>
+                  </div>
+                  <p class="text-sm text-muted-fg leading-relaxed">${c.desc}</p>
+                </div>
+              </div>
+            </button>
+          `).join('')}
+        </div>
+
+      </div>
+    </main>
+    ${renderFooter()}
+  </div>`;
 }
 
 // ── Era selection ──────────────────────────────────────────────────────────────
@@ -651,8 +729,13 @@ function handleClick(e) {
 }
 
 function dispatch(action) {
+  if (action.startsWith('coach-pick-')) {
+    S.coach = action.slice(11);
+    S.phase = 'era-select';
+    render(); return;
+  }
   if (action.startsWith('era-'))   { startGame(action.slice(4)); return; }
-  if (action === 'restart')        { confirmLeave(() => { S.phase = 'era-select'; render(); }); return; }
+  if (action === 'restart')        { confirmLeave(() => { S.phase = 'coach-select'; S.coach = null; render(); }); return; }
   if (action === 'spin')           { doSpin();       return; }
   if (action === 'skip-team')      { doSkipTeam();   return; }
   if (action === 'skip-decade')    { doSkipDecade(); return; }
@@ -660,7 +743,7 @@ function dispatch(action) {
   if (action === 'share')              { doShare();           return; }
   if (action === 'advance-to-playoffs'){ doAdvanceToPlayoffs();return; }
   if (action === 'sim-next-round')     { doSimNextRound();    return; }
-  if (action === 'draft-new-roster')   { S.phase='era-select'; render(); return; }
+  if (action === 'draft-new-roster')   { S.phase='coach-select'; S.coach=null; render(); return; }
 
   if (action.startsWith('pick-')) {
     const id = action.slice(5);
@@ -685,14 +768,16 @@ function dispatch(action) {
 // ╚══════════════════════════════════════════════════════════════════════════════╝
 
 function confirmLeave(fn) {
-  if (S.phase === 'era-select' || S.phase === 'results' || S.phase === 'playoffs') { fn(); return; }
+  if (S.phase === 'coach-select' || S.phase === 'era-select' || S.phase === 'results' || S.phase === 'playoffs') { fn(); return; }
   if (confirm('Leave this game? Your progress will be lost.')) fn();
   else render();
 }
 
 function startGame(era = 'all') {
+  const coach = S.coach;
   S = {
     phase: 'drafting',
+    coach,
     selectedEra: era,
     round: 0,
     usedDecades:   [],
