@@ -8,6 +8,7 @@
 // ╚══════════════════════════════════════════════════════════════════════════════╝
 
 function calculateChemistry(starters, bench) {
+  const allPlayers = [...starters, ...bench];
   const sA = starters.map(p => p.archetype || '');
   const aA = [...sA, ...bench.map(p => p.archetype || '')];
 
@@ -103,6 +104,34 @@ function calculateChemistry(starters, bench) {
     chemReport.push(`🟢 Sixth Man Spark: ${sixthMan.name} provides elite scoring punch off the bench (+4%)`);
   }
 
+  // Stretch Five Dynamic — starting C or PF has Sharpshooter archetype
+  const stretchBig = starters.find(
+    p => (p.pos === 'C' || p.pos === 'PF') && p.archetype === 'Sharpshooter'
+  );
+  if (stretchBig) {
+    chemBonus += 0.05;
+    chemReport.push(`🟢 Stretch Five Dynamic: ${stretchBig.name} draws rim protectors out of the paint (+5%)`);
+  }
+
+  // Showtime Transition — starting Playmaker with > 7.0 APG + starting Slasher with > 22.0 PPG
+  const showtimePG = starters.find(p => p.archetype === 'Playmaker' && p.apg > 7.0);
+  const showtimeSL = starters.find(p => p.archetype === 'Slasher'   && p.ppg > 22.0);
+  if (showtimePG && showtimeSL) {
+    chemBonus += 0.06;
+    chemReport.push(`🟢 Showtime Transition: ${showtimePG.name} → ${showtimeSL.name} — unstoppable fast break (+6%)`);
+  }
+
+  // Franchise Loyalty — 3+ players from the same NBA team franchise
+  const teamCounts = {};
+  for (const p of allPlayers) {
+    if (p.team) teamCounts[p.team] = (teamCounts[p.team] || 0) + 1;
+  }
+  const loyaltyTeam = Object.keys(teamCounts).find(t => teamCounts[t] >= 3);
+  if (loyaltyTeam) {
+    chemBonus += 0.05;
+    chemReport.push(`🟢 Franchise Loyalty: ${teamCounts[loyaltyTeam]} ${loyaltyTeam} legends playing together (+5%)`);
+  }
+
   // ── PENALTIES ───────────────────────────────────────────────────────────────
 
   // No Spacing — 1.5× penalty if all violators are in the Starting 5
@@ -144,9 +173,34 @@ function calculateChemistry(starters, bench) {
     chemReport.push('🔴 Ball Stoppers: Too many isolation-heavy players in the Starting 5 (-6%)');
   }
 
-  // Map to 0–100 score — divisor widened to 0.55 to scale for expanded bonus/penalty range
-  // (max theoretical bonus ≈ +0.555 → hits 100; a strong team at +0.30 → ~77%)
-  const chemScore = Math.round(Math.max(0, Math.min(100, 50 + (chemBonus / 0.55) * 50)));
+  // Defensive Sieve — none of the starting frontcourt (SF, PF, C) are Lockdown Defender or Paint Beast
+  const frontcourt = starters.filter(p => p.pos === 'SF' || p.pos === 'PF' || p.pos === 'C');
+  if (frontcourt.length > 0 &&
+      !frontcourt.some(p => p.archetype === 'Lockdown Defender' || p.archetype === 'Paint Beast')) {
+    chemBonus -= 0.08;
+    chemReport.push('🔴 Defensive Sieve: No interior defender in the starting frontcourt (-8%)');
+  }
+
+  // Generational Clash — 2+ old-era (1960s/1970s) AND 2+ new-era (2010s/2020s) players,
+  // unless a starting Playmaker with > 8.0 APG bridges the gap
+  const oldEraCount = allPlayers.filter(p => p.decade === '1960s' || p.decade === '1970s').length;
+  const newEraCount = allPlayers.filter(p => p.decade === '2010s' || p.decade === '2020s').length;
+  const bridgePG    = starters.find(p => p.archetype === 'Playmaker' && p.apg > 8.0);
+  if (oldEraCount >= 2 && newEraCount >= 2 && !bridgePG) {
+    chemBonus -= 0.06;
+    chemReport.push('🔴 Generational Clash: Old-school and modern eras clash without a bridge Playmaker (-6%)');
+  }
+
+  // High Usage Overlap — 3+ starters each averaging > 25.0 PPG and < 3.5 APG
+  const ballStopperCount = starters.filter(p => p.ppg > 25.0 && p.apg < 3.5).length;
+  if (ballStopperCount >= 3) {
+    chemBonus -= 0.07;
+    chemReport.push(`🔴 High Usage Overlap: ${ballStopperCount} high-volume scorers kill ball movement (-7%)`);
+  }
+
+  // Map to 0–100 score — divisor at 0.80 for 15-rule range
+  // (a solid team at +0.24 → ~65%; only near-perfect rosters approach 100%)
+  const chemScore = Math.round(Math.max(0, Math.min(100, 50 + (chemBonus / 0.80) * 50)));
   return { chemBonus, chemScore, chemReport };
 }
 
