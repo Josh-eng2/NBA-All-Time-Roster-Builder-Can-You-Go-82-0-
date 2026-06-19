@@ -222,6 +222,7 @@ function renderDrafting() {
         ${renderRoundBar()}
         ${full ? renderSimulateCard() : renderSlotMachine()}
         ${S.spinState === 'done' ? renderPlayerPool() : ''}
+        ${renderChemDashboard()}
         ${renderRoster()}
       </div>
     </main>
@@ -398,6 +399,43 @@ function renderRosterSlot(pos, canPlace, isBench) {
   </div>`;
 }
 
+// ── Live Chemistry Dashboard ───────────────────────────────────────────────────
+function renderChemDashboard() {
+  const starters = POSITIONS.map(p => S.roster[p]).filter(Boolean);
+  const bench    = BENCH_POSITIONS.map(p => S.roster[p]).filter(Boolean);
+  if (starters.length === 0 && bench.length === 0) {
+    return `
+    <div class="rounded-2xl border border-border bg-card p-4">
+      <p class="text-xs font-bold uppercase tracking-widest text-muted-fg mb-2">Live Chemistry</p>
+      <p class="text-xs text-muted-fg">Draft your first player to see team chemistry.</p>
+    </div>`;
+  }
+  const { chemScore, chemReport } = calculateChemistry(starters, bench);
+  const scoreColor = chemScore >= 70 ? '#22c55e' : chemScore >= 45 ? '#f97316' : '#ef4444';
+  const scoreLabel = chemScore >= 70 ? 'Strong' : chemScore >= 45 ? 'Neutral' : 'Weak';
+  return `
+  <div class="rounded-2xl border border-border bg-card p-4">
+    <div class="flex items-center justify-between mb-3">
+      <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Live Chemistry</p>
+      <span class="text-xs font-bold px-2 py-0.5 rounded-full" style="background:${scoreColor}22;color:${scoreColor}">${scoreLabel}</span>
+    </div>
+    <div class="flex items-center gap-3 mb-3">
+      <div class="flex-1 h-2 rounded-full overflow-hidden" style="background:#27272a">
+        <div class="h-full rounded-full transition-all duration-500" style="width:${chemScore}%;background:${scoreColor}"></div>
+      </div>
+      <span class="text-sm font-black flex-shrink-0" style="color:${scoreColor}">${chemScore}%</span>
+    </div>
+    ${chemReport.length > 0 ? `
+    <div class="flex flex-col gap-1.5">
+      ${chemReport.map(item => {
+        const isGood = item.startsWith('🟢');
+        return `<div class="rounded-lg px-2.5 py-1.5 text-xs font-medium"
+          style="background:${isGood?'#14532d33':'#450a0a33'};color:${isGood?'#4ade80':'#f87171'}">${item}</div>`;
+      }).join('')}
+    </div>` : `<p class="text-xs text-muted-fg">No synergies yet — keep drafting.</p>`}
+  </div>`;
+}
+
 // ── Simulate card ──────────────────────────────────────────────────────────────
 function renderSimulateCard() {
   return `
@@ -489,7 +527,15 @@ function renderResults() {
         </div>
 
         <div class="rounded-2xl border border-border bg-card p-4">
-          <p class="text-xs font-bold uppercase tracking-widest text-muted-fg mb-3">Chemistry Report</p>
+          <div class="flex items-center justify-between mb-3">
+            <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Chemistry Report</p>
+            ${r.chemScore !== undefined ? (() => {
+              const sc = r.chemScore;
+              const scColor = sc >= 70 ? '#22c55e' : sc >= 45 ? '#f97316' : '#ef4444';
+              const scLabel = sc >= 70 ? 'Strong' : sc >= 45 ? 'Neutral' : 'Weak';
+              return `<span class="text-xs font-bold px-2 py-0.5 rounded-full" style="background:${scColor}22;color:${scColor}">${scLabel} · ${sc}%</span>`;
+            })() : ''}
+          </div>
           <div class="flex flex-col gap-2">${chemReportHtml}</div>
         </div>
 
