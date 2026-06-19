@@ -56,8 +56,8 @@ function calculateChemistry(starters, bench) {
 
   // Synergy 4: Defensive Anchor — elite defender anchoring the Starting 5
   const defAnchor = starters.find(
-    p => p.archetype === 'Lockdown Defender' ||
-        (p.archetype === 'Paint Beast' && p.bpg >= 2.5)
+    p => (p.archetype === 'Lockdown Defender' || p.archetype === 'Paint Beast') &&
+         (p.spg + p.bpg) >= 2.5
   );
   if (defAnchor) {
     chemBonus += 0.06;
