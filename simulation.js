@@ -30,6 +30,7 @@ function calculateChemistry(starters, bench) {
   const aSharpCount      = aA.filter(a => a === 'Sharpshooter').length;
   const aSlashPaintCount = aA.filter(a => a === 'Slasher' || a === 'Paint Beast').length;
   const aSlasherCount    = aA.filter(a => a === 'Slasher').length;
+  const aLockdownCount   = aA.filter(a => a === 'Lockdown Defender').length;
 
   let chemBonus = 0;
   const chemReport = [];
@@ -132,6 +133,28 @@ function calculateChemistry(starters, bench) {
     chemReport.push(`🟢 Franchise Loyalty: ${teamCounts[loyaltyTeam]} ${loyaltyTeam} legends playing together (+5%)`);
   }
 
+  // All-Defensive Team — 3+ Lockdown Defenders across the full 8-man roster
+  if (aLockdownCount >= 3) {
+    chemBonus += 0.07;
+    chemReport.push('🟢 All-Defensive Team: 3+ Lockdown Defenders on the roster — elite team defense (+7%)');
+  }
+
+  // Heliocentric Engine — exactly 1 starting Playmaker with > 9.0 APG, other 4 starters all > 16.0 PPG
+  const helioPlaymakers = starters.filter(p => p.archetype === 'Playmaker');
+  const helioScorers    = starters.filter(p => p.archetype !== 'Playmaker' && p.ppg > 16.0);
+  if (helioPlaymakers.length === 1 && helioPlaymakers[0].apg > 9.0 && helioScorers.length === 4) {
+    chemBonus += 0.06;
+    chemReport.push(`🟢 Heliocentric Engine: ${helioPlaymakers[0].name} orchestrates 4 elite scorers (+6%)`);
+  }
+
+  // Bully Ball Frontcourt — starting PF AND starting C both have Paint Beast archetype
+  const startingPF = starters.find(p => p.pos === 'PF');
+  const startingC  = starters.find(p => p.pos === 'C');
+  if (startingPF?.archetype === 'Paint Beast' && startingC?.archetype === 'Paint Beast') {
+    chemBonus += 0.05;
+    chemReport.push(`🟢 Bully Ball Frontcourt: ${startingPF.name} + ${startingC.name} bully the paint (+5%)`);
+  }
+
   // ── PENALTIES ───────────────────────────────────────────────────────────────
 
   // No Spacing — 1.5× penalty if all violators are in the Starting 5
@@ -161,7 +184,6 @@ function calculateChemistry(starters, bench) {
   }
 
   // Rebounding Crisis — zero Paint Beasts on roster AND starting C averages < 8.0 RPG
-  const startingC = starters.find(p => p.pos === 'C');
   if (!aHasPaintBeast && (!startingC || startingC.rpg < 8.0)) {
     chemBonus -= 0.06;
     chemReport.push('🔴 Rebounding Crisis: No Paint Beasts and weak rebounding at center (-6%)');
@@ -198,9 +220,36 @@ function calculateChemistry(starters, bench) {
     chemReport.push(`🔴 High Usage Overlap: ${ballStopperCount} high-volume scorers kill ball movement (-7%)`);
   }
 
-  // Map to 0–100 score — divisor at 0.80 for 15-rule range
-  // (a solid team at +0.24 → ~65%; only near-perfect rosters approach 100%)
-  const chemScore = Math.round(Math.max(0, Math.min(100, 50 + (chemBonus / 0.80) * 50)));
+  // Small Ball Weakness — starting PG, SG, and SF all average < 4.5 RPG
+  const perimSlotsFilled = starters.filter(p => p.pos === 'PG' || p.pos === 'SG' || p.pos === 'SF').length;
+  const perimWeakCount   = starters.filter(
+    p => (p.pos === 'PG' || p.pos === 'SG' || p.pos === 'SF') && p.rpg < 4.5
+  ).length;
+  if (perimSlotsFilled === 3 && perimWeakCount === 3) {
+    chemBonus -= 0.06;
+    chemReport.push('🔴 Small Ball Weakness: Entire perimeter averages under 4.5 RPG — glass is wide open (-6%)');
+  }
+
+  // Offensive Black Hole — 3+ starters averaging < 12.0 PPG
+  const lowScorerCount = starters.filter(p => p.ppg < 12.0).length;
+  if (lowScorerCount >= 3) {
+    chemBonus -= 0.08;
+    chemReport.push(`🔴 Offensive Black Hole: ${lowScorerCount} starters average under 12 PPG — no offensive gravity (-8%)`);
+  }
+
+  // Chucker Syndrome — 2+ starting Sharpshooters or Slashers with > 20.0 PPG but < 2.5 APG
+  const chuckerCount = starters.filter(
+    p => (p.archetype === 'Sharpshooter' || p.archetype === 'Slasher') &&
+         p.ppg > 20.0 && p.apg < 2.5
+  ).length;
+  if (chuckerCount >= 2) {
+    chemBonus -= 0.06;
+    chemReport.push(`🔴 Chucker Syndrome: ${chuckerCount} high-volume scorers hoard shots and stall the offense (-6%)`);
+  }
+
+  // Map to 0–100 score — divisor at 1.15 for 21-rule range
+  // (a solid team at ~+0.34 → ~65%; only elite rosters approach 100%)
+  const chemScore = Math.round(Math.max(0, Math.min(100, 50 + (chemBonus / 1.15) * 50)));
   return { chemBonus, chemScore, chemReport };
 }
 
