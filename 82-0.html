@@ -644,67 +644,65 @@ function calculateChemistry(starters, bench) {
 
   // ── PENALTIES ───────────────────────────────────────────────────────────────
 
-  // No Spacing — 1.5× penalty if all violators are in the Starting 5
+  // No Spacing — paint-cloggers with no shooters
   if (aSlashPaintCount >= 3 && !aHasSharpshooter) {
-    const penalty = sSlashPaintCount >= 3 ? 0.12 : 0.08;
-    chemBonus -= penalty;
-    chemReport.push(`🔴 No Spacing: Too many paint-cloggers, no shooters (-${Math.round(penalty * 100)}%)`);
+    chemBonus -= 0.04;
+    chemReport.push('🔴 No Spacing: Too many paint-cloggers, no shooters (-4%)');
   }
 
   // Clashing Egos — 3+ ball-dominant archetypes in the Starting 5
   if (sDemandCount >= 3) {
-    chemBonus -= 0.07;
-    chemReport.push('🔴 Clashing Egos: Too many ball-dominant players in the Starting 5 (-7%)');
+    chemBonus -= 0.05;
+    chemReport.push('🔴 Clashing Egos: Too many ball-dominant players in the Starting 5 (-5%)');
   }
 
   // No Playmaking — zero Playmakers on the entire 8-man roster
   if (!aHasPlaymaker) {
-    chemBonus -= 0.10;
-    chemReport.push('🔴 No Playmaking: Zero Playmakers on the roster — no one to run the offense (-10%)');
+    chemBonus -= 0.05;
+    chemReport.push('🔴 No Playmaking: Zero Playmakers on the roster — no one to run the offense (-5%)');
   }
 
   // Defensive Liability — 3+ starters with (spg + bpg) < 1.5
   const defLiabilityCount = starters.filter(p => (p.spg + p.bpg) < 1.5).length;
   if (defLiabilityCount >= 3) {
-    chemBonus -= 0.07;
-    chemReport.push(`🔴 Defensive Liability: ${defLiabilityCount} starters are defensive liabilities (-7%)`);
+    chemBonus -= 0.05;
+    chemReport.push(`🔴 Defensive Liability: ${defLiabilityCount} starters are defensive liabilities (-5%)`);
   }
 
   // Rebounding Crisis — zero Paint Beasts on roster AND starting C averages < 8.0 RPG
   if (!aHasPaintBeast && (!startingC || startingC.rpg < 8.0)) {
-    chemBonus -= 0.06;
-    chemReport.push('🔴 Rebounding Crisis: No Paint Beasts and weak rebounding at center (-6%)');
+    chemBonus -= 0.04;
+    chemReport.push('🔴 Rebounding Crisis: No Paint Beasts and weak rebounding at center (-4%)');
   }
 
   // Ball Stoppers — 3+ Slashers or Two-Way Stars in the Starting 5
   if (sSlashTwoWayCount >= 3) {
-    chemBonus -= 0.06;
-    chemReport.push('🔴 Ball Stoppers: Too many isolation-heavy players in the Starting 5 (-6%)');
+    chemBonus -= 0.04;
+    chemReport.push('🔴 Ball Stoppers: Too many isolation-heavy players in the Starting 5 (-4%)');
   }
 
   // Defensive Sieve — none of the starting frontcourt (SF, PF, C) are Lockdown Defender or Paint Beast
   const frontcourt = starters.filter(p => p.pos === 'SF' || p.pos === 'PF' || p.pos === 'C');
   if (frontcourt.length > 0 &&
       !frontcourt.some(p => p.archetype === 'Lockdown Defender' || p.archetype === 'Paint Beast')) {
-    chemBonus -= 0.08;
-    chemReport.push('🔴 Defensive Sieve: No interior defender in the starting frontcourt (-8%)');
+    chemBonus -= 0.05;
+    chemReport.push('🔴 Defensive Sieve: No interior defender in the starting frontcourt (-5%)');
   }
 
-  // Generational Clash — 2+ old-era (1960s/1970s) AND 2+ new-era (2010s/2020s) players,
-  // unless a starting Playmaker with > 8.0 APG bridges the gap
+  // Generational Clash — 2+ old-era AND 2+ new-era players without a bridge Playmaker
   const oldEraCount = allPlayers.filter(p => p.decade === '1960s' || p.decade === '1970s').length;
   const newEraCount = allPlayers.filter(p => p.decade === '2010s' || p.decade === '2020s').length;
   const bridgePG    = starters.find(p => p.archetype === 'Playmaker' && p.apg > 8.0);
   if (oldEraCount >= 2 && newEraCount >= 2 && !bridgePG) {
-    chemBonus -= 0.06;
-    chemReport.push('🔴 Generational Clash: Old-school and modern eras clash without a bridge Playmaker (-6%)');
+    chemBonus -= 0.04;
+    chemReport.push('🔴 Generational Clash: Old-school and modern eras clash without a bridge Playmaker (-4%)');
   }
 
   // High Usage Overlap — 3+ starters each averaging > 25.0 PPG and < 3.5 APG
   const ballStopperCount = starters.filter(p => p.ppg > 25.0 && p.apg < 3.5).length;
   if (ballStopperCount >= 3) {
-    chemBonus -= 0.07;
-    chemReport.push(`🔴 High Usage Overlap: ${ballStopperCount} high-volume scorers kill ball movement (-7%)`);
+    chemBonus -= 0.05;
+    chemReport.push(`🔴 High Usage Overlap: ${ballStopperCount} high-volume scorers kill ball movement (-5%)`);
   }
 
   // Small Ball Weakness — starting PG, SG, and SF all average < 4.5 RPG
@@ -713,15 +711,15 @@ function calculateChemistry(starters, bench) {
     p => (p.pos === 'PG' || p.pos === 'SG' || p.pos === 'SF') && p.rpg < 4.5
   ).length;
   if (perimSlotsFilled === 3 && perimWeakCount === 3) {
-    chemBonus -= 0.06;
-    chemReport.push('🔴 Small Ball Weakness: Entire perimeter averages under 4.5 RPG — glass is wide open (-6%)');
+    chemBonus -= 0.04;
+    chemReport.push('🔴 Small Ball Weakness: Entire perimeter averages under 4.5 RPG — glass is wide open (-4%)');
   }
 
   // Offensive Black Hole — 3+ starters averaging < 12.0 PPG
   const lowScorerCount = starters.filter(p => p.ppg < 12.0).length;
   if (lowScorerCount >= 3) {
-    chemBonus -= 0.08;
-    chemReport.push(`🔴 Offensive Black Hole: ${lowScorerCount} starters average under 12 PPG — no offensive gravity (-8%)`);
+    chemBonus -= 0.05;
+    chemReport.push(`🔴 Offensive Black Hole: ${lowScorerCount} starters average under 12 PPG — no offensive gravity (-5%)`);
   }
 
   // Chucker Syndrome — 2+ starting Sharpshooters or Slashers with > 20.0 PPG but < 2.5 APG
@@ -730,50 +728,50 @@ function calculateChemistry(starters, bench) {
          p.ppg > 20.0 && p.apg < 2.5
   ).length;
   if (chuckerCount >= 2) {
-    chemBonus -= 0.06;
-    chemReport.push(`🔴 Chucker Syndrome: ${chuckerCount} high-volume scorers hoard shots and stall the offense (-6%)`);
+    chemBonus -= 0.04;
+    chemReport.push(`🔴 Chucker Syndrome: ${chuckerCount} high-volume scorers hoard shots and stall the offense (-4%)`);
   }
 
   // Weak Interior — starting C averages < 1.0 BPG and is not a Paint Beast
   if (startingC && startingC.bpg < 1.0 && startingC.archetype !== 'Paint Beast') {
-    chemBonus -= 0.06;
-    chemReport.push(`🔴 Weak Interior: ${startingC.name} provides virtually no rim protection (-6%)`);
+    chemBonus -= 0.04;
+    chemReport.push(`🔴 Weak Interior: ${startingC.name} provides virtually no rim protection (-4%)`);
   }
 
   // Turnstile Guards — starting PG and SG both average < 1.1 SPG
   if (startingPG && startingSG && startingPG.spg < 1.1 && startingSG.spg < 1.1) {
-    chemBonus -= 0.05;
-    chemReport.push('🔴 Turnstile Guards: Both guards lack perimeter defensive pressure (-5%)');
+    chemBonus -= 0.04;
+    chemReport.push('🔴 Turnstile Guards: Both guards lack perimeter defensive pressure (-4%)');
   }
 
   // Old School Fatigue — 4+ players from the 1960s or 1970s on the roster
   if (oldEraCount >= 4) {
-    chemBonus -= 0.06;
-    chemReport.push(`🔴 Old School Fatigue: ${oldEraCount} classic-era players struggle with modern pacing (-6%)`);
+    chemBonus -= 0.04;
+    chemReport.push(`🔴 Old School Fatigue: ${oldEraCount} classic-era players struggle with modern pacing (-4%)`);
   }
 
   // No Paint Protection — starting PF + C combined BPG < 1.5
   if (startingPF && startingC && paintPatrolBpg < 1.5) {
-    chemBonus -= 0.07;
-    chemReport.push(`🔴 No Paint Protection: Frontcourt combines for only ${paintPatrolBpg.toFixed(1)} BPG — rim is wide open (-7%)`);
+    chemBonus -= 0.05;
+    chemReport.push(`🔴 No Paint Protection: Frontcourt combines for only ${paintPatrolBpg.toFixed(1)} BPG — rim is wide open (-5%)`);
   }
 
   // Combo Guard Crisis — starting PG averages > 22.0 PPG but < 4.5 APG
   if (startingPG && startingPG.ppg > 22.0 && startingPG.apg < 4.5) {
-    chemBonus -= 0.06;
-    chemReport.push(`🔴 Combo Guard Crisis: ${startingPG.name} scores but won't pass (-6%)`);
+    chemBonus -= 0.04;
+    chemReport.push(`🔴 Combo Guard Crisis: ${startingPG.name} scores but won't pass (-4%)`);
   }
 
   // Barren Bench — combined bench PPG < 32.0
   const benchTotalPpg = bench.reduce((sum, p) => sum + p.ppg, 0);
   if (benchTotalPpg < 32.0) {
-    chemBonus -= 0.06;
-    chemReport.push(`🔴 Barren Bench: Bench combines for only ${benchTotalPpg.toFixed(1)} PPG — starters can't rest (-6%)`);
+    chemBonus -= 0.04;
+    chemReport.push(`🔴 Barren Bench: Bench combines for only ${benchTotalPpg.toFixed(1)} PPG — starters can't rest (-4%)`);
   }
 
-  // Map to 0–100 score — divisor at 1.85 for 33-rule range
-  // (a solid team at ~+0.46 → ~62%; only elite rosters approach 100%)
-  const chemScore = Math.round(Math.max(0, Math.min(100, 50 + (chemBonus / 1.85) * 50)));
+  // Map to 0–100 score — baseline 65, divisor 0.90 for forgiving scaling
+  // (zero-chem team starts at 65%; 2-3 synergies push into 80-95%; perfect → 100%)
+  const chemScore = Math.round(Math.max(0, Math.min(100, 65 + (chemBonus / 0.90) * 50)));
   return { chemBonus, chemScore, chemReport };
 }
 
@@ -1154,13 +1152,16 @@ function renderPlayerPool() {
 }
 
 function renderPlayerCard(p) {
-  const sel = S.selectedPlayer?.id === p.id;
+  const sel  = S.selectedPlayer?.id === p.id;
+  const arch = ARCHETYPE_STYLE[p.archetype];
+  const accentColor = sel ? '#f97316' : (arch ? arch.text : '#27272a');
+  const cardBg      = sel ? '#f9731618' : (arch ? arch.bg + '28' : '#18181b');
   return `
-  <div data-action="pick-${p.id}" class="player-card rounded-xl border cursor-pointer p-3 ${sel ? 'selected' : ''}"
-    style="background:${sel?'#f9731615':'#18181b'};border-color:${sel?'#f97316':'#27272a'}">
+  <div data-action="pick-${p.id}" class="player-card rounded-xl cursor-pointer p-3 ${sel ? 'selected' : ''}"
+    style="background:${cardBg};border:1px solid ${sel?'#f97316':'#27272a'};border-left:4px solid ${accentColor}">
     <div class="flex items-center gap-3">
       <div class="h-9 w-9 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 border"
-        style="background:${sel?'#f9731622':'#1f1f23'};border-color:${sel?'#f97316':'#27272a'};color:${sel?'#f97316':'#a1a1aa'}">
+        style="background:${sel?'#f9731622':'#1f1f23'};border-color:${sel?'#f97316':'#27272a'};color:${sel?'#f97316':accentColor}">
         ${p.pos}
       </div>
       <div class="flex-1 min-w-0">
@@ -1241,8 +1242,8 @@ function renderChemDashboard() {
     </div>`;
   }
   const { chemScore, chemReport } = calculateChemistry(starters, bench);
-  const scoreColor = chemScore >= 70 ? '#22c55e' : chemScore >= 45 ? '#f97316' : '#ef4444';
-  const scoreLabel = chemScore >= 70 ? 'Strong' : chemScore >= 45 ? 'Neutral' : 'Weak';
+  const scoreColor = chemScore >= 80 ? '#22c55e' : chemScore >= 65 ? '#f97316' : '#ef4444';
+  const scoreLabel = chemScore >= 80 ? 'Strong' : chemScore >= 65 ? 'Building' : 'Weak';
   return `
   <div class="rounded-2xl border border-border bg-card p-4">
     <div class="flex items-center justify-between mb-3">
@@ -1259,8 +1260,14 @@ function renderChemDashboard() {
     <div class="flex flex-col gap-1.5">
       ${chemReport.map(item => {
         const isGood = item.startsWith('🟢');
-        return `<div class="rounded-lg px-2.5 py-1.5 text-xs font-medium"
-          style="background:${isGood?'#14532d33':'#450a0a33'};color:${isGood?'#4ade80':'#f87171'}">${item}</div>`;
+        if (isGood) {
+          return `<div class="rounded-lg px-2.5 py-1.5 text-xs font-medium"
+            style="background:#14532d33;border:1px solid #14532d88;color:#4ade80">${item}</div>`;
+        }
+        return `<div class="rounded-lg px-2.5 py-1.5 text-xs" style="background:#450a0a44;border:1px solid #7f1d1d66;border-left:3px solid #ef4444;color:#fca5a5">
+          <div class="text-[9px] font-black uppercase tracking-widest mb-0.5" style="color:#ef4444">⚠ Warning</div>
+          <div class="font-medium">${item}</div>
+        </div>`;
       }).join('')}
     </div>` : `<p class="text-xs text-muted-fg">No synergies yet — keep drafting.</p>`}
   </div>`;
@@ -1331,8 +1338,14 @@ function renderResults() {
   const chemReportHtml = r.chemReport && r.chemReport.length > 0
     ? r.chemReport.map(item => {
         const isGood = item.startsWith('🟢');
-        return `<div class="rounded-xl px-3 py-2.5 text-sm font-medium"
-          style="background:${isGood?'#14532d33':'#450a0a33'};border:1px solid ${isGood?'#22c55e44':'#ef444444'};color:${isGood?'#4ade80':'#f87171'}">${item}</div>`;
+        if (isGood) {
+          return `<div class="rounded-xl px-3 py-2.5 text-sm font-medium"
+            style="background:#14532d33;border:1px solid #22c55e44;color:#4ade80">${item}</div>`;
+        }
+        return `<div class="rounded-xl px-3 py-2.5 text-sm" style="background:#450a0a44;border:1px solid #7f1d1d66;border-left:4px solid #ef4444;color:#fca5a5">
+          <div class="text-[10px] font-black uppercase tracking-widest mb-1" style="color:#ef4444">⚠ Warning</div>
+          <div class="font-medium">${item}</div>
+        </div>`;
       }).join('')
     : `<p class="text-sm text-muted-fg py-1">No synergies or penalties — balanced roster.</p>`;
 
@@ -1359,8 +1372,8 @@ function renderResults() {
             <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Chemistry Report</p>
             ${r.chemScore !== undefined ? (() => {
               const sc = r.chemScore;
-              const scColor = sc >= 70 ? '#22c55e' : sc >= 45 ? '#f97316' : '#ef4444';
-              const scLabel = sc >= 70 ? 'Strong' : sc >= 45 ? 'Neutral' : 'Weak';
+              const scColor = sc >= 80 ? '#22c55e' : sc >= 65 ? '#f97316' : '#ef4444';
+              const scLabel = sc >= 80 ? 'Strong' : sc >= 65 ? 'Building' : 'Weak';
               return `<span class="text-xs font-bold px-2 py-0.5 rounded-full" style="background:${scColor}22;color:${scColor}">${scLabel} · ${sc}%</span>`;
             })() : ''}
           </div>
