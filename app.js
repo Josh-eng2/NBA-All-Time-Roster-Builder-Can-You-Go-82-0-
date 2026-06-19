@@ -204,6 +204,7 @@ function render() {
   else if (S.phase === 'drafting')     $app.innerHTML = renderDrafting();
   else if (S.phase === 'results')      $app.innerHTML = renderResults();
   else if (S.phase === 'playoffs')     $app.innerHTML = renderPlayoffs();
+  else if (S.phase === 'trophy-room')  $app.innerHTML = renderTrophyRoom();
   bindEvents();
 }
 
@@ -294,6 +295,19 @@ function renderCoachSelect() {
             </button>
           `).join('')}
         </div>
+
+        ${(() => {
+          let t = [];
+          try { t = JSON.parse(localStorage.getItem('nba820_trophies') || '[]'); } catch(e) {}
+          if (!t.length) return '';
+          return `
+            <button data-action="view-trophies"
+              class="w-full py-3.5 rounded-xl font-bold text-sm border cursor-pointer transition-all"
+              style="border-color:#eab30840;background:#eab30810;color:#eab308"
+              onmouseenter="this.style.borderColor='#eab30880'" onmouseleave="this.style.borderColor='#eab30840'">
+              🏆 View Trophy Room · ${t.length} Championship${t.length === 1 ? '' : 's'}
+            </button>`;
+        })()}
 
       </div>
     </main>
@@ -744,6 +758,8 @@ function dispatch(action) {
   if (action === 'advance-to-playoffs'){ doAdvanceToPlayoffs();return; }
   if (action === 'sim-next-round')     { doSimNextRound();    return; }
   if (action === 'draft-new-roster')   { S.phase='coach-select'; S.coach=null; render(); return; }
+  if (action === 'view-trophies')      { S.phase = 'trophy-room'; render(); return; }
+  if (action === 'back-to-menu')       { S.phase = 'coach-select'; render(); return; }
 
   if (action.startsWith('pick-')) {
     const id = action.slice(5);
@@ -768,7 +784,7 @@ function dispatch(action) {
 // ╚══════════════════════════════════════════════════════════════════════════════╝
 
 function confirmLeave(fn) {
-  if (S.phase === 'coach-select' || S.phase === 'era-select' || S.phase === 'results' || S.phase === 'playoffs') { fn(); return; }
+  if (S.phase === 'coach-select' || S.phase === 'era-select' || S.phase === 'results' || S.phase === 'playoffs' || S.phase === 'trophy-room') { fn(); return; }
   if (confirm('Leave this game? Your progress will be lost.')) fn();
   else render();
 }
@@ -913,6 +929,31 @@ function doShare() {
       if (btn) { btn.textContent = origText; btn.disabled = false; }
       doShareText();
     });
+}
+
+
+// ╔══════════════════════════════════════════════════════════════════════════════╗
+// ║  TROPHY ROOM                                                                ║
+// ╚══════════════════════════════════════════════════════════════════════════════╝
+
+function saveToTrophyRoom() {
+  const r       = S.result;
+  const coachObj = S.coach ? COACHES.find(c => c.id === S.coach) : null;
+  const entry = {
+    date:        new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+    coachName:   coachObj ? coachObj.name   : 'Unknown',
+    coachSystem: coachObj ? coachObj.system : '',
+    wins:        r.wins,
+    losses:      r.losses,
+    chemScore:   Math.round(r.chemScore),
+    starters:    POSITIONS.map(p => S.roster[p]?.name || '—').join(', '),
+    bench:       BENCH_POSITIONS.map(p => S.roster[p]?.name || '—').join(', '),
+  };
+  let trophies = [];
+  try { trophies = JSON.parse(localStorage.getItem('nba820_trophies') || '[]'); } catch(e) {}
+  trophies.unshift(entry);
+  if (trophies.length > 12) trophies = trophies.slice(0, 12);
+  try { localStorage.setItem('nba820_trophies', JSON.stringify(trophies)); } catch(e) {}
 }
 
 
@@ -1129,6 +1170,11 @@ function renderChampionship() {
   const po = S.playoffs;
   const r  = S.result;
 
+  if (!po.hasSavedTrophy) {
+    po.hasSavedTrophy = true;
+    saveToTrophyRoom();
+  }
+
   const finalsResult = po.rounds[po.rounds.length - 1].find(
     sr => sr.teamA.isPlayer || sr.teamB.isPlayer
   );
@@ -1220,6 +1266,84 @@ function renderEliminated() {
             Share Result
           </button>
         </div>
+
+      </div>
+    </main>
+    ${renderFooter()}
+  </div>`;
+}
+
+
+function renderTrophyRoom() {
+  let trophies = [];
+  try { trophies = JSON.parse(localStorage.getItem('nba820_trophies') || '[]'); } catch(e) {}
+
+  const emptyState = `
+    <div class="flex flex-col items-center justify-center gap-4 py-16 text-center">
+      <div class="text-5xl">🏀</div>
+      <h2 class="text-xl font-black text-foreground">No Championships Yet</h2>
+      <p class="text-sm text-muted-fg max-w-xs">Draft your first legendary roster and win the NBA Finals to enshrine it here.</p>
+    </div>`;
+
+  const trophyCards = trophies.map(t => {
+    const isPerfect = t.wins === 82 && t.losses === 0;
+    const cardBorder = isPerfect
+      ? 'border-yellow-400/60' : 'border-border';
+    const cardBg  = isPerfect ? 'bg-yellow-400/5'  : 'bg-card';
+    const cardGlow = isPerfect
+      ? 'style="box-shadow:0 0 24px rgba(234,179,8,0.18)"' : '';
+    const nameColor   = isPerfect ? 'text-yellow-400' : 'text-primary';
+    const recordColor = isPerfect ? 'text-yellow-400' : 'text-foreground';
+    const chemColor   = isPerfect ? 'text-yellow-400' : 'text-primary';
+
+    return `
+      <div class="rounded-2xl border p-4 flex flex-col gap-3 ${cardBorder} ${cardBg}" ${cardGlow}>
+        ${isPerfect ? `<p class="text-[10px] font-black uppercase tracking-widest text-yellow-400">⭐ Perfect Season — 82-0</p>` : ''}
+        <div class="flex items-start justify-between gap-2">
+          <div class="min-w-0">
+            <p class="font-black text-base ${nameColor} truncate">${t.coachName}</p>
+            <p class="text-xs text-muted-fg">${t.coachSystem}</p>
+          </div>
+          <div class="text-right flex-shrink-0">
+            <p class="font-black text-lg ${recordColor}">${t.wins}–${t.losses}</p>
+            <p class="text-xs text-muted-fg">${t.date}</p>
+          </div>
+        </div>
+        <div class="border-t ${isPerfect ? 'border-yellow-400/20' : 'border-border'} pt-3 flex flex-col gap-2">
+          <div>
+            <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg mb-1">Starting 5</p>
+            <p class="text-xs text-foreground leading-relaxed">${t.starters}</p>
+          </div>
+          <div>
+            <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg mb-1">Bench</p>
+            <p class="text-xs text-foreground leading-relaxed">${t.bench}</p>
+          </div>
+        </div>
+        <div class="flex items-center justify-between">
+          <p class="text-xs text-muted-fg">Chemistry</p>
+          <p class="text-xs font-bold ${chemColor}">${t.chemScore}%</p>
+        </div>
+      </div>`;
+  }).join('');
+
+  return `
+  <div class="flex flex-col min-h-screen main-gradient">
+    ${renderHeader(false)}
+    <main class="flex-1 flex flex-col items-center px-4 pt-4 pb-8">
+      <div class="w-full max-w-2xl flex flex-col gap-5 animate-fade-up">
+
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-widest mb-1" style="color:#eab308">Hall of Fame</p>
+            <h1 class="text-2xl font-black text-foreground">Trophy Room</h1>
+          </div>
+          <button data-action="back-to-menu"
+            class="flex-shrink-0 text-xs px-3 py-1.5 rounded-full border border-border text-muted-fg hover:text-foreground hover:border-primary/60 transition-all cursor-pointer">
+            ← Main Menu
+          </button>
+        </div>
+
+        ${trophies.length === 0 ? emptyState : `<div class="flex flex-col gap-4">${trophyCards}</div>`}
 
       </div>
     </main>
