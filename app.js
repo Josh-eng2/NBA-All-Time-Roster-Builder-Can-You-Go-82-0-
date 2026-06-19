@@ -53,8 +53,54 @@ const ARCHETYPE_STYLE = {
 // ║  GAME STATE                                                                 ║
 // ╚══════════════════════════════════════════════════════════════════════════════╝
 
+const CPU_TEAMS = [
+  { name: "96 Bulls",         strength: 1.38 },
+  { name: "17 Warriors",      strength: 1.34 },
+  { name: "86 Celtics",       strength: 1.30 },
+  { name: "87 Lakers",        strength: 1.28 },
+  { name: "01 Lakers",        strength: 1.26 },
+  { name: "13 Heat",          strength: 1.24 },
+  { name: "14 Spurs",         strength: 1.22 },
+  { name: "04 Pistons",       strength: 1.18 },
+  { name: "16 Cavaliers",     strength: 1.16 },
+  { name: "94 Rockets",       strength: 1.14 },
+  { name: "11 Mavericks",     strength: 1.12 },
+  { name: "08 Celtics",       strength: 1.10 },
+  { name: "05 Spurs",         strength: 1.08 },
+  { name: "03 Spurs",         strength: 1.06 },
+  { name: "89 Pistons",       strength: 1.04 },
+];
+
+function getPlayerSeed(wins) {
+  if (wins >= 70) return 1;
+  if (wins >= 60) return 2;
+  if (wins >= 50) return 3;
+  if (wins >= 41) return 4;
+  return 8;
+}
+
+function buildBracket(playerSeed, playerStrength) {
+  const cpuSorted = [...CPU_TEAMS].sort((a, b) => b.strength - a.strength);
+  const seeds = [null, null, null, null, null, null, null, null]; // index = seed-1
+  seeds[playerSeed - 1] = { name: 'Your Team', strength: playerStrength, isPlayer: true };
+
+  let cpuIdx = 0;
+  for (let i = 0; i < 8; i++) {
+    if (!seeds[i]) {
+      seeds[i] = { ...cpuSorted[cpuIdx++], isPlayer: false };
+    }
+  }
+  // Matchups: 1v8, 2v7, 3v6, 4v5
+  return [
+    [seeds[0], seeds[7]],
+    [seeds[1], seeds[6]],
+    [seeds[2], seeds[5]],
+    [seeds[3], seeds[4]],
+  ];
+}
+
 let S = {
-  phase:       'era-select', // 'era-select' | 'drafting' | 'results'
+  phase:       'era-select', // 'era-select' | 'drafting' | 'results' | 'playoffs'
   selectedEra: null,
 };
 
@@ -118,6 +164,7 @@ function render() {
   if      (S.phase === 'era-select') $app.innerHTML = renderEraSelect();
   else if (S.phase === 'drafting')   $app.innerHTML = renderDrafting();
   else if (S.phase === 'results')    $app.innerHTML = renderResults();
+  else if (S.phase === 'playoffs')   $app.innerHTML = renderPlayoffs();
   bindEvents();
 }
 
@@ -562,13 +609,18 @@ function renderResults() {
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-3">
-          <button data-action="restart" class="py-3 rounded-xl font-bold text-sm border border-border bg-card text-foreground hover:border-primary/60 hover:bg-card2 transition-all cursor-pointer">
-            Build Another
+        <div class="flex flex-col gap-3">
+          <button data-action="advance-to-playoffs" class="py-3 rounded-xl font-bold text-sm bg-primary text-white hover:bg-primary/90 transition-all cursor-pointer text-center">
+            Advance to NBA Playoffs 🏆
           </button>
-          <button data-action="share" class="py-3 rounded-xl font-bold text-sm bg-primary text-white hover:bg-primary/90 transition-all cursor-pointer">
-            Share Result
-          </button>
+          <div class="grid grid-cols-2 gap-3">
+            <button data-action="restart" class="py-3 rounded-xl font-bold text-sm border border-border bg-card text-foreground hover:border-primary/60 hover:bg-card2 transition-all cursor-pointer">
+              Build Another
+            </button>
+            <button data-action="share" class="py-3 rounded-xl font-bold text-sm border border-border bg-card text-foreground hover:border-primary/60 hover:bg-card2 transition-all cursor-pointer">
+              Share Result
+            </button>
+          </div>
         </div>
 
       </div>
@@ -598,8 +650,11 @@ function dispatch(action) {
   if (action === 'spin')           { doSpin();       return; }
   if (action === 'skip-team')      { doSkipTeam();   return; }
   if (action === 'skip-decade')    { doSkipDecade(); return; }
-  if (action === 'simulate')       { doSimulate();   return; }
-  if (action === 'share')          { doShare();      return; }
+  if (action === 'simulate')           { doSimulate();        return; }
+  if (action === 'share')              { doShare();           return; }
+  if (action === 'advance-to-playoffs'){ doAdvanceToPlayoffs();return; }
+  if (action === 'sim-next-round')     { doSimNextRound();    return; }
+  if (action === 'draft-new-roster')   { S.phase='era-select'; render(); return; }
 
   if (action.startsWith('pick-')) {
     const id = action.slice(5);
@@ -624,7 +679,7 @@ function dispatch(action) {
 // ╚══════════════════════════════════════════════════════════════════════════════╝
 
 function confirmLeave(fn) {
-  if (S.phase === 'era-select' || S.phase === 'results') { fn(); return; }
+  if (S.phase === 'era-select' || S.phase === 'results' || S.phase === 'playoffs') { fn(); return; }
   if (confirm('Leave this game? Your progress will be lost.')) fn();
   else render();
 }
@@ -743,6 +798,268 @@ function doShare() {
       .then(() => alert('Result copied to clipboard! 🏀'))
       .catch(() => prompt('Copy this:', text));
   }
+}
+
+
+// ╔══════════════════════════════════════════════════════════════════════════════╗
+// ║  PLAYOFF ACTIONS                                                            ║
+// ╚══════════════════════════════════════════════════════════════════════════════╝
+
+function doAdvanceToPlayoffs() {
+  const playerStrength = S.result.strength;
+  const playerSeed     = getPlayerSeed(S.result.wins);
+  const bracket        = buildBracket(playerSeed, playerStrength);
+
+  S.playoffs = {
+    playerSeed,
+    playerStrength,
+    initialBracket: bracket.map(pair => pair.map(t => ({ ...t }))),
+    rounds: [],       // completed rounds: array of arrays of series results
+    currentRound: 0,  // 0=QF, 1=SF, 2=Finals
+    bracket,          // current round matchups
+    eliminated: false,
+    champion: false,
+    roundNames: ['Conference Quarterfinals', 'Conference Semifinals', 'NBA Finals'],
+  };
+  S.phase = 'playoffs';
+  render();
+}
+
+function doSimNextRound() {
+  const po = S.playoffs;
+  const matchups = po.bracket;
+  const results  = matchups.map(([teamA, teamB]) => {
+    const series = simulateSeries(teamA.strength, teamB.strength);
+    return { teamA, teamB, ...series };
+  });
+  po.rounds.push(results);
+
+  // Find player's series result
+  const playerResult = results.find(r => r.teamA.isPlayer || r.teamB.isPlayer);
+  if (playerResult) {
+    const playerWon = (playerResult.teamA.isPlayer && playerResult.won) ||
+                      (playerResult.teamB.isPlayer && !playerResult.won);
+    if (!playerWon) {
+      po.eliminated = true;
+      po.eliminatedIn = po.roundNames[po.currentRound];
+      render(); return;
+    }
+  }
+
+  // Advance winners
+  const winners = results.map(r => r.won ? r.teamA : r.teamB);
+
+  po.currentRound++;
+
+  if (po.currentRound === 3) {
+    po.champion = true;
+    render(); return;
+  }
+
+  // Build next round bracket (pair winners: 0v1, 2v3 → then 0v1 in finals)
+  const nextBracket = [];
+  for (let i = 0; i < winners.length; i += 2) {
+    nextBracket.push([winners[i], winners[i + 1]]);
+  }
+  po.bracket = nextBracket;
+  render();
+}
+
+
+// ╔══════════════════════════════════════════════════════════════════════════════╗
+// ║  PLAYOFF RENDERING                                                          ║
+// ╚══════════════════════════════════════════════════════════════════════════════╝
+
+function renderPlayoffs() {
+  const po = S.playoffs;
+  const r  = S.result;
+
+  if (po.champion) return renderChampionship();
+  if (po.eliminated) return renderEliminated();
+
+  const roundName = po.roundNames[po.currentRound];
+  const completedRounds = po.rounds;
+
+  const renderTeamCard = (team, seriesScore = null, won = null) => {
+    const isPlayer = team.isPlayer;
+    const border   = isPlayer ? 'border-primary' : 'border-border';
+    const bg       = isPlayer ? 'bg-primary/10' : 'bg-card';
+    const badge    = won === true ? '✅' : won === false ? '❌' : '';
+    return `
+      <div class="flex items-center gap-2 px-3 py-2 rounded-lg border ${border} ${bg}">
+        <span class="text-xs font-bold ${isPlayer ? 'text-primary' : 'text-foreground'} flex-1 truncate">
+          ${isPlayer ? '⭐ ' : ''}${team.name}
+        </span>
+        ${seriesScore !== null ? `<span class="text-xs font-mono text-muted-fg">${seriesScore}</span>` : ''}
+        ${badge ? `<span class="text-xs">${badge}</span>` : ''}
+      </div>`;
+  };
+
+  const renderMatchup = (teamA, teamB, seriesA = null, seriesB = null) => {
+    const wonA = seriesA !== null ? (seriesA > seriesB) : null;
+    const wonB = seriesB !== null ? (seriesB > seriesA) : null;
+    return `
+      <div class="flex flex-col gap-1">
+        ${renderTeamCard(teamA, seriesA, wonA)}
+        <div class="text-center text-[10px] text-muted-fg font-bold">vs</div>
+        ${renderTeamCard(teamB, seriesB, wonB)}
+      </div>`;
+  };
+
+  let bracketHTML = '';
+
+  // Show completed rounds
+  for (let ri = 0; ri < completedRounds.length; ri++) {
+    const round = completedRounds[ri];
+    bracketHTML += `
+      <div class="mb-4">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg mb-2">${po.roundNames[ri]}</p>
+        <div class="grid grid-cols-2 gap-3">
+          ${round.map(sr => renderMatchup(sr.teamA, sr.teamB, sr.playerWins, sr.oppWins)).join('')}
+        </div>
+      </div>`;
+  }
+
+  // Show current round matchups (not yet simulated)
+  bracketHTML += `
+    <div class="mb-4">
+      <p class="text-[10px] font-bold uppercase tracking-widest text-primary mb-2">${roundName} — Up Next</p>
+      <div class="grid grid-cols-2 gap-3">
+        ${po.bracket.map(([a, b]) => renderMatchup(a, b)).join('')}
+      </div>
+    </div>`;
+
+  return `
+  <div class="min-h-screen flex flex-col" style="background:#09090b">
+    <main class="flex-1 flex flex-col items-center px-4 py-8">
+      <div class="w-full max-w-lg flex flex-col gap-5">
+
+        <div class="text-center">
+          <p class="text-xs font-bold uppercase tracking-widest text-primary mb-1">NBA Playoffs</p>
+          <h1 class="text-2xl font-black text-foreground">Playoff Bracket</h1>
+          <p class="text-sm text-muted-fg mt-1">Regular Season: ${r.wins}–${r.losses} · Seed #${po.playerSeed}</p>
+        </div>
+
+        <div class="rounded-2xl border border-border bg-card p-4">
+          ${bracketHTML}
+        </div>
+
+        <button data-action="sim-next-round"
+          class="py-4 rounded-xl font-black text-base bg-primary text-white hover:bg-primary/90 transition-all cursor-pointer text-center">
+          Simulate ${roundName} →
+        </button>
+
+        <button data-action="draft-new-roster"
+          class="py-3 rounded-xl font-bold text-sm border border-border bg-card text-foreground hover:border-primary/60 hover:bg-card2 transition-all cursor-pointer text-center">
+          Draft New Roster
+        </button>
+
+      </div>
+    </main>
+    ${renderFooter()}
+  </div>`;
+}
+
+function renderChampionship() {
+  const po = S.playoffs;
+  const r  = S.result;
+
+  const finalsResult = po.rounds[po.rounds.length - 1].find(
+    sr => sr.teamA.isPlayer || sr.teamB.isPlayer
+  );
+  const oppTeam = finalsResult.teamA.isPlayer ? finalsResult.teamB : finalsResult.teamA;
+  const score   = finalsResult.teamA.isPlayer
+    ? `${finalsResult.playerWins}–${finalsResult.oppWins}`
+    : `${finalsResult.oppWins}–${finalsResult.playerWins}`;
+
+  const roundSummary = po.rounds.map((round, i) => {
+    const sr = round.find(s => s.teamA.isPlayer || s.teamB.isPlayer);
+    if (!sr) return '';
+    const opp = sr.teamA.isPlayer ? sr.teamB : sr.teamA;
+    const w   = sr.teamA.isPlayer ? sr.playerWins : sr.oppWins;
+    const l   = sr.teamA.isPlayer ? sr.oppWins : sr.playerWins;
+    return `<p class="text-sm text-muted-fg">${po.roundNames[i]}: <span class="text-foreground font-semibold">def. ${opp.name} ${w}–${l}</span></p>`;
+  }).join('');
+
+  return `
+  <div class="min-h-screen flex flex-col" style="background:#09090b">
+    <main class="flex-1 flex flex-col items-center justify-center px-4 py-8">
+      <div class="w-full max-w-lg flex flex-col gap-5 items-center text-center">
+
+        <div class="text-6xl mb-2">🏆</div>
+        <h1 class="text-3xl font-black text-primary">WORLD CHAMPIONS!</h1>
+        <p class="text-base text-foreground">Your team conquered the NBA Playoffs!</p>
+
+        <div class="rounded-2xl border border-primary/40 bg-primary/10 p-5 w-full">
+          <p class="text-xs font-bold uppercase tracking-widest text-primary mb-3">Championship Run</p>
+          ${roundSummary}
+          <p class="text-base font-black text-primary mt-3">NBA Finals: def. ${oppTeam.name} ${score}</p>
+          <p class="text-sm text-muted-fg mt-2">Regular Season: ${r.wins}–${r.losses} · Seed #${po.playerSeed}</p>
+        </div>
+
+        <div class="flex flex-col gap-3 w-full">
+          <button data-action="share" class="py-3 rounded-xl font-bold text-sm bg-primary text-white hover:bg-primary/90 transition-all cursor-pointer">
+            Share Championship 🏆
+          </button>
+          <button data-action="draft-new-roster" class="py-3 rounded-xl font-bold text-sm border border-border bg-card text-foreground hover:border-primary/60 hover:bg-card2 transition-all cursor-pointer">
+            Draft New Roster
+          </button>
+        </div>
+
+      </div>
+    </main>
+    ${renderFooter()}
+  </div>`;
+}
+
+function renderEliminated() {
+  const po = S.playoffs;
+  const r  = S.result;
+
+  const lastRound = po.rounds[po.rounds.length - 1];
+  const elimSr    = lastRound.find(sr => sr.teamA.isPlayer || sr.teamB.isPlayer);
+  const oppTeam   = elimSr.teamA.isPlayer ? elimSr.teamB : elimSr.teamA;
+  const playerW   = elimSr.teamA.isPlayer ? elimSr.playerWins : elimSr.oppWins;
+  const playerL   = elimSr.teamA.isPlayer ? elimSr.oppWins : elimSr.playerWins;
+
+  const roundSummary = po.rounds.map((round, i) => {
+    const sr = round.find(s => s.teamA.isPlayer || s.teamB.isPlayer);
+    if (!sr) return '';
+    const opp = sr.teamA.isPlayer ? sr.teamB : sr.teamA;
+    const w   = sr.teamA.isPlayer ? sr.playerWins : sr.oppWins;
+    const l   = sr.teamA.isPlayer ? sr.oppWins : sr.playerWins;
+    const won = w > l;
+    return `<p class="text-sm ${won ? 'text-muted-fg' : 'text-red-400'}">${po.roundNames[i]}: <span class="${won ? 'text-foreground' : 'text-red-300'} font-semibold">${won ? `def. ${opp.name} ${w}–${l}` : `lost to ${opp.name} ${w}–${l}`}</span></p>`;
+  }).join('');
+
+  return `
+  <div class="min-h-screen flex flex-col" style="background:#09090b">
+    <main class="flex-1 flex flex-col items-center justify-center px-4 py-8">
+      <div class="w-full max-w-lg flex flex-col gap-5 items-center text-center">
+
+        <div class="text-5xl mb-2">💔</div>
+        <h1 class="text-2xl font-black text-foreground">Eliminated</h1>
+        <p class="text-sm text-muted-fg">in the <span class="text-foreground font-semibold">${po.eliminatedIn}</span></p>
+
+        <div class="rounded-2xl border border-border bg-card p-5 w-full text-left">
+          <p class="text-xs font-bold uppercase tracking-widest text-muted-fg mb-3">Playoff Run</p>
+          ${roundSummary}
+          <p class="text-sm text-muted-fg mt-3">Regular Season: ${r.wins}–${r.losses} · Seed #${po.playerSeed}</p>
+        </div>
+
+        <div class="flex flex-col gap-3 w-full">
+          <button data-action="draft-new-roster" class="py-3 rounded-xl font-bold text-sm bg-primary text-white hover:bg-primary/90 transition-all cursor-pointer">
+            Draft New Roster
+          </button>
+          <button data-action="share" class="py-3 rounded-xl font-bold text-sm border border-border bg-card text-foreground hover:border-primary/60 hover:bg-card2 transition-all cursor-pointer">
+            Share Result
+          </button>
+        </div>
+
+      </div>
+    </main>
+    ${renderFooter()}
+  </div>`;
 }
 
 
