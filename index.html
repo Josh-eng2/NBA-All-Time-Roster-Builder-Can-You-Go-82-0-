@@ -3,26 +3,26 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>82-0 — Can Your All-Time NBA Roster Go Undefeated?</title>
+  <title>NBA All-Time Roster Builder — Can You Go 82-0?</title>
+  <meta name="description" content="Draft an all-time NBA roster across every era and franchise, then simulate a full 82-game season. Can you build the perfect undefeated team? Pick your coach, manage the salary cap, and find out." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
-      darkMode: 'class',
       theme: {
         extend: {
           fontFamily: { sans: ['Fira Sans', 'ui-sans-serif', 'system-ui', 'sans-serif'] },
           colors: {
-            background: '#09090b',
-            card:       '#18181b',
-            card2:      '#1f1f23',
-            border:     '#27272a',
-            foreground: '#fafafa',
-            muted:      '#3f3f46',
-            'muted-fg': '#a1a1aa',
-            primary:    '#f97316',
+            background: '#f8fafc',
+            card:       '#ffffff',
+            card2:      '#f1f5f9',
+            border:     '#e2e8f0',
+            foreground: '#0f172a',
+            muted:      '#94a3b8',
+            'muted-fg': '#64748b',
+            primary:    '#2563eb',
             'primary-fg': '#fff',
           },
           animation: {
@@ -32,10 +32,10 @@
             'scale-in':  'scaleIn 0.2s ease-out',
           },
           keyframes: {
-            fadeUp:    { from: { opacity: 0, transform: 'translateY(10px)' }, to: { opacity: 1, transform: 'translateY(0)' } },
+            fadeUp:    { from: { opacity: 0, transform: 'translateY(8px)' }, to: { opacity: 1, transform: 'translateY(0)' } },
             spinTick:  { '0%,100%': { opacity: 1 }, '50%': { opacity: 0.3 } },
-            pulseGlow: { '0%,100%': { boxShadow: '0 0 0 0 rgba(249,115,22,0.4)' }, '50%': { boxShadow: '0 0 0 10px rgba(249,115,22,0)' } },
-            scaleIn:   { from: { opacity: 0, transform: 'scale(0.95)' }, to: { opacity: 1, transform: 'scale(1)' } },
+            pulseGlow: { '0%,100%': { boxShadow: '0 0 0 0 rgba(37,99,235,0.25)' }, '50%': { boxShadow: '0 0 0 8px rgba(37,99,235,0)' } },
+            scaleIn:   { from: { opacity: 0, transform: 'scale(0.97)' }, to: { opacity: 1, transform: 'scale(1)' } },
           },
         },
       },
@@ -45,52 +45,64 @@
     *, *::before, *::after { box-sizing: border-box; }
 
     body {
-      background: #09090b;
-      color: #fafafa;
+      background: #f8fafc;
+      color: #0f172a;
       font-family: 'Fira Sans', ui-sans-serif, system-ui, sans-serif;
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
     }
 
     ::-webkit-scrollbar { width: 5px; }
-    ::-webkit-scrollbar-track { background: #18181b; }
-    ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 9999px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
 
     .player-card { transition: border-color 0.15s, background 0.15s, transform 0.1s; }
-    .player-card:hover:not(.selected) { border-color: #f97316 !important; background: #1f1f23 !important; transform: translateY(-1px); }
-    .player-card.selected { border-color: #f97316 !important; background: #f9731615 !important; }
+    .player-card:hover:not(.selected) { border-color: #2563eb !important; background: #eff6ff !important; transform: translateY(-1px); }
+    .player-card.selected { border-color: #2563eb !important; background: #dbeafe !important; }
 
     .slot-empty.droppable { cursor: pointer; }
-    .slot-empty.droppable:hover { border-color: #f97316 !important; background: #f9731615 !important; }
+    .slot-empty.droppable:hover { border-color: #2563eb !important; background: #eff6ff !important; }
 
     .slot-badge { transition: all 0.12s; }
     .slot-spinning .slot-badge { animation: spinTick 0.08s steps(1) infinite; }
 
-    .main-gradient {
-      background: linear-gradient(to bottom, #09090b 0%, #18181b 50%, #09090b 100%);
-    }
+    .main-gradient { background: #f8fafc; }
 
     .stat-bar-fill { transition: width 0.8s cubic-bezier(.4,0,.2,1); }
 
     .perfect-glow {
-      box-shadow: 0 0 40px rgba(249, 115, 22, 0.35), 0 0 80px rgba(249, 115, 22, 0.15);
+      box-shadow: 0 0 0 2px #fde68a, 0 4px 24px rgba(217,119,6,0.18);
     }
 
+    .card-shadow { box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04); }
+
     .era-card { transition: border-color 0.15s, background 0.15s, transform 0.1s; }
-    .era-card:hover { transform: translateY(-1px); }
+    .era-card:hover { transform: translateY(-1px); border-color: #2563eb !important; background: #eff6ff !important; }
 
     @supports (padding-bottom: env(safe-area-inset-bottom)) {
       .safe-bottom { padding-bottom: calc(1rem + env(safe-area-inset-bottom)); }
     }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
-<body class="dark">
+<body>
+
+<div id="loading-overlay" style="
+  position:fixed;inset:0;background:#f8fafc;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-family:'Fira Sans',sans-serif;color:#0f172a;z-index:9999">
+  <div style="width:36px;height:36px;border:3px solid #e2e8f0;border-top-color:#2563eb;
+    border-radius:50%;animation:_spin 0.7s linear infinite"></div>
+  <p style="margin-top:16px;font-size:14px;color:#64748b;letter-spacing:0.02em">Loading players…</p>
+  <style>@keyframes _spin{to{transform:rotate(360deg)}}</style>
+</div>
 
 <div id="app"></div>
 
 <script src="database.js"></script>
 <script src="simulation.js"></script>
 <script src="app.js"></script>
+<script>loadDatabase();</script>
 
 </body>
 </html>

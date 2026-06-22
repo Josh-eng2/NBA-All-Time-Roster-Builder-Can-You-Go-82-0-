@@ -7,6 +7,34 @@
 // ║  Chemistry bonuses/penalties applied before the sigmoid win curve.         ║
 // ╚══════════════════════════════════════════════════════════════════════════════╝
 
+// ── Sigmoid tuning knobs ──────────────────────────────────────────────────────
+// SIM_K:      steepness — higher = more decisive gap between good and bad teams
+// SIM_CENTER: the adjustedStrength value that maps to exactly 50% win rate;
+//             raise this (e.g. 1.22) to make 82-0 rarer, lower to make it easier
+// WIN_CAP:    hard ceiling — prevents a mathematically guaranteed perfect season
+const SIM_K      = 15;
+const SIM_CENTER = 1.18;
+const WIN_CAP    = 0.965;
+
+// ── Dynamic baselines derived from the live DB ────────────────────────────────
+// Rather than hardcoding STARTER_BASE / BENCH_BASE, we sort all players by
+// composite score and treat the top 62.5% (5 of 8 roster spots) as the starter
+// tier.  The means auto-adjust whenever players are added or stats change.
+function computeSimBaselines() {
+  const all   = Object.values(DB).flat();
+  const score = p => p.ppg*0.35 + p.rpg*0.20 + p.apg*0.20 + p.spg*0.15 + p.bpg*0.10;
+  const sorted = [...all].sort((a, b) => score(b) - score(a));
+  const cut    = Math.round(sorted.length * 5 / 8);
+  const sTier  = sorted.slice(0, cut);
+  const bTier  = sorted.slice(cut);
+  const avg    = (arr, stat) => arr.reduce((s, p) => s + p[stat], 0) / arr.length;
+  const STATS  = ['ppg', 'rpg', 'apg', 'spg', 'bpg'];
+  return {
+    STARTER_BASE: Object.fromEntries(STATS.map(k => [k, avg(sTier, k) * 5])),
+    BENCH_BASE:   Object.fromEntries(STATS.map(k => [k, avg(bTier, k) * 3])),
+  };
+}
+
 function calculateChemistry(starters, bench) {
   const allPlayers = [...starters, ...bench];
   const sA = starters.map(p => p.archetype || '');
@@ -25,6 +53,8 @@ function calculateChemistry(starters, bench) {
   const sSlashPaintCount = sA.filter(a => a === 'Slasher' || a === 'Paint Beast').length;
   const aSlashPaintCount = aA.filter(a => a === 'Slasher' || a === 'Paint Beast').length;
   const sDemandCount     = sA.filter(a => a === 'Two-Way Star' || a === 'Playmaker').length;
+
+  const coach = (typeof S !== 'undefined' && S.coach) ? S.coach : null;
 
   let chemBonus = 0;
   const chemReport = [];
@@ -55,8 +85,9 @@ function calculateChemistry(starters, bench) {
   }
 
   if (sHasPlaymaker && aSharpCount >= 2) {
-    chemBonus += 0.08;
-    chemReport.push('🟢 Floor General: Starter Playmaker unlocks multiple shooters (+8%)');
+    const bonus = coach === 'popovich' ? 0.12 : 0.08;
+    chemBonus += bonus;
+    chemReport.push(`🟢 Floor General${coach === 'popovich' ? ' ⭐ Pop' : ''}: Starter Playmaker unlocks multiple shooters (+${Math.round(bonus * 100)}%)`);
   }
 
   const defAnchor = starters.find(p => (p.archetype === 'Lockdown Defender' || p.archetype === 'Paint Beast') && (p.spg + p.bpg) >= 2.5);
@@ -73,13 +104,15 @@ function calculateChemistry(starters, bench) {
 
   const aSlasherCount = aA.filter(a => a === 'Slasher').length;
   if (aHasPlaymaker && aSlasherCount >= 2) {
-    chemBonus += 0.08;
-    chemReport.push('🟢 Pace & Space Blitz: High transition attack engine ready (+8%)');
+    const bonus = coach === 'dantoni' ? 0.12 : 0.08;
+    chemBonus += bonus;
+    chemReport.push(`🟢 Pace & Space Blitz${coach === 'dantoni' ? " ⭐ D'Antoni" : ''}: High transition attack engine ready (+${Math.round(bonus * 100)}%)`);
   }
 
   if (aSharpCount >= 3) {
-    chemBonus += 0.07;
-    chemReport.push('🟢 Small Ball Heat: Spacing overload with 3+ shooters on the roster (+7%)');
+    const bonus = coach === 'dantoni' ? 0.105 : 0.07;
+    chemBonus += bonus;
+    chemReport.push(`🟢 Small Ball Heat${coach === 'dantoni' ? " ⭐ D'Antoni" : ''}: Spacing overload with 3+ shooters on the roster (+${+(bonus * 100).toFixed(1)}%)`);
   }
 
   const sixthMan = bench.find(p => p.ppg > 18.0);
@@ -97,8 +130,9 @@ function calculateChemistry(starters, bench) {
   const showtimePG = starters.find(p => p.archetype === 'Playmaker' && p.apg > 7.0);
   const showtimeSlasher = starters.find(p => p.archetype === 'Slasher' && p.ppg > 22.0);
   if (showtimePG && showtimeSlasher) {
-    chemBonus += 0.08;
-    chemReport.push('🟢 Showtime Transition: Fast break baseline fully synchronized (+8%)');
+    const bonus = coach === 'riley' ? 0.12 : 0.08;
+    chemBonus += bonus;
+    chemReport.push(`🟢 Showtime Transition${coach === 'riley' ? ' ⭐ Riley' : ''}: Fast break baseline fully synchronized (+${Math.round(bonus * 100)}%)`);
   }
 
   const teamCounts = {};
@@ -112,15 +146,17 @@ function calculateChemistry(starters, bench) {
 
   const aLockdownCount = aA.filter(a => a === 'Lockdown Defender').length;
   if (aLockdownCount >= 3) {
-    chemBonus += 0.09;
-    chemReport.push('🟢 All-Defensive Team: High baseline lock pressure across roster (+9%)');
+    const bonus = coach === 'riley' ? 0.135 : 0.09;
+    chemBonus += bonus;
+    chemReport.push(`🟢 All-Defensive Team${coach === 'riley' ? ' ⭐ Riley' : ''}: High baseline lock pressure across roster (+${+(bonus * 100).toFixed(1)}%)`);
   }
 
   const helioPG = starters.find(p => p.archetype === 'Playmaker' && p.apg > 9.0);
   const otherStartersScoring = starters.filter(p => p.archetype !== 'Playmaker' && p.ppg > 16.0);
   if (helioPG && starters.filter(p => p.archetype === 'Playmaker').length === 1 && otherStartersScoring.length === 4) {
-    chemBonus += 0.08;
-    chemReport.push(`🟢 Heliocentric Engine: System centered cleanly around ${helioPG.name.split(' ').pop()} (+8%)`);
+    const bonus = coach === 'jackson' ? 0.12 : 0.08;
+    chemBonus += bonus;
+    chemReport.push(`🟢 Heliocentric Engine${coach === 'jackson' ? ' ⭐ Triangle' : ''}: System centered cleanly around ${helioPG.name.split(' ').pop()} (+${Math.round(bonus * 100)}%)`);
   }
 
   const startingPF = starters.find(p => p.pos === 'PF');
@@ -132,8 +168,9 @@ function calculateChemistry(starters, bench) {
 
   const eliteScorers = starters.filter(p => p.ppg > 26.0);
   if (eliteScorers.length >= 2) {
-    chemBonus += 0.08;
-    chemReport.push('🟢 Dynamic Duo: Explosive baseline tandem active (+8%)');
+    const bonus = coach === 'jackson' ? 0.12 : 0.08;
+    chemBonus += bonus;
+    chemReport.push(`🟢 Dynamic Duo${coach === 'jackson' ? ' ⭐ Triangle' : ''}: Explosive baseline tandem active (+${Math.round(bonus * 100)}%)`);
   }
 
   const pfCBlocks = starters.filter(p => p.pos === 'PF' || p.pos === 'C').reduce((sum, p) => sum + p.bpg, 0);
@@ -143,8 +180,9 @@ function calculateChemistry(starters, bench) {
   }
 
   if (bench.some(p => p.archetype === 'Playmaker')) {
-    chemBonus += 0.06;
-    chemReport.push('🟢 Second Unit General: Secondary unit run by a natural Playmaker (+6%)');
+    const bonus = coach === 'popovich' ? 0.09 : 0.06;
+    chemBonus += bonus;
+    chemReport.push(`🟢 Second Unit General${coach === 'popovich' ? ' ⭐ Pop' : ''}: Secondary unit run by a natural Playmaker (+${Math.round(bonus * 100)}%)`);
   }
 
   if (aSharpCount >= 2 && aLockdownCount >= 2) {
@@ -166,8 +204,9 @@ function calculateChemistry(starters, bench) {
   }
 
   if (sDemandCount >= 3) {
-    chemBonus -= 0.05;
-    chemReport.push('🔴 Clashing Egos: Too many ball-dominant players in the Starting 5 (-5%)');
+    const penalty = coach === 'jackson' ? 0.02 : 0.05;
+    chemBonus -= penalty;
+    chemReport.push(`🔴 Clashing Egos${coach === 'jackson' ? ' (softened by Phil)' : ''}: Too many ball-dominant players in the Starting 5 (-${Math.round(penalty * 100)}%)`);
   }
 
   if (!aHasPlaymaker) {
@@ -175,10 +214,12 @@ function calculateChemistry(starters, bench) {
     chemReport.push('🔴 No Playmaking: Zero Playmakers on the roster — no one to run the offense (-5%)');
   }
 
-  const defLiabilityCount = starters.filter(p => (p.spg + p.bpg) < 1.5).length;
-  if (defLiabilityCount >= 3) {
-    chemBonus -= 0.02;
-    chemReport.push('🔴 Defensive Liability: 3+ starters have weak defensive stats (-2%)');
+  if (coach !== 'riley') {
+    const defLiabilityCount = starters.filter(p => (p.spg + p.bpg) < 1.5).length;
+    if (defLiabilityCount >= 3) {
+      chemBonus -= 0.02;
+      chemReport.push('🔴 Defensive Liability: 3+ starters have weak defensive stats (-2%)');
+    }
   }
 
   const startingC_Reb = starters.find(p => p.pos === 'C');
@@ -195,8 +236,9 @@ function calculateChemistry(starters, bench) {
   const sFrontcourtDef = starters.filter(p => p.pos === 'SF' || p.pos === 'PF' || p.pos === 'C');
   const hasFrontcourtDef = sFrontcourtDef.some(p => p.archetype === 'Lockdown Defender' || p.archetype === 'Paint Beast');
   if (sFrontcourtDef.length === 3 && !hasFrontcourtDef) {
-    chemBonus -= 0.05;
-    chemReport.push('🔴 Defensive Sieve: Starting frontcourt offers zero rim/wing protection (-5%)');
+    const penalty = coach === 'dantoni' ? 0.08 : 0.05;
+    chemBonus -= penalty;
+    chemReport.push(`🔴 Defensive Sieve${coach === 'dantoni' ? " (heightened by D'Antoni)" : ''}: Starting frontcourt offers zero rim/wing protection (-${Math.round(penalty * 100)}%)`);
   }
 
   const highUsageCount = starters.filter(p => p.ppg > 25.0 && p.apg < 5.0).length;
@@ -224,7 +266,7 @@ function calculateChemistry(starters, bench) {
     chemReport.push('🔴 No Paint Protection: Frontcourt blocks fall below 1.5 BPG (-5%)');
   }
 
-  if ((starters.length + bench.length) === 8) {
+  if (coach !== 'popovich' && (starters.length + bench.length) === 8) {
     const benchTotalPpg = bench.reduce((sum, p) => sum + p.ppg, 0);
     if (benchTotalPpg < 32.0) {
       chemBonus -= 0.04;
@@ -246,8 +288,7 @@ function simulateSeason(starters, bench) {
   const sTotals = sumStats(starters);
   const bTotals = sumStats(bench);
 
-  const STARTER_BASE = { ppg:95,  rpg:42, apg:22, spg:7.5, bpg:5 };
-  const BENCH_BASE   = { ppg:57,  rpg:25, apg:13, spg:4.5, bpg:3 };
+  const { STARTER_BASE, BENCH_BASE } = computeSimBaselines();
 
   const sRatio = {
     ppg: sTotals.ppg / STARTER_BASE.ppg,
@@ -286,7 +327,7 @@ function simulateSeason(starters, bench) {
   const { chemBonus, chemScore, chemReport } = calculateChemistry(starters, bench);
 
   const adjustedStrength = Math.max(0, strength - balancePenalty + chemBonus);
-  const winPct = Math.min(0.965, 1 / (1 + Math.exp(-15 * (adjustedStrength - 1.18))));
+  const winPct = Math.min(WIN_CAP, 1 / (1 + Math.exp(-SIM_K * (adjustedStrength - SIM_CENTER))));
 
   let wins = 0;
   for (let i = 0; i < 82; i++) { if (Math.random() < winPct) wins++; }

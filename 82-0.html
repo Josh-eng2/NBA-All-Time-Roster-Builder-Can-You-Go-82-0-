@@ -10,19 +10,18 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
-      darkMode: 'class',
       theme: {
         extend: {
           fontFamily: { sans: ['Fira Sans', 'ui-sans-serif', 'system-ui', 'sans-serif'] },
           colors: {
-            background: '#09090b',
-            card:       '#18181b',
-            card2:      '#1f1f23',
-            border:     '#27272a',
-            foreground: '#fafafa',
-            muted:      '#3f3f46',
-            'muted-fg': '#a1a1aa',
-            primary:    '#f97316',
+            background: '#f8fafc',
+            card:       '#ffffff',
+            card2:      '#f1f5f9',
+            border:     '#e2e8f0',
+            foreground: '#0f172a',
+            muted:      '#94a3b8',
+            'muted-fg': '#64748b',
+            primary:    '#2563eb',
             'primary-fg': '#fff',
           },
           animation: {
@@ -32,10 +31,10 @@
             'scale-in':  'scaleIn 0.2s ease-out',
           },
           keyframes: {
-            fadeUp:    { from: { opacity: 0, transform: 'translateY(10px)' }, to: { opacity: 1, transform: 'translateY(0)' } },
+            fadeUp:    { from: { opacity: 0, transform: 'translateY(8px)' }, to: { opacity: 1, transform: 'translateY(0)' } },
             spinTick:  { '0%,100%': { opacity: 1 }, '50%': { opacity: 0.3 } },
-            pulseGlow: { '0%,100%': { boxShadow: '0 0 0 0 rgba(249,115,22,0.4)' }, '50%': { boxShadow: '0 0 0 10px rgba(249,115,22,0)' } },
-            scaleIn:   { from: { opacity: 0, transform: 'scale(0.95)' }, to: { opacity: 1, transform: 'scale(1)' } },
+            pulseGlow: { '0%,100%': { boxShadow: '0 0 0 0 rgba(37,99,235,0.25)' }, '50%': { boxShadow: '0 0 0 8px rgba(37,99,235,0)' } },
+            scaleIn:   { from: { opacity: 0, transform: 'scale(0.97)' }, to: { opacity: 1, transform: 'scale(1)' } },
           },
         },
       },
@@ -45,46 +44,47 @@
     *, *::before, *::after { box-sizing: border-box; }
 
     body {
-      background: #09090b;
-      color: #fafafa;
+      background: #f8fafc;
+      color: #0f172a;
       font-family: 'Fira Sans', ui-sans-serif, system-ui, sans-serif;
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
     }
 
     ::-webkit-scrollbar { width: 5px; }
-    ::-webkit-scrollbar-track { background: #18181b; }
-    ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 9999px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
 
     .player-card { transition: border-color 0.15s, background 0.15s, transform 0.1s; }
-    .player-card:hover:not(.selected) { border-color: #f97316 !important; background: #1f1f23 !important; transform: translateY(-1px); }
-    .player-card.selected { border-color: #f97316 !important; background: #f9731615 !important; }
+    .player-card:hover:not(.selected) { border-color: #2563eb !important; background: #eff6ff !important; transform: translateY(-1px); }
+    .player-card.selected { border-color: #2563eb !important; background: #dbeafe !important; }
 
     .slot-empty.droppable { cursor: pointer; }
-    .slot-empty.droppable:hover { border-color: #f97316 !important; background: #f9731615 !important; }
+    .slot-empty.droppable:hover { border-color: #2563eb !important; background: #eff6ff !important; }
 
     .slot-badge { transition: all 0.12s; }
     .slot-spinning .slot-badge { animation: spinTick 0.08s steps(1) infinite; }
 
-    .main-gradient {
-      background: linear-gradient(to bottom, #09090b 0%, #18181b 50%, #09090b 100%);
-    }
+    .main-gradient { background: #f8fafc; }
 
     .stat-bar-fill { transition: width 0.8s cubic-bezier(.4,0,.2,1); }
 
     .perfect-glow {
-      box-shadow: 0 0 40px rgba(249, 115, 22, 0.35), 0 0 80px rgba(249, 115, 22, 0.15);
+      box-shadow: 0 0 0 2px #fde68a, 0 4px 24px rgba(217,119,6,0.18);
     }
 
+    .card-shadow { box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04); }
+
     .era-card { transition: border-color 0.15s, background 0.15s, transform 0.1s; }
-    .era-card:hover { transform: translateY(-1px); }
+    .era-card:hover { transform: translateY(-1px); border-color: #2563eb !important; background: #eff6ff !important; }
 
     @supports (padding-bottom: env(safe-area-inset-bottom)) {
       .safe-bottom { padding-bottom: calc(1rem + env(safe-area-inset-bottom)); }
     }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
-<body class="dark">
+<body>
 
 <div id="app"></div>
 
@@ -554,6 +554,8 @@ function calculateChemistry(starters, bench) {
   const aSlashPaintCount = aA.filter(a => a === 'Slasher' || a === 'Paint Beast').length;
   const sDemandCount     = sA.filter(a => a === 'Two-Way Star' || a === 'Playmaker').length;
 
+  const coach = (typeof S !== 'undefined' && S.coach) ? S.coach : null;
+
   let chemBonus = 0;
   const chemReport = [];
 
@@ -567,7 +569,11 @@ function calculateChemistry(starters, bench) {
   if (sHasPlaymaker && sHasPaintBeast) { chemBonus += 0.10; chemReport.push('🟢 Pick & Roll Maestros (Elite ×1.5): Classic screen-and-roll starting duo (+10%)'); }
   else if (aHasPlaymaker && aHasPaintBeast) { chemBonus += 0.07; chemReport.push('🟢 Pick & Roll Maestros: Playmaker and Paint Beast asset tracking (+7%)'); }
 
-  if (sHasPlaymaker && aSharpCount >= 2) { chemBonus += 0.08; chemReport.push('🟢 Floor General: Starter Playmaker unlocks multiple shooters (+8%)'); }
+  if (sHasPlaymaker && aSharpCount >= 2) {
+    const bonus = coach === 'popovich' ? 0.12 : 0.08;
+    chemBonus += bonus;
+    chemReport.push(`🟢 Floor General${coach === 'popovich' ? ' ⭐ Pop' : ''}: Starter Playmaker unlocks multiple shooters (+${Math.round(bonus * 100)}%)`);
+  }
 
   const defAnchor = starters.find(p => (p.archetype === 'Lockdown Defender' || p.archetype === 'Paint Beast') && (p.spg + p.bpg) >= 2.5);
   if (defAnchor) { chemBonus += 0.08; chemReport.push(`🟢 Defensive Anchor: ${defAnchor.name.split(' ').pop()} anchors the defense (+8%)`); }
@@ -576,9 +582,17 @@ function calculateChemistry(starters, bench) {
   if (sLockdownCount >= 2) { chemBonus += 0.08; chemReport.push('🟢 Perimeter Lockdown: Multiple locking wings in the Starting 5 (+8%)'); }
 
   const aSlasherCount = aA.filter(a => a === 'Slasher').length;
-  if (aHasPlaymaker && aSlasherCount >= 2) { chemBonus += 0.08; chemReport.push('🟢 Pace & Space Blitz: High transition attack engine ready (+8%)'); }
+  if (aHasPlaymaker && aSlasherCount >= 2) {
+    const bonus = coach === 'dantoni' ? 0.12 : 0.08;
+    chemBonus += bonus;
+    chemReport.push(`🟢 Pace & Space Blitz${coach === 'dantoni' ? " ⭐ D'Antoni" : ''}: High transition attack engine ready (+${Math.round(bonus * 100)}%)`);
+  }
 
-  if (aSharpCount >= 3) { chemBonus += 0.07; chemReport.push('🟢 Small Ball Heat: Spacing overload with 3+ shooters on the roster (+7%)'); }
+  if (aSharpCount >= 3) {
+    const bonus = coach === 'dantoni' ? 0.105 : 0.07;
+    chemBonus += bonus;
+    chemReport.push(`🟢 Small Ball Heat${coach === 'dantoni' ? " ⭐ D'Antoni" : ''}: Spacing overload with 3+ shooters on the roster (+${+(bonus * 100).toFixed(1)}%)`);
+  }
 
   const sixthMan = bench.find(p => p.ppg > 18.0);
   if (sixthMan) { chemBonus += 0.06; chemReport.push(`🟢 Sixth Man Spark: ${sixthMan.name.split(' ').pop()} provides elite scoring off the bench (+6%)`); }
@@ -588,7 +602,11 @@ function calculateChemistry(starters, bench) {
 
   const showtimePG = starters.find(p => p.archetype === 'Playmaker' && p.apg > 7.0);
   const showtimeSlasher = starters.find(p => p.archetype === 'Slasher' && p.ppg > 22.0);
-  if (showtimePG && showtimeSlasher) { chemBonus += 0.08; chemReport.push('🟢 Showtime Transition: Fast break baseline fully synchronized (+8%)'); }
+  if (showtimePG && showtimeSlasher) {
+    const bonus = coach === 'riley' ? 0.12 : 0.08;
+    chemBonus += bonus;
+    chemReport.push(`🟢 Showtime Transition${coach === 'riley' ? ' ⭐ Riley' : ''}: Fast break baseline fully synchronized (+${Math.round(bonus * 100)}%)`);
+  }
 
   const teamCounts = {};
   for (const p of allPlayers) {
@@ -597,12 +615,18 @@ function calculateChemistry(starters, bench) {
   if (Object.values(teamCounts).some(count => count >= 3)) { chemBonus += 0.07; chemReport.push('🟢 Franchise Loyalty: Shared franchise structure yields chemistry boost (+7%)'); }
 
   const aLockdownCount = aA.filter(a => a === 'Lockdown Defender').length;
-  if (aLockdownCount >= 3) { chemBonus += 0.09; chemReport.push('🟢 All-Defensive Team: High baseline lock pressure across roster (+9%)'); }
+  if (aLockdownCount >= 3) {
+    const bonus = coach === 'riley' ? 0.135 : 0.09;
+    chemBonus += bonus;
+    chemReport.push(`🟢 All-Defensive Team${coach === 'riley' ? ' ⭐ Riley' : ''}: High baseline lock pressure across roster (+${+(bonus * 100).toFixed(1)}%)`);
+  }
 
   const helioPG = starters.find(p => p.archetype === 'Playmaker' && p.apg > 9.0);
   const otherStartersScoring = starters.filter(p => p.archetype !== 'Playmaker' && p.ppg > 16.0);
   if (helioPG && starters.filter(p => p.archetype === 'Playmaker').length === 1 && otherStartersScoring.length === 4) {
-    chemBonus += 0.08; chemReport.push(`🟢 Heliocentric Engine: System centered cleanly around ${helioPG.name.split(' ').pop()} (+8%)`);
+    const helioBonus = coach === 'jackson' ? 0.12 : 0.08;
+    chemBonus += helioBonus;
+    chemReport.push(`🟢 Heliocentric Engine${coach === 'jackson' ? ' ⭐ Triangle' : ''}: System centered cleanly around ${helioPG.name.split(' ').pop()} (+${Math.round(helioBonus * 100)}%)`);
   }
 
   const startingPF = starters.find(p => p.pos === 'PF');
@@ -612,14 +636,22 @@ function calculateChemistry(starters, bench) {
   }
 
   const eliteScorers = starters.filter(p => p.ppg > 26.0);
-  if (eliteScorers.length >= 2) { chemBonus += 0.08; chemReport.push('🟢 Dynamic Duo: Explosive baseline tandem active (+8%)'); }
+  if (eliteScorers.length >= 2) {
+    const bonus = coach === 'jackson' ? 0.12 : 0.08;
+    chemBonus += bonus;
+    chemReport.push(`🟢 Dynamic Duo${coach === 'jackson' ? ' ⭐ Triangle' : ''}: Explosive baseline tandem active (+${Math.round(bonus * 100)}%)`);
+  }
 
   const pfCBpg = starters.filter(p => p.pos === 'PF' || p.pos === 'C').reduce((sum, p) => sum + p.bpg, 0);
   if (starters.filter(p => p.pos === 'PF' || p.pos === 'C').length === 2 && pfCBpg >= 3.5) {
     chemBonus += 0.07; chemReport.push('🟢 Paint Patrol: Defensive interior blocks active (+7%)');
   }
 
-  if (bench.some(p => p.archetype === 'Playmaker')) { chemBonus += 0.06; chemReport.push('🟢 Second Unit General: Secondary unit run by a natural Playmaker (+6%)'); }
+  if (bench.some(p => p.archetype === 'Playmaker')) {
+    const bonus = coach === 'popovich' ? 0.09 : 0.06;
+    chemBonus += bonus;
+    chemReport.push(`🟢 Second Unit General${coach === 'popovich' ? ' ⭐ Pop' : ''}: Secondary unit run by a natural Playmaker (+${Math.round(bonus * 100)}%)`);
+  }
 
   if (aSharpCount >= 2 && aLockdownCount >= 2) { chemBonus += 0.08; chemReport.push('🟢 Three-and-D Paradigm: Flawless modern floor symmetry (+8%)'); }
 
@@ -635,11 +667,17 @@ function calculateChemistry(starters, bench) {
     chemReport.push(`🔴 No Spacing: Too many paint-cloggers, no shooters (-${Math.round(penalty * 100)}%)`);
   }
 
-  if (sDemandCount >= 3) { chemBonus -= 0.05; chemReport.push('🔴 Clashing Egos: Too many ball-dominant players in the Starting 5 (-5%)'); }
+  if (sDemandCount >= 3) {
+    const penalty = coach === 'jackson' ? 0.02 : 0.05;
+    chemBonus -= penalty;
+    chemReport.push(`🔴 Clashing Egos${coach === 'jackson' ? ' (softened by Phil)' : ''}: Too many ball-dominant players in the Starting 5 (-${Math.round(penalty * 100)}%)`);
+  }
   if (!aHasPlaymaker) { chemBonus -= 0.05; chemReport.push('🔴 No Playmaking: Zero Playmakers on the roster (-5%)'); }
 
-  const defLiabilityCount = starters.filter(p => (p.spg + p.bpg) < 1.5).length;
-  if (defLiabilityCount >= 3) { chemBonus -= 0.02; chemReport.push('🔴 Defensive Liability: 3+ starters have weak defensive stats (-2%)'); }
+  if (coach !== 'riley') {
+    const defLiabilityCount = starters.filter(p => (p.spg + p.bpg) < 1.5).length;
+    if (defLiabilityCount >= 3) { chemBonus -= 0.02; chemReport.push('🔴 Defensive Liability: 3+ starters have weak defensive stats (-2%)'); }
+  }
 
   const startingC_Reb = starters.find(p => p.pos === 'C');
   if (!aHasPaintBeast && startingC_Reb && startingC_Reb.rpg < 8.0) { chemBonus -= 0.05; chemReport.push('🔴 Rebounding Crisis: Missing length/boards inside paint (-5%)'); }
@@ -648,7 +686,9 @@ function calculateChemistry(starters, bench) {
 
   const sFrontcourtDef = starters.filter(p => p.pos === 'SF' || p.pos === 'PF' || p.pos === 'C');
   if (sFrontcourtDef.length === 3 && !sFrontcourtDef.some(p => p.archetype === 'Lockdown Defender' || p.archetype === 'Paint Beast')) {
-    chemBonus -= 0.05; chemReport.push('🔴 Defensive Sieve: Starting frontcourt offers zero rim/wing protection (-5%)');
+    const penalty = coach === 'dantoni' ? 0.08 : 0.05;
+    chemBonus -= penalty;
+    chemReport.push(`🔴 Defensive Sieve${coach === 'dantoni' ? " (heightened by D'Antoni)" : ''}: Starting frontcourt offers zero rim/wing protection (-${Math.round(penalty * 100)}%)`);
   }
 
   const highUsageCount = starters.filter(p => p.ppg > 25.0 && p.apg < 5.0).length;
@@ -666,7 +706,7 @@ function calculateChemistry(starters, bench) {
     chemBonus -= 0.05; chemReport.push('🔴 No Paint Protection: Frontcourt blocks fall below 1.5 BPG (-5%)');
   }
 
-  if ((starters.length + bench.length) === 8) {
+  if (coach !== 'popovich' && (starters.length + bench.length) === 8) {
     const benchTotalPpg = bench.reduce((sum, p) => sum + p.ppg, 0);
     if (benchTotalPpg < 32.0) { chemBonus -= 0.04; chemReport.push(`🔴 Barren Bench: Bench combines for only ${benchTotalPpg.toFixed(1)} PPG (-4%)`); }
   }
@@ -808,14 +848,44 @@ const TEAM_COLORS = {
 };
 
 const ARCHETYPE_STYLE = {
-  'Playmaker':         { bg:'#1e3a5f', text:'#60a5fa' },
-  'Sharpshooter':      { bg:'#451a03', text:'#fbbf24' },
-  'Lockdown Defender': { bg:'#3b0764', text:'#e879f9' },
-  'Slasher':           { bg:'#2e1065', text:'#c084fc' },
-  'Paint Beast':       { bg:'#052e16', text:'#4ade80' },
-  'Two-Way Star':      { bg:'#431407', text:'#fb923c' },
+  'Playmaker':         { bg:'#dbeafe', text:'#1d4ed8' },
+  'Sharpshooter':      { bg:'#fef3c7', text:'#92400e' },
+  'Lockdown Defender': { bg:'#f3e8ff', text:'#6d28d9' },
+  'Slasher':           { bg:'#ede9fe', text:'#5b21b6' },
+  'Paint Beast':       { bg:'#dcfce7', text:'#15803d' },
+  'Two-Way Star':      { bg:'#ffedd5', text:'#9a3412' },
 };
 
+const COACHES = [
+  {
+    id:     'jackson',
+    name:   'Phil Jackson',
+    system: 'Triangle Offense',
+    desc:   'Star-driven — Dynamic Duo and Heliocentric Engine bonuses amplified ×1.5; Clashing Egos penalty softened to −2%.',
+    accent: '#c084fc',
+  },
+  {
+    id:     'popovich',
+    name:   'Gregg Popovich',
+    system: 'The Beautiful Game',
+    desc:   'Bench and ball-movement driven — Second Unit General and Floor General amplified ×1.5; Barren Bench penalty negated.',
+    accent: '#60a5fa',
+  },
+  {
+    id:     'dantoni',
+    name:   "Mike D'Antoni",
+    system: 'Seven Seconds or Less',
+    desc:   'Pace and spacing driven — Small Ball Heat and Pace & Space Blitz amplified ×1.5; Defensive Sieve penalty increased to −8%.',
+    accent: '#fbbf24',
+  },
+  {
+    id:     'riley',
+    name:   'Pat Riley',
+    system: 'Grit & Grind / Showtime',
+    desc:   'Defense and transition driven — Showtime Transition and All-Defensive Team amplified ×1.5; Defensive Liability penalty negated.',
+    accent: '#4ade80',
+  },
+];
 
 const CPU_TEAMS = [
   { name: "96 Bulls",         strength: 1.38 },
@@ -865,7 +935,8 @@ function buildBracket(playerSeed, playerStrength) {
 // ── GAME STATE ────────────────────────────────────────────────────────────────
 
 let S = {
-  phase:       'era-select', // 'era-select' | 'drafting' | 'results' | 'playoffs'
+  phase:       'coach-select', // 'coach-select' | 'era-select' | 'drafting' | 'results' | 'playoffs'
+  coach:       null,
   selectedEra: null,
 };
 
@@ -922,10 +993,12 @@ function rosterFull() {
 const $app = document.getElementById('app');
 
 function render() {
-  if      (S.phase === 'era-select') $app.innerHTML = renderEraSelect();
-  else if (S.phase === 'drafting')   $app.innerHTML = renderDrafting();
-  else if (S.phase === 'results')    $app.innerHTML = renderResults();
-  else if (S.phase === 'playoffs')   $app.innerHTML = renderPlayoffs();
+  if      (S.phase === 'coach-select') $app.innerHTML = renderCoachSelect();
+  else if (S.phase === 'era-select')   $app.innerHTML = renderEraSelect();
+  else if (S.phase === 'drafting')     $app.innerHTML = renderDrafting();
+  else if (S.phase === 'results')      $app.innerHTML = renderResults();
+  else if (S.phase === 'playoffs')     $app.innerHTML = renderPlayoffs();
+  else if (S.phase === 'trophy-room')  $app.innerHTML = renderTrophyRoom();
   bindEvents();
 }
 
@@ -950,19 +1023,53 @@ function archetypeBadge(arch) {
   return `<span class="inline-block text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full mt-0.5" style="background:${c.bg};color:${c.text}">${arch}</span>`;
 }
 
+// ── Salary cap ─────────────────────────────────────────────────────────────────
+function calculatePlayerPrice(p) {
+  let price = Math.round((p.ppg * 1.2) + (p.rpg * 0.9) + (p.apg * 1.1) + (p.spg * 2.5) + (p.bpg * 2.5));
+  return Math.max(5, price);
+}
+
+// ── Share / leaderboard helpers ────────────────────────────────────────────────
+function fmtDecadeShort(decade) {
+  if (!decade) return '';
+  const m = decade.match(/(\d{2})(\d{2})s/);
+  return m ? m[2] + 's' : decade;
+}
+
+function fmtPlayerLine(p) {
+  if (!p) return '—';
+  const era = [p.team, p.decade ? fmtDecadeShort(p.decade) : ''].filter(Boolean).join(' ');
+  return era ? `${p.name} (${era})` : p.name;
+}
+
+function showToast(msg, duration = 2500) {
+  const el = document.createElement('div');
+  el.textContent = msg;
+  el.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);' +
+    'background:#0f172a;color:#fff;font-family:Fira Sans,sans-serif;font-weight:700;' +
+    'font-size:13px;padding:10px 20px;border-radius:999px;z-index:99999;' +
+    'box-shadow:0 4px 24px rgba(0,0,0,0.2);transition:opacity 0.3s;white-space:nowrap';
+  document.body.appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 350); }, duration);
+}
+
 function renderHeader(showRestart = false) {
-  const eraLabel = S.selectedEra && S.selectedEra !== 'all'
-    ? `Classic · ${S.selectedEra}` : 'Classic Mode';
+  const eraLabel  = S.selectedEra && S.selectedEra !== 'all'
+    ? `${S.selectedEra}` : 'All Eras';
+  const coachObj  = S.coach ? COACHES.find(c => c.id === S.coach) : null;
   return `
-  <header class="sticky top-0 z-50 w-full border-b border-border" style="background:rgba(9,9,11,0.92);backdrop-filter:blur(10px)">
+  <header class="sticky top-0 z-50 w-full border-b border-border bg-white" style="box-shadow:0 1px 3px rgba(0,0,0,0.05)">
     <div class="mx-auto flex h-12 max-w-2xl items-center justify-between px-4">
-      <div class="flex items-center gap-2 font-bold text-base">
-        ${iconBall('h-6 w-6 text-primary')}
-        <span class="text-foreground">82-0</span>
+      <div class="flex items-center gap-2 font-black text-base text-foreground">
+        ${iconBall('h-5 w-5 text-primary')}
+        <span>82-0</span>
       </div>
-      <div class="flex items-center gap-2">
-        <span class="text-xs px-2.5 py-1 rounded-full font-semibold bg-card2 text-muted-fg border border-border">${eraLabel}</span>
-        ${showRestart ? `<button data-action="restart" class="text-xs px-3 py-1.5 rounded-full border border-border text-muted-fg hover:text-foreground hover:border-primary/60 transition-all cursor-pointer">Restart</button>` : ''}
+      <div class="flex items-center gap-1.5">
+        ${coachObj ? `<span class="text-[11px] px-2.5 py-1 rounded-full font-bold border border-border bg-card2 text-muted-fg">${coachObj.system}</span>` : ''}
+        <span class="text-[11px] px-2.5 py-1 rounded-full font-bold border border-border bg-card2 text-muted-fg">${eraLabel}</span>
+        ${S.phase === 'drafting' ? `<span class="text-[11px] px-2.5 py-1 rounded-full font-bold border ${S.hasMulligan ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-border bg-card2 text-muted opacity-50'}">🎲 ${S.hasMulligan ? 'Mulligan' : 'Used'}</span>` : ''}
+        <button data-action="open-leaderboard" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Personal Leaderboard">🏅</button>
+        ${showRestart ? `<button data-action="restart" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">Restart</button>` : ''}
       </div>
     </div>
   </header>`;
@@ -970,9 +1077,63 @@ function renderHeader(showRestart = false) {
 
 function renderFooter() {
   return `
-  <footer class="w-full py-3 text-center border-t border-border mt-auto">
-    <p class="text-xs text-muted-fg/60">82-0.com is an independent fan project — not affiliated with the NBA.</p>
+  <footer class="w-full py-4 text-center border-t border-border mt-auto bg-card">
+    <p class="text-xs text-muted">82-0.com is an independent fan project — not affiliated with the NBA.</p>
   </footer>`;
+}
+
+function renderCoachSelect() {
+  const coachIcon = `<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`;
+  return `
+  <div class="flex flex-col min-h-screen main-gradient">
+    ${renderHeader(false)}
+    <main class="flex-1 flex flex-col items-center px-4 pt-4 pb-8">
+      <div class="w-full max-w-2xl flex flex-col gap-4 animate-fade-up">
+
+        <div class="text-center py-4">
+          <p class="text-xs font-bold uppercase tracking-widest text-primary mb-2">Step 1 of 2</p>
+          <h1 class="text-2xl font-black text-foreground mb-2">Choose Your Coach</h1>
+          <p class="text-sm text-muted-fg">Your coach reshapes the chemistry engine — pick a system that fits your drafting philosophy.</p>
+        </div>
+
+        <div class="flex flex-col gap-3">
+          ${COACHES.map(c => `
+            <button data-action="coach-pick-${c.id}"
+              class="w-full rounded-2xl border border-border bg-card p-5 text-left cursor-pointer hover:bg-card2 transition-all"
+              onmouseenter="this.style.borderColor='${c.accent}55'" onmouseleave="this.style.borderColor=''">
+              <div class="flex items-start gap-4">
+                <div class="flex-shrink-0 mt-0.5 w-10 h-10 rounded-full flex items-center justify-center" style="background:${c.accent}18;border:1.5px solid ${c.accent}44;color:${c.accent}">
+                  ${coachIcon}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex flex-wrap items-center gap-2 mb-1">
+                    <p class="font-black text-base text-foreground">${c.name}</p>
+                    <span class="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full" style="background:${c.accent}22;color:${c.accent}">${c.system}</span>
+                  </div>
+                  <p class="text-sm text-muted-fg leading-relaxed">${c.desc}</p>
+                </div>
+              </div>
+            </button>
+          `).join('')}
+        </div>
+
+        ${(() => {
+          let t = [];
+          try { t = JSON.parse(localStorage.getItem('nba820_trophies') || '[]'); } catch(e) {}
+          if (!t.length) return '';
+          return `
+            <button data-action="view-trophies"
+              class="w-full py-3.5 rounded-xl font-bold text-sm border cursor-pointer transition-all"
+              style="border-color:#eab30840;background:#eab30810;color:#eab308"
+              onmouseenter="this.style.borderColor='#eab30880'" onmouseleave="this.style.borderColor='#eab30840'">
+              🏆 View Trophy Room · ${t.length} Championship${t.length === 1 ? '' : 's'}
+            </button>`;
+        })()}
+
+      </div>
+    </main>
+    ${renderFooter()}
+  </div>`;
 }
 
 function renderEraSelect() {
@@ -982,7 +1143,7 @@ function renderEraSelect() {
     <main class="flex-1 flex flex-col items-center px-4 pt-4 pb-8">
       <div class="w-full max-w-2xl flex flex-col gap-4 animate-fade-up">
         <div class="text-center py-4">
-          <p class="text-xs font-bold uppercase tracking-widest text-primary mb-2">Draft Setup</p>
+          <p class="text-xs font-bold uppercase tracking-widest text-primary mb-2">Step 2 of 2 · Draft Setup</p>
           <h1 class="text-2xl font-black text-foreground mb-2">Choose Your Era</h1>
           <p class="text-sm text-muted-fg">Pick a decade — your 8 draft picks come from that era's pool. Or let fate decide.</p>
         </div>
@@ -1019,8 +1180,9 @@ function renderDrafting() {
     <main class="flex-1 flex flex-col items-center px-4 pt-4 pb-8">
       <div class="w-full max-w-2xl flex flex-col gap-4">
         ${renderRoundBar()}
+        ${renderCapBar()}
         ${full ? renderSimulateCard() : renderSlotMachine()}
-        ${S.spinState === 'done' ? renderPlayerPool() : ''}
+        ${S.spinState === 'done' ? renderDraftBoard() : ''}
         ${renderChemDashboard()}
         ${renderRoster()}
       </div>
@@ -1048,6 +1210,25 @@ function renderRoundBar() {
         return `<div class="rounded-full transition-all" style="width:7px;height:7px;background:${active ? (isStarter ? '#f97316' : '#a1a1aa') : '#27272a'};opacity:${active ? 1 : 0.4}"></div>`;
       }).join('')}
     </div>
+  </div>`;
+}
+
+function renderCapBar() {
+  const spent    = S.currentPayroll;
+  const cap      = S.salaryCap;
+  const pct      = Math.min(100, Math.round((spent / cap) * 100));
+  const isTight  = spent >= 120;
+  const barColor = spent >= 140 ? '#ef4444' : spent >= 120 ? '#f97316' : '#22c55e';
+  return `
+  <div class="rounded-xl border border-border bg-card px-4 py-3">
+    <div class="flex items-center justify-between mb-2">
+      <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg">Salary Cap</p>
+      <p class="text-xs font-bold ${isTight ? 'text-orange-400' : 'text-foreground'}">$${spent}M <span class="text-muted-fg font-normal">/ $${cap}M</span></p>
+    </div>
+    <div class="h-1.5 rounded-full overflow-hidden" style="background:#27272a">
+      <div class="h-full rounded-full transition-all" style="width:${pct}%;background:${barColor}"></div>
+    </div>
+    ${isTight ? `<p class="text-[10px] mt-1.5 font-medium" style="color:#f97316">⚠ Cap space is tight — choose contracts wisely</p>` : ''}
   </div>`;
 }
 
@@ -1093,7 +1274,16 @@ function renderSlotMachine() {
         SPINNING...
       </button>
     ` : `
-      <p class="text-center text-xs text-muted-fg py-1">Select a player below, then tap a roster slot to place them</p>
+      <p class="text-center text-xs text-muted-fg py-1">Pick a player from the draft board below, then tap a roster slot</p>
+      ${S.hasMulligan ? `
+        <button data-action="use-mulligan"
+          class="mt-2 w-full py-2.5 rounded-xl font-bold text-sm border border-dashed transition-all cursor-pointer"
+          style="border-color:#22c55e50;background:#22c55e0a;color:#4ade80"
+          onmouseenter="this.style.borderColor='#22c55e90';this.style.background='#22c55e18'"
+          onmouseleave="this.style.borderColor='#22c55e50';this.style.background='#22c55e0a'">
+          🎲 Use Mulligan <span style="color:#71717a;font-weight:normal;font-size:0.75rem">(1 Remaining)</span>
+        </button>
+      ` : ''}
     `}
   </div>`;
 }
@@ -1111,6 +1301,64 @@ function renderPlayerPool() {
     </div>
     <div class="flex flex-col gap-2">
       ${S.availablePlayers.map(p => renderPlayerCard(p)).join('')}
+    </div>
+  </div>`;
+}
+
+function renderDraftBoard() {
+  if (!S.draftBoard || !S.draftBoard.length) return '';
+  const team      = S.currentSpin?.team;
+  const decade    = S.currentSpin?.decade;
+  const tc        = team ? TEAM_COLORS[team] : null;
+  const remaining = S.salaryCap - S.currentPayroll;
+  return `
+  <div class="animate-fade-up">
+    <div class="flex items-center gap-2 mb-3">
+      ${tc ? `<span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${tc.bg}"></span>` : ''}
+      <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">${team} · ${decade}</p>
+      <span class="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full" style="background:#22c55e12;color:#4ade80;border:1px solid #22c55e30">$${remaining}M cap space</span>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      ${S.draftBoard.map((p, i) => renderDraftCard(p, i)).join('')}
+    </div>
+  </div>`;
+}
+
+function renderDraftCard(p, index) {
+  const price      = calculatePlayerPrice(p);
+  const canAfford  = S.currentPayroll + price <= S.salaryCap;
+  const isSelected = S.selectedPlayer?.id === p.id;
+  const cardBorder = isSelected ? '#f97316' : canAfford ? '#27272a' : '#3f3f46';
+  const cardBg     = isSelected ? '#f9731610' : '#18181b';
+  return `
+  <div class="rounded-xl border flex flex-col overflow-hidden transition-all"
+    style="border-color:${cardBorder};background:${cardBg}">
+    <div class="p-3 flex-1">
+      <div class="flex items-center gap-1.5 mb-2">
+        <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full border" style="background:#1f1f23;border-color:#3f3f46;color:#a1a1aa">${p.pos}</span>
+        ${archetypeBadge(p.archetype)}
+        <span class="ml-auto text-sm font-black" style="color:${canAfford ? '#4ade80' : '#ef4444'}">$${price}M</span>
+      </div>
+      <p class="font-bold text-sm text-foreground leading-tight mb-1.5">${p.name}</p>
+      <div class="flex flex-wrap gap-x-2 gap-y-0.5">
+        ${[['PPG',p.ppg],['RPG',p.rpg],['APG',p.apg],['SPG',p.spg],['BPG',p.bpg]].map(([l,v])=>`
+          <span class="text-[10px] text-muted-fg"><span class="font-semibold text-foreground/80">${v}</span> ${l}</span>
+        `).join('')}
+      </div>
+    </div>
+    <div class="px-3 pb-3">
+      ${canAfford
+        ? `<button data-action="draft-pick-${index}"
+            class="w-full py-2 rounded-lg font-bold text-xs transition-all cursor-pointer"
+            style="background:${isSelected ? '#f97316' : '#f9731622'};color:${isSelected ? '#fff' : '#f97316'}">
+            ${isSelected ? '✓ Selected · Tap a Roster Slot' : 'Draft Player'}
+           </button>`
+        : `<button disabled
+            class="w-full py-2 rounded-lg font-bold text-xs cursor-not-allowed"
+            style="background:#27272a;color:#52525b">
+            Cannot Afford
+           </button>`
+      }
     </div>
   </div>`;
 }
@@ -1401,16 +1649,33 @@ function handleClick(e) {
 }
 
 function dispatch(action) {
+  if (action.startsWith('coach-pick-')) {
+    S.coach = action.slice(11);
+    S.phase = 'era-select';
+    render(); return;
+  }
   if (action.startsWith('era-'))   { startGame(action.slice(4)); return; }
-  if (action === 'restart')        { confirmLeave(() => { S.phase = 'era-select'; render(); }); return; }
+  if (action === 'restart')        { confirmLeave(() => { S.phase = 'coach-select'; S.coach = null; render(); }); return; }
   if (action === 'spin')           { doSpin();       return; }
   if (action === 'skip-team')      { doSkipTeam();   return; }
   if (action === 'skip-decade')    { doSkipDecade(); return; }
   if (action === 'simulate')           { doSimulate();        return; }
   if (action === 'share')              { doShare();           return; }
+  if (action === 'open-leaderboard')   { showLeaderboardModal(); return; }
   if (action === 'advance-to-playoffs'){ doAdvanceToPlayoffs();return; }
   if (action === 'sim-next-round')     { doSimNextRound();    return; }
-  if (action === 'draft-new-roster')   { S.phase='era-select'; render(); return; }
+  if (action === 'draft-new-roster')   { S.phase='coach-select'; S.coach=null; render(); return; }
+  if (action === 'view-trophies')      { S.phase = 'trophy-room'; render(); return; }
+  if (action === 'back-to-menu')       { S.phase = 'coach-select'; render(); return; }
+  if (action === 'use-mulligan')       { if (!S.hasMulligan) return; S.hasMulligan = false; S.spinState = 'idle'; S.selectedPlayer = null; S.currentSpin = null; S.draftBoard = []; doSpin(); return; }
+
+  if (action.startsWith('draft-pick-')) {
+    const idx = parseInt(action.slice(11), 10);
+    const p   = S.draftBoard[idx];
+    if (!p) { render(); return; }
+    S.selectedPlayer = S.selectedPlayer?.id === p.id ? null : p;
+    render(); return;
+  }
 
   if (action.startsWith('pick-')) {
     const id = action.slice(5);
@@ -1433,23 +1698,29 @@ function dispatch(action) {
 // ── GAME ACTIONS ──────────────────────────────────────────────────────────────
 
 function confirmLeave(fn) {
-  if (S.phase === 'era-select' || S.phase === 'results' || S.phase === 'playoffs') { fn(); return; }
+  if (S.phase === 'coach-select' || S.phase === 'era-select' || S.phase === 'results' || S.phase === 'playoffs' || S.phase === 'trophy-room') { fn(); return; }
   if (confirm('Leave this game? Your progress will be lost.')) fn();
   else render();
 }
 
 function startGame(era = 'all') {
+  const coach = S.coach;
   S = {
     phase: 'drafting',
+    coach,
     selectedEra: era,
     round: 0,
     usedDecades:   [],
     usedPlayerIds: [],
     teamSkips:   1,
     decadeSkips: 1,
+    hasMulligan:    true,
+    salaryCap:      150,
+    currentPayroll: 0,
     spinState:   'idle',
     currentSpin: null,
     availablePlayers: [],
+    draftBoard:       [],
     selectedPlayer:   null,
     roster: { PG:null, SG:null, SF:null, PF:null, C:null, B1:null, B2:null, B3:null },
     result: null,
@@ -1481,6 +1752,7 @@ function doSpin() {
       S.currentSpin      = spin;
       S.spinState        = 'done';
       S.availablePlayers = getAvailablePlayers(spin.team, spin.decade);
+      S.draftBoard       = [...S.availablePlayers].sort(() => Math.random() - 0.5).slice(0, 3);
       S.selectedPlayer   = null;
       render();
     }
@@ -1494,6 +1766,7 @@ function doSkipTeam() {
   if (spin) {
     S.currentSpin      = spin;
     S.availablePlayers = getAvailablePlayers(spin.team, spin.decade);
+    S.draftBoard       = [...S.availablePlayers].sort(() => Math.random() - 0.5).slice(0, 3);
     S.selectedPlayer   = null;
   }
   render();
@@ -1509,6 +1782,7 @@ function doSkipDecade() {
   if (spin) {
     S.currentSpin      = spin;
     S.availablePlayers = getAvailablePlayers(spin.team, spin.decade);
+    S.draftBoard       = [...S.availablePlayers].sort(() => Math.random() - 0.5).slice(0, 3);
     S.selectedPlayer   = null;
   }
   render();
@@ -1518,14 +1792,18 @@ function placePlayer(pos) {
   if (!S.selectedPlayer) { render(); return; }
   const spin   = S.currentSpin;
   const player = { ...S.selectedPlayer, team: spin?.team, decade: spin?.decade };
+  const price  = calculatePlayerPrice(S.selectedPlayer);
+  if (S.currentPayroll + price > S.salaryCap) { render(); return; }
 
-  S.roster[pos]  = player;
+  S.currentPayroll  += price;
+  S.roster[pos]      = player;
   S.usedDecades.push(spin?.decade);
   S.usedPlayerIds.push(player.id);
   S.round++;
   S.spinState        = 'idle';
   S.currentSpin      = null;
   S.availablePlayers = [];
+  S.draftBoard       = [];
   S.selectedPlayer   = null;
   render();
 }
@@ -1535,23 +1813,168 @@ function doSimulate() {
   const bench    = BENCH_POSITIONS.map(p => S.roster[p]).filter(Boolean);
   S.result = simulateSeason(starters, bench);
   S.phase  = 'results';
+  saveLeaderboard();
   render();
 }
 
-function doShare() {
+function doShareText() {
   const r = S.result;
   if (!r) return;
-  const starters = POSITIONS.map(p => S.roster[p]?.name || '—').join(', ');
-  const bench    = BENCH_POSITIONS.map(p => S.roster[p]?.name || '—').join(', ');
-  const chem     = r.chemReport?.length ? '\n' + r.chemReport.join('\n') : '';
-  const text = `I went ${r.wins}-${r.losses} in 82-0! 🏀\nStarters: ${starters}\nBench: ${bench}${chem}\nCan you beat it? https://82-0.com`;
+
+  const isPerfect  = r.wins === 82;
+  const isHistoric = r.wins >= 75;
+  const isElite    = r.wins >= 70;
+  const isPlayoff  = r.wins >= 60;
+
+  let tier;
+  if (isPerfect)       tier = '🏆 PERFECT SEASON';
+  else if (isHistoric) tier = '🔥 Historic Season';
+  else if (isElite)    tier = '⚡ Elite Season';
+  else if (isPlayoff)  tier = '✅ Playoff Contender';
+  else                 tier = '😬 Rough Season';
+
+  const starterLines = POSITIONS.map(pos => {
+    const p = S.roster[pos];
+    return p ? `🌟 ${fmtPlayerLine(p)}` : '';
+  }).filter(Boolean).join('\n');
+
+  const benchLines = BENCH_POSITIONS.map(pos => {
+    const p = S.roster[pos];
+    return p ? `💪 ${fmtPlayerLine(p)}` : '';
+  }).filter(Boolean).join('\n');
+
+  const chemLine = r.chemScore !== undefined ? `\nChemistry: ${Math.round(r.chemScore)}%` : '';
+
+  const text = [
+    `🏀 ${r.wins}-${r.losses} — ${tier}`,
+    '',
+    'Starters:',
+    starterLines,
+    '',
+    'Bench:',
+    benchLines,
+    chemLine,
+    '',
+    'Can you beat it? → 82-0.com',
+  ].join('\n').replace(/\n{3,}/g, '\n\n').trim();
+
   if (navigator.share) {
     navigator.share({ title: '82-0', text }).catch(() => {});
   } else {
     navigator.clipboard.writeText(text)
-      .then(() => alert('Result copied to clipboard! 🏀'))
+      .then(() => showToast('Copied to clipboard! 🏀'))
       .catch(() => prompt('Copy this:', text));
   }
+}
+
+function doShare() {
+  doShareText();
+}
+
+
+// ── TROPHY ROOM ───────────────────────────────────────────────────────────────
+
+function saveToTrophyRoom() {
+  const r       = S.result;
+  const coachObj = S.coach ? COACHES.find(c => c.id === S.coach) : null;
+  const entry = {
+    date:        new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+    coachName:   coachObj ? coachObj.name   : 'Unknown',
+    coachSystem: coachObj ? coachObj.system : '',
+    wins:        r.wins,
+    losses:      r.losses,
+    chemScore:   Math.round(r.chemScore),
+    payroll:     S.currentPayroll,
+    starters:    POSITIONS.map(p => S.roster[p]?.name || '—').join(', '),
+    bench:       BENCH_POSITIONS.map(p => S.roster[p]?.name || '—').join(', '),
+  };
+  let trophies = [];
+  try { trophies = JSON.parse(localStorage.getItem('nba820_trophies') || '[]'); } catch(e) {}
+  trophies.unshift(entry);
+  if (trophies.length > 12) trophies = trophies.slice(0, 12);
+  try { localStorage.setItem('nba820_trophies', JSON.stringify(trophies)); } catch(e) {}
+}
+
+
+// ── PERSONAL LEADERBOARD ──────────────────────────────────────────────────────
+
+function saveLeaderboard() {
+  const r = S.result;
+  if (!r) return;
+  const entry = {
+    date:     new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+    wins:     r.wins,
+    losses:   r.losses,
+    starters: POSITIONS.map(p => S.roster[p]?.name || '—').join(', '),
+  };
+  let lb = [];
+  try { lb = JSON.parse(localStorage.getItem('nba820_lb') || '[]'); } catch(e) {}
+  lb.push(entry);
+  lb.sort((a, b) => b.wins - a.wins);
+  if (lb.length > 20) lb = lb.slice(0, 20);
+  try { localStorage.setItem('nba820_lb', JSON.stringify(lb)); } catch(e) {}
+}
+
+function renderLeaderboardModal() {
+  let lb = [];
+  try { lb = JSON.parse(localStorage.getItem('nba820_lb') || '[]'); } catch(e) {}
+  const top5 = lb.slice(0, 5);
+
+  const rows = top5.length === 0
+    ? `<p style="font-size:14px;color:#a1a1aa;text-align:center;padding:24px 0">No runs yet — simulate a season to get on the board!</p>`
+    : top5.map((e, i) => {
+        const isPerfect = e.wins === 82;
+        const rowBg     = isPerfect ? 'background:#78350f33;border-color:#eab30855' : 'background:#18181b;border-color:#27272a';
+        const rankColor = i === 0 ? '#f97316' : '#a1a1aa';
+        const winsColor = isPerfect ? '#eab308' : '#fafafa';
+        return `
+        <div style="border-radius:12px;border:1px solid;padding:12px;display:flex;align-items:center;gap:12px;${rowBg}">
+          <span style="font-size:18px;font-weight:900;width:28px;text-align:center;flex-shrink:0;color:${rankColor}">${i + 1}</span>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+              <span style="font-weight:900;font-size:16px;color:${winsColor}">${e.wins}–${e.losses}</span>
+              ${isPerfect ? '<span style="font-size:10px;font-weight:900;padding:2px 6px;border-radius:999px;background:#eab30822;color:#eab308;border:1px solid #eab30844">🏆 PERFECT</span>' : ''}
+            </div>
+            <p style="font-size:12px;color:#a1a1aa;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:2px 0 0">${e.starters}</p>
+            <p style="font-size:10px;color:#52525b;margin:2px 0 0">${e.date}</p>
+          </div>
+        </div>`;
+      }).join('');
+
+  return `
+  <div id="lb-modal-backdrop" onclick="if(event.target===this)closeLeaderboardModal()"
+    style="position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:9998;display:flex;align-items:center;justify-content:center;padding:16px">
+    <div style="background:#18181b;border:1px solid #27272a;border-radius:20px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;padding:24px;font-family:'Fira Sans',sans-serif;color:#fafafa;animation:scaleIn 0.2s ease-out">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div>
+          <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#f97316;margin:0 0 4px">Personal Best</p>
+          <h2 style="font-size:22px;font-weight:900;margin:0">Hall of Fame</h2>
+        </div>
+        <button onclick="closeLeaderboardModal()"
+          style="background:#27272a;border:none;color:#a1a1aa;border-radius:999px;width:32px;height:32px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">✕</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        ${rows}
+      </div>
+      ${lb.length > 5 ? `<p style="text-align:center;font-size:11px;color:#52525b;margin-top:14px">${lb.length} total runs tracked</p>` : ''}
+    </div>
+  </div>`;
+}
+
+function showLeaderboardModal() {
+  closeLeaderboardModal();
+  const div = document.createElement('div');
+  div.id = 'lb-modal-root';
+  div.innerHTML = renderLeaderboardModal();
+  document.body.appendChild(div);
+  const onKey = e => { if (e.key === 'Escape') closeLeaderboardModal(); };
+  document.addEventListener('keydown', onKey);
+  div._removeKey = () => document.removeEventListener('keydown', onKey);
+}
+
+function closeLeaderboardModal() {
+  const el = document.getElementById('lb-modal-root');
+  if (el) { if (el._removeKey) el._removeKey(); el.remove(); }
 }
 
 
@@ -1565,11 +1988,13 @@ function doAdvanceToPlayoffs() {
   S.playoffs = {
     playerSeed,
     playerStrength,
+    initialBracket: bracket.map(pair => pair.map(t => ({ ...t }))),
     rounds: [],
     currentRound: 0,
     bracket,
     eliminated: false,
     champion: false,
+    tickState: null,
     roundNames: ['Conference Quarterfinals', 'Conference Semifinals', 'NBA Finals'],
   };
   S.phase = 'playoffs';
@@ -1578,37 +2003,52 @@ function doAdvanceToPlayoffs() {
 
 function doSimNextRound() {
   const po = S.playoffs;
+  if (po.tickState) return; // guard against double-click during animation
+
   const results = po.bracket.map(([teamA, teamB]) => {
     const series = simulateSeries(teamA.strength, teamB.strength);
     return { teamA, teamB, ...series };
   });
-  po.rounds.push(results);
 
   const playerResult = results.find(r => r.teamA.isPlayer || r.teamB.isPlayer);
-  if (playerResult) {
-    const playerWon = (playerResult.teamA.isPlayer && playerResult.won) ||
-                      (playerResult.teamB.isPlayer && !playerResult.won);
-    if (!playerWon) {
-      po.eliminated = true;
-      po.eliminatedIn = po.roundNames[po.currentRound];
-      render(); return;
-    }
-  }
+  const playerWon = playerResult
+    ? (playerResult.teamA.isPlayer ? playerResult.won : !playerResult.won)
+    : true;
 
-  const winners = results.map(r => r.won ? r.teamA : r.teamB);
-  po.currentRound++;
-
-  if (po.currentRound === 3) {
-    po.champion = true;
-    render(); return;
-  }
-
-  const nextBracket = [];
-  for (let i = 0; i < winners.length; i += 2) {
-    nextBracket.push([winners[i], winners[i + 1]]);
-  }
-  po.bracket = nextBracket;
+  const maxGames = Math.max(...results.map(r => r.games.length));
+  po.tickState = { results, revealedGames: 0, maxGames, done: false, playerWon };
   render();
+
+  const ticker = setInterval(() => {
+    po.tickState.revealedGames++;
+    render();
+    if (po.tickState.revealedGames >= po.tickState.maxGames) {
+      clearInterval(ticker);
+      po.tickState.done = true;
+      render();
+      setTimeout(() => {
+        po.rounds.push(po.tickState.results);
+        const { results: r2, playerWon: pw } = po.tickState;
+        po.tickState = null;
+        if (!pw) {
+          po.eliminated = true;
+          po.eliminatedIn = po.roundNames[po.currentRound];
+        } else {
+          const winners = r2.map(r => r.won ? r.teamA : r.teamB);
+          po.currentRound++;
+          if (po.currentRound === 3) {
+            po.champion = true;
+          } else {
+            po.bracket = [];
+            for (let i = 0; i < winners.length; i += 2) {
+              po.bracket.push([winners[i], winners[i + 1]]);
+            }
+          }
+        }
+        render();
+      }, 800);
+    }
+  }, 400);
 }
 
 
@@ -1622,6 +2062,7 @@ function renderPlayoffs() {
   if (po.eliminated) return renderEliminated();
 
   const roundName = po.roundNames[po.currentRound];
+  const completedRounds = po.rounds;
 
   const renderTeamCard = (team, seriesScore = null, won = null) => {
     const isPlayer = team.isPlayer;
@@ -1650,9 +2091,10 @@ function renderPlayoffs() {
   };
 
   let bracketHTML = '';
+  const ts = po.tickState;
 
-  for (let ri = 0; ri < po.rounds.length; ri++) {
-    const round = po.rounds[ri];
+  for (let ri = 0; ri < completedRounds.length; ri++) {
+    const round = completedRounds[ri];
     bracketHTML += `
       <div class="mb-4">
         <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg mb-2">${po.roundNames[ri]}</p>
@@ -1662,13 +2104,49 @@ function renderPlayoffs() {
       </div>`;
   }
 
-  bracketHTML += `
-    <div class="mb-4">
-      <p class="text-[10px] font-bold uppercase tracking-widest text-primary mb-2">${roundName} — Up Next</p>
-      <div class="grid grid-cols-2 gap-3">
-        ${po.bracket.map(([a, b]) => renderMatchup(a, b)).join('')}
-      </div>
-    </div>`;
+  if (ts) {
+    const renderTickingMatchup = (sr) => {
+      const isPlayerSeries = sr.teamA.isPlayer || sr.teamB.isPlayer;
+      const revealedGames = sr.games.slice(0, ts.revealedGames);
+      const pending = !ts.done && revealedGames.length < sr.games.length;
+      const gameBubbles = revealedGames.map(g => {
+        return `<span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-[10px] font-black ${g === 'W' ? 'bg-green-500/20 text-green-400 border border-green-500/40' : 'bg-red-500/20 text-red-400 border border-red-500/40'}">${g}</span>`;
+      }).join('');
+      const pendingDot = pending
+        ? `<span class="inline-flex items-center justify-center w-6 h-6 rounded-full border border-border text-muted-fg text-[10px] animate-pulse">·</span>`
+        : '';
+      const pWins = sr.games.slice(0, ts.revealedGames).filter(g => g === 'W').length;
+      const oWins = sr.games.slice(0, ts.revealedGames).filter(g => g === 'L').length;
+      return `
+        <div class="flex flex-col gap-2 p-3 rounded-xl border ${isPlayerSeries ? 'border-primary/40 bg-primary/5' : 'border-border bg-card'}" >
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-xs font-bold ${sr.teamA.isPlayer ? 'text-primary' : 'text-foreground'} truncate">${sr.teamA.isPlayer ? '⭐ ' : ''}${sr.teamA.name}</span>
+            <span class="text-xs font-mono text-foreground font-black">${pWins}–${oWins}</span>
+            <span class="text-xs font-bold ${sr.teamB.isPlayer ? 'text-primary' : 'text-foreground'} truncate text-right">${sr.teamB.isPlayer ? '⭐ ' : ''}${sr.teamB.name}</span>
+          </div>
+          <div class="flex flex-wrap gap-1">${gameBubbles}${pendingDot}</div>
+        </div>`;
+    };
+
+    bracketHTML += `
+      <div class="mb-4">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-primary mb-2">${roundName} — Simulating...</p>
+        <div class="flex flex-col gap-3">
+          ${ts.results.map(sr => renderTickingMatchup(sr)).join('')}
+        </div>
+      </div>`;
+  } else {
+    bracketHTML += `
+      <div class="mb-4">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-primary mb-2">${roundName} — Up Next</p>
+        <div class="grid grid-cols-2 gap-3">
+          ${po.bracket.map(([a, b]) => renderMatchup(a, b)).join('')}
+        </div>
+      </div>`;
+  }
+
+  const simBtnDisabled = !!ts;
+  const simBtnLabel = ts ? 'Simulating...' : `Simulate ${roundName} →`;
 
   return `
   <div class="min-h-screen flex flex-col" style="background:#09090b">
@@ -1685,9 +2163,9 @@ function renderPlayoffs() {
           ${bracketHTML}
         </div>
 
-        <button data-action="sim-next-round"
-          class="py-4 rounded-xl font-black text-base bg-primary text-white hover:bg-primary/90 transition-all cursor-pointer text-center">
-          Simulate ${roundName} →
+        <button data-action="sim-next-round" ${simBtnDisabled ? 'disabled' : ''}
+          class="py-4 rounded-xl font-black text-base transition-all text-center ${simBtnDisabled ? 'bg-card border border-border text-muted-fg cursor-not-allowed' : 'bg-primary text-white hover:bg-primary/90 cursor-pointer'}">
+          ${simBtnLabel}
         </button>
 
         <button data-action="draft-new-roster"
@@ -1704,6 +2182,16 @@ function renderPlayoffs() {
 function renderChampionship() {
   const po = S.playoffs;
   const r  = S.result;
+
+  if (!po.hasSavedTrophy) {
+    po.hasSavedTrophy = true;
+    saveToTrophyRoom();
+    setTimeout(() => {
+      if (typeof confetti !== 'undefined') {
+        confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#f97316', '#eab308', '#ffffff'] });
+      }
+    }, 200);
+  }
 
   const finalsResult = po.rounds[po.rounds.length - 1].find(
     sr => sr.teamA.isPlayer || sr.teamB.isPlayer
@@ -1796,6 +2284,89 @@ function renderEliminated() {
             Share Result
           </button>
         </div>
+
+      </div>
+    </main>
+    ${renderFooter()}
+  </div>`;
+}
+
+
+function renderTrophyRoom() {
+  let trophies = [];
+  try { trophies = JSON.parse(localStorage.getItem('nba820_trophies') || '[]'); } catch(e) {}
+
+  const emptyState = `
+    <div class="flex flex-col items-center justify-center gap-4 py-16 text-center">
+      <div class="text-5xl">🏀</div>
+      <h2 class="text-xl font-black text-foreground">No Championships Yet</h2>
+      <p class="text-sm text-muted-fg max-w-xs">Draft your first legendary roster and win the NBA Finals to enshrine it here.</p>
+    </div>`;
+
+  const trophyCards = trophies.map(t => {
+    const isPerfect = t.wins === 82 && t.losses === 0;
+    const cardBorder = isPerfect
+      ? 'border-yellow-400/60' : 'border-border';
+    const cardBg  = isPerfect ? 'bg-yellow-400/5'  : 'bg-card';
+    const cardGlow = isPerfect
+      ? 'style="box-shadow:0 0 24px rgba(234,179,8,0.18)"' : '';
+    const nameColor   = isPerfect ? 'text-yellow-400' : 'text-primary';
+    const recordColor = isPerfect ? 'text-yellow-400' : 'text-foreground';
+    const chemColor   = isPerfect ? 'text-yellow-400' : 'text-primary';
+
+    return `
+      <div class="rounded-2xl border p-4 flex flex-col gap-3 ${cardBorder} ${cardBg}" ${cardGlow}>
+        ${isPerfect ? `<p class="text-[10px] font-black uppercase tracking-widest text-yellow-400">⭐ Perfect Season — 82-0</p>` : ''}
+        <div class="flex items-start justify-between gap-2">
+          <div class="min-w-0">
+            <p class="font-black text-base ${nameColor} truncate">${t.coachName}</p>
+            <p class="text-xs text-muted-fg">${t.coachSystem}</p>
+          </div>
+          <div class="text-right flex-shrink-0">
+            <p class="font-black text-lg ${recordColor}">${t.wins}–${t.losses}</p>
+            <p class="text-xs text-muted-fg">${t.date}</p>
+          </div>
+        </div>
+        <div class="border-t ${isPerfect ? 'border-yellow-400/20' : 'border-border'} pt-3 flex flex-col gap-2">
+          <div>
+            <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg mb-1">Starting 5</p>
+            <p class="text-xs text-foreground leading-relaxed">${t.starters}</p>
+          </div>
+          <div>
+            <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg mb-1">Bench</p>
+            <p class="text-xs text-foreground leading-relaxed">${t.bench}</p>
+          </div>
+        </div>
+        <div class="flex items-center justify-between">
+          <p class="text-xs text-muted-fg">Chemistry</p>
+          <p class="text-xs font-bold ${chemColor}">${t.chemScore}%</p>
+        </div>
+        ${t.payroll !== undefined ? `
+        <div class="flex items-center justify-between">
+          <p class="text-xs text-muted-fg">Total Salary</p>
+          <p class="text-xs font-semibold text-muted-fg">${t.payroll}M</p>
+        </div>` : ''}
+      </div>`;
+  }).join('');
+
+  return `
+  <div class="flex flex-col min-h-screen main-gradient">
+    ${renderHeader(false)}
+    <main class="flex-1 flex flex-col items-center px-4 pt-4 pb-8">
+      <div class="w-full max-w-2xl flex flex-col gap-5 animate-fade-up">
+
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-widest mb-1" style="color:#eab308">Hall of Fame</p>
+            <h1 class="text-2xl font-black text-foreground">Trophy Room</h1>
+          </div>
+          <button data-action="back-to-menu"
+            class="flex-shrink-0 text-xs px-3 py-1.5 rounded-full border border-border text-muted-fg hover:text-foreground hover:border-primary/60 transition-all cursor-pointer">
+            ← Main Menu
+          </button>
+        </div>
+
+        ${trophies.length === 0 ? emptyState : `<div class="flex flex-col gap-4">${trophyCards}</div>`}
 
       </div>
     </main>

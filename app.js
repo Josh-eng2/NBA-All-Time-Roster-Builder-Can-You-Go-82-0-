@@ -46,13 +46,44 @@ const TEAM_COLORS = {
 };
 
 const ARCHETYPE_STYLE = {
-  'Playmaker':         { bg:'#1e3a5f', text:'#60a5fa' },
-  'Sharpshooter':      { bg:'#451a03', text:'#fbbf24' },
-  'Lockdown Defender': { bg:'#3b0764', text:'#e879f9' },
-  'Slasher':           { bg:'#2e1065', text:'#c084fc' },
-  'Paint Beast':       { bg:'#052e16', text:'#4ade80' },
-  'Two-Way Star':      { bg:'#431407', text:'#fb923c' },
+  'Playmaker':         { bg:'#dbeafe', text:'#1d4ed8' },
+  'Sharpshooter':      { bg:'#fef3c7', text:'#92400e' },
+  'Lockdown Defender': { bg:'#f3e8ff', text:'#6d28d9' },
+  'Slasher':           { bg:'#ede9fe', text:'#5b21b6' },
+  'Paint Beast':       { bg:'#dcfce7', text:'#15803d' },
+  'Two-Way Star':      { bg:'#ffedd5', text:'#9a3412' },
 };
+
+const COACHES = [
+  {
+    id:     'jackson',
+    name:   'Phil Jackson',
+    system: 'Triangle Offense',
+    desc:   'Star-driven — Dynamic Duo and Heliocentric Engine bonuses amplified ×1.5; Clashing Egos penalty softened to −2%.',
+    accent: '#c084fc',
+  },
+  {
+    id:     'popovich',
+    name:   'Gregg Popovich',
+    system: 'The Beautiful Game',
+    desc:   'Bench and ball-movement driven — Second Unit General and Floor General amplified ×1.5; Barren Bench penalty negated.',
+    accent: '#60a5fa',
+  },
+  {
+    id:     'dantoni',
+    name:   "Mike D'Antoni",
+    system: 'Seven Seconds or Less',
+    desc:   'Pace and spacing driven — Small Ball Heat and Pace & Space Blitz amplified ×1.5; Defensive Sieve penalty increased to −8%.',
+    accent: '#fbbf24',
+  },
+  {
+    id:     'riley',
+    name:   'Pat Riley',
+    system: 'Grit & Grind / Showtime',
+    desc:   'Defense and transition driven — Showtime Transition and All-Defensive Team amplified ×1.5; Defensive Liability penalty negated.',
+    accent: '#4ade80',
+  },
+];
 
 
 // ╔══════════════════════════════════════════════════════════════════════════════╗
@@ -106,7 +137,8 @@ function buildBracket(playerSeed, playerStrength) {
 }
 
 let S = {
-  phase:       'era-select', // 'era-select' | 'drafting' | 'results' | 'playoffs'
+  phase:       'coach-select', // 'coach-select' | 'era-select' | 'drafting' | 'results' | 'playoffs'
+  coach:       null,
   selectedEra: null,
 };
 
@@ -135,24 +167,26 @@ function spinResult(fixedTeam = null, fixedDecade = null) {
   const decadePool = availableDecades();
   if (!decadePool.length) return null;
 
-  let decade = fixedDecade || pick(decadePool);
-  let team   = fixedTeam   || pick(TEAMS);
+  const decades = fixedDecade ? [fixedDecade] : decadePool;
+  const teams   = fixedTeam   ? [fixedTeam]   : TEAMS;
 
-  for (let i = 0; i < 60 && !getAvailablePlayers(team, decade).length; i++) {
-    team   = pick(TEAMS);
-    if (!fixedDecade) decade = pick(decadePool);
-  }
-
-  if (!getAvailablePlayers(team, decade).length) {
-    for (const d of (fixedDecade ? [fixedDecade] : decadePool)) {
-      for (const t of TEAMS) {
-        if (getAvailablePlayers(t, d).length > 0) return { team: t, decade: d };
-      }
+  // Build every valid (team, decade) pair up front — no retry loop needed
+  const valid = [];
+  for (const d of decades) {
+    for (const t of teams) {
+      if (getAvailablePlayers(t, d).length > 0) valid.push({ team: t, decade: d });
     }
-    return null;
   }
+  if (valid.length) return pick(valid);
 
-  return { team, decade };
+  // Constraint (fixedTeam or fixedDecade) exhausted — expand to any remaining combo
+  const fallback = [];
+  for (const d of decadePool) {
+    for (const t of TEAMS) {
+      if (getAvailablePlayers(t, d).length > 0) fallback.push({ team: t, decade: d });
+    }
+  }
+  return fallback.length ? pick(fallback) : null;
 }
 
 function rosterFull() {
@@ -167,10 +201,12 @@ function rosterFull() {
 const $app = document.getElementById('app');
 
 function render() {
-  if      (S.phase === 'era-select') $app.innerHTML = renderEraSelect();
-  else if (S.phase === 'drafting')   $app.innerHTML = renderDrafting();
-  else if (S.phase === 'results')    $app.innerHTML = renderResults();
-  else if (S.phase === 'playoffs')   $app.innerHTML = renderPlayoffs();
+  if      (S.phase === 'coach-select') $app.innerHTML = renderCoachSelect();
+  else if (S.phase === 'era-select')   $app.innerHTML = renderEraSelect();
+  else if (S.phase === 'drafting')     $app.innerHTML = renderDrafting();
+  else if (S.phase === 'results')      $app.innerHTML = renderResults();
+  else if (S.phase === 'playoffs')     $app.innerHTML = renderPlayoffs();
+  else if (S.phase === 'trophy-room')  $app.innerHTML = renderTrophyRoom();
   bindEvents();
 }
 
@@ -197,20 +233,54 @@ function archetypeBadge(arch) {
   return `<span class="inline-block text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full mt-0.5" style="background:${c.bg};color:${c.text}">${arch}</span>`;
 }
 
+// ── Salary cap ─────────────────────────────────────────────────────────────────
+function calculatePlayerPrice(p) {
+  let price = Math.round((p.ppg * 1.2) + (p.rpg * 0.9) + (p.apg * 1.1) + (p.spg * 2.5) + (p.bpg * 2.5));
+  return Math.max(5, price);
+}
+
+// ── Share / leaderboard helpers ────────────────────────────────────────────────
+function fmtDecadeShort(decade) {
+  if (!decade) return '';
+  const m = decade.match(/(\d{2})(\d{2})s/);
+  return m ? m[2] + 's' : decade;
+}
+
+function fmtPlayerLine(p) {
+  if (!p) return '—';
+  const era = [p.team, p.decade ? fmtDecadeShort(p.decade) : ''].filter(Boolean).join(' ');
+  return era ? `${p.name} (${era})` : p.name;
+}
+
+function showToast(msg, duration = 2500) {
+  const el = document.createElement('div');
+  el.textContent = msg;
+  el.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);' +
+    'background:#0f172a;color:#fff;font-family:Fira Sans,sans-serif;font-weight:700;' +
+    'font-size:13px;padding:10px 20px;border-radius:999px;z-index:99999;' +
+    'box-shadow:0 4px 24px rgba(0,0,0,0.2);transition:opacity 0.3s;white-space:nowrap';
+  document.body.appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 350); }, duration);
+}
+
 // ── Shared chrome ──────────────────────────────────────────────────────────────
 function renderHeader(showRestart = false) {
-  const eraLabel = S.selectedEra && S.selectedEra !== 'all'
-    ? `Classic · ${S.selectedEra}` : 'Classic Mode';
+  const eraLabel  = S.selectedEra && S.selectedEra !== 'all'
+    ? `${S.selectedEra}` : 'All Eras';
+  const coachObj  = S.coach ? COACHES.find(c => c.id === S.coach) : null;
   return `
-  <header class="sticky top-0 z-50 w-full border-b border-border" style="background:rgba(9,9,11,0.92);backdrop-filter:blur(10px)">
+  <header class="sticky top-0 z-50 w-full border-b border-border bg-white" style="box-shadow:0 1px 3px rgba(0,0,0,0.05)">
     <div class="mx-auto flex h-12 max-w-2xl items-center justify-between px-4">
-      <div class="flex items-center gap-2 font-bold text-base">
-        ${iconBall('h-6 w-6 text-primary')}
-        <span class="text-foreground">82-0</span>
+      <div class="flex items-center gap-2 font-black text-base text-foreground">
+        ${iconBall('h-5 w-5 text-primary')}
+        <span>82-0</span>
       </div>
-      <div class="flex items-center gap-2">
-        <span class="text-xs px-2.5 py-1 rounded-full font-semibold bg-card2 text-muted-fg border border-border">${eraLabel}</span>
-        ${showRestart ? `<button data-action="restart" class="text-xs px-3 py-1.5 rounded-full border border-border text-muted-fg hover:text-foreground hover:border-primary/60 transition-all cursor-pointer">Restart</button>` : ''}
+      <div class="flex items-center gap-1.5">
+        ${coachObj ? `<span class="text-[11px] px-2.5 py-1 rounded-full font-bold border border-border bg-card2 text-muted-fg">${coachObj.system}</span>` : ''}
+        <span class="text-[11px] px-2.5 py-1 rounded-full font-bold border border-border bg-card2 text-muted-fg">${eraLabel}</span>
+        ${S.phase === 'drafting' ? `<span class="text-[11px] px-2.5 py-1 rounded-full font-bold border ${S.hasMulligan ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-border bg-card2 text-muted opacity-50'}">🎲 ${S.hasMulligan ? 'Mulligan' : 'Used'}</span>` : ''}
+        <button data-action="open-leaderboard" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Personal Leaderboard">🏅</button>
+        ${showRestart ? `<button data-action="restart" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">Restart</button>` : ''}
       </div>
     </div>
   </header>`;
@@ -218,9 +288,62 @@ function renderHeader(showRestart = false) {
 
 function renderFooter() {
   return `
-  <footer class="w-full py-3 text-center border-t border-border mt-auto">
-    <p class="text-xs text-muted-fg/60">82-0.com is an independent fan project — not affiliated with the NBA.</p>
+  <footer class="w-full py-4 text-center border-t border-border mt-auto bg-card">
+    <p class="text-xs text-muted">82-0.com is an independent fan project — not affiliated with the NBA.</p>
   </footer>`;
+}
+
+// ── Coach selection ────────────────────────────────────────────────────────────
+function renderCoachSelect() {
+  const coachIcon = `<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`;
+  return `
+  <div class="flex flex-col min-h-screen main-gradient">
+    ${renderHeader(false)}
+    <main class="flex-1 flex flex-col items-center px-4 pt-6 pb-8">
+      <div class="w-full max-w-2xl flex flex-col gap-4 animate-fade-up">
+
+        <div class="text-center pb-2">
+          <p class="text-xs font-bold uppercase tracking-widest text-primary mb-2">Step 1 of 2</p>
+          <h1 class="text-2xl font-black text-foreground mb-1.5">Choose Your Coach</h1>
+          <p class="text-sm text-muted-fg">Your coach reshapes the chemistry engine — pick a system that fits your philosophy.</p>
+        </div>
+
+        <div class="flex flex-col gap-3">
+          ${COACHES.map(c => `
+            <button data-action="coach-pick-${c.id}"
+              class="w-full rounded-2xl border border-border bg-card p-5 text-left cursor-pointer transition-all card-shadow hover:border-primary hover:shadow-md"
+              style="hover:border-color:#2563eb">
+              <div class="flex items-start gap-4">
+                <div class="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center" style="background:${c.accent}18;color:${c.accent}">
+                  ${coachIcon}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex flex-wrap items-center gap-2 mb-1">
+                    <p class="font-black text-base text-foreground">${c.name}</p>
+                    <span class="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border" style="background:${c.accent}12;color:${c.accent};border-color:${c.accent}30">${c.system}</span>
+                  </div>
+                  <p class="text-sm text-muted-fg leading-relaxed">${c.desc}</p>
+                </div>
+              </div>
+            </button>
+          `).join('')}
+        </div>
+
+        ${(() => {
+          let t = [];
+          try { t = JSON.parse(localStorage.getItem('nba820_trophies') || '[]'); } catch(e) {}
+          if (!t.length) return '';
+          return `
+            <button data-action="view-trophies"
+              class="w-full py-3.5 rounded-xl font-bold text-sm border border-amber-200 bg-amber-50 text-amber-700 cursor-pointer transition-all hover:bg-amber-100 hover:border-amber-300 card-shadow">
+              🏆 View Trophy Room · ${t.length} Championship${t.length === 1 ? '' : 's'}
+            </button>`;
+        })()}
+
+      </div>
+    </main>
+    ${renderFooter()}
+  </div>`;
 }
 
 // ── Era selection ──────────────────────────────────────────────────────────────
@@ -228,32 +351,31 @@ function renderEraSelect() {
   return `
   <div class="flex flex-col min-h-screen main-gradient">
     ${renderHeader(false)}
-    <main class="flex-1 flex flex-col items-center px-4 pt-4 pb-8">
+    <main class="flex-1 flex flex-col items-center px-4 pt-6 pb-8">
       <div class="w-full max-w-2xl flex flex-col gap-4 animate-fade-up">
 
-        <div class="text-center py-4">
-          <p class="text-xs font-bold uppercase tracking-widest text-primary mb-2">Draft Setup</p>
-          <h1 class="text-2xl font-black text-foreground mb-2">Choose Your Era</h1>
-          <p class="text-sm text-muted-fg">Pick a decade — your 8 draft picks come from that era's pool. Or let fate decide.</p>
+        <div class="text-center pb-2">
+          <p class="text-xs font-bold uppercase tracking-widest text-primary mb-2">Step 2 of 2</p>
+          <h1 class="text-2xl font-black text-foreground mb-1.5">Choose Your Era</h1>
+          <p class="text-sm text-muted-fg">Lock into a decade or let the draft board decide every round.</p>
         </div>
 
-        <button data-action="era-all" class="era-card w-full rounded-2xl border p-5 text-left cursor-pointer"
-          style="background:#f9731610;border-color:#f9731650">
+        <button data-action="era-all" class="era-card w-full rounded-2xl border-2 border-primary bg-primary/5 p-5 text-left cursor-pointer card-shadow">
           <div class="flex items-start justify-between gap-3">
             <div class="flex-1 min-w-0">
               <p class="text-[10px] font-bold uppercase tracking-widest text-primary mb-1">Recommended</p>
               <p class="font-black text-xl text-foreground mb-1">All Eras</p>
-              <p class="text-sm text-muted-fg">Random decade each spin — full 7-era gauntlet across every NBA generation</p>
+              <p class="text-sm text-muted-fg">Random decade each spin — 7-era gauntlet across every NBA generation</p>
             </div>
-            <div class="flex-shrink-0 mt-1">${iconBall('h-8 w-8 text-primary/60')}</div>
+            <div class="flex-shrink-0 mt-1">${iconBall('h-8 w-8 text-primary/40')}</div>
           </div>
         </button>
 
         <div class="grid grid-cols-2 gap-3">
           ${DECADES.map(d => `
-            <button data-action="era-${d}" class="era-card rounded-xl border border-border bg-card p-4 text-left cursor-pointer hover:border-primary/50 hover:bg-card2">
-              <p class="font-black text-lg text-foreground mb-1">${d}</p>
-              <p class="text-xs text-muted-fg">${ERA_DESC[d]}</p>
+            <button data-action="era-${d}" class="era-card rounded-xl border border-border bg-card p-4 text-left cursor-pointer card-shadow">
+              <p class="font-black text-xl text-foreground mb-1">${d}</p>
+              <p class="text-xs text-muted-fg leading-snug">${ERA_DESC[d]}</p>
             </button>
           `).join('')}
         </div>
@@ -273,8 +395,9 @@ function renderDrafting() {
     <main class="flex-1 flex flex-col items-center px-4 pt-4 pb-8">
       <div class="w-full max-w-2xl flex flex-col gap-4">
         ${renderRoundBar()}
+        ${renderCapBar()}
         ${full ? renderSimulateCard() : renderSlotMachine()}
-        ${S.spinState === 'done' ? renderPlayerPool() : ''}
+        ${S.spinState === 'done' ? renderDraftBoard() : ''}
         ${renderChemDashboard()}
         ${renderRoster()}
       </div>
@@ -287,21 +410,43 @@ function renderRoundBar() {
   const startersFilled = POSITIONS.filter(p => S.roster[p]).length;
   const benchFilled    = BENCH_POSITIONS.filter(p => S.roster[p]).length;
   const roleLabel = S.round < 5
-    ? `Filling starter · ${startersFilled}/5`
-    : `Filling bench · ${benchFilled}/3`;
+    ? `Starters ${startersFilled}/5`
+    : `Bench ${benchFilled}/3`;
   return `
-  <div class="flex items-center justify-between">
+  <div class="flex items-center justify-between py-1">
     <div>
-      <p class="text-sm font-bold text-foreground">Round ${S.round + 1} <span class="text-muted-fg font-normal">/ ${TOTAL_ROUNDS}</span></p>
-      <p class="text-xs text-muted-fg mt-0.5">${filled} / 8 spots filled &nbsp;·&nbsp; ${roleLabel}</p>
+      <p class="text-sm font-bold text-foreground">Round ${S.round + 1} <span class="text-muted-fg font-normal">of ${TOTAL_ROUNDS}</span></p>
+      <p class="text-xs text-muted-fg mt-0.5">${filled}/8 spots &nbsp;·&nbsp; ${roleLabel}</p>
     </div>
-    <div class="flex gap-1 items-center">
+    <div class="flex gap-1.5 items-center">
       ${Array.from({length: TOTAL_ROUNDS}, (_, i) => {
         const isStarter = i < 5;
-        const active    = i < S.round || i === S.round;
-        return `<div class="rounded-full transition-all" style="width:7px;height:7px;background:${active ? (isStarter ? '#f97316' : '#a1a1aa') : '#27272a'};opacity:${active ? 1 : 0.4}"></div>`;
+        const done      = i < S.round;
+        const active    = i === S.round;
+        const color     = done ? (isStarter ? '#2563eb' : '#64748b') : active ? (isStarter ? '#2563eb' : '#64748b') : '#e2e8f0';
+        const opacity   = done || active ? 1 : 1;
+        return `<div class="rounded-full transition-all" style="width:${active ? 9 : 7}px;height:${active ? 9 : 7}px;background:${color};border:${active ? '2px solid ' + (isStarter ? '#2563eb' : '#64748b') : 'none'}"></div>`;
       }).join('')}
     </div>
+  </div>`;
+}
+
+function renderCapBar() {
+  const spent    = S.currentPayroll;
+  const cap      = S.salaryCap;
+  const pct      = Math.min(100, Math.round((spent / cap) * 100));
+  const isTight  = spent >= 120;
+  const barColor = spent >= 140 ? '#dc2626' : spent >= 120 ? '#d97706' : '#16a34a';
+  return `
+  <div class="rounded-xl border border-border bg-card px-4 py-3 card-shadow">
+    <div class="flex items-center justify-between mb-2">
+      <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg">Salary Cap</p>
+      <p class="text-xs font-bold ${isTight ? 'text-amber-600' : 'text-foreground'}">$${spent}M <span class="text-muted-fg font-normal">/ $${cap}M</span></p>
+    </div>
+    <div class="h-1.5 rounded-full overflow-hidden bg-border">
+      <div class="h-full rounded-full transition-all stat-bar-fill" style="width:${pct}%;background:${barColor}"></div>
+    </div>
+    ${isTight ? `<p class="text-[10px] mt-1.5 font-medium text-amber-600">⚠ Cap space is tight — choose contracts wisely</p>` : ''}
   </div>`;
 }
 
@@ -312,37 +457,37 @@ function renderSlotMachine() {
   const eraLocked = S.selectedEra && S.selectedEra !== 'all';
 
   return `
-  <div class="rounded-2xl border border-border bg-card p-4 animate-scale-in">
+  <div class="rounded-2xl border border-border bg-card p-4 animate-scale-in card-shadow">
     <div class="flex items-center gap-2 mb-3">
-      <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Draft Slot — Round ${S.round + 1}</p>
-      <div class="ml-auto flex gap-2">
-        ${isDone && S.teamSkips > 0 ? `<button data-action="skip-team" class="text-xs px-2.5 py-1 rounded-full border border-border text-muted-fg hover:text-foreground hover:border-primary/60 transition-all cursor-pointer">Skip Team (${S.teamSkips})</button>` : ''}
-        ${isDone && S.decadeSkips > 0 && !eraLocked ? `<button data-action="skip-decade" class="text-xs px-2.5 py-1 rounded-full border border-border text-muted-fg hover:text-foreground hover:border-primary/60 transition-all cursor-pointer">Skip Era (${S.decadeSkips})</button>` : ''}
+      <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Draft Board — Round ${S.round + 1}</p>
+      <div class="ml-auto flex gap-1.5">
+        ${isDone && S.teamSkips > 0 ? `<button data-action="skip-team" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">Skip Team (${S.teamSkips})</button>` : ''}
+        ${isDone && S.decadeSkips > 0 && !eraLocked ? `<button data-action="skip-decade" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">Skip Era (${S.decadeSkips})</button>` : ''}
       </div>
     </div>
 
     <div class="grid grid-cols-2 gap-3 mb-4 ${isSpin ? 'slot-spinning' : ''}">
-      <div class="rounded-xl border p-4 flex flex-col items-center justify-center min-h-[88px] transition-all"
-        style="background:${isDone && tc ? tc.bg+'22' : '#1f1f23'};border-color:${isDone && tc ? tc.bg+'88' : '#27272a'}">
-        <span class="text-[10px] font-bold uppercase tracking-widest mb-2" style="color:${isDone && tc ? tc.accent : '#71717a'}">TEAM</span>
-        <span class="slot-badge text-lg font-black text-foreground" id="slot-team">
-          ${isDone ? S.currentSpin.team : isSpin ? pick(TEAMS) : '?'}
+      <div class="rounded-xl border-2 p-4 flex flex-col items-center justify-center min-h-[88px] transition-all"
+        style="background:${isDone && tc ? tc.bg+'12' : '#f1f5f9'};border-color:${isDone && tc ? tc.bg+'88' : '#e2e8f0'}">
+        <span class="text-[10px] font-bold uppercase tracking-widest mb-2 text-muted-fg">TEAM</span>
+        <span class="slot-badge text-xl font-black text-foreground" id="slot-team">
+          ${isDone ? S.currentSpin.team : isSpin ? pick(TEAMS) : '—'}
         </span>
         ${isDone ? `<span class="mt-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary text-white uppercase tracking-wider">LOCKED</span>` : ''}
       </div>
-      <div class="rounded-xl border p-4 flex flex-col items-center justify-center min-h-[88px] transition-all"
-        style="background:${isDone ? '#f9731611' : '#1f1f23'};border-color:${isDone ? '#f9731655' : '#27272a'}">
-        <span class="text-[10px] font-bold uppercase tracking-widest mb-2" style="color:${isDone ? '#f97316' : '#71717a'}">ERA</span>
-        <span class="slot-badge text-lg font-black text-foreground" id="slot-decade">
-          ${isDone ? S.currentSpin.decade : isSpin ? (eraLocked ? S.selectedEra : pick(availableDecades())) : '?'}
+      <div class="rounded-xl border-2 p-4 flex flex-col items-center justify-center min-h-[88px] transition-all"
+        style="background:${isDone ? '#eff6ff' : '#f1f5f9'};border-color:${isDone ? '#93c5fd' : '#e2e8f0'}">
+        <span class="text-[10px] font-bold uppercase tracking-widest mb-2 text-muted-fg">ERA</span>
+        <span class="slot-badge text-xl font-black text-foreground" id="slot-decade">
+          ${isDone ? S.currentSpin.decade : isSpin ? (eraLocked ? S.selectedEra : pick(availableDecades())) : '—'}
         </span>
         ${isDone ? `<span class="mt-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary text-white uppercase tracking-wider">LOCKED</span>` : ''}
       </div>
     </div>
 
     ${S.spinState === 'idle' ? `
-      <button data-action="spin" class="w-full py-3 rounded-xl font-black text-sm uppercase tracking-widest bg-primary text-white hover:bg-primary/90 transition-all cursor-pointer animate-pulse-glow">
-        SPIN
+      <button data-action="spin" class="w-full py-3 rounded-xl font-black text-sm uppercase tracking-widest bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer animate-pulse-glow">
+        SPIN THE DRAFT BOARD
       </button>
     ` : S.spinState === 'spinning' ? `
       <button disabled class="w-full py-3 rounded-xl font-black text-sm uppercase tracking-widest bg-primary/70 text-white cursor-not-allowed">
@@ -350,6 +495,12 @@ function renderSlotMachine() {
       </button>
     ` : `
       <p class="text-center text-xs text-muted-fg py-1">Select a player below, then tap a roster slot to place them</p>
+      ${S.hasMulligan ? `
+        <button data-action="use-mulligan"
+          class="mt-2 w-full py-2.5 rounded-xl font-bold text-sm border-2 border-dashed border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-all cursor-pointer">
+          🎲 Use Mulligan <span class="font-normal text-emerald-500 text-xs">(1 Remaining)</span>
+        </button>
+      ` : ''}
     `}
   </div>`;
 }
@@ -372,29 +523,86 @@ function renderPlayerPool() {
   </div>`;
 }
 
+function renderDraftBoard() {
+  if (!S.draftBoard || !S.draftBoard.length) return '';
+  const team      = S.currentSpin?.team;
+  const decade    = S.currentSpin?.decade;
+  const tc        = team ? TEAM_COLORS[team] : null;
+  const remaining = S.salaryCap - S.currentPayroll;
+  return `
+  <div class="animate-fade-up">
+    <div class="flex items-center gap-2 mb-3">
+      ${tc ? `<span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${tc.bg}"></span>` : ''}
+      <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">${team} · ${decade}</p>
+      <span class="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700">$${remaining}M cap space</span>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      ${S.draftBoard.map((p, i) => renderDraftCard(p, i)).join('')}
+    </div>
+  </div>`;
+}
+
+function renderDraftCard(p, index) {
+  const price      = calculatePlayerPrice(p);
+  const canAfford  = S.currentPayroll + price <= S.salaryCap;
+  const isSelected = S.selectedPlayer?.id === p.id;
+  const cardBorder = isSelected ? '#2563eb' : canAfford ? '#e2e8f0' : '#e2e8f0';
+  const cardBg     = isSelected ? '#eff6ff' : '#ffffff';
+  return `
+  <div class="rounded-xl border-2 flex flex-col overflow-hidden transition-all card-shadow"
+    style="border-color:${cardBorder};background:${cardBg}">
+    <div class="p-3 flex-1">
+      <div class="flex items-center gap-1.5 mb-2">
+        <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full border border-border bg-card2 text-muted-fg">${p.pos}</span>
+        ${archetypeBadge(p.archetype)}
+        <span class="ml-auto text-sm font-black" style="color:${canAfford ? '#16a34a' : '#dc2626'}">$${price}M</span>
+      </div>
+      <p class="font-bold text-sm text-foreground leading-tight mb-1.5">${p.name}</p>
+      <div class="flex flex-wrap gap-x-2 gap-y-0.5">
+        ${[['PPG',p.ppg],['RPG',p.rpg],['APG',p.apg],['SPG',p.spg],['BPG',p.bpg]].map(([l,v])=>`
+          <span class="text-[10px] text-muted-fg"><span class="font-semibold text-foreground">${v}</span> ${l}</span>
+        `).join('')}
+      </div>
+    </div>
+    <div class="px-3 pb-3">
+      ${canAfford
+        ? `<button data-action="draft-pick-${index}"
+            class="w-full py-2 rounded-lg font-bold text-xs transition-all cursor-pointer"
+            style="background:${isSelected ? '#2563eb' : '#eff6ff'};color:${isSelected ? '#fff' : '#2563eb'};border:1.5px solid ${isSelected ? '#2563eb' : '#bfdbfe'}">
+            ${isSelected ? '✓ Selected — Tap a Roster Slot' : 'Draft Player'}
+           </button>`
+        : `<button disabled
+            class="w-full py-2 rounded-lg font-bold text-xs cursor-not-allowed bg-card2 text-muted border border-border">
+            Over Cap
+           </button>`
+      }
+    </div>
+  </div>`;
+}
+
 function renderPlayerCard(p) {
   const sel = S.selectedPlayer?.id === p.id;
   return `
-  <div data-action="pick-${p.id}" class="player-card rounded-xl border cursor-pointer p-3 ${sel ? 'selected' : ''}"
-    style="background:${sel?'#f9731615':'#18181b'};border-color:${sel?'#f97316':'#27272a'}">
+  <div data-action="pick-${p.id}" class="player-card rounded-xl border-2 cursor-pointer p-3 card-shadow ${sel ? 'selected' : ''}"
+    style="background:${sel?'#dbeafe':'#ffffff'};border-color:${sel?'#2563eb':'#e2e8f0'}">
     <div class="flex items-center gap-3">
-      <div class="h-9 w-9 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 border"
-        style="background:${sel?'#f9731622':'#1f1f23'};border-color:${sel?'#f97316':'#27272a'};color:${sel?'#f97316':'#a1a1aa'}">
+      <div class="h-9 w-9 rounded-lg flex items-center justify-center text-xs font-black flex-shrink-0 border"
+        style="background:${sel?'#eff6ff':'#f1f5f9'};border-color:${sel?'#bfdbfe':'#e2e8f0'};color:${sel?'#2563eb':'#64748b'}">
         ${p.pos}
       </div>
       <div class="flex-1 min-w-0">
         <p class="font-semibold text-sm text-foreground truncate">${p.name}</p>
         ${archetypeBadge(p.archetype)}
-        <div class="flex flex-wrap gap-x-2 gap-y-0.5 mt-1">
+        <div class="flex flex-wrap gap-x-2 gap-y-0.5 mt-0.5">
           ${[['PPG',p.ppg],['RPG',p.rpg],['APG',p.apg],['SPG',p.spg],['BPG',p.bpg]].map(([l,v])=>`
-            <span class="text-xs text-muted-fg"><span class="font-semibold text-foreground/80">${v}</span> ${l}</span>
+            <span class="text-xs text-muted-fg"><span class="font-semibold text-foreground">${v}</span> ${l}</span>
           `).join('')}
         </div>
       </div>
       <div class="flex-shrink-0">
         ${sel
           ? `<div class="h-6 w-6 rounded-full bg-primary flex items-center justify-center">${iconCheck('h-3.5 w-3.5 text-white')}</div>`
-          : `<div class="h-6 w-6 rounded-full border border-border flex items-center justify-center">${iconPlus('h-3.5 w-3.5 text-muted-fg')}</div>`
+          : `<div class="h-6 w-6 rounded-full border-2 border-border bg-card2 flex items-center justify-center">${iconPlus('h-3.5 w-3.5 text-muted')}</div>`
         }
       </div>
     </div>
@@ -429,16 +637,17 @@ function renderRosterSlot(pos, canPlace, isBench) {
   const canDrop = canPlace && !p;
   const canSwap = canPlace && !!p;
   const label   = isBench ? 'BN' : pos;
-  const filledBorderColor = isBench ? '#3f3f46' : '#f97316';
-  const filledLabelColor  = isBench ? '#a1a1aa' : '#f97316';
+  const filledBorderColor = isBench ? '#cbd5e1' : '#93c5fd';
+  const filledBorderTop   = isBench ? '3px solid #94a3b8' : '3px solid #2563eb';
+  const filledLabelColor  = isBench ? '#64748b' : '#2563eb';
 
   if (p) {
     return `
     <div data-action="swap-${pos}"
-      class="rounded-xl border p-2 flex flex-col items-center gap-1 text-center overflow-hidden transition-all ${canSwap ? 'cursor-pointer hover:border-yellow-500/70' : ''}"
-      style="background:#18181b;border-color:${filledBorderColor};" title="${canSwap ? 'Tap to replace' : p.name}">
+      class="rounded-xl border bg-white p-2 flex flex-col items-center gap-0.5 text-center overflow-hidden transition-all card-shadow ${canSwap ? 'cursor-pointer hover:border-amber-400' : ''}"
+      style="border-color:${filledBorderColor};border-top:${filledBorderTop}" title="${canSwap ? 'Tap to replace' : p.name}">
       <span class="text-[10px] font-black uppercase leading-none" style="color:${filledLabelColor}">${label}</span>
-      <span class="text-[11px] font-semibold text-foreground leading-tight w-full text-center truncate px-0.5">${p.name.split(' ').pop()}</span>
+      <span class="text-[11px] font-bold text-foreground leading-tight w-full text-center truncate px-0.5">${p.name.split(' ').pop()}</span>
       <span class="text-[10px] text-muted-fg leading-none">${p.ppg}pt</span>
     </div>`;
   }
@@ -446,9 +655,9 @@ function renderRosterSlot(pos, canPlace, isBench) {
   return `
   <div data-action="${canDrop ? 'place-'+pos : ''}"
     class="rounded-xl border-2 border-dashed p-2 flex flex-col items-center gap-1 text-center transition-all ${canDrop ? 'slot-empty droppable' : ''}"
-    style="background:${canDrop?'#f9731608':'#18181b'};border-color:${canDrop?'#f9731688':'#27272a'}">
-    <span class="text-[10px] font-black uppercase" style="color:${canDrop?'#f97316':'#3f3f46'}">${label}</span>
-    <span class="text-xs" style="color:${canDrop?'#a1a1aa':'#3f3f46'}">${canDrop ? 'Place' : 'Empty'}</span>
+    style="background:${canDrop?'#eff6ff':'#f8fafc'};border-color:${canDrop?'#93c5fd':'#cbd5e1'}">
+    <span class="text-[10px] font-black uppercase" style="color:${canDrop?'#2563eb':'#94a3b8'}">${label}</span>
+    <span class="text-xs" style="color:${canDrop?'#60a5fa':'#cbd5e1'}">${canDrop ? 'Place' : 'Empty'}</span>
   </div>`;
 }
 
@@ -458,32 +667,32 @@ function renderChemDashboard() {
   const bench    = BENCH_POSITIONS.map(p => S.roster[p]).filter(Boolean);
   if (starters.length === 0 && bench.length === 0) {
     return `
-    <div class="rounded-2xl border border-border bg-card p-4">
+    <div class="rounded-2xl border border-border bg-card p-4 card-shadow">
       <p class="text-xs font-bold uppercase tracking-widest text-muted-fg mb-2">Live Chemistry</p>
       <p class="text-xs text-muted-fg">Draft your first player to see team chemistry.</p>
     </div>`;
   }
   const { chemScore, chemReport } = calculateChemistry(starters, bench);
-  const scoreColor = chemScore >= 70 ? '#22c55e' : chemScore >= 45 ? '#f97316' : '#ef4444';
-  const scoreLabel = chemScore >= 70 ? 'Strong' : chemScore >= 45 ? 'Neutral' : 'Weak';
+  const scoreColor  = chemScore >= 70 ? '#16a34a' : chemScore >= 45 ? '#d97706' : '#dc2626';
+  const scoreBg     = chemScore >= 70 ? '#f0fdf4' : chemScore >= 45 ? '#fffbeb' : '#fef2f2';
+  const scoreLabel  = chemScore >= 70 ? 'Strong' : chemScore >= 45 ? 'Neutral' : 'Weak';
   return `
-  <div class="rounded-2xl border border-border bg-card p-4">
+  <div class="rounded-2xl border border-border bg-card p-4 card-shadow">
     <div class="flex items-center justify-between mb-3">
       <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Live Chemistry</p>
-      <span class="text-xs font-bold px-2 py-0.5 rounded-full" style="background:${scoreColor}22;color:${scoreColor}">${scoreLabel}</span>
+      <span class="text-xs font-bold px-2 py-0.5 rounded-full border" style="background:${scoreBg};color:${scoreColor};border-color:${scoreColor}30">${scoreLabel} · ${chemScore}%</span>
     </div>
     <div class="flex items-center gap-3 mb-3">
-      <div class="flex-1 h-2 rounded-full overflow-hidden" style="background:#27272a">
-        <div class="h-full rounded-full transition-all duration-500" style="width:${chemScore}%;background:${scoreColor}"></div>
+      <div class="flex-1 h-2 rounded-full overflow-hidden bg-border">
+        <div class="h-full rounded-full stat-bar-fill" style="width:${chemScore}%;background:${scoreColor}"></div>
       </div>
-      <span class="text-sm font-black flex-shrink-0" style="color:${scoreColor}">${chemScore}%</span>
     </div>
     ${chemReport.length > 0 ? `
     <div class="flex flex-col gap-1.5">
       ${chemReport.map(item => {
         const isGood = item.startsWith('🟢');
-        return `<div class="rounded-lg px-2.5 py-1.5 text-xs font-medium"
-          style="background:${isGood?'#14532d33':'#450a0a33'};color:${isGood?'#4ade80':'#f87171'}">${item}</div>`;
+        return `<div class="rounded-lg px-2.5 py-1.5 text-xs font-medium border"
+          style="background:${isGood?'#f0fdf4':'#fef2f2'};color:${isGood?'#15803d':'#dc2626'};border-color:${isGood?'#bbf7d0':'#fecaca'}">${item}</div>`;
       }).join('')}
     </div>` : `<p class="text-xs text-muted-fg">No synergies yet — keep drafting.</p>`}
   </div>`;
@@ -492,11 +701,11 @@ function renderChemDashboard() {
 // ── Simulate card ──────────────────────────────────────────────────────────────
 function renderSimulateCard() {
   return `
-  <div class="rounded-2xl border border-primary/50 bg-card p-5 text-center animate-scale-in" style="box-shadow:0 0 30px rgba(249,115,22,0.12)">
+  <div class="rounded-2xl border-2 border-primary bg-white p-5 text-center animate-scale-in card-shadow">
     <div class="flex justify-center mb-3">${iconBall('h-10 w-10 text-primary')}</div>
-    <p class="font-black text-lg text-foreground mb-1">Roster Complete!</p>
-    <p class="text-sm text-muted-fg mb-5">All 8 spots locked in — starters and bench. Time to find out.</p>
-    <button data-action="simulate" class="w-full py-3.5 rounded-xl font-black text-sm uppercase tracking-widest bg-primary text-white hover:bg-primary/90 transition-all cursor-pointer animate-pulse-glow">
+    <p class="font-black text-lg text-foreground mb-1">Roster Complete</p>
+    <p class="text-sm text-muted-fg mb-5">All 8 spots locked in — starters and bench. Time to simulate.</p>
+    <button data-action="simulate" class="w-full py-3.5 rounded-xl font-black text-sm uppercase tracking-widest bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer animate-pulse-glow">
       Simulate 82 Games →
     </button>
   </div>`;
@@ -510,45 +719,47 @@ function renderResults() {
   const isElite    = r.wins >= 65;
   const isPlayoff  = r.wins >= 50;
 
-  let label, labelColor, emoji;
-  if (isPerfect)       { label = 'PERFECT SEASON!';        labelColor = '#f97316'; emoji = '🏆'; }
-  else if (isHistoric) { label = 'Historic Season';        labelColor = '#eab308'; emoji = '🔥'; }
-  else if (isElite)    { label = 'Championship Contender'; labelColor = '#22c55e'; emoji = '🌟'; }
-  else if (isPlayoff)  { label = 'Playoff Contender';      labelColor = '#3b82f6'; emoji = '✅'; }
-  else                 { label = 'Back to the Draft';      labelColor = '#ef4444'; emoji = '💀'; }
+  let label, labelColor, labelBg, emoji;
+  if (isPerfect)       { label = 'PERFECT SEASON';        labelColor = '#92400e'; labelBg = '#fef3c7'; emoji = '🏆'; }
+  else if (isHistoric) { label = 'Historic Season';        labelColor = '#b45309'; labelBg = '#fffbeb'; emoji = '🔥'; }
+  else if (isElite)    { label = 'Championship Contender'; labelColor = '#166534'; labelBg = '#f0fdf4'; emoji = '⭐'; }
+  else if (isPlayoff)  { label = 'Playoff Contender';      labelColor = '#1e40af'; labelBg = '#eff6ff'; emoji = '✅'; }
+  else                 { label = 'Rebuild Required';       labelColor = '#991b1b'; labelBg = '#fef2f2'; emoji = '📋'; }
+
+  const winsColor = isPerfect ? '#d97706' : isHistoric ? '#d97706' : isElite ? '#16a34a' : isPlayoff ? '#2563eb' : '#dc2626';
 
   const maxes = { ppg:280, rpg:120, apg:75, spg:22, bpg:18 };
   const statBar = (key, lbl, val) => {
     const pct   = Math.min(100, (val / maxes[key]) * 100);
-    const color = pct >= 70 ? '#f97316' : pct >= 45 ? '#eab308' : '#3b82f6';
+    const color = pct >= 70 ? '#2563eb' : pct >= 45 ? '#d97706' : '#94a3b8';
     return `
     <div>
-      <div class="flex justify-between text-xs mb-1">
+      <div class="flex justify-between text-xs mb-1.5">
         <span class="text-muted-fg font-medium">${lbl}</span>
         <span class="font-bold text-foreground">${val.toFixed(1)}</span>
       </div>
-      <div class="h-1.5 rounded-full bg-muted/40 overflow-hidden">
+      <div class="h-1.5 rounded-full bg-border overflow-hidden">
         <div class="h-full rounded-full stat-bar-fill" style="width:${pct}%;background:${color}"></div>
       </div>
     </div>`;
   };
 
-  const rosterRow = (p, posLabel, labelColorRow) => {
+  const rosterRow = (p, posLabel, isStarter) => {
     if (!p) return '';
     return `
-    <div class="flex items-center gap-3 py-2.5">
-      <span class="text-xs font-black w-8 flex-shrink-0" style="color:${labelColorRow}">${posLabel}</span>
+    <div class="flex items-center gap-3 py-2.5 border-b border-border last:border-0">
+      <span class="text-[10px] font-black w-7 flex-shrink-0 ${isStarter ? 'text-primary' : 'text-muted-fg'}">${posLabel}</span>
       <div class="flex-1 min-w-0">
         <p class="font-semibold text-sm text-foreground truncate">${p.name}</p>
-        <div class="flex items-center gap-2 mt-0.5">
-          <p class="text-xs text-muted-fg">${p.team || ''} ${p.decade || ''}</p>
+        <div class="flex items-center gap-1.5 mt-0.5">
+          <p class="text-xs text-muted-fg">${p.team || ''} ${p.decade ? fmtDecadeShort(p.decade) : ''}</p>
           ${p.archetype ? archetypeBadge(p.archetype) : ''}
         </div>
       </div>
       <div class="flex gap-3 text-xs text-muted-fg flex-shrink-0">
-        <span><span class="font-semibold text-foreground/80">${p.ppg}</span> PPG</span>
-        <span><span class="font-semibold text-foreground/80">${p.rpg}</span> RPG</span>
-        <span class="hidden sm:inline"><span class="font-semibold text-foreground/80">${p.apg}</span> APG</span>
+        <span><span class="font-semibold text-foreground">${p.ppg}</span> PPG</span>
+        <span><span class="font-semibold text-foreground">${p.rpg}</span> RPG</span>
+        <span class="hidden sm:inline"><span class="font-semibold text-foreground">${p.apg}</span> APG</span>
       </div>
     </div>`;
   };
@@ -556,8 +767,8 @@ function renderResults() {
   const chemReportHtml = r.chemReport && r.chemReport.length > 0
     ? r.chemReport.map(item => {
         const isGood = item.startsWith('🟢');
-        return `<div class="rounded-xl px-3 py-2.5 text-sm font-medium"
-          style="background:${isGood?'#14532d33':'#450a0a33'};border:1px solid ${isGood?'#22c55e44':'#ef444444'};color:${isGood?'#4ade80':'#f87171'}">${item}</div>`;
+        return `<div class="rounded-lg px-3 py-2 text-sm font-medium border"
+          style="background:${isGood?'#f0fdf4':'#fef2f2'};border-color:${isGood?'#bbf7d0':'#fecaca'};color:${isGood?'#15803d':'#dc2626'}">${item}</div>`;
       }).join('')
     : `<p class="text-sm text-muted-fg py-1">No synergies or penalties — balanced roster.</p>`;
 
@@ -567,32 +778,33 @@ function renderResults() {
     <main class="flex-1 flex flex-col items-center px-4 py-6">
       <div class="w-full max-w-2xl flex flex-col gap-4 animate-fade-up">
 
-        <div class="rounded-2xl border bg-card p-6 text-center ${isPerfect ? 'perfect-glow' : ''}"
-          style="border-color:${isPerfect?'#f97316':'#27272a'}">
-          <p class="text-xs font-bold uppercase tracking-widest text-muted-fg mb-3">Projected Record</p>
-          <div class="text-6xl sm:text-7xl font-black mb-3 flex items-center justify-center gap-2">
-            <span style="color:${labelColor}">${r.wins}</span>
-            <span class="text-muted/60 text-4xl">—</span>
+        <div class="rounded-2xl border-2 bg-white p-6 text-center card-shadow ${isPerfect ? 'perfect-glow' : ''}"
+          style="border-color:${isPerfect?'#fcd34d':'#e2e8f0'}">
+          <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg mb-3">Season Record</p>
+          <div class="text-7xl sm:text-8xl font-black mb-3 flex items-center justify-center gap-3 leading-none">
+            <span style="color:${winsColor}">${r.wins}</span>
+            <span class="text-muted text-4xl font-light">–</span>
             <span class="text-muted-fg">${r.losses}</span>
           </div>
-          <p class="font-black text-xl mb-1" style="color:${labelColor}">${emoji} ${label}</p>
-          <p class="text-sm text-muted-fg">Win% ${r.winPct}% &nbsp;·&nbsp; Strength ${r.strength}</p>
+          <span class="inline-block text-sm font-bold px-4 py-1.5 rounded-full mb-2" style="background:${labelBg};color:${labelColor}">${emoji} ${label}</span>
+          <p class="text-xs text-muted-fg">Win% ${r.winPct}% &nbsp;·&nbsp; Strength Index ${r.strength}</p>
         </div>
 
-        <div class="rounded-2xl border border-border bg-card p-4">
+        <div class="rounded-2xl border border-border bg-white p-4 card-shadow">
           <div class="flex items-center justify-between mb-3">
             <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Chemistry Report</p>
             ${r.chemScore !== undefined ? (() => {
               const sc = r.chemScore;
-              const scColor = sc >= 70 ? '#22c55e' : sc >= 45 ? '#f97316' : '#ef4444';
+              const scColor = sc >= 70 ? '#16a34a' : sc >= 45 ? '#d97706' : '#dc2626';
+              const scBg    = sc >= 70 ? '#f0fdf4' : sc >= 45 ? '#fffbeb' : '#fef2f2';
               const scLabel = sc >= 70 ? 'Strong' : sc >= 45 ? 'Neutral' : 'Weak';
-              return `<span class="text-xs font-bold px-2 py-0.5 rounded-full" style="background:${scColor}22;color:${scColor}">${scLabel} · ${sc}%</span>`;
+              return `<span class="text-xs font-bold px-2 py-0.5 rounded-full border" style="background:${scBg};color:${scColor};border-color:${scColor}30">${scLabel} · ${sc}%</span>`;
             })() : ''}
           </div>
           <div class="flex flex-col gap-2">${chemReportHtml}</div>
         </div>
 
-        <div class="rounded-2xl border border-border bg-card p-4">
+        <div class="rounded-2xl border border-border bg-white p-4 card-shadow">
           <p class="text-xs font-bold uppercase tracking-widest text-muted-fg mb-4">Team Statistics</p>
           <div class="flex flex-col gap-3">
             ${statBar('ppg', 'Points Per Game',   r.totals.ppg)}
@@ -603,27 +815,27 @@ function renderResults() {
           </div>
         </div>
 
-        <div class="rounded-2xl border border-border bg-card p-4">
+        <div class="rounded-2xl border border-border bg-white p-4 card-shadow">
           <p class="text-xs font-bold uppercase tracking-widest text-muted-fg mb-3">Final Roster</p>
-          <p class="text-[10px] font-bold uppercase tracking-wider text-primary mb-1.5">Starters</p>
-          <div class="flex flex-col divide-y mb-4" style="divide-color:#27272a">
-            ${POSITIONS.map(pos => rosterRow(S.roster[pos], pos, '#f97316')).join('')}
+          <p class="text-[10px] font-bold uppercase tracking-wider text-primary mb-1">Starters</p>
+          <div class="flex flex-col mb-4">
+            ${POSITIONS.map(pos => rosterRow(S.roster[pos], pos, true)).join('')}
           </div>
-          <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg mb-1.5">Bench</p>
-          <div class="flex flex-col divide-y" style="divide-color:#27272a">
-            ${BENCH_POSITIONS.map(pos => rosterRow(S.roster[pos], S.roster[pos]?.pos || 'BN', '#a1a1aa')).join('')}
+          <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg mb-1">Bench</p>
+          <div class="flex flex-col">
+            ${BENCH_POSITIONS.map(pos => rosterRow(S.roster[pos], S.roster[pos]?.pos || 'BN', false)).join('')}
           </div>
         </div>
 
         <div class="flex flex-col gap-3">
-          <button data-action="advance-to-playoffs" class="py-3 rounded-xl font-bold text-sm bg-primary text-white hover:bg-primary/90 transition-all cursor-pointer text-center">
-            Advance to NBA Playoffs 🏆
+          <button data-action="advance-to-playoffs" class="py-3.5 rounded-xl font-bold text-sm bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer text-center card-shadow">
+            Advance to Playoffs 🏆
           </button>
           <div class="grid grid-cols-2 gap-3">
-            <button data-action="restart" class="py-3 rounded-xl font-bold text-sm border border-border bg-card text-foreground hover:border-primary/60 hover:bg-card2 transition-all cursor-pointer">
+            <button data-action="restart" class="py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer card-shadow">
               Build Another
             </button>
-            <button data-action="share" class="py-3 rounded-xl font-bold text-sm border border-border bg-card text-foreground hover:border-primary/60 hover:bg-card2 transition-all cursor-pointer">
+            <button data-action="share" class="py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer card-shadow">
               Share Result
             </button>
           </div>
@@ -651,16 +863,33 @@ function handleClick(e) {
 }
 
 function dispatch(action) {
+  if (action.startsWith('coach-pick-')) {
+    S.coach = action.slice(11);
+    S.phase = 'era-select';
+    render(); return;
+  }
   if (action.startsWith('era-'))   { startGame(action.slice(4)); return; }
-  if (action === 'restart')        { confirmLeave(() => { S.phase = 'era-select'; render(); }); return; }
+  if (action === 'restart')        { confirmLeave(() => { S.phase = 'coach-select'; S.coach = null; render(); }); return; }
   if (action === 'spin')           { doSpin();       return; }
   if (action === 'skip-team')      { doSkipTeam();   return; }
   if (action === 'skip-decade')    { doSkipDecade(); return; }
   if (action === 'simulate')           { doSimulate();        return; }
   if (action === 'share')              { doShare();           return; }
+  if (action === 'open-leaderboard')   { showLeaderboardModal(); return; }
   if (action === 'advance-to-playoffs'){ doAdvanceToPlayoffs();return; }
   if (action === 'sim-next-round')     { doSimNextRound();    return; }
-  if (action === 'draft-new-roster')   { S.phase='era-select'; render(); return; }
+  if (action === 'draft-new-roster')   { S.phase='coach-select'; S.coach=null; render(); return; }
+  if (action === 'view-trophies')      { S.phase = 'trophy-room'; render(); return; }
+  if (action === 'back-to-menu')       { S.phase = 'coach-select'; render(); return; }
+  if (action === 'use-mulligan')       { if (!S.hasMulligan) return; S.hasMulligan = false; S.spinState = 'idle'; S.selectedPlayer = null; S.currentSpin = null; S.draftBoard = []; doSpin(); return; }
+
+  if (action.startsWith('draft-pick-')) {
+    const idx = parseInt(action.slice(11), 10);
+    const p   = S.draftBoard[idx];
+    if (!p) { render(); return; }
+    S.selectedPlayer = S.selectedPlayer?.id === p.id ? null : p;
+    render(); return;
+  }
 
   if (action.startsWith('pick-')) {
     const id = action.slice(5);
@@ -685,23 +914,29 @@ function dispatch(action) {
 // ╚══════════════════════════════════════════════════════════════════════════════╝
 
 function confirmLeave(fn) {
-  if (S.phase === 'era-select' || S.phase === 'results' || S.phase === 'playoffs') { fn(); return; }
+  if (S.phase === 'coach-select' || S.phase === 'era-select' || S.phase === 'results' || S.phase === 'playoffs' || S.phase === 'trophy-room') { fn(); return; }
   if (confirm('Leave this game? Your progress will be lost.')) fn();
   else render();
 }
 
 function startGame(era = 'all') {
+  const coach = S.coach;
   S = {
     phase: 'drafting',
+    coach,
     selectedEra: era,
     round: 0,
     usedDecades:   [],
     usedPlayerIds: [],
     teamSkips:   1,
     decadeSkips: 1,
+    hasMulligan:    true,
+    salaryCap:      150,
+    currentPayroll: 0,
     spinState:   'idle',
     currentSpin: null,
     availablePlayers: [],
+    draftBoard:       [],
     selectedPlayer:   null,
     roster: { PG:null, SG:null, SF:null, PF:null, C:null, B1:null, B2:null, B3:null },
     result: null,
@@ -733,6 +968,7 @@ function doSpin() {
       S.currentSpin      = spin;
       S.spinState        = 'done';
       S.availablePlayers = getAvailablePlayers(spin.team, spin.decade);
+      S.draftBoard       = [...S.availablePlayers].sort(() => Math.random() - 0.5).slice(0, 3);
       S.selectedPlayer   = null;
       render();
     }
@@ -746,6 +982,7 @@ function doSkipTeam() {
   if (spin) {
     S.currentSpin      = spin;
     S.availablePlayers = getAvailablePlayers(spin.team, spin.decade);
+    S.draftBoard       = [...S.availablePlayers].sort(() => Math.random() - 0.5).slice(0, 3);
     S.selectedPlayer   = null;
   }
   render();
@@ -761,6 +998,7 @@ function doSkipDecade() {
   if (spin) {
     S.currentSpin      = spin;
     S.availablePlayers = getAvailablePlayers(spin.team, spin.decade);
+    S.draftBoard       = [...S.availablePlayers].sort(() => Math.random() - 0.5).slice(0, 3);
     S.selectedPlayer   = null;
   }
   render();
@@ -770,14 +1008,18 @@ function placePlayer(pos) {
   if (!S.selectedPlayer) { render(); return; }
   const spin   = S.currentSpin;
   const player = { ...S.selectedPlayer, team: spin?.team, decade: spin?.decade };
+  const price  = calculatePlayerPrice(S.selectedPlayer);
+  if (S.currentPayroll + price > S.salaryCap) { render(); return; }
 
-  S.roster[pos]  = player;
+  S.currentPayroll  += price;
+  S.roster[pos]      = player;
   S.usedDecades.push(spin?.decade);
   S.usedPlayerIds.push(player.id);
   S.round++;
   S.spinState        = 'idle';
   S.currentSpin      = null;
   S.availablePlayers = [];
+  S.draftBoard       = [];
   S.selectedPlayer   = null;
   render();
 }
@@ -787,23 +1029,172 @@ function doSimulate() {
   const bench    = BENCH_POSITIONS.map(p => S.roster[p]).filter(Boolean);
   S.result = simulateSeason(starters, bench);
   S.phase  = 'results';
+  saveLeaderboard();
   render();
 }
 
-function doShare() {
+function doShareText() {
   const r = S.result;
   if (!r) return;
-  const starters = POSITIONS.map(p => S.roster[p]?.name || '—').join(', ');
-  const bench    = BENCH_POSITIONS.map(p => S.roster[p]?.name || '—').join(', ');
-  const chem     = r.chemReport?.length ? '\n' + r.chemReport.join('\n') : '';
-  const text = `I went ${r.wins}-${r.losses} in 82-0! 🏀\nStarters: ${starters}\nBench: ${bench}${chem}\nCan you beat it? https://82-0.com`;
+
+  const isPerfect  = r.wins === 82;
+  const isHistoric = r.wins >= 75;
+  const isElite    = r.wins >= 70;
+  const isPlayoff  = r.wins >= 60;
+
+  let tier;
+  if (isPerfect)       tier = '🏆 PERFECT SEASON';
+  else if (isHistoric) tier = '🔥 Historic Season';
+  else if (isElite)    tier = '⚡ Elite Season';
+  else if (isPlayoff)  tier = '✅ Playoff Contender';
+  else                 tier = '😬 Rough Season';
+
+  const starterLines = POSITIONS.map(pos => {
+    const p = S.roster[pos];
+    return p ? `🌟 ${fmtPlayerLine(p)}` : '';
+  }).filter(Boolean).join('\n');
+
+  const benchLines = BENCH_POSITIONS.map(pos => {
+    const p = S.roster[pos];
+    return p ? `💪 ${fmtPlayerLine(p)}` : '';
+  }).filter(Boolean).join('\n');
+
+  const chemLine = r.chemScore !== undefined ? `\nChemistry: ${Math.round(r.chemScore)}%` : '';
+
+  const text = [
+    `🏀 ${r.wins}-${r.losses} — ${tier}`,
+    '',
+    'Starters:',
+    starterLines,
+    '',
+    'Bench:',
+    benchLines,
+    chemLine,
+    '',
+    'Can you beat it? → 82-0.com',
+  ].join('\n').replace(/\n{3,}/g, '\n\n').trim();
+
   if (navigator.share) {
     navigator.share({ title: '82-0', text }).catch(() => {});
   } else {
     navigator.clipboard.writeText(text)
-      .then(() => alert('Result copied to clipboard! 🏀'))
+      .then(() => showToast('Copied to clipboard! 🏀'))
       .catch(() => prompt('Copy this:', text));
   }
+}
+
+function doShare() {
+  doShareText();
+}
+
+
+// ╔══════════════════════════════════════════════════════════════════════════════╗
+// ║  TROPHY ROOM                                                                ║
+// ╚══════════════════════════════════════════════════════════════════════════════╝
+
+function saveToTrophyRoom() {
+  const r       = S.result;
+  const coachObj = S.coach ? COACHES.find(c => c.id === S.coach) : null;
+  const entry = {
+    date:        new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+    coachName:   coachObj ? coachObj.name   : 'Unknown',
+    coachSystem: coachObj ? coachObj.system : '',
+    wins:        r.wins,
+    losses:      r.losses,
+    chemScore:   Math.round(r.chemScore),
+    payroll:     S.currentPayroll,
+    starters:    POSITIONS.map(p => S.roster[p]?.name || '—').join(', '),
+    bench:       BENCH_POSITIONS.map(p => S.roster[p]?.name || '—').join(', '),
+  };
+  let trophies = [];
+  try { trophies = JSON.parse(localStorage.getItem('nba820_trophies') || '[]'); } catch(e) {}
+  trophies.unshift(entry);
+  if (trophies.length > 12) trophies = trophies.slice(0, 12);
+  try { localStorage.setItem('nba820_trophies', JSON.stringify(trophies)); } catch(e) {}
+}
+
+
+// ╔══════════════════════════════════════════════════════════════════════════════╗
+// ║  PERSONAL LEADERBOARD                                                       ║
+// ╚══════════════════════════════════════════════════════════════════════════════╝
+
+function saveLeaderboard() {
+  const r = S.result;
+  if (!r) return;
+  const entry = {
+    date:     new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+    wins:     r.wins,
+    losses:   r.losses,
+    starters: POSITIONS.map(p => S.roster[p]?.name || '—').join(', '),
+  };
+  let lb = [];
+  try { lb = JSON.parse(localStorage.getItem('nba820_lb') || '[]'); } catch(e) {}
+  lb.push(entry);
+  lb.sort((a, b) => b.wins - a.wins);
+  if (lb.length > 20) lb = lb.slice(0, 20);
+  try { localStorage.setItem('nba820_lb', JSON.stringify(lb)); } catch(e) {}
+}
+
+function renderLeaderboardModal() {
+  let lb = [];
+  try { lb = JSON.parse(localStorage.getItem('nba820_lb') || '[]'); } catch(e) {}
+  const top5 = lb.slice(0, 5);
+
+  const rows = top5.length === 0
+    ? `<p style="font-size:14px;color:#64748b;text-align:center;padding:24px 0">No runs yet — simulate a season to get on the board!</p>`
+    : top5.map((e, i) => {
+        const isPerfect = e.wins === 82;
+        const rowBg     = isPerfect ? 'background:#fffbeb;border-color:#fcd34d' : 'background:#f8fafc;border-color:#e2e8f0';
+        const rankColor = i === 0 ? '#2563eb' : '#94a3b8';
+        const winsColor = isPerfect ? '#b45309' : '#0f172a';
+        return `
+        <div style="border-radius:12px;border:1.5px solid;padding:12px;display:flex;align-items:center;gap:12px;${rowBg}">
+          <span style="font-size:18px;font-weight:900;width:28px;text-align:center;flex-shrink:0;color:${rankColor}">${i + 1}</span>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+              <span style="font-weight:900;font-size:16px;color:${winsColor}">${e.wins}–${e.losses}</span>
+              ${isPerfect ? '<span style="font-size:10px;font-weight:900;padding:2px 8px;border-radius:999px;background:#fef3c7;color:#92400e;border:1px solid #fcd34d">🏆 PERFECT</span>' : ''}
+            </div>
+            <p style="font-size:12px;color:#64748b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:2px 0 0">${e.starters}</p>
+            <p style="font-size:10px;color:#94a3b8;margin:2px 0 0">${e.date}</p>
+          </div>
+        </div>`;
+      }).join('');
+
+  return `
+  <div id="lb-modal-backdrop" onclick="if(event.target===this)closeLeaderboardModal()"
+    style="position:fixed;inset:0;background:rgba(15,23,42,0.5);z-index:9998;display:flex;align-items:center;justify-content:center;padding:16px">
+    <div style="background:#ffffff;border:1.5px solid #e2e8f0;border-radius:20px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;padding:24px;font-family:'Fira Sans',sans-serif;color:#0f172a;animation:scaleIn 0.2s ease-out;box-shadow:0 20px 60px rgba(0,0,0,0.12)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div>
+          <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#2563eb;margin:0 0 4px">Personal Best</p>
+          <h2 style="font-size:22px;font-weight:900;margin:0;color:#0f172a">Hall of Fame</h2>
+        </div>
+        <button onclick="closeLeaderboardModal()"
+          style="background:#f1f5f9;border:1px solid #e2e8f0;color:#64748b;border-radius:999px;width:32px;height:32px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">✕</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        ${rows}
+      </div>
+      ${lb.length > 5 ? `<p style="text-align:center;font-size:11px;color:#94a3b8;margin-top:14px">${lb.length} total runs tracked</p>` : ''}
+    </div>
+  </div>`;
+}
+
+function showLeaderboardModal() {
+  closeLeaderboardModal();
+  const div = document.createElement('div');
+  div.id = 'lb-modal-root';
+  div.innerHTML = renderLeaderboardModal();
+  document.body.appendChild(div);
+  const onKey = e => { if (e.key === 'Escape') closeLeaderboardModal(); };
+  document.addEventListener('keydown', onKey);
+  div._removeKey = () => document.removeEventListener('keydown', onKey);
+}
+
+function closeLeaderboardModal() {
+  const el = document.getElementById('lb-modal-root');
+  if (el) { if (el._removeKey) el._removeKey(); el.remove(); }
 }
 
 
@@ -825,6 +1216,7 @@ function doAdvanceToPlayoffs() {
     bracket,          // current round matchups
     eliminated: false,
     champion: false,
+    tickState: null,
     roundNames: ['Conference Quarterfinals', 'Conference Semifinals', 'NBA Finals'],
   };
   S.phase = 'playoffs';
@@ -833,42 +1225,52 @@ function doAdvanceToPlayoffs() {
 
 function doSimNextRound() {
   const po = S.playoffs;
-  const matchups = po.bracket;
-  const results  = matchups.map(([teamA, teamB]) => {
+  if (po.tickState) return; // guard against double-click during animation
+
+  const results = po.bracket.map(([teamA, teamB]) => {
     const series = simulateSeries(teamA.strength, teamB.strength);
     return { teamA, teamB, ...series };
   });
-  po.rounds.push(results);
 
-  // Find player's series result
   const playerResult = results.find(r => r.teamA.isPlayer || r.teamB.isPlayer);
-  if (playerResult) {
-    const playerWon = (playerResult.teamA.isPlayer && playerResult.won) ||
-                      (playerResult.teamB.isPlayer && !playerResult.won);
-    if (!playerWon) {
-      po.eliminated = true;
-      po.eliminatedIn = po.roundNames[po.currentRound];
-      render(); return;
-    }
-  }
+  const playerWon = playerResult
+    ? (playerResult.teamA.isPlayer ? playerResult.won : !playerResult.won)
+    : true;
 
-  // Advance winners
-  const winners = results.map(r => r.won ? r.teamA : r.teamB);
-
-  po.currentRound++;
-
-  if (po.currentRound === 3) {
-    po.champion = true;
-    render(); return;
-  }
-
-  // Build next round bracket (pair winners: 0v1, 2v3 → then 0v1 in finals)
-  const nextBracket = [];
-  for (let i = 0; i < winners.length; i += 2) {
-    nextBracket.push([winners[i], winners[i + 1]]);
-  }
-  po.bracket = nextBracket;
+  const maxGames = Math.max(...results.map(r => r.games.length));
+  po.tickState = { results, revealedGames: 0, maxGames, done: false, playerWon };
   render();
+
+  const ticker = setInterval(() => {
+    po.tickState.revealedGames++;
+    render();
+    if (po.tickState.revealedGames >= po.tickState.maxGames) {
+      clearInterval(ticker);
+      po.tickState.done = true;
+      render();
+      setTimeout(() => {
+        po.rounds.push(po.tickState.results);
+        const { results: r2, playerWon: pw } = po.tickState;
+        po.tickState = null;
+        if (!pw) {
+          po.eliminated = true;
+          po.eliminatedIn = po.roundNames[po.currentRound];
+        } else {
+          const winners = r2.map(r => r.won ? r.teamA : r.teamB);
+          po.currentRound++;
+          if (po.currentRound === 3) {
+            po.champion = true;
+          } else {
+            po.bracket = [];
+            for (let i = 0; i < winners.length; i += 2) {
+              po.bracket.push([winners[i], winners[i + 1]]);
+            }
+          }
+        }
+        render();
+      }, 800);
+    }
+  }, 400);
 }
 
 
@@ -889,14 +1291,14 @@ function renderPlayoffs() {
   const renderTeamCard = (team, seriesScore = null, won = null) => {
     const isPlayer = team.isPlayer;
     const border   = isPlayer ? 'border-primary' : 'border-border';
-    const bg       = isPlayer ? 'bg-primary/10' : 'bg-card';
+    const bg       = isPlayer ? 'bg-blue-50' : 'bg-white';
     const badge    = won === true ? '✅' : won === false ? '❌' : '';
     return `
-      <div class="flex items-center gap-2 px-3 py-2 rounded-lg border ${border} ${bg}">
+      <div class="flex items-center gap-2 px-3 py-2 rounded-lg border ${border} ${bg} card-shadow">
         <span class="text-xs font-bold ${isPlayer ? 'text-primary' : 'text-foreground'} flex-1 truncate">
           ${isPlayer ? '⭐ ' : ''}${team.name}
         </span>
-        ${seriesScore !== null ? `<span class="text-xs font-mono text-muted-fg">${seriesScore}</span>` : ''}
+        ${seriesScore !== null ? `<span class="text-xs font-mono font-bold text-muted-fg">${seriesScore}</span>` : ''}
         ${badge ? `<span class="text-xs">${badge}</span>` : ''}
       </div>`;
   };
@@ -913,6 +1315,7 @@ function renderPlayoffs() {
   };
 
   let bracketHTML = '';
+  const ts = po.tickState;
 
   // Show completed rounds
   for (let ri = 0; ri < completedRounds.length; ri++) {
@@ -926,17 +1329,55 @@ function renderPlayoffs() {
       </div>`;
   }
 
-  // Show current round matchups (not yet simulated)
-  bracketHTML += `
-    <div class="mb-4">
-      <p class="text-[10px] font-bold uppercase tracking-widest text-primary mb-2">${roundName} — Up Next</p>
-      <div class="grid grid-cols-2 gap-3">
-        ${po.bracket.map(([a, b]) => renderMatchup(a, b)).join('')}
-      </div>
-    </div>`;
+  if (ts) {
+    // Ticking state: render current round with game-by-game reveals
+    const renderTickingMatchup = (sr) => {
+      const isPlayerSeries = sr.teamA.isPlayer || sr.teamB.isPlayer;
+      const revealedGames = sr.games.slice(0, ts.revealedGames);
+      const pending = !ts.done && revealedGames.length < sr.games.length;
+      const gameBubbles = revealedGames.map(g => {
+        return `<span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-[10px] font-black ${g === 'W' ? 'bg-green-100 text-green-700 border border-green-300' : 'bg-red-100 text-red-600 border border-red-200'}">${g}</span>`;
+      }).join('');
+      const pendingDot = pending
+        ? `<span class="inline-flex items-center justify-center w-6 h-6 rounded-full border-2 border-dashed border-border text-muted-fg text-[10px] animate-pulse">·</span>`
+        : '';
+      const pWins = sr.games.slice(0, ts.revealedGames).filter(g => g === 'W').length;
+      const oWins = sr.games.slice(0, ts.revealedGames).filter(g => g === 'L').length;
+      return `
+        <div class="flex flex-col gap-2 p-3 rounded-xl border ${isPlayerSeries ? 'border-primary bg-blue-50' : 'border-border bg-white'} card-shadow" >
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-xs font-bold ${sr.teamA.isPlayer ? 'text-primary' : 'text-foreground'} truncate">${sr.teamA.isPlayer ? '⭐ ' : ''}${sr.teamA.name}</span>
+            <span class="text-xs font-mono text-foreground font-black">${pWins}–${oWins}</span>
+            <span class="text-xs font-bold ${sr.teamB.isPlayer ? 'text-primary' : 'text-foreground'} truncate text-right">${sr.teamB.isPlayer ? '⭐ ' : ''}${sr.teamB.name}</span>
+          </div>
+          <div class="flex flex-wrap gap-1">${gameBubbles}${pendingDot}</div>
+        </div>`;
+    };
+
+    bracketHTML += `
+      <div class="mb-4">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-primary mb-2">${roundName} — Simulating...</p>
+        <div class="flex flex-col gap-3">
+          ${ts.results.map(sr => renderTickingMatchup(sr)).join('')}
+        </div>
+      </div>`;
+  } else {
+    // Show current round matchups (not yet simulated)
+    bracketHTML += `
+      <div class="mb-4">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-primary mb-2">${roundName} — Up Next</p>
+        <div class="grid grid-cols-2 gap-3">
+          ${po.bracket.map(([a, b]) => renderMatchup(a, b)).join('')}
+        </div>
+      </div>`;
+  }
+
+  const simBtnDisabled = !!ts;
+  const simBtnLabel = ts ? 'Simulating...' : `Simulate ${roundName} →`;
 
   return `
-  <div class="min-h-screen flex flex-col" style="background:#09090b">
+  <div class="min-h-screen flex flex-col main-gradient">
+    ${renderHeader(false)}
     <main class="flex-1 flex flex-col items-center px-4 py-8">
       <div class="w-full max-w-lg flex flex-col gap-5">
 
@@ -946,17 +1387,17 @@ function renderPlayoffs() {
           <p class="text-sm text-muted-fg mt-1">Regular Season: ${r.wins}–${r.losses} · Seed #${po.playerSeed}</p>
         </div>
 
-        <div class="rounded-2xl border border-border bg-card p-4">
+        <div class="rounded-2xl border border-border bg-white p-4 card-shadow">
           ${bracketHTML}
         </div>
 
-        <button data-action="sim-next-round"
-          class="py-4 rounded-xl font-black text-base bg-primary text-white hover:bg-primary/90 transition-all cursor-pointer text-center">
-          Simulate ${roundName} →
+        <button data-action="sim-next-round" ${simBtnDisabled ? 'disabled' : ''}
+          class="py-4 rounded-xl font-black text-base transition-all text-center card-shadow ${simBtnDisabled ? 'bg-card2 border border-border text-muted-fg cursor-not-allowed' : 'bg-primary text-white hover:bg-blue-700 cursor-pointer'}">
+          ${simBtnLabel}
         </button>
 
         <button data-action="draft-new-roster"
-          class="py-3 rounded-xl font-bold text-sm border border-border bg-card text-foreground hover:border-primary/60 hover:bg-card2 transition-all cursor-pointer text-center">
+          class="py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer text-center card-shadow">
           Draft New Roster
         </button>
 
@@ -969,6 +1410,16 @@ function renderPlayoffs() {
 function renderChampionship() {
   const po = S.playoffs;
   const r  = S.result;
+
+  if (!po.hasSavedTrophy) {
+    po.hasSavedTrophy = true;
+    saveToTrophyRoom();
+    setTimeout(() => {
+      if (typeof confetti !== 'undefined') {
+        confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#f97316', '#eab308', '#ffffff'] });
+      }
+    }, 200);
+  }
 
   const finalsResult = po.rounds[po.rounds.length - 1].find(
     sr => sr.teamA.isPlayer || sr.teamB.isPlayer
@@ -988,26 +1439,27 @@ function renderChampionship() {
   }).join('');
 
   return `
-  <div class="min-h-screen flex flex-col" style="background:#09090b">
+  <div class="min-h-screen flex flex-col main-gradient">
+    ${renderHeader(false)}
     <main class="flex-1 flex flex-col items-center justify-center px-4 py-8">
-      <div class="w-full max-w-lg flex flex-col gap-5 items-center text-center">
+      <div class="w-full max-w-lg flex flex-col gap-5 items-center text-center animate-fade-up">
 
         <div class="text-6xl mb-2">🏆</div>
         <h1 class="text-3xl font-black text-primary">WORLD CHAMPIONS!</h1>
         <p class="text-base text-foreground">Your team conquered the NBA Playoffs!</p>
 
-        <div class="rounded-2xl border border-primary/40 bg-primary/10 p-5 w-full">
-          <p class="text-xs font-bold uppercase tracking-widest text-primary mb-3">Championship Run</p>
+        <div class="rounded-2xl border-2 border-amber-300 bg-amber-50 p-5 w-full text-left card-shadow">
+          <p class="text-xs font-bold uppercase tracking-widest text-amber-600 mb-3">Championship Run</p>
           ${roundSummary}
-          <p class="text-base font-black text-primary mt-3">NBA Finals: def. ${oppTeam.name} ${score}</p>
+          <p class="text-base font-black text-amber-700 mt-3">NBA Finals: def. ${oppTeam.name} ${score}</p>
           <p class="text-sm text-muted-fg mt-2">Regular Season: ${r.wins}–${r.losses} · Seed #${po.playerSeed}</p>
         </div>
 
         <div class="flex flex-col gap-3 w-full">
-          <button data-action="share" class="py-3 rounded-xl font-bold text-sm bg-primary text-white hover:bg-primary/90 transition-all cursor-pointer">
+          <button data-action="share" class="py-3 rounded-xl font-bold text-sm bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer card-shadow">
             Share Championship 🏆
           </button>
-          <button data-action="draft-new-roster" class="py-3 rounded-xl font-bold text-sm border border-border bg-card text-foreground hover:border-primary/60 hover:bg-card2 transition-all cursor-pointer">
+          <button data-action="draft-new-roster" class="py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer card-shadow">
             Draft New Roster
           </button>
         </div>
@@ -1035,29 +1487,30 @@ function renderEliminated() {
     const w   = sr.teamA.isPlayer ? sr.playerWins : sr.oppWins;
     const l   = sr.teamA.isPlayer ? sr.oppWins : sr.playerWins;
     const won = w > l;
-    return `<p class="text-sm ${won ? 'text-muted-fg' : 'text-red-400'}">${po.roundNames[i]}: <span class="${won ? 'text-foreground' : 'text-red-300'} font-semibold">${won ? `def. ${opp.name} ${w}–${l}` : `lost to ${opp.name} ${w}–${l}`}</span></p>`;
+    return `<p class="text-sm ${won ? 'text-muted-fg' : 'text-red-500'}">${po.roundNames[i]}: <span class="${won ? 'text-foreground' : 'text-red-600'} font-semibold">${won ? `def. ${opp.name} ${w}–${l}` : `lost to ${opp.name} ${w}–${l}`}</span></p>`;
   }).join('');
 
   return `
-  <div class="min-h-screen flex flex-col" style="background:#09090b">
+  <div class="min-h-screen flex flex-col main-gradient">
+    ${renderHeader(false)}
     <main class="flex-1 flex flex-col items-center justify-center px-4 py-8">
-      <div class="w-full max-w-lg flex flex-col gap-5 items-center text-center">
+      <div class="w-full max-w-lg flex flex-col gap-5 items-center text-center animate-fade-up">
 
         <div class="text-5xl mb-2">💔</div>
         <h1 class="text-2xl font-black text-foreground">Eliminated</h1>
         <p class="text-sm text-muted-fg">in the <span class="text-foreground font-semibold">${po.eliminatedIn}</span></p>
 
-        <div class="rounded-2xl border border-border bg-card p-5 w-full text-left">
+        <div class="rounded-2xl border border-border bg-white p-5 w-full text-left card-shadow">
           <p class="text-xs font-bold uppercase tracking-widest text-muted-fg mb-3">Playoff Run</p>
           ${roundSummary}
           <p class="text-sm text-muted-fg mt-3">Regular Season: ${r.wins}–${r.losses} · Seed #${po.playerSeed}</p>
         </div>
 
         <div class="flex flex-col gap-3 w-full">
-          <button data-action="draft-new-roster" class="py-3 rounded-xl font-bold text-sm bg-primary text-white hover:bg-primary/90 transition-all cursor-pointer">
+          <button data-action="draft-new-roster" class="py-3 rounded-xl font-bold text-sm bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer card-shadow">
             Draft New Roster
           </button>
-          <button data-action="share" class="py-3 rounded-xl font-bold text-sm border border-border bg-card text-foreground hover:border-primary/60 hover:bg-card2 transition-all cursor-pointer">
+          <button data-action="share" class="py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer card-shadow">
             Share Result
           </button>
         </div>
@@ -1069,8 +1522,87 @@ function renderEliminated() {
 }
 
 
-// ╔══════════════════════════════════════════════════════════════════════════════╗
-// ║  BOOT                                                                       ║
-// ╚══════════════════════════════════════════════════════════════════════════════╝
+function renderTrophyRoom() {
+  let trophies = [];
+  try { trophies = JSON.parse(localStorage.getItem('nba820_trophies') || '[]'); } catch(e) {}
 
-render();
+  const emptyState = `
+    <div class="flex flex-col items-center justify-center gap-4 py-16 text-center">
+      <div class="text-5xl">🏀</div>
+      <h2 class="text-xl font-black text-foreground">No Championships Yet</h2>
+      <p class="text-sm text-muted-fg max-w-xs">Draft your first legendary roster and win the NBA Finals to enshrine it here.</p>
+    </div>`;
+
+  const trophyCards = trophies.map(t => {
+    const isPerfect   = t.wins === 82 && t.losses === 0;
+    const cardBorder  = isPerfect ? 'border-amber-300' : 'border-border';
+    const cardBg      = isPerfect ? 'bg-amber-50' : 'bg-white';
+    const cardGlow    = isPerfect ? 'style="box-shadow:0 2px 16px rgba(217,119,6,0.15)"' : 'class="card-shadow"';
+    const nameColor   = isPerfect ? 'text-amber-700' : 'text-primary';
+    const recordColor = isPerfect ? 'text-amber-700' : 'text-foreground';
+    const chemColor   = isPerfect ? 'text-amber-600' : 'text-primary';
+
+    return `
+      <div class="rounded-2xl border p-4 flex flex-col gap-3 ${cardBorder} ${cardBg}" ${cardGlow}>
+        ${isPerfect ? `<p class="text-[10px] font-black uppercase tracking-widest text-amber-600">⭐ Perfect Season — 82-0</p>` : ''}
+        <div class="flex items-start justify-between gap-2">
+          <div class="min-w-0">
+            <p class="font-black text-base ${nameColor} truncate">${t.coachName}</p>
+            <p class="text-xs text-muted-fg">${t.coachSystem}</p>
+          </div>
+          <div class="text-right flex-shrink-0">
+            <p class="font-black text-lg ${recordColor}">${t.wins}–${t.losses}</p>
+            <p class="text-xs text-muted-fg">${t.date}</p>
+          </div>
+        </div>
+        <div class="border-t ${isPerfect ? 'border-amber-200' : 'border-border'} pt-3 flex flex-col gap-2">
+          <div>
+            <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg mb-1">Starting 5</p>
+            <p class="text-xs text-foreground leading-relaxed">${t.starters}</p>
+          </div>
+          <div>
+            <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg mb-1">Bench</p>
+            <p class="text-xs text-foreground leading-relaxed">${t.bench}</p>
+          </div>
+        </div>
+        <div class="flex items-center justify-between border-t ${isPerfect ? 'border-amber-200' : 'border-border'} pt-2.5">
+          <p class="text-xs text-muted-fg">Chemistry</p>
+          <p class="text-xs font-bold ${chemColor}">${t.chemScore}%</p>
+        </div>
+        ${t.payroll !== undefined ? `
+        <div class="flex items-center justify-between">
+          <p class="text-xs text-muted-fg">Total Salary</p>
+          <p class="text-xs font-semibold text-muted-fg">$${t.payroll}M</p>
+        </div>` : ''}
+      </div>`;
+  }).join('');
+
+  return `
+  <div class="flex flex-col min-h-screen main-gradient">
+    ${renderHeader(false)}
+    <main class="flex-1 flex flex-col items-center px-4 pt-6 pb-8">
+      <div class="w-full max-w-2xl flex flex-col gap-5 animate-fade-up">
+
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-widest text-amber-600 mb-1">Hall of Fame</p>
+            <h1 class="text-2xl font-black text-foreground">Trophy Room</h1>
+          </div>
+          <button data-action="back-to-menu"
+            class="flex-shrink-0 text-[11px] px-3 py-1.5 rounded-full border border-border bg-card2 text-muted-fg hover:text-foreground hover:border-primary transition-all cursor-pointer">
+            ← Main Menu
+          </button>
+        </div>
+
+        ${trophies.length === 0 ? emptyState : `<div class="flex flex-col gap-4">${trophyCards}</div>`}
+
+      </div>
+    </main>
+    ${renderFooter()}
+  </div>`;
+}
+
+
+// ╔══════════════════════════════════════════════════════════════════════════════╗
+// ║  BOOT — render() is called by loadDatabase() in database.js after fetch     ║
+// ╚══════════════════════════════════════════════════════════════════════════════╝
