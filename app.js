@@ -239,6 +239,30 @@ function calculatePlayerPrice(p) {
   return Math.max(5, price);
 }
 
+// ── Share / leaderboard helpers ────────────────────────────────────────────────
+function fmtDecadeShort(decade) {
+  if (!decade) return '';
+  const m = decade.match(/(\d{2})(\d{2})s/);
+  return m ? m[2] + 's' : decade;
+}
+
+function fmtPlayerLine(p) {
+  if (!p) return '—';
+  const era = [p.team, p.decade ? fmtDecadeShort(p.decade) : ''].filter(Boolean).join(' ');
+  return era ? `${p.name} (${era})` : p.name;
+}
+
+function showToast(msg, duration = 2500) {
+  const el = document.createElement('div');
+  el.textContent = msg;
+  el.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);' +
+    'background:#f97316;color:#fff;font-family:Fira Sans,sans-serif;font-weight:700;' +
+    'font-size:13px;padding:10px 20px;border-radius:999px;z-index:99999;' +
+    'box-shadow:0 4px 24px rgba(0,0,0,0.4);transition:opacity 0.3s';
+  document.body.appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 350); }, duration);
+}
+
 // ── Shared chrome ──────────────────────────────────────────────────────────────
 function renderHeader(showRestart = false) {
   const eraLabel  = S.selectedEra && S.selectedEra !== 'all'
@@ -255,6 +279,7 @@ function renderHeader(showRestart = false) {
         ${coachObj ? `<span class="text-xs px-2.5 py-1 rounded-full font-semibold border" style="background:${coachObj.accent}18;color:${coachObj.accent};border-color:${coachObj.accent}44">${coachObj.system}</span>` : ''}
         <span class="text-xs px-2.5 py-1 rounded-full font-semibold bg-card2 text-muted-fg border border-border">${eraLabel}</span>
         ${S.phase === 'drafting' ? `<span class="text-xs px-2.5 py-1 rounded-full font-semibold border ${S.hasMulligan ? '' : 'opacity-40'}" style="${S.hasMulligan ? 'background:#22c55e12;color:#4ade80;border-color:#22c55e40' : 'background:transparent;color:#71717a;border-color:#27272a'}">🎲 ${S.hasMulligan ? 'Mulligan' : 'Used'}</span>` : ''}
+        <button data-action="open-leaderboard" class="text-xs px-3 py-1.5 rounded-full border border-border text-muted-fg hover:text-foreground hover:border-primary/60 transition-all cursor-pointer" title="Personal Leaderboard">🏅</button>
         ${showRestart ? `<button data-action="restart" class="text-xs px-3 py-1.5 rounded-full border border-border text-muted-fg hover:text-foreground hover:border-primary/60 transition-all cursor-pointer">Restart</button>` : ''}
       </div>
     </div>
@@ -851,6 +876,7 @@ function dispatch(action) {
   if (action === 'skip-decade')    { doSkipDecade(); return; }
   if (action === 'simulate')           { doSimulate();        return; }
   if (action === 'share')              { doShare();           return; }
+  if (action === 'open-leaderboard')   { showLeaderboardModal(); return; }
   if (action === 'advance-to-playoffs'){ doAdvanceToPlayoffs();return; }
   if (action === 'sim-next-round')     { doSimNextRound();    return; }
   if (action === 'draft-new-roster')   { S.phase='coach-select'; S.coach=null; render(); return; }
@@ -1004,47 +1030,62 @@ function doSimulate() {
   const bench    = BENCH_POSITIONS.map(p => S.roster[p]).filter(Boolean);
   S.result = simulateSeason(starters, bench);
   S.phase  = 'results';
+  saveLeaderboard();
   render();
 }
 
 function doShareText() {
   const r = S.result;
   if (!r) return;
-  const starters = POSITIONS.map(p => S.roster[p]?.name || '—').join(', ');
-  const bench    = BENCH_POSITIONS.map(p => S.roster[p]?.name || '—').join(', ');
-  const chem     = r.chemReport?.length ? '\n' + r.chemReport.join('\n') : '';
-  const text = `I went ${r.wins}-${r.losses} in 82-0! 🏀\nStarters: ${starters}\nBench: ${bench}${chem}\nCan you beat it? https://82-0.com`;
+
+  const isPerfect  = r.wins === 82;
+  const isHistoric = r.wins >= 75;
+  const isElite    = r.wins >= 70;
+  const isPlayoff  = r.wins >= 60;
+
+  let tier;
+  if (isPerfect)       tier = '🏆 PERFECT SEASON';
+  else if (isHistoric) tier = '🔥 Historic Season';
+  else if (isElite)    tier = '⚡ Elite Season';
+  else if (isPlayoff)  tier = '✅ Playoff Contender';
+  else                 tier = '😬 Rough Season';
+
+  const starterLines = POSITIONS.map(pos => {
+    const p = S.roster[pos];
+    return p ? `🌟 ${fmtPlayerLine(p)}` : '';
+  }).filter(Boolean).join('\n');
+
+  const benchLines = BENCH_POSITIONS.map(pos => {
+    const p = S.roster[pos];
+    return p ? `💪 ${fmtPlayerLine(p)}` : '';
+  }).filter(Boolean).join('\n');
+
+  const chemLine = r.chemScore !== undefined ? `\nChemistry: ${Math.round(r.chemScore)}%` : '';
+
+  const text = [
+    `🏀 ${r.wins}-${r.losses} — ${tier}`,
+    '',
+    'Starters:',
+    starterLines,
+    '',
+    'Bench:',
+    benchLines,
+    chemLine,
+    '',
+    'Can you beat it? → 82-0.com',
+  ].join('\n').replace(/\n{3,}/g, '\n\n').trim();
+
   if (navigator.share) {
     navigator.share({ title: '82-0', text }).catch(() => {});
   } else {
     navigator.clipboard.writeText(text)
-      .then(() => alert('Result copied to clipboard! 🏀'))
+      .then(() => showToast('Copied to clipboard! 🏀'))
       .catch(() => prompt('Copy this:', text));
   }
 }
 
 function doShare() {
-  if (typeof html2canvas === 'undefined') { doShareText(); return; }
-  const target = document.querySelector('main');
-  if (!target) { doShareText(); return; }
-  const btn = document.querySelector('[data-action="share"]');
-  const origText = btn ? btn.textContent.trim() : '';
-  if (btn) { btn.textContent = 'Capturing...'; btn.disabled = true; }
-  html2canvas(target, { backgroundColor: '#09090b', scale: 2, useCORS: true, logging: false })
-    .then(canvas => {
-      const link = document.createElement('a');
-      link.download = 'my-82-0-roster.png';
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-      if (btn) {
-        btn.textContent = 'Image Downloaded! ✓';
-        setTimeout(() => { btn.textContent = origText; btn.disabled = false; }, 2000);
-      }
-    })
-    .catch(() => {
-      if (btn) { btn.textContent = origText; btn.disabled = false; }
-      doShareText();
-    });
+  doShareText();
 }
 
 
@@ -1071,6 +1112,90 @@ function saveToTrophyRoom() {
   trophies.unshift(entry);
   if (trophies.length > 12) trophies = trophies.slice(0, 12);
   try { localStorage.setItem('nba820_trophies', JSON.stringify(trophies)); } catch(e) {}
+}
+
+
+// ╔══════════════════════════════════════════════════════════════════════════════╗
+// ║  PERSONAL LEADERBOARD                                                       ║
+// ╚══════════════════════════════════════════════════════════════════════════════╝
+
+function saveLeaderboard() {
+  const r = S.result;
+  if (!r) return;
+  const entry = {
+    date:     new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+    wins:     r.wins,
+    losses:   r.losses,
+    starters: POSITIONS.map(p => S.roster[p]?.name || '—').join(', '),
+  };
+  let lb = [];
+  try { lb = JSON.parse(localStorage.getItem('nba820_lb') || '[]'); } catch(e) {}
+  lb.push(entry);
+  lb.sort((a, b) => b.wins - a.wins);
+  if (lb.length > 20) lb = lb.slice(0, 20);
+  try { localStorage.setItem('nba820_lb', JSON.stringify(lb)); } catch(e) {}
+}
+
+function renderLeaderboardModal() {
+  let lb = [];
+  try { lb = JSON.parse(localStorage.getItem('nba820_lb') || '[]'); } catch(e) {}
+  const top5 = lb.slice(0, 5);
+
+  const rows = top5.length === 0
+    ? `<p class="text-sm text-muted-fg text-center py-6">No runs yet — simulate a season to get on the board!</p>`
+    : top5.map((e, i) => {
+        const isPerfect = e.wins === 82;
+        const rowBg     = isPerfect ? 'background:#78350f33;border-color:#eab30855' : 'background:#18181b;border-color:#27272a';
+        const rankColor = i === 0 ? '#f97316' : '#a1a1aa';
+        const winsColor = isPerfect ? '#eab308' : '#fafafa';
+        return `
+        <div class="rounded-xl border p-3 flex items-center gap-3" style="${rowBg}">
+          <span class="text-lg font-black w-7 text-center flex-shrink-0" style="color:${rankColor}">${i + 1}</span>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="font-black text-base" style="color:${winsColor}">${e.wins}–${e.losses}</span>
+              ${isPerfect ? '<span class="text-[10px] font-black px-1.5 py-0.5 rounded-full" style="background:#eab30822;color:#eab308;border:1px solid #eab30844">🏆 PERFECT</span>' : ''}
+            </div>
+            <p class="text-xs text-muted-fg truncate mt-0.5">${e.starters}</p>
+            <p class="text-[10px] text-muted-fg/60 mt-0.5">${e.date}</p>
+          </div>
+        </div>`;
+      }).join('');
+
+  return `
+  <div id="lb-modal-backdrop" onclick="if(event.target===this)closeLeaderboardModal()"
+    style="position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:9998;display:flex;align-items:center;justify-content:center;padding:16px">
+    <div style="background:#18181b;border:1px solid #27272a;border-radius:20px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;padding:24px;font-family:'Fira Sans',sans-serif;color:#fafafa;animation:scaleIn 0.2s ease-out">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div>
+          <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#f97316;margin-bottom:4px">Personal Best</p>
+          <h2 style="font-size:22px;font-weight:900;margin:0">Hall of Fame</h2>
+        </div>
+        <button onclick="closeLeaderboardModal()"
+          style="background:#27272a;border:none;color:#a1a1aa;border-radius:999px;width:32px;height:32px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">✕</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        ${rows}
+      </div>
+      ${lb.length > 5 ? `<p style="text-align:center;font-size:11px;color:#52525b;margin-top:14px">${lb.length} total runs tracked</p>` : ''}
+    </div>
+  </div>`;
+}
+
+function showLeaderboardModal() {
+  closeLeaderboardModal();
+  const div = document.createElement('div');
+  div.id = 'lb-modal-root';
+  div.innerHTML = renderLeaderboardModal();
+  document.body.appendChild(div);
+  const onKey = e => { if (e.key === 'Escape') closeLeaderboardModal(); };
+  document.addEventListener('keydown', onKey);
+  div._removeKey = () => document.removeEventListener('keydown', onKey);
+}
+
+function closeLeaderboardModal() {
+  const el = document.getElementById('lb-modal-root');
+  if (el) { if (el._removeKey) el._removeKey(); el.remove(); }
 }
 
 
