@@ -10,19 +10,18 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
-      darkMode: 'class',
       theme: {
         extend: {
           fontFamily: { sans: ['Fira Sans', 'ui-sans-serif', 'system-ui', 'sans-serif'] },
           colors: {
-            background: '#09090b',
-            card:       '#18181b',
-            card2:      '#1f1f23',
-            border:     '#27272a',
-            foreground: '#fafafa',
-            muted:      '#3f3f46',
-            'muted-fg': '#a1a1aa',
-            primary:    '#f97316',
+            background: '#f8fafc',
+            card:       '#ffffff',
+            card2:      '#f1f5f9',
+            border:     '#e2e8f0',
+            foreground: '#0f172a',
+            muted:      '#94a3b8',
+            'muted-fg': '#64748b',
+            primary:    '#2563eb',
             'primary-fg': '#fff',
           },
           animation: {
@@ -32,10 +31,10 @@
             'scale-in':  'scaleIn 0.2s ease-out',
           },
           keyframes: {
-            fadeUp:    { from: { opacity: 0, transform: 'translateY(10px)' }, to: { opacity: 1, transform: 'translateY(0)' } },
+            fadeUp:    { from: { opacity: 0, transform: 'translateY(8px)' }, to: { opacity: 1, transform: 'translateY(0)' } },
             spinTick:  { '0%,100%': { opacity: 1 }, '50%': { opacity: 0.3 } },
-            pulseGlow: { '0%,100%': { boxShadow: '0 0 0 0 rgba(249,115,22,0.4)' }, '50%': { boxShadow: '0 0 0 10px rgba(249,115,22,0)' } },
-            scaleIn:   { from: { opacity: 0, transform: 'scale(0.95)' }, to: { opacity: 1, transform: 'scale(1)' } },
+            pulseGlow: { '0%,100%': { boxShadow: '0 0 0 0 rgba(37,99,235,0.25)' }, '50%': { boxShadow: '0 0 0 8px rgba(37,99,235,0)' } },
+            scaleIn:   { from: { opacity: 0, transform: 'scale(0.97)' }, to: { opacity: 1, transform: 'scale(1)' } },
           },
         },
       },
@@ -45,48 +44,47 @@
     *, *::before, *::after { box-sizing: border-box; }
 
     body {
-      background: #09090b;
-      color: #fafafa;
+      background: #f8fafc;
+      color: #0f172a;
       font-family: 'Fira Sans', ui-sans-serif, system-ui, sans-serif;
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
     }
 
     ::-webkit-scrollbar { width: 5px; }
-    ::-webkit-scrollbar-track { background: #18181b; }
-    ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 9999px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
 
     .player-card { transition: border-color 0.15s, background 0.15s, transform 0.1s; }
-    .player-card:hover:not(.selected) { border-color: #f97316 !important; background: #1f1f23 !important; transform: translateY(-1px); }
-    .player-card.selected { border-color: #f97316 !important; background: #f9731615 !important; }
+    .player-card:hover:not(.selected) { border-color: #2563eb !important; background: #eff6ff !important; transform: translateY(-1px); }
+    .player-card.selected { border-color: #2563eb !important; background: #dbeafe !important; }
 
     .slot-empty.droppable { cursor: pointer; }
-    .slot-empty.droppable:hover { border-color: #f97316 !important; background: #f9731615 !important; }
+    .slot-empty.droppable:hover { border-color: #2563eb !important; background: #eff6ff !important; }
 
     .slot-badge { transition: all 0.12s; }
     .slot-spinning .slot-badge { animation: spinTick 0.08s steps(1) infinite; }
 
-    .main-gradient {
-      background: linear-gradient(to bottom, #09090b 0%, #18181b 50%, #09090b 100%);
-    }
+    .main-gradient { background: #f8fafc; }
 
     .stat-bar-fill { transition: width 0.8s cubic-bezier(.4,0,.2,1); }
 
     .perfect-glow {
-      box-shadow: 0 0 40px rgba(249, 115, 22, 0.35), 0 0 80px rgba(249, 115, 22, 0.15);
+      box-shadow: 0 0 0 2px #fde68a, 0 4px 24px rgba(217,119,6,0.18);
     }
 
+    .card-shadow { box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04); }
+
     .era-card { transition: border-color 0.15s, background 0.15s, transform 0.1s; }
-    .era-card:hover { transform: translateY(-1px); }
+    .era-card:hover { transform: translateY(-1px); border-color: #2563eb !important; background: #eff6ff !important; }
 
     @supports (padding-bottom: env(safe-area-inset-bottom)) {
       .safe-bottom { padding-bottom: calc(1rem + env(safe-area-inset-bottom)); }
     }
   </style>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
-<body class="dark">
+<body>
 
 <div id="app"></div>
 
@@ -850,12 +848,12 @@ const TEAM_COLORS = {
 };
 
 const ARCHETYPE_STYLE = {
-  'Playmaker':         { bg:'#1e3a5f', text:'#60a5fa' },
-  'Sharpshooter':      { bg:'#451a03', text:'#fbbf24' },
-  'Lockdown Defender': { bg:'#3b0764', text:'#e879f9' },
-  'Slasher':           { bg:'#2e1065', text:'#c084fc' },
-  'Paint Beast':       { bg:'#052e16', text:'#4ade80' },
-  'Two-Way Star':      { bg:'#431407', text:'#fb923c' },
+  'Playmaker':         { bg:'#dbeafe', text:'#1d4ed8' },
+  'Sharpshooter':      { bg:'#fef3c7', text:'#92400e' },
+  'Lockdown Defender': { bg:'#f3e8ff', text:'#6d28d9' },
+  'Slasher':           { bg:'#ede9fe', text:'#5b21b6' },
+  'Paint Beast':       { bg:'#dcfce7', text:'#15803d' },
+  'Two-Way Star':      { bg:'#ffedd5', text:'#9a3412' },
 };
 
 const COACHES = [
@@ -1048,30 +1046,30 @@ function showToast(msg, duration = 2500) {
   const el = document.createElement('div');
   el.textContent = msg;
   el.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);' +
-    'background:#f97316;color:#fff;font-family:Fira Sans,sans-serif;font-weight:700;' +
+    'background:#0f172a;color:#fff;font-family:Fira Sans,sans-serif;font-weight:700;' +
     'font-size:13px;padding:10px 20px;border-radius:999px;z-index:99999;' +
-    'box-shadow:0 4px 24px rgba(0,0,0,0.4);transition:opacity 0.3s';
+    'box-shadow:0 4px 24px rgba(0,0,0,0.2);transition:opacity 0.3s;white-space:nowrap';
   document.body.appendChild(el);
   setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 350); }, duration);
 }
 
 function renderHeader(showRestart = false) {
   const eraLabel  = S.selectedEra && S.selectedEra !== 'all'
-    ? `Classic · ${S.selectedEra}` : 'Classic Mode';
+    ? `${S.selectedEra}` : 'All Eras';
   const coachObj  = S.coach ? COACHES.find(c => c.id === S.coach) : null;
   return `
-  <header class="sticky top-0 z-50 w-full border-b border-border" style="background:rgba(9,9,11,0.92);backdrop-filter:blur(10px)">
+  <header class="sticky top-0 z-50 w-full border-b border-border bg-white" style="box-shadow:0 1px 3px rgba(0,0,0,0.05)">
     <div class="mx-auto flex h-12 max-w-2xl items-center justify-between px-4">
-      <div class="flex items-center gap-2 font-bold text-base">
-        ${iconBall('h-6 w-6 text-primary')}
-        <span class="text-foreground">82-0</span>
+      <div class="flex items-center gap-2 font-black text-base text-foreground">
+        ${iconBall('h-5 w-5 text-primary')}
+        <span>82-0</span>
       </div>
-      <div class="flex items-center gap-2">
-        ${coachObj ? `<span class="text-xs px-2.5 py-1 rounded-full font-semibold border" style="background:${coachObj.accent}18;color:${coachObj.accent};border-color:${coachObj.accent}44">${coachObj.system}</span>` : ''}
-        <span class="text-xs px-2.5 py-1 rounded-full font-semibold bg-card2 text-muted-fg border border-border">${eraLabel}</span>
-        ${S.phase === 'drafting' ? `<span class="text-xs px-2.5 py-1 rounded-full font-semibold border ${S.hasMulligan ? '' : 'opacity-40'}" style="${S.hasMulligan ? 'background:#22c55e12;color:#4ade80;border-color:#22c55e40' : 'background:transparent;color:#71717a;border-color:#27272a'}">🎲 ${S.hasMulligan ? 'Mulligan' : 'Used'}</span>` : ''}
-        <button data-action="open-leaderboard" class="text-xs px-3 py-1.5 rounded-full border border-border text-muted-fg hover:text-foreground hover:border-primary/60 transition-all cursor-pointer" title="Personal Leaderboard">🏅</button>
-        ${showRestart ? `<button data-action="restart" class="text-xs px-3 py-1.5 rounded-full border border-border text-muted-fg hover:text-foreground hover:border-primary/60 transition-all cursor-pointer">Restart</button>` : ''}
+      <div class="flex items-center gap-1.5">
+        ${coachObj ? `<span class="text-[11px] px-2.5 py-1 rounded-full font-bold border border-border bg-card2 text-muted-fg">${coachObj.system}</span>` : ''}
+        <span class="text-[11px] px-2.5 py-1 rounded-full font-bold border border-border bg-card2 text-muted-fg">${eraLabel}</span>
+        ${S.phase === 'drafting' ? `<span class="text-[11px] px-2.5 py-1 rounded-full font-bold border ${S.hasMulligan ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-border bg-card2 text-muted opacity-50'}">🎲 ${S.hasMulligan ? 'Mulligan' : 'Used'}</span>` : ''}
+        <button data-action="open-leaderboard" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Personal Leaderboard">🏅</button>
+        ${showRestart ? `<button data-action="restart" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">Restart</button>` : ''}
       </div>
     </div>
   </header>`;
@@ -1079,8 +1077,8 @@ function renderHeader(showRestart = false) {
 
 function renderFooter() {
   return `
-  <footer class="w-full py-3 text-center border-t border-border mt-auto">
-    <p class="text-xs text-muted-fg/60">82-0.com is an independent fan project — not affiliated with the NBA.</p>
+  <footer class="w-full py-4 text-center border-t border-border mt-auto bg-card">
+    <p class="text-xs text-muted">82-0.com is an independent fan project — not affiliated with the NBA.</p>
   </footer>`;
 }
 
