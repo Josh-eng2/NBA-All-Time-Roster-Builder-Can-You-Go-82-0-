@@ -328,11 +328,11 @@
       "id": "mj_96",
       "name": "Michael Jordan",
       "pos": "SG",
-      "ppg": 38.5,
-      "rpg": 7.5,
+      "ppg": 33.5,
+      "rpg": 7,
       "apg": 7,
-      "spg": 3.5,
-      "bpg": 1.5,
+      "spg": 2.5,
+      "bpg": 1,
       "archetype": "Two-Way Star"
     },
     {
@@ -1031,11 +1031,11 @@
       "id": "lebron_13",
       "name": "LeBron James",
       "pos": "SF",
-      "ppg": 36,
-      "rpg": 10,
-      "apg": 10,
-      "spg": 2.5,
-      "bpg": 1.8,
+      "ppg": 32,
+      "rpg": 9,
+      "apg": 8,
+      "spg": 2,
+      "bpg": 1,
       "archetype": "Two-Way Star"
     },
     {
@@ -2824,6 +2824,291 @@
       "spg": 1.5,
       "bpg": 0.3,
       "archetype": "Sharpshooter"
+    }
+  ],
+  "Blazers_1970s": [
+    {
+      "id": "walton_77",
+      "name": "Bill Walton",
+      "pos": "C",
+      "ppg": 18.6,
+      "rpg": 14.4,
+      "apg": 5,
+      "spg": 0.8,
+      "bpg": 3.2,
+      "archetype": "Two-Way Star"
+    },
+    {
+      "id": "lucas_77",
+      "name": "Maurice Lucas",
+      "pos": "PF",
+      "ppg": 20.2,
+      "rpg": 11.4,
+      "apg": 2.2,
+      "spg": 1.1,
+      "bpg": 0.6,
+      "archetype": "Paint Beast"
+    },
+    {
+      "id": "hollins_77",
+      "name": "Lionel Hollins",
+      "pos": "PG",
+      "ppg": 16,
+      "rpg": 3.8,
+      "apg": 5.5,
+      "spg": 2.1,
+      "bpg": 0.3,
+      "archetype": "Playmaker"
+    },
+    {
+      "id": "gross_77",
+      "name": "Bob Gross",
+      "pos": "SF",
+      "ppg": 14.1,
+      "rpg": 5.4,
+      "apg": 3.7,
+      "spg": 1.4,
+      "bpg": 0.4,
+      "archetype": "Two-Way Star"
+    },
+    {
+      "id": "twarren_77",
+      "name": "Terry Porter",
+      "pos": "SG",
+      "ppg": 10.8,
+      "rpg": 3.2,
+      "apg": 2.9,
+      "spg": 1.2,
+      "bpg": 0.2,
+      "archetype": "Sharpshooter"
+    }
+  ],
+  "Warriors_1970s": [
+    {
+      "id": "barry_75",
+      "name": "Rick Barry",
+      "pos": "SF",
+      "ppg": 30.6,
+      "rpg": 6.2,
+      "apg": 6.2,
+      "spg": 2.9,
+      "bpg": 0.5,
+      "archetype": "Two-Way Star"
+    },
+    {
+      "id": "jwilkes_75",
+      "name": "Jamaal Wilkes",
+      "pos": "SF",
+      "ppg": 16.5,
+      "rpg": 8.2,
+      "apg": 3.2,
+      "spg": 1.2,
+      "bpg": 0.4,
+      "archetype": "Slasher"
+    },
+    {
+      "id": "psmith_75",
+      "name": "Phil Smith",
+      "pos": "SG",
+      "ppg": 17.5,
+      "rpg": 3.3,
+      "apg": 3.5,
+      "spg": 1.6,
+      "bpg": 0.2,
+      "archetype": "Sharpshooter"
+    },
+    {
+      "id": "cray_75",
+      "name": "Clifford Ray",
+      "pos": "C",
+      "ppg": 9.5,
+      "rpg": 9.7,
+      "apg": 2,
+      "spg": 0.8,
+      "bpg": 1.5,
+      "archetype": "Paint Beast"
+    },
+    {
+      "id": "bbutts_75",
+      "name": "Butch Beard",
+      "pos": "PG",
+      "ppg": 11.5,
+      "rpg": 3.8,
+      "apg": 5.4,
+      "spg": 1.7,
+      "bpg": 0.1,
+      "archetype": "Playmaker"
+    }
+  ],
+  "Raptors_2010s": [
+    {
+      "id": "kawhi_19",
+      "name": "Kawhi Leonard",
+      "pos": "SF",
+      "ppg": 26.6,
+      "rpg": 7.3,
+      "apg": 3.3,
+      "spg": 1.8,
+      "bpg": 0.4,
+      "archetype": "Two-Way Star"
+    },
+    {
+      "id": "siakam_19",
+      "name": "Pascal Siakam",
+      "pos": "PF",
+      "ppg": 16.9,
+      "rpg": 6.9,
+      "apg": 3.1,
+      "spg": 1,
+      "bpg": 0.5,
+      "archetype": "Slasher"
+    },
+    {
+      "id": "lowry_19",
+      "name": "Kyle Lowry",
+      "pos": "PG",
+      "ppg": 14.2,
+      "rpg": 4.7,
+      "apg": 8.7,
+      "spg": 1.4,
+      "bpg": 0.3,
+      "archetype": "Playmaker"
+    },
+    {
+      "id": "mgasol_19",
+      "name": "Marc Gasol",
+      "pos": "C",
+      "ppg": 15.5,
+      "rpg": 7.8,
+      "apg": 4,
+      "spg": 0.7,
+      "bpg": 1.4,
+      "archetype": "Two-Way Star"
+    },
+    {
+      "id": "dgreen_19",
+      "name": "Danny Green",
+      "pos": "SG",
+      "ppg": 10.3,
+      "rpg": 3.7,
+      "apg": 1.9,
+      "spg": 1.2,
+      "bpg": 0.3,
+      "archetype": "Lockdown Defender"
+    }
+  ],
+  "Nets_2000s": [
+    {
+      "id": "kidd_02",
+      "name": "Jason Kidd",
+      "pos": "PG",
+      "ppg": 15.5,
+      "rpg": 7.3,
+      "apg": 9.9,
+      "spg": 2.2,
+      "bpg": 0.3,
+      "archetype": "Playmaker"
+    },
+    {
+      "id": "kmartin_02",
+      "name": "Kenyon Martin",
+      "pos": "PF",
+      "ppg": 16.7,
+      "rpg": 9,
+      "apg": 2.1,
+      "spg": 1,
+      "bpg": 2.1,
+      "archetype": "Paint Beast"
+    },
+    {
+      "id": "rjeff_02",
+      "name": "Richard Jefferson",
+      "pos": "SF",
+      "ppg": 18.5,
+      "rpg": 5.7,
+      "apg": 2.2,
+      "spg": 1,
+      "bpg": 0.4,
+      "archetype": "Slasher"
+    },
+    {
+      "id": "kittles_02",
+      "name": "Kerry Kittles",
+      "pos": "SG",
+      "ppg": 14.5,
+      "rpg": 4,
+      "apg": 2.5,
+      "spg": 1.8,
+      "bpg": 0.3,
+      "archetype": "Lockdown Defender"
+    },
+    {
+      "id": "jcollins_02",
+      "name": "Jason Collins",
+      "pos": "C",
+      "ppg": 5.8,
+      "rpg": 5.5,
+      "apg": 0.8,
+      "spg": 0.4,
+      "bpg": 1.4,
+      "archetype": "Lockdown Defender"
+    }
+  ],
+  "Kings_2000s": [
+    {
+      "id": "cwebber_02",
+      "name": "Chris Webber",
+      "pos": "PF",
+      "ppg": 24.5,
+      "rpg": 10.5,
+      "apg": 4.8,
+      "spg": 1.5,
+      "bpg": 1,
+      "archetype": "Two-Way Star"
+    },
+    {
+      "id": "peja_02",
+      "name": "Peja Stojakovic",
+      "pos": "SF",
+      "ppg": 24.2,
+      "rpg": 5.4,
+      "apg": 2.6,
+      "spg": 1.1,
+      "bpg": 0.2,
+      "archetype": "Sharpshooter"
+    },
+    {
+      "id": "bibby_02",
+      "name": "Mike Bibby",
+      "pos": "PG",
+      "ppg": 16,
+      "rpg": 3.5,
+      "apg": 5.9,
+      "spg": 1.5,
+      "bpg": 0.1,
+      "archetype": "Playmaker"
+    },
+    {
+      "id": "divac_02",
+      "name": "Vlade Divac",
+      "pos": "C",
+      "ppg": 13,
+      "rpg": 9.5,
+      "apg": 4.2,
+      "spg": 0.9,
+      "bpg": 1.5,
+      "archetype": "Two-Way Star"
+    },
+    {
+      "id": "christie_02",
+      "name": "Doug Christie",
+      "pos": "SG",
+      "ppg": 14.5,
+      "rpg": 4.7,
+      "apg": 4.4,
+      "spg": 2.6,
+      "bpg": 0.4,
+      "archetype": "Lockdown Defender"
     }
   ]
 }
