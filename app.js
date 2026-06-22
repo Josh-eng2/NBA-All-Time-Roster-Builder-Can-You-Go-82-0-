@@ -915,8 +915,24 @@ function dispatch(action) {
 
 function confirmLeave(fn) {
   if (S.phase === 'coach-select' || S.phase === 'era-select' || S.phase === 'results' || S.phase === 'playoffs' || S.phase === 'trophy-room') { fn(); return; }
-  if (confirm('Leave this game? Your progress will be lost.')) fn();
-  else render();
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:9999';
+  overlay.innerHTML = `
+    <div style="background:#ffffff;border:1.5px solid #e2e8f0;border-radius:16px;padding:24px;max-width:320px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.12);text-align:center">
+      <p style="font-size:18px;font-weight:800;color:#0f172a;margin-bottom:8px">Leave Game?</p>
+      <p style="font-size:14px;color:#64748b;margin-bottom:20px">Your progress will be lost.</p>
+      <div style="display:flex;gap:10px;justify-content:center">
+        <button id="_cl_cancel" style="flex:1;padding:10px 16px;border-radius:10px;background:#f1f5f9;border:1.5px solid #e2e8f0;color:#0f172a;font-weight:700;cursor:pointer">Cancel</button>
+        <button id="_cl_confirm" style="flex:1;padding:10px 16px;border-radius:10px;background:#2563eb;border:none;color:#ffffff;font-weight:700;cursor:pointer">Yes, Restart</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  const close = () => overlay.remove();
+  overlay.querySelector('#_cl_cancel').onclick = () => { close(); render(); };
+  overlay.querySelector('#_cl_confirm').onclick = () => { close(); fn(); };
+  overlay.addEventListener('keydown', e => { if (e.key === 'Escape') { close(); render(); } });
+  setTimeout(() => overlay.querySelector('#_cl_cancel').focus(), 0);
 }
 
 function startGame(era = 'all') {
@@ -1079,7 +1095,7 @@ function doShareText() {
   } else {
     navigator.clipboard.writeText(text)
       .then(() => showToast('Copied to clipboard! 🏀'))
-      .catch(() => prompt('Copy this:', text));
+      .catch(() => showToast('Failed to copy to clipboard'));
   }
 }
 
