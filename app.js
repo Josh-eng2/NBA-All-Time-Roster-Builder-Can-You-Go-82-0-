@@ -167,24 +167,26 @@ function spinResult(fixedTeam = null, fixedDecade = null) {
   const decadePool = availableDecades();
   if (!decadePool.length) return null;
 
-  let decade = fixedDecade || pick(decadePool);
-  let team   = fixedTeam   || pick(TEAMS);
+  const decades = fixedDecade ? [fixedDecade] : decadePool;
+  const teams   = fixedTeam   ? [fixedTeam]   : TEAMS;
 
-  for (let i = 0; i < 60 && !getAvailablePlayers(team, decade).length; i++) {
-    team   = pick(TEAMS);
-    if (!fixedDecade) decade = pick(decadePool);
-  }
-
-  if (!getAvailablePlayers(team, decade).length) {
-    for (const d of (fixedDecade ? [fixedDecade] : decadePool)) {
-      for (const t of TEAMS) {
-        if (getAvailablePlayers(t, d).length > 0) return { team: t, decade: d };
-      }
+  // Build every valid (team, decade) pair up front — no retry loop needed
+  const valid = [];
+  for (const d of decades) {
+    for (const t of teams) {
+      if (getAvailablePlayers(t, d).length > 0) valid.push({ team: t, decade: d });
     }
-    return null;
   }
+  if (valid.length) return pick(valid);
 
-  return { team, decade };
+  // Constraint (fixedTeam or fixedDecade) exhausted — expand to any remaining combo
+  const fallback = [];
+  for (const d of decadePool) {
+    for (const t of TEAMS) {
+      if (getAvailablePlayers(t, d).length > 0) fallback.push({ team: t, decade: d });
+    }
+  }
+  return fallback.length ? pick(fallback) : null;
 }
 
 function rosterFull() {
@@ -1478,7 +1480,5 @@ function renderTrophyRoom() {
 
 
 // ╔══════════════════════════════════════════════════════════════════════════════╗
-// ║  BOOT                                                                       ║
+// ║  BOOT — render() is called by loadDatabase() in database.js after fetch     ║
 // ╚══════════════════════════════════════════════════════════════════════════════╝
-
-render();

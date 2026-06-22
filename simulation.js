@@ -7,6 +7,34 @@
 // ║  Chemistry bonuses/penalties applied before the sigmoid win curve.         ║
 // ╚══════════════════════════════════════════════════════════════════════════════╝
 
+// ── Sigmoid tuning knobs ──────────────────────────────────────────────────────
+// SIM_K:      steepness — higher = more decisive gap between good and bad teams
+// SIM_CENTER: the adjustedStrength value that maps to exactly 50% win rate;
+//             raise this (e.g. 1.22) to make 82-0 rarer, lower to make it easier
+// WIN_CAP:    hard ceiling — prevents a mathematically guaranteed perfect season
+const SIM_K      = 15;
+const SIM_CENTER = 1.18;
+const WIN_CAP    = 0.965;
+
+// ── Dynamic baselines derived from the live DB ────────────────────────────────
+// Rather than hardcoding STARTER_BASE / BENCH_BASE, we sort all players by
+// composite score and treat the top 62.5% (5 of 8 roster spots) as the starter
+// tier.  The means auto-adjust whenever players are added or stats change.
+function computeSimBaselines() {
+  const all   = Object.values(DB).flat();
+  const score = p => p.ppg*0.35 + p.rpg*0.20 + p.apg*0.20 + p.spg*0.15 + p.bpg*0.10;
+  const sorted = [...all].sort((a, b) => score(b) - score(a));
+  const cut    = Math.round(sorted.length * 5 / 8);
+  const sTier  = sorted.slice(0, cut);
+  const bTier  = sorted.slice(cut);
+  const avg    = (arr, stat) => arr.reduce((s, p) => s + p[stat], 0) / arr.length;
+  const STATS  = ['ppg', 'rpg', 'apg', 'spg', 'bpg'];
+  return {
+    STARTER_BASE: Object.fromEntries(STATS.map(k => [k, avg(sTier, k) * 5])),
+    BENCH_BASE:   Object.fromEntries(STATS.map(k => [k, avg(bTier, k) * 3])),
+  };
+}
+
 function calculateChemistry(starters, bench) {
   const allPlayers = [...starters, ...bench];
   const sA = starters.map(p => p.archetype || '');
@@ -260,8 +288,7 @@ function simulateSeason(starters, bench) {
   const sTotals = sumStats(starters);
   const bTotals = sumStats(bench);
 
-  const STARTER_BASE = { ppg:95,  rpg:42, apg:22, spg:7.5, bpg:5 };
-  const BENCH_BASE   = { ppg:57,  rpg:25, apg:13, spg:4.5, bpg:3 };
+  const { STARTER_BASE, BENCH_BASE } = computeSimBaselines();
 
   const sRatio = {
     ppg: sTotals.ppg / STARTER_BASE.ppg,
@@ -300,7 +327,7 @@ function simulateSeason(starters, bench) {
   const { chemBonus, chemScore, chemReport } = calculateChemistry(starters, bench);
 
   const adjustedStrength = Math.max(0, strength - balancePenalty + chemBonus);
-  const winPct = Math.min(0.965, 1 / (1 + Math.exp(-15 * (adjustedStrength - 1.18))));
+  const winPct = Math.min(WIN_CAP, 1 / (1 + Math.exp(-SIM_K * (adjustedStrength - SIM_CENTER))));
 
   let wins = 0;
   for (let i = 0; i < 82; i++) { if (Math.random() < winPct) wins++; }

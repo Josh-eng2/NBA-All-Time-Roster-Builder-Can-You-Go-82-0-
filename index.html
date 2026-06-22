@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>82-0 — Can Your All-Time NBA Roster Go Undefeated?</title>
+  <title>NBA All-Time Roster Builder — Can You Go 82-0?</title>
+  <meta name="description" content="Draft an all-time NBA roster across every era and franchise, then simulate a full 82-game season. Can you build the perfect undefeated team? Pick your coach, manage the salary cap, and find out." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
@@ -88,11 +89,22 @@
 </head>
 <body class="dark">
 
+<div id="loading-overlay" style="
+  position:fixed;inset:0;background:#09090b;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-family:'Fira Sans',sans-serif;color:#fafafa;z-index:9999">
+  <div style="width:36px;height:36px;border:3px solid #3f3f46;border-top-color:#f97316;
+    border-radius:50%;animation:_spin 0.7s linear infinite"></div>
+  <p style="margin-top:16px;font-size:14px;color:#a1a1aa;letter-spacing:0.02em">Loading players…</p>
+  <style>@keyframes _spin{to{transform:rotate(360deg)}}</style>
+</div>
+
 <div id="app"></div>
 
 <script src="database.js"></script>
 <script src="simulation.js"></script>
 <script src="app.js"></script>
+<script>loadDatabase();</script>
 
 </body>
 </html>
