@@ -81,6 +81,17 @@
     @supports (padding-bottom: env(safe-area-inset-bottom)) {
       .safe-bottom { padding-bottom: calc(1rem + env(safe-area-inset-bottom)); }
     }
+
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(16px) scale(0.98); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .animate-slide-up { animation: slideUp 0.25s cubic-bezier(0.34,1.56,0.64,1); }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
@@ -733,7 +744,8 @@ function calculateChemistry(starters, bench) {
     if (benchTotalPpg < 32.0) { chemBonus -= 0.03; chemReport.push(`🔴 Barren Bench: Bench combines for only ${benchTotalPpg.toFixed(1)} PPG (-3%)`); }
   }
 
-  const chemScore = Math.round(Math.max(0, Math.min(100, 72 + (chemBonus / 0.55) * 28)));
+  chemBonus = Math.max(chemBonus, -0.18);
+  const chemScore = Math.round(Math.max(0, Math.min(100, 72 + (chemBonus / 0.50) * 28)));
   return { chemBonus, chemScore, chemReport };
 }
 
@@ -794,7 +806,7 @@ function simulateSeason(starters, bench) {
     ratio.bpg * 0.10;
 
   const minStarterRatio = Math.min(...Object.values(sRatio));
-  const balancePenalty  = minStarterRatio < 0.80 ? (0.80 - minStarterRatio) * 0.6 : 0;
+  const balancePenalty  = minStarterRatio < 0.80 ? (0.80 - minStarterRatio) * 0.28 : 0;
 
   const { chemBonus, chemScore, chemReport } = calculateChemistry(starters, bench);
 
@@ -810,7 +822,7 @@ function simulateSeason(starters, bench) {
     // Opponents range from 1380 (weak) to 1780 (elite)
     const oppElo = 1380 + Math.random() * 400;
     const expectedWin = 1 / (1 + Math.pow(10, (oppElo - currentElo) / 400));
-    const actualWinProb = Math.min(GAME_CONFIG.WIN_PCT_MAX, Math.max(0.08, winPct));
+    const actualWinProb = Math.min(GAME_CONFIG.WIN_PCT_MAX, Math.max(0.28, winPct));
     const won = Math.random() < actualWinProb;
     if (won) wins++;
     currentElo = Math.round(Math.max(900, Math.min(2100, currentElo + K * ((won ? 1 : 0) - expectedWin))));
@@ -859,8 +871,8 @@ const GAME_CONFIG = {
   BENCH_BASE:       { ppg:57,  rpg:25, apg:13, spg:4.5, bpg:3 },
   SW:               0.78,
   BW:               0.22,
-  WIN_PCT_SCALE:    15,
-  WIN_PCT_MIDPOINT: 1.18,
+  WIN_PCT_SCALE:    14,
+  WIN_PCT_MIDPOINT: 1.10,
   WIN_PCT_MAX:      0.965,
   SEED_1:           70,
   SEED_2:           60,
@@ -1140,15 +1152,15 @@ function renderHeader(showRestart = false) {
   const coachObj  = S.coach ? COACHES.find(c => c.id === S.coach) : null;
   return `
   <header class="sticky top-0 z-50 w-full border-b border-border bg-white" style="box-shadow:0 1px 3px rgba(0,0,0,0.05)">
-    <div class="mx-auto flex h-12 max-w-2xl items-center justify-between px-4">
-      <div class="flex items-center gap-2 font-black text-base text-foreground">
+    <div class="mx-auto flex h-12 max-w-2xl items-center justify-between px-3 sm:px-4 gap-2">
+      <div class="flex items-center gap-1.5 font-black text-base text-foreground flex-shrink-0">
         ${iconBall('h-5 w-5 text-primary')}
         <span>82-0</span>
       </div>
-      <div class="flex items-center gap-1.5">
-        ${coachObj ? `<span class="text-[11px] px-2.5 py-1 rounded-full font-bold border border-border bg-card2 text-muted-fg">${coachObj.system}</span>` : ''}
-        <span class="text-[11px] px-2.5 py-1 rounded-full font-bold border border-border bg-card2 text-muted-fg">${eraLabel}</span>
-        ${S.phase === 'drafting' ? `<span class="text-[11px] px-2.5 py-1 rounded-full font-bold border ${S.hasMulligan ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-border bg-card2 text-muted opacity-50'}">🎲 ${S.hasMulligan ? 'Mulligan ✓' : 'Mulligan ✗'}</span>` : ''}
+      <div class="flex items-center gap-1 overflow-x-auto no-scrollbar flex-1 justify-end" style="scrollbar-width:none;-ms-overflow-style:none">
+        ${coachObj ? `<span class="text-[10px] px-2 py-1 rounded-full font-bold border border-border bg-card2 text-muted-fg whitespace-nowrap flex-shrink-0 hidden sm:inline-flex">${coachObj.system}</span>` : ''}
+        <span class="text-[10px] px-2 py-1 rounded-full font-bold border border-border bg-card2 text-muted-fg whitespace-nowrap flex-shrink-0">${eraLabel}</span>
+        ${S.phase === 'drafting' ? `<span class="text-[10px] px-2 py-1 rounded-full font-bold border whitespace-nowrap flex-shrink-0 ${S.hasMulligan ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-border bg-card2 text-muted opacity-50'}">🎲 ${S.hasMulligan ? 'Mulligan' : 'Used'}</span>` : ''}
         ${(() => {
           if (S.phase !== 'drafting') return '';
           const starters = POSITIONS.map(p => S.roster[p]).filter(Boolean);
@@ -1156,10 +1168,10 @@ function renderHeader(showRestart = false) {
           if (!starters.length && !bench.length) return '';
           const elo = calculateTeamElo(starters, bench);
           const eloColor = elo >= 1850 ? '#d97706' : elo >= 1750 ? '#16a34a' : elo >= 1650 ? '#2563eb' : elo >= 1550 ? '#64748b' : '#dc2626';
-          return `<span class="text-[11px] px-2.5 py-1 rounded-full font-bold border border-border bg-card2" style="color:${eloColor}">⚡ ${elo}</span>`;
+          return `<span class="text-[10px] px-2 py-1 rounded-full font-bold border border-border bg-card2 whitespace-nowrap flex-shrink-0" style="color:${eloColor}">⚡ ${elo}</span>`;
         })()}
-        <button data-action="open-leaderboard" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Personal Leaderboard">🏅</button>
-        ${showRestart ? `<button data-action="restart" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">Restart</button>` : ''}
+        <button data-action="open-leaderboard" class="text-[10px] px-2 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer flex-shrink-0" title="Leaderboard">🏅</button>
+        ${showRestart ? `<button data-action="restart" class="text-[10px] px-2 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer flex-shrink-0 whitespace-nowrap">Restart</button>` : ''}
       </div>
     </div>
   </header>`;
@@ -1420,7 +1432,7 @@ function renderDraftBoard() {
       ${tc ? `<span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${tc.bg}"></span>` : ''}
       <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">${team} · ${decade}</p>
     </div>
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
       ${S.draftBoard.map((p, i) => renderDraftCard(p, i)).join('')}
     </div>
   </div>`;
@@ -1626,10 +1638,10 @@ function renderResults() {
           ${p.archetype ? archetypeBadge(p.archetype) : ''}
         </div>
       </div>
-      <div class="flex gap-3 text-xs text-muted-fg flex-shrink-0">
-        <span><span class="font-semibold text-foreground">${p.ppg}</span> PPG</span>
-        <span><span class="font-semibold text-foreground">${p.rpg}</span> RPG</span>
-        <span class="hidden sm:inline"><span class="font-semibold text-foreground">${p.apg}</span> APG</span>
+      <div class="flex gap-2 text-xs text-muted-fg flex-shrink-0">
+        <span class="whitespace-nowrap"><span class="font-semibold text-foreground">${p.ppg}</span> PPG</span>
+        <span class="whitespace-nowrap hidden xs:inline"><span class="font-semibold text-foreground">${p.rpg}</span> RPG</span>
+        <span class="whitespace-nowrap hidden sm:inline"><span class="font-semibold text-foreground">${p.apg}</span> APG</span>
       </div>
     </div>`;
   };
@@ -1651,7 +1663,7 @@ function renderResults() {
         <div class="rounded-2xl border-2 bg-white p-6 text-center card-shadow ${isPerfect ? 'perfect-glow' : ''}"
           style="border-color:${isPerfect?'#fcd34d':'#e2e8f0'}">
           <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg mb-3">Season Record</p>
-          <div class="text-7xl sm:text-8xl font-black mb-3 flex items-center justify-center gap-3 leading-none">
+          <div class="text-6xl sm:text-8xl font-black mb-3 flex items-center justify-center gap-2 sm:gap-3 leading-none">
             <span style="color:${winsColor}">${r.wins}</span>
             <span class="text-muted text-4xl font-light">–</span>
             <span class="text-muted-fg">${r.losses}</span>
@@ -1740,10 +1752,10 @@ function dispatch(action) {
   if (action === 'open-leaderboard')   { showLeaderboardModal(); return; }
   if (action === 'advance-to-playoffs'){ doAdvanceToPlayoffs();return; }
   if (action === 'sim-next-round')     { doSimNextRound();    return; }
-  if (action === 'draft-new-roster')   { S.phase='coach-select'; S.coach=null; render(); return; }
+  if (action === 'draft-new-roster')   { clearAutoSave(); S.phase='coach-select'; S.coach=null; render(); return; }
   if (action === 'view-trophies')      { S.phase = 'trophy-room'; render(); return; }
   if (action === 'back-to-menu')       { S.phase = 'coach-select'; render(); return; }
-  if (action === 'use-mulligan')       { if (!S.hasMulligan) return; S.hasMulligan = false; S.spinState = 'idle'; S.selectedPlayer = null; S.currentSpin = null; S.draftBoard = []; doSpin(); return; }
+  if (action === 'use-mulligan')       { if (!S.hasMulligan) return; S.hasMulligan = false; S.spinState = 'idle'; S.selectedPlayer = null; S.currentSpin = null; S.draftBoard = []; patchHeader(); doSpin(); return; }
   if (action === 'resume-draft')       { const saved = loadAutoSave(); if (saved) { S = saved; render(); } return; }
   if (action === 'discard-draft')      { clearAutoSave(); render(); return; }
 
@@ -1893,9 +1905,9 @@ function doSimulate() {
   render();
 }
 
-function doShareText() {
+function buildShareText() {
   const r = S.result;
-  if (!r) return;
+  if (!r) return '';
 
   const isPerfect  = r.wins === 82;
   const isHistoric = r.wins >= 73;
@@ -1908,17 +1920,18 @@ function doShareText() {
   else if (isPlayoff)  tier = '✅ Playoff Contender';
   else                 tier = '📋 Rebuild Required';
 
-  const coachObj = S.coach ? COACHES.find(c => c.id === S.coach) : null;
+  const coachObj    = S.coach ? COACHES.find(c => c.id === S.coach) : null;
   const topStarters = POSITIONS.map(p => S.roster[p]).filter(Boolean).slice(0, 3).map(p => p.name.split(' ').pop()).join(', ');
   const eraLabel    = S.selectedEra === 'all' ? 'All Eras' : S.selectedEra;
+  const eloTier     = r.finalElo >= 1850 ? 'Dynasty' : r.finalElo >= 1750 ? 'Championship' : r.finalElo >= 1650 ? 'Contender' : r.finalElo >= 1550 ? 'Playoff' : 'Rebuilding';
 
-  const text = [
+  return [
     `🏀 82-0 NBA Challenge 🏀`,
     `Can your All-Time roster go undefeated?`,
     ``,
     `${tier}`,
     `🏆 Record: ${r.wins}-${r.losses}`,
-    `⚡ Final Team Elo: ${r.finalElo || '—'}`,
+    `⚡ Team Elo: ${r.finalElo || '—'} (${eloTier})`,
     `📅 Era: ${eraLabel}`,
     `🎯 Coach: ${coachObj ? coachObj.name : 'Unknown'}`,
     `⚗️ Chemistry: ${Math.round(r.chemScore || 0)}%`,
@@ -1926,21 +1939,110 @@ function doShareText() {
     ``,
     `Play here → 82-0.com`,
   ].join('\n');
-
-  const onSuccess = () => showToast('📋 Copied to clipboard!');
-  const onFail    = () => showToast('Sharing failed — copy the URL manually');
-
-  if (navigator.share) {
-    navigator.share({ title: '82-0 NBA Challenge', text }).catch(() => {
-      navigator.clipboard.writeText(text).then(onSuccess).catch(onFail);
-    });
-  } else {
-    navigator.clipboard.writeText(text).then(onSuccess).catch(onFail);
-  }
 }
 
 function doShare() {
-  doShareText();
+  const r = S.result;
+  if (!r) return;
+  const text = buildShareText();
+
+  const closeModal = () => {
+    const el = document.getElementById('_share_modal_root');
+    if (el) el.remove();
+  };
+
+  const coachObj   = S.coach ? COACHES.find(c => c.id === S.coach) : null;
+  const eraLabel   = S.selectedEra === 'all' ? 'All Eras' : S.selectedEra;
+  const eloColor   = r.finalElo >= 1850 ? '#d97706' : r.finalElo >= 1750 ? '#16a34a' : r.finalElo >= 1650 ? '#2563eb' : r.finalElo >= 1550 ? '#64748b' : '#dc2626';
+  const eloTier    = r.finalElo >= 1850 ? 'Dynasty' : r.finalElo >= 1750 ? 'Championship' : r.finalElo >= 1650 ? 'Contender' : r.finalElo >= 1550 ? 'Playoff' : 'Rebuilding';
+  const winsColor  = r.wins === 82 ? '#d97706' : r.wins >= 73 ? '#d97706' : r.wins >= 65 ? '#16a34a' : r.wins >= 50 ? '#2563eb' : '#dc2626';
+  const hasNativeShare = !!navigator.share;
+
+  const root = document.createElement('div');
+  root.id = '_share_modal_root';
+  root.innerHTML = `
+  <div id="_share_backdrop" style="position:fixed;inset:0;background:rgba(15,23,42,0.6);z-index:9999;display:flex;align-items:flex-end;justify-content:center;padding:0;animation:fadeIn 0.18s ease">
+    <div style="background:#ffffff;border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:0;font-family:'Fira Sans',sans-serif;color:#0f172a;animation:slideUp 0.25s cubic-bezier(0.34,1.56,0.64,1);box-shadow:0 -8px 40px rgba(0,0,0,0.18);overflow:hidden">
+
+      <!-- drag handle -->
+      <div style="display:flex;justify-content:center;padding:12px 0 0">
+        <div style="width:40px;height:4px;border-radius:4px;background:#e2e8f0"></div>
+      </div>
+
+      <!-- header -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px 0">
+        <div>
+          <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#2563eb;margin:0 0 2px">Share Your Run</p>
+          <p style="font-size:18px;font-weight:900;margin:0;color:#0f172a">82-0 Result</p>
+        </div>
+        <button id="_share_close" style="background:#f1f5f9;border:1px solid #e2e8f0;color:#64748b;border-radius:50%;width:32px;height:32px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
+      </div>
+
+      <!-- stat pills row -->
+      <div style="display:flex;align-items:center;gap:8px;padding:14px 20px 0;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:4px;padding:6px 12px;border-radius:999px;background:#f8fafc;border:1.5px solid #e2e8f0">
+          <span style="font-size:18px;font-weight:900;color:${winsColor}">${r.wins}</span>
+          <span style="font-size:13px;color:#94a3b8;font-weight:500">– ${r.losses}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:4px;padding:6px 12px;border-radius:999px;border:1.5px solid ${eloColor}20;background:${eloColor}10">
+          <span style="font-size:13px;font-weight:800;color:${eloColor}">⚡ ${r.finalElo}</span>
+          <span style="font-size:10px;color:${eloColor};opacity:.7">${eloTier}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:4px;padding:6px 12px;border-radius:999px;background:#f0fdf4;border:1.5px solid #bbf7d0">
+          <span style="font-size:13px;font-weight:800;color:#16a34a">⚗️ ${Math.round(r.chemScore || 0)}%</span>
+        </div>
+      </div>
+
+      <!-- share text preview -->
+      <div style="margin:14px 20px 0;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:14px;padding:14px;max-height:160px;overflow-y:auto">
+        <p style="font-size:12px;line-height:1.7;color:#334155;white-space:pre-wrap;font-family:'Fira Sans',sans-serif;margin:0">${text}</p>
+      </div>
+
+      <!-- action buttons -->
+      <div style="padding:16px 20px 24px;display:flex;flex-direction:column;gap:10px">
+        <button id="_share_copy_btn" style="width:100%;padding:14px;border-radius:14px;font-weight:900;font-size:14px;cursor:pointer;background:#2563eb;color:#fff;border:none;letter-spacing:0.02em;transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:8px">
+          <span id="_share_copy_icon">📋</span>
+          <span id="_share_copy_label">Copy to Clipboard</span>
+        </button>
+        ${hasNativeShare ? `
+        <button id="_share_native_btn" style="width:100%;padding:13px;border-radius:14px;font-weight:700;font-size:14px;cursor:pointer;background:#f8fafc;color:#334155;border:1.5px solid #e2e8f0;display:flex;align-items:center;justify-content:center;gap:8px">
+          📤 Share via…
+        </button>` : ''}
+      </div>
+    </div>
+  </div>`;
+
+  document.body.appendChild(root);
+
+  const copyBtn  = root.querySelector('#_share_copy_btn');
+  const copyIcon = root.querySelector('#_share_copy_icon');
+  const copyLbl  = root.querySelector('#_share_copy_label');
+
+  copyBtn.addEventListener('click', () => {
+    navigator.clipboard.writeText(text).then(() => {
+      copyIcon.textContent = '✓';
+      copyLbl.textContent  = 'Copied!';
+      copyBtn.style.background = '#16a34a';
+      setTimeout(closeModal, 1400);
+    }).catch(() => {
+      copyLbl.textContent = 'Copy failed — try again';
+      copyBtn.style.background = '#dc2626';
+    });
+  });
+
+  const nativeBtn = root.querySelector('#_share_native_btn');
+  if (nativeBtn) {
+    nativeBtn.addEventListener('click', () => {
+      navigator.share({ title: '82-0 NBA Challenge', text }).catch(() => {});
+    });
+  }
+
+  root.querySelector('#_share_close').addEventListener('click', closeModal);
+  root.querySelector('#_share_backdrop').addEventListener('click', e => {
+    if (e.target === root.querySelector('#_share_backdrop')) closeModal();
+  });
+  const onKey = e => { if (e.key === 'Escape') { closeModal(); document.removeEventListener('keydown', onKey); } };
+  document.addEventListener('keydown', onKey);
 }
 
 
@@ -2010,72 +2112,101 @@ function showLeaderboardModal(tab) {
   closeLeaderboardModal();
   let lb = [];
   try { lb = JSON.parse(localStorage.getItem('nba820_lb') || '[]'); } catch(e) {}
-  const seeded   = getSeededLeaderboard();
-  const now      = Date.now();
-  const recent   = lb.filter(e => (now - e.ts) < 86400000);
-  const allTime  = [...lb, ...seeded].sort((a, b) => b.finalElo - a.finalElo || b.wins - a.wins).slice(0, 20);
+  const seeded  = getSeededLeaderboard();
+  const now     = Date.now();
+  const recent  = lb.filter(e => (now - e.ts) < 86400000).sort((a, b) => b.finalElo - a.finalElo || b.wins - a.wins);
+  const allTime = [...lb, ...seeded].sort((a, b) => b.finalElo - a.finalElo || b.wins - a.wins).slice(0, 20);
+
+  const rankMedal = r => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '🥉' : `<span style="font-size:12px;font-weight:700;color:#94a3b8;width:20px;display:inline-block;text-align:center">${r}</span>`;
 
   const renderRow = (e, rank) => {
-    const isPerfect = e.wins === 82;
-    const eloColor  = e.finalElo >= 1850 ? '#d97706' : e.finalElo >= 1750 ? '#16a34a' : e.finalElo >= 1650 ? '#2563eb' : '#64748b';
-    const rowBg     = isPerfect ? 'background:#fffbeb;border-color:#fcd34d' : e.seeded ? 'background:#f8fafc;border-color:#e2e8f0' : 'background:#ffffff;border-color:#e2e8f0';
-    const rankColor = rank === 1 ? '#d97706' : rank === 2 ? '#94a3b8' : rank === 3 ? '#cd7c2f' : '#94a3b8';
+    const isPerfect  = e.wins === 82;
+    const eloColor   = e.finalElo >= 1850 ? '#d97706' : e.finalElo >= 1750 ? '#16a34a' : e.finalElo >= 1650 ? '#2563eb' : e.finalElo >= 1550 ? '#64748b' : '#dc2626';
+    const eloTierLbl = e.finalElo >= 1850 ? 'Dynasty' : e.finalElo >= 1750 ? 'Champ' : e.finalElo >= 1650 ? 'Contender' : e.finalElo >= 1550 ? 'Playoff' : 'Rebuild';
+    const isTop3     = rank <= 3;
+    const rowStyle   = isPerfect
+      ? 'background:linear-gradient(135deg,#fffbeb,#fef9ee);border-color:#fcd34d'
+      : isTop3
+        ? 'background:#fafbff;border-color:#dbeafe'
+        : e.seeded
+          ? 'background:#f8fafc;border-color:#e2e8f0'
+          : 'background:#ffffff;border-color:#e2e8f0';
+
     return `
-    <div style="border-radius:12px;border:1.5px solid;padding:12px;display:flex;align-items:flex-start;gap:12px;${rowBg}">
-      <span style="font-size:16px;font-weight:900;width:24px;text-align:center;flex-shrink:0;color:${rankColor};padding-top:2px">${rank}</span>
+    <div style="border-radius:12px;border:1.5px solid;padding:11px 12px;display:flex;align-items:center;gap:10px;${rowStyle};transition:background 0.1s">
+      <div style="flex-shrink:0;width:24px;text-align:center;font-size:${rank <= 3 ? '18' : '12'}px;line-height:1">${rankMedal(rank)}</div>
       <div style="flex:1;min-width:0">
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px">
-          <span style="font-weight:900;font-size:15px;color:#0f172a">${e.wins}–${e.losses}</span>
-          <span style="font-weight:900;font-size:12px;padding:1px 7px;border-radius:999px;background:${eloColor}18;color:${eloColor};border:1px solid ${eloColor}30">⚡ ${e.finalElo}</span>
-          ${isPerfect ? '<span style="font-size:10px;font-weight:900;padding:2px 7px;border-radius:999px;background:#fef3c7;color:#92400e;border:1px solid #fcd34d">🏆 PERFECT</span>' : ''}
-          ${e.seeded ? '<span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:999px;background:#f1f5f9;color:#94a3b8;border:1px solid #e2e8f0">Historic</span>' : ''}
+          <span style="font-weight:900;font-size:16px;color:#0f172a;line-height:1">${e.wins}–${e.losses}</span>
+          <span style="font-size:11px;font-weight:800;padding:2px 7px;border-radius:999px;border:1.5px solid ${eloColor}30;background:${eloColor}12;color:${eloColor}">⚡ ${e.finalElo}</span>
+          ${isPerfect ? '<span style="font-size:9px;font-weight:900;padding:2px 6px;border-radius:999px;background:#fef3c7;color:#92400e;border:1px solid #fcd34d;letter-spacing:0.04em">PERFECT</span>' : ''}
+          ${e.seeded ? '<span style="font-size:9px;font-weight:600;padding:2px 6px;border-radius:999px;background:#f1f5f9;color:#94a3b8;border:1px solid #e2e8f0">Historic</span>' : ''}
         </div>
-        <p style="font-size:11px;color:#475569;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.starters}</p>
-        <div style="display:flex;gap:8px;margin-top:3px">
-          <span style="font-size:10px;color:#94a3b8">${e.coach}</span>
-          <span style="font-size:10px;color:#94a3b8">·</span>
-          <span style="font-size:10px;color:#94a3b8">${e.era}</span>
-          ${!e.seeded ? '<span style="font-size:10px;color:#94a3b8">· ' + new Date(e.ts).toLocaleDateString('en-US',{month:'short',day:'numeric'}) + '</span>' : ''}
+        <p style="font-size:11px;color:#475569;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 0 2px">${e.starters}</p>
+        <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
+          <span style="font-size:10px;color:#94a3b8;white-space:nowrap">${e.coach}</span>
+          <span style="font-size:10px;color:#cbd5e1">·</span>
+          <span style="font-size:10px;color:#94a3b8;white-space:nowrap">${e.era}</span>
+          ${!e.seeded ? `<span style="font-size:10px;color:#cbd5e1">·</span><span style="font-size:10px;color:#94a3b8;white-space:nowrap">${new Date(e.ts).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>` : ''}
         </div>
       </div>
-      <div style="text-align:right;flex-shrink:0">
-        <p style="font-size:11px;font-weight:700;color:#0f172a">${e.chemScore}%</p>
-        <p style="font-size:9px;color:#94a3b8">chem</p>
+      <div style="flex-shrink:0;text-align:right;padding-left:4px">
+        <p style="font-size:12px;font-weight:800;color:#0f172a;margin:0;white-space:nowrap">${e.chemScore}%</p>
+        <p style="font-size:9px;color:#94a3b8;margin:0">chem</p>
       </div>
     </div>`;
   };
 
-  const rows24h = recent.length === 0
-    ? `<p style="font-size:13px;color:#64748b;text-align:center;padding:28px 0">No runs in the past 24 hours.<br><span style="font-size:11px;color:#94a3b8">Simulate a season to appear here!</span></p>`
-    : recent.sort((a,b) => b.finalElo - a.finalElo).map((e,i) => renderRow(e, i+1)).join('');
+  const empty24h = `
+    <div style="text-align:center;padding:36px 16px">
+      <div style="font-size:36px;margin-bottom:10px">🏀</div>
+      <p style="font-size:14px;font-weight:700;color:#0f172a;margin:0 0 6px">No runs yet today</p>
+      <p style="font-size:12px;color:#64748b;margin:0">Simulate a season to appear on the<br>24-hour leaderboard!</p>
+    </div>`;
 
-  const rowsAllTime = allTime.map((e,i) => renderRow(e, i+1)).join('');
+  const rows24h    = recent.length === 0 ? empty24h : recent.map((e, i) => renderRow(e, i + 1)).join('');
+  const rowsAll    = allTime.map((e, i) => renderRow(e, i + 1)).join('');
 
   const activeTab24h = tab === '24h';
-  const tabBtn = (id, label, active) => `<button onclick="switchLBTab('${id}')" style="flex:1;padding:8px;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;transition:all 0.15s;${active ? 'background:#2563eb;color:#fff;border:none' : 'background:#f1f5f9;color:#64748b;border:1px solid #e2e8f0'}">${label}</button>`;
 
   const div = document.createElement('div');
   div.id = 'lb-modal-root';
   div.innerHTML = `
-  <div id="lb-modal-backdrop" onclick="if(event.target===this)closeLeaderboardModal()"
-    style="position:fixed;inset:0;background:rgba(15,23,42,0.55);z-index:9998;display:flex;align-items:center;justify-content:center;padding:16px">
-    <div style="background:#ffffff;border:1.5px solid #e2e8f0;border-radius:20px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;padding:24px;font-family:'Fira Sans',sans-serif;color:#0f172a;animation:scaleIn 0.2s ease-out;box-shadow:0 20px 60px rgba(0,0,0,0.15)">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-        <div>
-          <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#2563eb;margin:0 0 3px">Rankings</p>
-          <h2 style="font-size:20px;font-weight:900;margin:0;color:#0f172a">Leaderboard</h2>
+  <div id="lb-modal-backdrop"
+    style="position:fixed;inset:0;background:rgba(15,23,42,0.55);z-index:9998;display:flex;align-items:center;justify-content:center;padding:12px;animation:fadeIn 0.18s ease">
+    <div style="background:#ffffff;border:1.5px solid #e2e8f0;border-radius:20px;width:100%;max-width:480px;max-height:88vh;display:flex;flex-direction:column;font-family:'Fira Sans',sans-serif;color:#0f172a;animation:scaleIn 0.2s ease-out;box-shadow:0 20px 60px rgba(0,0,0,0.18);overflow:hidden">
+
+      <!-- sticky header -->
+      <div style="padding:20px 20px 0;flex-shrink:0">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div>
+            <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#2563eb;margin:0 0 2px">Rankings</p>
+            <h2 style="font-size:20px;font-weight:900;margin:0;color:#0f172a">Leaderboard</h2>
+          </div>
+          <button onclick="closeLeaderboardModal()" style="background:#f1f5f9;border:1px solid #e2e8f0;color:#64748b;border-radius:50%;width:34px;height:34px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">✕</button>
         </div>
-        <button onclick="closeLeaderboardModal()" style="background:#f1f5f9;border:1px solid #e2e8f0;color:#64748b;border-radius:999px;width:32px;height:32px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">✕</button>
+        <!-- tabs -->
+        <div style="display:flex;gap:6px;background:#f1f5f9;border-radius:10px;padding:3px">
+          <button id="lb-tab-btn-24h" onclick="switchLBTab('24h')"
+            style="flex:1;padding:7px 0;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;transition:all 0.15s;border:none;${activeTab24h ? 'background:#ffffff;color:#0f172a;box-shadow:0 1px 4px rgba(0,0,0,0.08)' : 'background:transparent;color:#64748b'}">⏱ 24-Hour</button>
+          <button id="lb-tab-btn-all" onclick="switchLBTab('all')"
+            style="flex:1;padding:7px 0;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;transition:all 0.15s;border:none;${!activeTab24h ? 'background:#ffffff;color:#0f172a;box-shadow:0 1px 4px rgba(0,0,0,0.08)' : 'background:transparent;color:#64748b'}">🏆 All-Time</button>
+        </div>
       </div>
-      <div style="display:flex;gap:6px;margin-bottom:16px">
-        ${tabBtn('24h', '⏱ 24-Hour', activeTab24h)}
-        ${tabBtn('all', '🏆 All-Time', !activeTab24h)}
+
+      <!-- scrollable content -->
+      <div style="overflow-y:auto;padding:12px 16px 20px;flex:1">
+        <div id="lb-tab-24h" style="display:${activeTab24h ? 'flex' : 'none'};flex-direction:column;gap:7px">${rows24h}</div>
+        <div id="lb-tab-all" style="display:${!activeTab24h ? 'flex' : 'none'};flex-direction:column;gap:7px">${rowsAll}</div>
       </div>
-      <div id="lb-tab-24h" style="display:${activeTab24h ? 'flex' : 'none'};flex-direction:column;gap:8px">${rows24h}</div>
-      <div id="lb-tab-all" style="display:${!activeTab24h ? 'flex' : 'none'};flex-direction:column;gap:8px">${rowsAllTime}</div>
     </div>
   </div>`;
+
   document.body.appendChild(div);
+
+  div.querySelector('#lb-modal-backdrop').addEventListener('click', e => {
+    if (e.target === div.querySelector('#lb-modal-backdrop')) closeLeaderboardModal();
+  });
   const onKey = e => { if (e.key === 'Escape') closeLeaderboardModal(); };
   document.addEventListener('keydown', onKey);
   div._removeKey = () => document.removeEventListener('keydown', onKey);
@@ -2084,13 +2215,14 @@ function showLeaderboardModal(tab) {
 function switchLBTab(tab) {
   document.getElementById('lb-tab-24h').style.display = tab === '24h' ? 'flex' : 'none';
   document.getElementById('lb-tab-all').style.display = tab === 'all' ? 'flex' : 'none';
-  const btns = document.querySelectorAll('#lb-modal-root button[onclick^="switchLBTab"]');
-  btns.forEach(b => {
-    const isActive = b.getAttribute('onclick').includes("'" + tab + "'");
-    b.style.background = isActive ? '#2563eb' : '#f1f5f9';
-    b.style.color      = isActive ? '#fff' : '#64748b';
-    b.style.border     = isActive ? 'none' : '1px solid #e2e8f0';
-  });
+  const btn24 = document.getElementById('lb-tab-btn-24h');
+  const btnAll = document.getElementById('lb-tab-btn-all');
+  const activeStyle   = 'background:#ffffff;color:#0f172a;box-shadow:0 1px 4px rgba(0,0,0,0.08)';
+  const inactiveStyle = 'background:transparent;color:#64748b;box-shadow:none';
+  if (btn24 && btnAll) {
+    btn24.style.cssText += ';' + (tab === '24h' ? activeStyle : inactiveStyle);
+    btnAll.style.cssText += ';' + (tab === 'all' ? activeStyle : inactiveStyle);
+  }
 }
 
 function closeLeaderboardModal() {
