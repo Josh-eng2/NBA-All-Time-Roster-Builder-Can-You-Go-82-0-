@@ -1956,7 +1956,6 @@ function saveToTrophyRoom() {
     wins:        r.wins,
     losses:      r.losses,
     chemScore:   Math.round(r.chemScore),
-    payroll:     S.currentPayroll,
     starters:    POSITIONS.map(p => S.roster[p]?.name || '—').join(', '),
     bench:       BENCH_POSITIONS.map(p => S.roster[p]?.name || '—').join(', '),
   };
@@ -2464,11 +2463,6 @@ function renderTrophyRoom() {
           <p class="text-xs text-muted-fg">Chemistry</p>
           <p class="text-xs font-bold ${chemColor}">${t.chemScore}%</p>
         </div>
-        ${t.payroll !== undefined ? `
-        <div class="flex items-center justify-between">
-          <p class="text-xs text-muted-fg">Total Salary</p>
-          <p class="text-xs font-semibold text-muted-fg">$${t.payroll}M</p>
-        </div>` : ''}
       </div>`;
   }).join('');
 
