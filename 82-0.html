@@ -677,18 +677,18 @@ function calculateChemistry(starters, bench) {
 
   // ── PENALTIES ──
   if (aSlashPaintCount >= 3 && !aHasSharpshooter) {
-    const penalty = sSlashPaintCount >= 3 ? 0.06 : 0.04;
+    const penalty = sSlashPaintCount >= 3 ? 0.05 : 0.03;
     chemBonus -= penalty;
     chemReport.push(`🔴 No Spacing: Too many paint-cloggers, no shooters (-${Math.round(penalty * 100)}%)`);
   }
 
   if (sDemandCount >= 3) {
-    const penalty = coach === 'jackson' ? 0.02 : 0.05;
+    const penalty = coach === 'jackson' ? 0.02 : 0.04;
     chemBonus -= penalty;
     chemReport.push(`🔴 Clashing Egos${coach === 'jackson' ? ' (softened by Phil)' : ''}: Too many ball-dominant players in the Starting 5 (-${Math.round(penalty * 100)}%)`);
   }
 
-  if (!aHasPlaymaker) { chemBonus -= 0.05; chemReport.push('🔴 No Playmaking: Zero Playmakers on the roster (-5%)'); }
+  if (!aHasPlaymaker) { chemBonus -= 0.04; chemReport.push('🔴 No Playmaking: Zero Playmakers on the roster (-4%)'); }
 
   if (coach !== 'riley') {
     const defLiabilityCount = starters.filter(p => (p.spg + p.bpg) < 1.5).length;
@@ -696,24 +696,24 @@ function calculateChemistry(starters, bench) {
   }
 
   const startingC_Reb = starters.find(p => p.pos === 'C');
-  if (!aHasPaintBeast && startingC_Reb && startingC_Reb.rpg < 8.0) { chemBonus -= 0.05; chemReport.push('🔴 Rebounding Crisis: Missing length/boards inside paint (-5%)'); }
+  if (!aHasPaintBeast && startingC_Reb && startingC_Reb.rpg < 8.0) { chemBonus -= 0.03; chemReport.push('🔴 Rebounding Crisis: Missing length/boards inside paint (-3%)'); }
 
   if (sSlashPaintCount >= 3 && sDemandCount >= 3) {
-    const penalty = coach === 'auerbach' ? 0.02 : 0.05;
+    const penalty = coach === 'auerbach' ? 0.02 : 0.04;
     chemBonus -= penalty;
     chemReport.push(`🔴 Ball Stoppers${coach === 'auerbach' ? ' (negated by Auerbach)' : ''}: Isolation overlaps halt ball movement (-${Math.round(penalty * 100)}%)`);
   }
 
   const sFrontcourtDef = starters.filter(p => p.pos === 'SF' || p.pos === 'PF' || p.pos === 'C');
   if (sFrontcourtDef.length === 3 && !sFrontcourtDef.some(p => p.archetype === 'Lockdown Defender' || p.archetype === 'Paint Beast')) {
-    chemBonus -= 0.05;
-    chemReport.push('🔴 Defensive Sieve: Starting frontcourt offers zero rim/wing protection (-5%)');
+    chemBonus -= 0.04;
+    chemReport.push('🔴 Defensive Sieve: Starting frontcourt offers zero rim/wing protection (-4%)');
   }
 
   const highUsageCount = starters.filter(p => p.ppg > 25.0 && p.apg < 5.0).length;
   if (highUsageCount >= 3) {
-    chemBonus -= 0.05;
-    chemReport.push('🔴 High Usage Overlap: 3+ starters average >25.0 PPG but <5.0 APG, stalling ball movement (-5%)');
+    chemBonus -= 0.04;
+    chemReport.push('🔴 High Usage Overlap: 3+ starters average >25.0 PPG but <5.0 APG, stalling ball movement (-4%)');
   }
 
   const perimSlotsFilled = starters.filter(p => p.pos === 'PG' || p.pos === 'SG' || p.pos === 'SF').length;
@@ -721,20 +721,32 @@ function calculateChemistry(starters, bench) {
   if (perimSlotsFilled === 3 && perimWeakCount === 3) { chemBonus -= 0.04; chemReport.push('🔴 Small Ball Weakness: Perimeter group struggles on defensive boards (-4%)'); }
 
   const weakScoringStarters = starters.filter(p => p.ppg < 12.0).length;
-  if (weakScoringStarters >= 3) { chemBonus -= 0.05; chemReport.push('🔴 Offensive Black Hole: 3+ starters average under 12.0 PPG, killing floor gravity (-5%)'); }
+  if (weakScoringStarters >= 3) { chemBonus -= 0.04; chemReport.push('🔴 Offensive Black Hole: 3+ starters average under 12.0 PPG, killing floor gravity (-4%)'); }
 
   const pfCBlocksLow = starters.filter(p => p.pos === 'PF' || p.pos === 'C').reduce((sum, p) => sum + p.bpg, 0);
   if (starters.filter(p => p.pos === 'PF' || p.pos === 'C').length === 2 && pfCBlocksLow < 1.5) {
-    chemBonus -= 0.05; chemReport.push('🔴 No Paint Protection: Frontcourt blocks fall below 1.5 BPG (-5%)');
+    chemBonus -= 0.04; chemReport.push('🔴 No Paint Protection: Frontcourt blocks fall below 1.5 BPG (-4%)');
   }
 
   if (coach !== 'popovich' && (starters.length + bench.length) === 8) {
     const benchTotalPpg = bench.reduce((sum, p) => sum + p.ppg, 0);
-    if (benchTotalPpg < 32.0) { chemBonus -= 0.04; chemReport.push(`🔴 Barren Bench: Bench combines for only ${benchTotalPpg.toFixed(1)} PPG (-4%)`); }
+    if (benchTotalPpg < 32.0) { chemBonus -= 0.03; chemReport.push(`🔴 Barren Bench: Bench combines for only ${benchTotalPpg.toFixed(1)} PPG (-3%)`); }
   }
 
-  const chemScore = Math.round(Math.max(0, Math.min(100, 70 + (chemBonus / 0.60) * 30)));
+  const chemScore = Math.round(Math.max(0, Math.min(100, 72 + (chemBonus / 0.55) * 28)));
   return { chemBonus, chemScore, chemReport };
+}
+
+function calculateTeamElo(starters, bench) {
+  const all = [...starters, ...bench];
+  if (!all.length) return 1500;
+  const avg = key => all.reduce((s, p) => s + (p[key] || 0), 0) / all.length;
+  const scoringPower = avg('ppg') / 25.0;
+  const reboundPower = avg('rpg') / 7.0;
+  const assistPower  = avg('apg') / 5.5;
+  const defPower     = (avg('spg') + avg('bpg')) / 3.0;
+  const raw = scoringPower * 0.38 + reboundPower * 0.18 + assistPower * 0.22 + defPower * 0.22;
+  return Math.round(1200 + Math.min(1, raw) * 750);
 }
 
 function simulateSeason(starters, bench) {
@@ -789,9 +801,22 @@ function simulateSeason(starters, bench) {
   const adjustedStrength = Math.max(0, strength - balancePenalty + chemBonus);
   const winPct = Math.min(GAME_CONFIG.WIN_PCT_MAX, 1 / (1 + Math.exp(-GAME_CONFIG.WIN_PCT_SCALE * (adjustedStrength - GAME_CONFIG.WIN_PCT_MIDPOINT))));
 
+  const baseElo = calculateTeamElo(starters, bench);
+  const K = GAME_CONFIG.ELO_K;
+  let currentElo = baseElo;
+
   let wins = 0;
-  for (let i = 0; i < 82; i++) { if (Math.random() < winPct) wins++; }
+  for (let i = 0; i < 82; i++) {
+    // Opponents range from 1380 (weak) to 1780 (elite)
+    const oppElo = 1380 + Math.random() * 400;
+    const expectedWin = 1 / (1 + Math.pow(10, (oppElo - currentElo) / 400));
+    const actualWinProb = Math.min(GAME_CONFIG.WIN_PCT_MAX, Math.max(0.08, winPct));
+    const won = Math.random() < actualWinProb;
+    if (won) wins++;
+    currentElo = Math.round(Math.max(900, Math.min(2100, currentElo + K * ((won ? 1 : 0) - expectedWin))));
+  }
   wins = Math.max(0, Math.min(82, wins));
+  const finalElo = currentElo;
 
   const totals = {
     ppg: sTotals.ppg + bTotals.ppg,
@@ -807,6 +832,7 @@ function simulateSeason(starters, bench) {
     strength: +adjustedStrength.toFixed(2),
     totals, ratio, sTotals, bTotals,
     chemScore, chemReport,
+    baseElo, finalElo,
   };
 }
 
@@ -829,7 +855,6 @@ function simulateSeries(playerStrength, opponentStrength) {
 // ── GAME CONFIGURATION ────────────────────────────────────────────────────────
 
 const GAME_CONFIG = {
-  SALARY_CAP:       150,
   STARTER_BASE:     { ppg:95,  rpg:42, apg:22, spg:7.5, bpg:5 },
   BENCH_BASE:       { ppg:57,  rpg:25, apg:13, spg:4.5, bpg:3 },
   SW:               0.78,
@@ -841,8 +866,8 @@ const GAME_CONFIG = {
   SEED_2:           60,
   SEED_3:           50,
   SEED_4:           41,
-  CAP_WARN:         120,
-  CAP_DANGER:       140,
+  ELO_K:            28,
+  BASE_ELO:         1500,
   RESULT_MAXES:     { ppg:280, rpg:120, apg:75, spg:22, bpg:18 },
   WINS_PERFECT:     82,
   WINS_HISTORIC:    73,
@@ -1058,7 +1083,7 @@ function patchEl(id, html) {
 }
 function patchHeader()     { patchEl('page-header',        renderHeader(true)); }
 function patchRoundBar()   { patchEl('round-bar-section',  renderRoundBar()); }
-function patchCapBar()     { patchEl('cap-bar-section',    renderCapBar()); }
+function patchEloBar()     { patchEl('elo-bar-section',    renderEloBar()); }
 function patchSlotCard()   { patchEl('slot-card-section',  rosterFull() ? renderSimulateCard() : renderSlotMachine()); }
 function patchDraftBoard() { patchEl('draft-board-section', S.spinState === 'done' ? renderDraftBoard() : ''); }
 function patchChem()       { patchEl('chem-section',       renderChemDashboard()); }
@@ -1083,12 +1108,6 @@ function archetypeBadge(arch) {
   if (!arch) return '';
   const c = ARCHETYPE_STYLE[arch] || { bg:'#f1f5f9', text:'#64748b' };
   return `<span class="inline-block text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full mt-0.5" style="background:${c.bg};color:${c.text}">${arch}</span>`;
-}
-
-// ── Salary cap ─────────────────────────────────────────────────────────────────
-function calculatePlayerPrice(p) {
-  let price = Math.round((p.ppg * 1.2) + (p.rpg * 0.9) + (p.apg * 1.1) + (p.spg * 2.5) + (p.bpg * 2.5));
-  return Math.max(5, price);
 }
 
 // ── Share / leaderboard helpers ────────────────────────────────────────────────
@@ -1129,7 +1148,16 @@ function renderHeader(showRestart = false) {
       <div class="flex items-center gap-1.5">
         ${coachObj ? `<span class="text-[11px] px-2.5 py-1 rounded-full font-bold border border-border bg-card2 text-muted-fg">${coachObj.system}</span>` : ''}
         <span class="text-[11px] px-2.5 py-1 rounded-full font-bold border border-border bg-card2 text-muted-fg">${eraLabel}</span>
-        ${S.phase === 'drafting' ? `<span class="text-[11px] px-2.5 py-1 rounded-full font-bold border ${S.hasMulligan ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-border bg-card2 text-muted opacity-50'}">🎲 ${S.hasMulligan ? 'Mulligan' : 'Used'}</span>` : ''}
+        ${S.phase === 'drafting' ? `<span class="text-[11px] px-2.5 py-1 rounded-full font-bold border ${S.hasMulligan ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-border bg-card2 text-muted opacity-50'}">🎲 ${S.hasMulligan ? 'Mulligan ✓' : 'Mulligan ✗'}</span>` : ''}
+        ${(() => {
+          if (S.phase !== 'drafting') return '';
+          const starters = POSITIONS.map(p => S.roster[p]).filter(Boolean);
+          const bench    = BENCH_POSITIONS.map(p => S.roster[p]).filter(Boolean);
+          if (!starters.length && !bench.length) return '';
+          const elo = calculateTeamElo(starters, bench);
+          const eloColor = elo >= 1850 ? '#d97706' : elo >= 1750 ? '#16a34a' : elo >= 1650 ? '#2563eb' : elo >= 1550 ? '#64748b' : '#dc2626';
+          return `<span class="text-[11px] px-2.5 py-1 rounded-full font-bold border border-border bg-card2" style="color:${eloColor}">⚡ ${elo}</span>`;
+        })()}
         <button data-action="open-leaderboard" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Personal Leaderboard">🏅</button>
         ${showRestart ? `<button data-action="restart" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">Restart</button>` : ''}
       </div>
@@ -1256,7 +1284,7 @@ function renderDrafting() {
     <main class="flex-1 flex flex-col items-center px-4 pt-4 pb-8">
       <div class="w-full max-w-2xl flex flex-col gap-4">
         <div id="round-bar-section">${renderRoundBar()}</div>
-        <div id="cap-bar-section">${renderCapBar()}</div>
+        <div id="elo-bar-section">${renderEloBar()}</div>
         <div id="slot-card-section">${full ? renderSimulateCard() : renderSlotMachine()}</div>
         <div id="draft-board-section">${S.spinState === 'done' ? renderDraftBoard() : ''}</div>
         <div id="chem-section">${renderChemDashboard()}</div>
@@ -1292,22 +1320,24 @@ function renderRoundBar() {
   </div>`;
 }
 
-function renderCapBar() {
-  const spent    = S.currentPayroll;
-  const cap      = S.salaryCap;
-  const pct      = Math.min(100, Math.round((spent / cap) * 100));
-  const isTight  = spent >= GAME_CONFIG.CAP_WARN;
-  const barColor = spent >= GAME_CONFIG.CAP_DANGER ? '#dc2626' : spent >= GAME_CONFIG.CAP_WARN ? '#d97706' : '#16a34a';
+function renderEloBar() {
+  const starters = POSITIONS.map(p => S.roster[p]).filter(Boolean);
+  const bench    = BENCH_POSITIONS.map(p => S.roster[p]).filter(Boolean);
+  const all = [...starters, ...bench];
+  if (!all.length) return '';
+  const elo    = calculateTeamElo(starters, bench);
+  const tier   = elo >= 1850 ? 'Dynasty' : elo >= 1750 ? 'Championship' : elo >= 1650 ? 'Contender' : elo >= 1550 ? 'Playoff' : 'Rebuilding';
+  const color  = elo >= 1850 ? '#d97706' : elo >= 1750 ? '#16a34a' : elo >= 1650 ? '#2563eb' : elo >= 1550 ? '#64748b' : '#dc2626';
+  const pct    = Math.min(100, Math.round(((elo - 1200) / 750) * 100));
   return `
   <div class="rounded-xl border border-border bg-card px-4 py-3 card-shadow">
     <div class="flex items-center justify-between mb-2">
-      <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg">Salary Cap</p>
-      <p class="text-xs font-bold ${isTight ? 'text-amber-600' : 'text-foreground'}">$${spent}M <span class="text-muted-fg font-normal">/ $${cap}M</span></p>
+      <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg">Team Elo Rating</p>
+      <p class="text-xs font-bold" style="color:${color}">⚡ ${elo} <span class="text-muted-fg font-normal text-[10px]">${tier}</span></p>
     </div>
     <div class="h-1.5 rounded-full overflow-hidden bg-border">
-      <div class="h-full rounded-full transition-all stat-bar-fill" style="width:${pct}%;background:${barColor}"></div>
+      <div class="h-full rounded-full transition-all stat-bar-fill" style="width:${pct}%;background:${color}"></div>
     </div>
-    ${isTight ? `<p class="text-[10px] mt-1.5 font-medium text-amber-600">⚠ Cap space is tight — choose contracts wisely</p>` : ''}
   </div>`;
 }
 
@@ -1321,10 +1351,6 @@ function renderSlotMachine() {
   <div class="rounded-2xl border border-border bg-card p-4 animate-scale-in card-shadow">
     <div class="flex items-center gap-2 mb-3">
       <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Draft Board — Round ${S.round + 1}</p>
-      <div class="ml-auto flex gap-1.5">
-        ${isDone && S.teamSkips > 0 ? `<button data-action="skip-team" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">Skip Team (${S.teamSkips})</button>` : ''}
-        ${isDone && S.decadeSkips > 0 && !eraLocked ? `<button data-action="skip-decade" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">Skip Era (${S.decadeSkips})</button>` : ''}
-      </div>
     </div>
 
     <div class="grid grid-cols-2 gap-3 mb-4 ${isSpin ? 'slot-spinning' : ''}">
@@ -1385,16 +1411,14 @@ function renderPlayerPool() {
 
 function renderDraftBoard() {
   if (!S.draftBoard || !S.draftBoard.length) return '';
-  const team      = S.currentSpin?.team;
-  const decade    = S.currentSpin?.decade;
-  const tc        = team ? TEAM_COLORS[team] : null;
-  const remaining = S.salaryCap - S.currentPayroll;
+  const team   = S.currentSpin?.team;
+  const decade = S.currentSpin?.decade;
+  const tc     = team ? TEAM_COLORS[team] : null;
   return `
   <div class="animate-fade-up">
     <div class="flex items-center gap-2 mb-3">
       ${tc ? `<span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${tc.bg}"></span>` : ''}
       <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">${team} · ${decade}</p>
-      <span class="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700">$${remaining}M cap space</span>
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
       ${S.draftBoard.map((p, i) => renderDraftCard(p, i)).join('')}
@@ -1403,10 +1427,8 @@ function renderDraftBoard() {
 }
 
 function renderDraftCard(p, index) {
-  const price      = calculatePlayerPrice(p);
-  const canAfford  = S.currentPayroll + price <= S.salaryCap;
   const isSelected = S.selectedPlayer?.id === p.id;
-  const cardBorder = isSelected ? '#2563eb' : canAfford ? '#e2e8f0' : '#e2e8f0';
+  const cardBorder = isSelected ? '#2563eb' : '#e2e8f0';
   const cardBg     = isSelected ? '#eff6ff' : '#ffffff';
   return `
   <div class="rounded-xl border-2 flex flex-col overflow-hidden transition-all card-shadow"
@@ -1415,7 +1437,6 @@ function renderDraftCard(p, index) {
       <div class="flex items-center gap-1.5 mb-2">
         <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full border border-border bg-card2 text-muted-fg">${p.pos}</span>
         ${archetypeBadge(p.archetype)}
-        <span class="ml-auto text-sm font-black" style="color:${canAfford ? '#16a34a' : '#dc2626'}">$${price}M</span>
       </div>
       <p class="font-bold text-sm text-foreground leading-tight mb-1.5">${p.name}</p>
       <div class="flex flex-wrap gap-x-2 gap-y-0.5">
@@ -1425,17 +1446,11 @@ function renderDraftCard(p, index) {
       </div>
     </div>
     <div class="px-3 pb-3">
-      ${canAfford
-        ? `<button data-action="draft-pick-${index}"
-            class="w-full py-2 rounded-lg font-bold text-xs transition-all cursor-pointer"
-            style="background:${isSelected ? '#2563eb' : '#eff6ff'};color:${isSelected ? '#fff' : '#2563eb'};border:1.5px solid ${isSelected ? '#2563eb' : '#bfdbfe'}">
-            ${isSelected ? '✓ Selected — Tap a Roster Slot' : 'Draft Player'}
-           </button>`
-        : `<button disabled
-            class="w-full py-2 rounded-lg font-bold text-xs cursor-not-allowed bg-card2 text-muted border border-border">
-            Over Cap
-           </button>`
-      }
+      <button data-action="draft-pick-${index}"
+        class="w-full py-2 rounded-lg font-bold text-xs transition-all cursor-pointer"
+        style="background:${isSelected ? '#2563eb' : '#eff6ff'};color:${isSelected ? '#fff' : '#2563eb'};border:1.5px solid ${isSelected ? '#2563eb' : '#bfdbfe'}">
+        ${isSelected ? '✓ Selected — Tap a Roster Slot' : 'Draft Player'}
+      </button>
     </div>
   </div>`;
 }
@@ -1581,6 +1596,7 @@ function renderResults() {
   else                 { label = 'Rebuild Required';       labelColor = '#991b1b'; labelBg = '#fef2f2'; emoji = '📋'; }
 
   const winsColor = isPerfect ? '#d97706' : isHistoric ? '#d97706' : isElite ? '#16a34a' : isPlayoff ? '#2563eb' : '#dc2626';
+  const eloColor  = r.finalElo >= 1850 ? '#d97706' : r.finalElo >= 1750 ? '#16a34a' : r.finalElo >= 1650 ? '#2563eb' : r.finalElo >= 1550 ? '#64748b' : '#dc2626';
 
   const maxes = GAME_CONFIG.RESULT_MAXES;
   const statBar = (key, lbl, val) => {
@@ -1641,7 +1657,13 @@ function renderResults() {
             <span class="text-muted-fg">${r.losses}</span>
           </div>
           <span class="inline-block text-sm font-bold px-4 py-1.5 rounded-full mb-2" style="background:${labelBg};color:${labelColor}">${emoji} ${label}</span>
-          <p class="text-xs text-muted-fg">Win% ${r.winPct}% &nbsp;·&nbsp; Strength Index ${r.strength}</p>
+          <p class="text-xs text-muted-fg">Win% ${r.winPct}% &nbsp;·&nbsp; Strength ${r.strength} &nbsp;·&nbsp; ⚡ Elo: <span class="font-bold" style="color:${eloColor}">${r.finalElo}</span></p>
+        </div>
+
+        <div class="rounded-2xl border border-border bg-white p-5 text-center card-shadow">
+          <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg mb-1">Final Team Elo</p>
+          <p class="text-4xl font-black mb-1" style="color:${eloColor}">⚡ ${r.finalElo}</p>
+          <p class="text-xs text-muted-fg">${r.finalElo >= 1850 ? 'Dynasty-tier squad' : r.finalElo >= 1750 ? 'Championship caliber' : r.finalElo >= 1650 ? 'Legitimate contender' : r.finalElo >= 1550 ? 'Playoff-ready' : 'Room to improve'}</p>
         </div>
 
         <div class="rounded-2xl border border-border bg-white p-4 card-shadow">
@@ -1713,8 +1735,6 @@ function dispatch(action) {
   if (action.startsWith('era-'))   { startGame(action.slice(4)); return; }
   if (action === 'restart')        { confirmLeave(() => { S.phase = 'coach-select'; S.coach = null; render(); }); return; }
   if (action === 'spin')           { doSpin();       return; }
-  if (action === 'skip-team')      { doSkipTeam();   return; }
-  if (action === 'skip-decade')    { doSkipDecade(); return; }
   if (action === 'simulate')           { doSimulate();        return; }
   if (action === 'share')              { doShare();           return; }
   if (action === 'open-leaderboard')   { showLeaderboardModal(); return; }
@@ -1783,15 +1803,11 @@ function startGame(era = 'all') {
     coach,
     selectedEra: era,
     round: 0,
-    usedDecades:   [],
-    usedPlayerIds: [],
-    teamSkips:   1,
-    decadeSkips: 1,
-    hasMulligan:    true,
-    salaryCap:      GAME_CONFIG.SALARY_CAP,
-    currentPayroll: 0,
-    spinState:   'idle',
-    currentSpin: null,
+    usedDecades:      [],
+    usedPlayerIds:    [],
+    hasMulligan:      true,
+    spinState:        'idle',
+    currentSpin:      null,
     availablePlayers: [],
     draftBoard:       [],
     selectedPlayer:   null,
@@ -1833,47 +1849,11 @@ function doSpin() {
   }, 90);
 }
 
-function doSkipTeam() {
-  if (S.teamSkips <= 0 || !S.currentSpin) return;
-  S.teamSkips--;
-  const spin = spinResult(null, S.currentSpin.decade);
-  if (spin) {
-    S.currentSpin      = spin;
-    S.availablePlayers = getAvailablePlayers(spin.team, spin.decade);
-    S.draftBoard       = [...S.availablePlayers].sort(() => Math.random() - 0.5).slice(0, 3);
-    S.selectedPlayer   = null;
-  }
-  patchSlotCard();
-  patchDraftBoard();
-  patchHeader();
-}
-
-function doSkipDecade() {
-  if (S.selectedEra !== 'all') return;
-  if (S.decadeSkips <= 0 || !S.currentSpin) return;
-  S.decadeSkips--;
-  const pool = availableDecades().filter(d => d !== S.currentSpin.decade);
-  if (!pool.length) return;
-  const spin = spinResult(S.currentSpin.team, pick(pool));
-  if (spin) {
-    S.currentSpin      = spin;
-    S.availablePlayers = getAvailablePlayers(spin.team, spin.decade);
-    S.draftBoard       = [...S.availablePlayers].sort(() => Math.random() - 0.5).slice(0, 3);
-    S.selectedPlayer   = null;
-  }
-  patchSlotCard();
-  patchDraftBoard();
-  patchHeader();
-}
-
 function placePlayer(pos) {
   if (!S.selectedPlayer) return;
   const spin   = S.currentSpin;
   const player = { ...S.selectedPlayer, team: spin?.team, decade: spin?.decade };
-  const price  = calculatePlayerPrice(S.selectedPlayer);
-  if (S.currentPayroll + price > S.salaryCap) return;
 
-  S.currentPayroll  += price;
   S.roster[pos]      = player;
   S.usedDecades.push(spin?.decade);
   S.usedPlayerIds.push(player.id);
@@ -1886,7 +1866,7 @@ function placePlayer(pos) {
   autoSave();
   patchHeader();
   patchRoundBar();
-  patchCapBar();
+  patchEloBar();
   patchSlotCard();
   patchDraftBoard();
   patchChem();
@@ -1918,48 +1898,44 @@ function doShareText() {
   if (!r) return;
 
   const isPerfect  = r.wins === 82;
-  const isHistoric = r.wins >= 75;
-  const isElite    = r.wins >= 70;
-  const isPlayoff  = r.wins >= 60;
-
+  const isHistoric = r.wins >= 73;
+  const isElite    = r.wins >= 65;
+  const isPlayoff  = r.wins >= 50;
   let tier;
-  if (isPerfect)       tier = '🏆 PERFECT SEASON';
+  if (isPerfect)       tier = '🏆 PERFECT SEASON (82-0)';
   else if (isHistoric) tier = '🔥 Historic Season';
-  else if (isElite)    tier = '⚡ Elite Season';
+  else if (isElite)    tier = '⭐ Championship Contender';
   else if (isPlayoff)  tier = '✅ Playoff Contender';
-  else                 tier = '😬 Rough Season';
+  else                 tier = '📋 Rebuild Required';
 
-  const starterLines = POSITIONS.map(pos => {
-    const p = S.roster[pos];
-    return p ? `🌟 ${fmtPlayerLine(p)}` : '';
-  }).filter(Boolean).join('\n');
-
-  const benchLines = BENCH_POSITIONS.map(pos => {
-    const p = S.roster[pos];
-    return p ? `💪 ${fmtPlayerLine(p)}` : '';
-  }).filter(Boolean).join('\n');
-
-  const chemLine = r.chemScore !== undefined ? `\nChemistry: ${Math.round(r.chemScore)}%` : '';
+  const coachObj = S.coach ? COACHES.find(c => c.id === S.coach) : null;
+  const topStarters = POSITIONS.map(p => S.roster[p]).filter(Boolean).slice(0, 3).map(p => p.name.split(' ').pop()).join(', ');
+  const eraLabel    = S.selectedEra === 'all' ? 'All Eras' : S.selectedEra;
 
   const text = [
-    `🏀 ${r.wins}-${r.losses} — ${tier}`,
-    '',
-    'Starters:',
-    starterLines,
-    '',
-    'Bench:',
-    benchLines,
-    chemLine,
-    '',
-    'Can you beat it? → 82-0.com',
-  ].join('\n').replace(/\n{3,}/g, '\n\n').trim();
+    `🏀 82-0 NBA Challenge 🏀`,
+    `Can your All-Time roster go undefeated?`,
+    ``,
+    `${tier}`,
+    `🏆 Record: ${r.wins}-${r.losses}`,
+    `⚡ Final Team Elo: ${r.finalElo || '—'}`,
+    `📅 Era: ${eraLabel}`,
+    `🎯 Coach: ${coachObj ? coachObj.name : 'Unknown'}`,
+    `⚗️ Chemistry: ${Math.round(r.chemScore || 0)}%`,
+    `🌟 Lineup: ${topStarters}...`,
+    ``,
+    `Play here → 82-0.com`,
+  ].join('\n');
+
+  const onSuccess = () => showToast('📋 Copied to clipboard!');
+  const onFail    = () => showToast('Sharing failed — copy the URL manually');
 
   if (navigator.share) {
-    navigator.share({ title: '82-0', text }).catch(() => {});
+    navigator.share({ title: '82-0 NBA Challenge', text }).catch(() => {
+      navigator.clipboard.writeText(text).then(onSuccess).catch(onFail);
+    });
   } else {
-    navigator.clipboard.writeText(text)
-      .then(() => showToast('Copied to clipboard! 🏀'))
-      .catch(() => showToast('Failed to copy to clipboard'));
+    navigator.clipboard.writeText(text).then(onSuccess).catch(onFail);
   }
 }
 
@@ -1997,75 +1973,125 @@ function saveToTrophyRoom() {
 function saveLeaderboard() {
   const r = S.result;
   if (!r) return;
+  const coachObj = S.coach ? COACHES.find(c => c.id === S.coach) : null;
   const entry = {
-    date:     new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-    wins:     r.wins,
-    losses:   r.losses,
-    starters: POSITIONS.map(p => S.roster[p]?.name || '—').join(', '),
+    id:        Date.now(),
+    ts:        Date.now(),
+    era:       S.selectedEra === 'all' ? 'All Eras' : S.selectedEra,
+    coach:     coachObj ? coachObj.name : 'Unknown',
+    wins:      r.wins,
+    losses:    r.losses,
+    finalElo:  r.finalElo || 1500,
+    chemScore: Math.round(r.chemScore || 0),
+    starters:  POSITIONS.map(p => S.roster[p]?.name || '—').join(', '),
   };
   let lb = [];
   try { lb = JSON.parse(localStorage.getItem('nba820_lb') || '[]'); } catch(e) {}
   lb.push(entry);
-  lb.sort((a, b) => b.wins - a.wins);
-  if (lb.length > 20) lb = lb.slice(0, 20);
+  lb.sort((a, b) => b.finalElo - a.finalElo || b.wins - a.wins);
+  if (lb.length > 50) lb = lb.slice(0, 50);
   try { localStorage.setItem('nba820_lb', JSON.stringify(lb)); } catch(e) {}
 }
 
-function renderLeaderboardModal() {
-  let lb = [];
-  try { lb = JSON.parse(localStorage.getItem('nba820_lb') || '[]'); } catch(e) {}
-  const top5 = lb.slice(0, 5);
-
-  const rows = top5.length === 0
-    ? `<p style="font-size:14px;color:#64748b;text-align:center;padding:24px 0">No runs yet — simulate a season to get on the board!</p>`
-    : top5.map((e, i) => {
-        const isPerfect = e.wins === 82;
-        const rowBg     = isPerfect ? 'background:#fffbeb;border-color:#fcd34d' : 'background:#f8fafc;border-color:#e2e8f0';
-        const rankColor = i === 0 ? '#2563eb' : '#94a3b8';
-        const winsColor = isPerfect ? '#b45309' : '#0f172a';
-        return `
-        <div style="border-radius:12px;border:1.5px solid;padding:12px;display:flex;align-items:center;gap:12px;${rowBg}">
-          <span style="font-size:18px;font-weight:900;width:28px;text-align:center;flex-shrink:0;color:${rankColor}">${i + 1}</span>
-          <div style="flex:1;min-width:0">
-            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-              <span style="font-weight:900;font-size:16px;color:${winsColor}">${e.wins}–${e.losses}</span>
-              ${isPerfect ? '<span style="font-size:10px;font-weight:900;padding:2px 8px;border-radius:999px;background:#fef3c7;color:#92400e;border:1px solid #fcd34d">🏆 PERFECT</span>' : ''}
-            </div>
-            <p style="font-size:12px;color:#64748b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:2px 0 0">${e.starters}</p>
-            <p style="font-size:10px;color:#94a3b8;margin:2px 0 0">${e.date}</p>
-          </div>
-        </div>`;
-      }).join('');
-
-  return `
-  <div id="lb-modal-backdrop" onclick="if(event.target===this)closeLeaderboardModal()"
-    style="position:fixed;inset:0;background:rgba(15,23,42,0.5);z-index:9998;display:flex;align-items:center;justify-content:center;padding:16px">
-    <div style="background:#ffffff;border:1.5px solid #e2e8f0;border-radius:20px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;padding:24px;font-family:'Fira Sans',sans-serif;color:#0f172a;animation:scaleIn 0.2s ease-out;box-shadow:0 20px 60px rgba(0,0,0,0.12)">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-        <div>
-          <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#2563eb;margin:0 0 4px">Personal Best</p>
-          <h2 style="font-size:22px;font-weight:900;margin:0;color:#0f172a">Hall of Fame</h2>
-        </div>
-        <button onclick="closeLeaderboardModal()"
-          style="background:#f1f5f9;border:1px solid #e2e8f0;color:#64748b;border-radius:999px;width:32px;height:32px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">✕</button>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:10px">
-        ${rows}
-      </div>
-      ${lb.length > 5 ? `<p style="text-align:center;font-size:11px;color:#94a3b8;margin-top:14px">${lb.length} total runs tracked</p>` : ''}
-    </div>
-  </div>`;
+function getSeededLeaderboard() {
+  return [
+    { id:'seed_1', ts: Date.now() - 1e10, era:'1990s', coach:'Phil Jackson', wins:72, losses:10, finalElo:1918, chemScore:94, starters:"M. Jordan, S. Pippen, D. Rodman, T. Kukoc, L. Longley", seeded:true },
+    { id:'seed_2', ts: Date.now() - 2e10, era:'2010s', coach:'Steve Kerr',   wins:73, losses:9,  finalElo:1901, chemScore:91, starters:"S. Curry, K. Thompson, K. Durant, D. Green, Z. Pachulia", seeded:true },
+    { id:'seed_3', ts: Date.now() - 3e10, era:'1980s', coach:'Pat Riley',    wins:69, losses:13, finalElo:1872, chemScore:88, starters:"Magic Johnson, K. Abdul-Jabbar, J. Worthy, B. Scott, M. Cooper", seeded:true },
+    { id:'seed_4', ts: Date.now() - 4e10, era:'1990s', coach:'Red Auerbach', wins:67, losses:15, finalElo:1845, chemScore:85, starters:"M. Jordan, S. Pippen, H. Grant, B. Cartwright, J. Paxson", seeded:true },
+    { id:'seed_5', ts: Date.now() - 5e10, era:'2010s', coach:'Gregg Popovich',wins:66,losses:16, finalElo:1832, chemScore:82, starters:"LeBron James, K. Leonard, D. Wade, C. Bosh, D. Howard", seeded:true },
+    { id:'seed_6', ts: Date.now() - 6e10, era:'2000s', coach:'Phil Jackson', wins:62, losses:20, finalElo:1791, chemScore:79, starters:"K. Bryant, S. O'Neal, P. Gasol, R. Artest, D. Fisher", seeded:true },
+    { id:'seed_7', ts: Date.now() - 7e10, era:'1980s', coach:'Red Auerbach', wins:61, losses:21, finalElo:1763, chemScore:76, starters:"L. Bird, K. McHale, R. Parish, D. Johnson, D. Ainge", seeded:true },
+    { id:'seed_8', ts: Date.now() - 8e10, era:'2010s', coach:'Steve Kerr',   wins:58, losses:24, finalElo:1744, chemScore:73, starters:"S. Curry, K. Thompson, A. Iguodala, D. Green, A. Bogut", seeded:true },
+  ];
 }
 
-function showLeaderboardModal() {
+function showLeaderboardModal(tab) {
+  if (tab === undefined) tab = '24h';
   closeLeaderboardModal();
+  let lb = [];
+  try { lb = JSON.parse(localStorage.getItem('nba820_lb') || '[]'); } catch(e) {}
+  const seeded   = getSeededLeaderboard();
+  const now      = Date.now();
+  const recent   = lb.filter(e => (now - e.ts) < 86400000);
+  const allTime  = [...lb, ...seeded].sort((a, b) => b.finalElo - a.finalElo || b.wins - a.wins).slice(0, 20);
+
+  const renderRow = (e, rank) => {
+    const isPerfect = e.wins === 82;
+    const eloColor  = e.finalElo >= 1850 ? '#d97706' : e.finalElo >= 1750 ? '#16a34a' : e.finalElo >= 1650 ? '#2563eb' : '#64748b';
+    const rowBg     = isPerfect ? 'background:#fffbeb;border-color:#fcd34d' : e.seeded ? 'background:#f8fafc;border-color:#e2e8f0' : 'background:#ffffff;border-color:#e2e8f0';
+    const rankColor = rank === 1 ? '#d97706' : rank === 2 ? '#94a3b8' : rank === 3 ? '#cd7c2f' : '#94a3b8';
+    return `
+    <div style="border-radius:12px;border:1.5px solid;padding:12px;display:flex;align-items:flex-start;gap:12px;${rowBg}">
+      <span style="font-size:16px;font-weight:900;width:24px;text-align:center;flex-shrink:0;color:${rankColor};padding-top:2px">${rank}</span>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px">
+          <span style="font-weight:900;font-size:15px;color:#0f172a">${e.wins}–${e.losses}</span>
+          <span style="font-weight:900;font-size:12px;padding:1px 7px;border-radius:999px;background:${eloColor}18;color:${eloColor};border:1px solid ${eloColor}30">⚡ ${e.finalElo}</span>
+          ${isPerfect ? '<span style="font-size:10px;font-weight:900;padding:2px 7px;border-radius:999px;background:#fef3c7;color:#92400e;border:1px solid #fcd34d">🏆 PERFECT</span>' : ''}
+          ${e.seeded ? '<span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:999px;background:#f1f5f9;color:#94a3b8;border:1px solid #e2e8f0">Historic</span>' : ''}
+        </div>
+        <p style="font-size:11px;color:#475569;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.starters}</p>
+        <div style="display:flex;gap:8px;margin-top:3px">
+          <span style="font-size:10px;color:#94a3b8">${e.coach}</span>
+          <span style="font-size:10px;color:#94a3b8">·</span>
+          <span style="font-size:10px;color:#94a3b8">${e.era}</span>
+          ${!e.seeded ? '<span style="font-size:10px;color:#94a3b8">· ' + new Date(e.ts).toLocaleDateString('en-US',{month:'short',day:'numeric'}) + '</span>' : ''}
+        </div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <p style="font-size:11px;font-weight:700;color:#0f172a">${e.chemScore}%</p>
+        <p style="font-size:9px;color:#94a3b8">chem</p>
+      </div>
+    </div>`;
+  };
+
+  const rows24h = recent.length === 0
+    ? `<p style="font-size:13px;color:#64748b;text-align:center;padding:28px 0">No runs in the past 24 hours.<br><span style="font-size:11px;color:#94a3b8">Simulate a season to appear here!</span></p>`
+    : recent.sort((a,b) => b.finalElo - a.finalElo).map((e,i) => renderRow(e, i+1)).join('');
+
+  const rowsAllTime = allTime.map((e,i) => renderRow(e, i+1)).join('');
+
+  const activeTab24h = tab === '24h';
+  const tabBtn = (id, label, active) => `<button onclick="switchLBTab('${id}')" style="flex:1;padding:8px;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;transition:all 0.15s;${active ? 'background:#2563eb;color:#fff;border:none' : 'background:#f1f5f9;color:#64748b;border:1px solid #e2e8f0'}">${label}</button>`;
+
   const div = document.createElement('div');
   div.id = 'lb-modal-root';
-  div.innerHTML = renderLeaderboardModal();
+  div.innerHTML = `
+  <div id="lb-modal-backdrop" onclick="if(event.target===this)closeLeaderboardModal()"
+    style="position:fixed;inset:0;background:rgba(15,23,42,0.55);z-index:9998;display:flex;align-items:center;justify-content:center;padding:16px">
+    <div style="background:#ffffff;border:1.5px solid #e2e8f0;border-radius:20px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;padding:24px;font-family:'Fira Sans',sans-serif;color:#0f172a;animation:scaleIn 0.2s ease-out;box-shadow:0 20px 60px rgba(0,0,0,0.15)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div>
+          <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#2563eb;margin:0 0 3px">Rankings</p>
+          <h2 style="font-size:20px;font-weight:900;margin:0;color:#0f172a">Leaderboard</h2>
+        </div>
+        <button onclick="closeLeaderboardModal()" style="background:#f1f5f9;border:1px solid #e2e8f0;color:#64748b;border-radius:999px;width:32px;height:32px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">✕</button>
+      </div>
+      <div style="display:flex;gap:6px;margin-bottom:16px">
+        ${tabBtn('24h', '⏱ 24-Hour', activeTab24h)}
+        ${tabBtn('all', '🏆 All-Time', !activeTab24h)}
+      </div>
+      <div id="lb-tab-24h" style="display:${activeTab24h ? 'flex' : 'none'};flex-direction:column;gap:8px">${rows24h}</div>
+      <div id="lb-tab-all" style="display:${!activeTab24h ? 'flex' : 'none'};flex-direction:column;gap:8px">${rowsAllTime}</div>
+    </div>
+  </div>`;
   document.body.appendChild(div);
   const onKey = e => { if (e.key === 'Escape') closeLeaderboardModal(); };
   document.addEventListener('keydown', onKey);
   div._removeKey = () => document.removeEventListener('keydown', onKey);
+}
+
+function switchLBTab(tab) {
+  document.getElementById('lb-tab-24h').style.display = tab === '24h' ? 'flex' : 'none';
+  document.getElementById('lb-tab-all').style.display = tab === 'all' ? 'flex' : 'none';
+  const btns = document.querySelectorAll('#lb-modal-root button[onclick^="switchLBTab"]');
+  btns.forEach(b => {
+    const isActive = b.getAttribute('onclick').includes("'" + tab + "'");
+    b.style.background = isActive ? '#2563eb' : '#f1f5f9';
+    b.style.color      = isActive ? '#fff' : '#64748b';
+    b.style.border     = isActive ? 'none' : '1px solid #e2e8f0';
+  });
 }
 
 function closeLeaderboardModal() {
