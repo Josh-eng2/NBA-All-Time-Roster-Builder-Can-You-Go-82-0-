@@ -539,7 +539,6 @@ function calculateChemistry(starters, bench) {
   const sA = starters.map(p => p.archetype || '');
   const bA = bench.map(p => p.archetype || '');
   const aA = [...sA, ...bA];
-  // (bA declared for symmetry; allPlayers used for object-level lookups)
 
   const sHasPlaymaker    = sA.includes('Playmaker');
   const sHasSharpshooter = sA.includes('Sharpshooter');
@@ -550,9 +549,12 @@ function calculateChemistry(starters, bench) {
   const aHasPaintBeast   = aA.includes('Paint Beast');
   const aHasLockdown     = aA.includes('Lockdown Defender');
   const aSharpCount      = aA.filter(a => a === 'Sharpshooter').length;
+  const sLockdownCount   = sA.filter(a => a === 'Lockdown Defender').length;
+  const aLockdownCount   = aA.filter(a => a === 'Lockdown Defender').length;
   const sSlashPaintCount = sA.filter(a => a === 'Slasher' || a === 'Paint Beast').length;
   const aSlashPaintCount = aA.filter(a => a === 'Slasher' || a === 'Paint Beast').length;
   const sDemandCount     = sA.filter(a => a === 'Two-Way Star' || a === 'Playmaker').length;
+  const aTwoWayCount     = aA.filter(a => a === 'Two-Way Star').length;
 
   const coach = (typeof S !== 'undefined' && S.coach) ? S.coach : null;
 
@@ -560,26 +562,40 @@ function calculateChemistry(starters, bench) {
   const chemReport = [];
 
   // ── SYNERGIES ──
-  if (sHasPlaymaker && sHasSharpshooter) { chemBonus += 0.10; chemReport.push('🟢 Drive & Kick (Elite ×1.5): Starter Playmaker feeds Starter Shooters (+10%)'); }
-  else if (aHasPlaymaker && aHasSharpshooter) { chemBonus += 0.07; chemReport.push('🟢 Drive & Kick: Playmaker feeds the shooters (+7%)'); }
+  if (sHasPlaymaker && sHasSharpshooter) {
+    const bonus = coach === 'kerr' ? 0.14 : 0.10;
+    chemBonus += bonus;
+    chemReport.push(`🟢 Drive & Kick (Elite${coach === 'kerr' ? ' ⭐ Kerr' : ' ×1.5'}): Starter Playmaker feeds Starter Shooters (+${Math.round(bonus * 100)}%)`);
+  } else if (aHasPlaymaker && aHasSharpshooter) {
+    const bonus = coach === 'kerr' ? 0.10 : 0.07;
+    chemBonus += bonus;
+    chemReport.push(`🟢 Drive & Kick${coach === 'kerr' ? ' ⭐ Kerr' : ''}: Playmaker feeds the shooters (+${Math.round(bonus * 100)}%)`);
+  }
 
   if (sHasPaintBeast && sHasLockdown) { chemBonus += 0.10; chemReport.push('🟢 Twin Towers (Elite ×1.5): Interior dominance in the Starting 5 (+10%)'); }
   else if (aHasPaintBeast && aHasLockdown) { chemBonus += 0.07; chemReport.push('🟢 Twin Towers: Interior dominance on both ends (+7%)'); }
 
   if (sHasPlaymaker && sHasPaintBeast) { chemBonus += 0.10; chemReport.push('🟢 Pick & Roll Maestros (Elite ×1.5): Classic screen-and-roll starting duo (+10%)'); }
-  else if (aHasPlaymaker && aHasPaintBeast) { chemBonus += 0.07; chemReport.push('🟢 Pick & Roll Maestros: Playmaker and Paint Beast asset tracking (+7%)'); }
+  else if (aHasPlaymaker && aHasPaintBeast) {
+    const bonus = coach === 'brown' ? 0.10 : 0.07;
+    chemBonus += bonus;
+    chemReport.push(`🟢 Pick & Roll Maestros${coach === 'brown' ? ' ⭐ Brown' : ''}: Playmaker and Paint Beast asset tracking (+${Math.round(bonus * 100)}%)`);
+  }
 
   if (sHasPlaymaker && aSharpCount >= 2) {
-    const bonus = coach === 'popovich' ? 0.12 : 0.08;
+    const bonus = (coach === 'popovich' || coach === 'brown') ? 0.12 : 0.08;
     chemBonus += bonus;
-    chemReport.push(`🟢 Floor General${coach === 'popovich' ? ' ⭐ Pop' : ''}: Starter Playmaker unlocks multiple shooters (+${Math.round(bonus * 100)}%)`);
+    chemReport.push(`🟢 Floor General${coach === 'popovich' ? ' ⭐ Pop' : coach === 'brown' ? ' ⭐ Brown' : ''}: Starter Playmaker unlocks multiple shooters (+${Math.round(bonus * 100)}%)`);
   }
 
   const defAnchor = starters.find(p => (p.archetype === 'Lockdown Defender' || p.archetype === 'Paint Beast') && (p.spg + p.bpg) >= 2.5);
   if (defAnchor) { chemBonus += 0.08; chemReport.push(`🟢 Defensive Anchor: ${defAnchor.name.split(' ').pop()} anchors the defense (+8%)`); }
 
-  const sLockdownCount = sA.filter(a => a === 'Lockdown Defender').length;
-  if (sLockdownCount >= 2) { chemBonus += 0.08; chemReport.push('🟢 Perimeter Lockdown: Multiple locking wings in the Starting 5 (+8%)'); }
+  if (sLockdownCount >= 2) {
+    const bonus = coach === 'daly' ? 0.12 : 0.08;
+    chemBonus += bonus;
+    chemReport.push(`🟢 Perimeter Lockdown${coach === 'daly' ? ' ⭐ Daly' : ''}: Multiple locking wings in the Starting 5 (+${Math.round(bonus * 100)}%)`);
+  }
 
   const aSlasherCount = aA.filter(a => a === 'Slasher').length;
   if (aHasPlaymaker && aSlasherCount >= 2) {
@@ -589,9 +605,9 @@ function calculateChemistry(starters, bench) {
   }
 
   if (aSharpCount >= 3) {
-    const bonus = coach === 'dantoni' ? 0.105 : 0.07;
+    const bonus = coach === 'kerr' ? 0.12 : coach === 'dantoni' ? 0.105 : 0.07;
     chemBonus += bonus;
-    chemReport.push(`🟢 Small Ball Heat${coach === 'dantoni' ? " ⭐ D'Antoni" : ''}: Spacing overload with 3+ shooters on the roster (+${+(bonus * 100).toFixed(1)}%)`);
+    chemReport.push(`🟢 Small Ball Heat${coach === 'kerr' ? ' ⭐ Kerr' : coach === 'dantoni' ? " ⭐ D'Antoni" : ''}: Spacing overload with 3+ shooters on the roster (+${+(bonus * 100).toFixed(1)}%)`);
   }
 
   const sixthMan = bench.find(p => p.ppg > 18.0);
@@ -614,32 +630,33 @@ function calculateChemistry(starters, bench) {
   }
   if (Object.values(teamCounts).some(count => count >= 3)) { chemBonus += 0.07; chemReport.push('🟢 Franchise Loyalty: Shared franchise structure yields chemistry boost (+7%)'); }
 
-  const aLockdownCount = aA.filter(a => a === 'Lockdown Defender').length;
   if (aLockdownCount >= 3) {
-    const bonus = coach === 'riley' ? 0.135 : 0.09;
+    const bonus = coach === 'daly' ? 0.14 : coach === 'riley' ? 0.135 : 0.09;
     chemBonus += bonus;
-    chemReport.push(`🟢 All-Defensive Team${coach === 'riley' ? ' ⭐ Riley' : ''}: High baseline lock pressure across roster (+${+(bonus * 100).toFixed(1)}%)`);
+    chemReport.push(`🟢 All-Defensive Team${coach === 'daly' ? ' ⭐ Daly' : coach === 'riley' ? ' ⭐ Riley' : ''}: High baseline lock pressure across roster (+${+(bonus * 100).toFixed(1)}%)`);
   }
 
   const helioPG = starters.find(p => p.archetype === 'Playmaker' && p.apg > 9.0);
   const otherStartersScoring = starters.filter(p => p.archetype !== 'Playmaker' && p.ppg > 16.0);
   if (helioPG && starters.filter(p => p.archetype === 'Playmaker').length === 1 && otherStartersScoring.length === 4) {
-    const helioBonus = coach === 'jackson' ? 0.12 : 0.08;
+    const helioBonus = (coach === 'jackson' || coach === 'spoelstra') ? 0.12 : 0.08;
     chemBonus += helioBonus;
-    chemReport.push(`🟢 Heliocentric Engine${coach === 'jackson' ? ' ⭐ Triangle' : ''}: System centered cleanly around ${helioPG.name.split(' ').pop()} (+${Math.round(helioBonus * 100)}%)`);
+    chemReport.push(`🟢 Heliocentric Engine${coach === 'jackson' ? ' ⭐ Triangle' : coach === 'spoelstra' ? ' ⭐ Spoelstra' : ''}: System centered cleanly around ${helioPG.name.split(' ').pop()} (+${Math.round(helioBonus * 100)}%)`);
   }
 
   const startingPF = starters.find(p => p.pos === 'PF');
   const startingC  = starters.find(p => p.pos === 'C');
   if (startingPF?.archetype === 'Paint Beast' && startingC?.archetype === 'Paint Beast') {
-    chemBonus += 0.07; chemReport.push('🟢 Bully Ball Frontcourt: Combined paint beasts completely overwhelm low blocks (+7%)');
+    const bonus = coach === 'daly' ? 0.11 : 0.07;
+    chemBonus += bonus;
+    chemReport.push(`🟢 Bully Ball Frontcourt${coach === 'daly' ? ' ⭐ Daly' : ''}: Combined paint beasts completely overwhelm low blocks (+${Math.round(bonus * 100)}%)`);
   }
 
   const eliteScorers = starters.filter(p => p.ppg > 26.0);
   if (eliteScorers.length >= 2) {
-    const bonus = coach === 'jackson' ? 0.12 : 0.08;
+    const bonus = (coach === 'jackson' || coach === 'spoelstra') ? 0.12 : 0.08;
     chemBonus += bonus;
-    chemReport.push(`🟢 Dynamic Duo${coach === 'jackson' ? ' ⭐ Triangle' : ''}: Explosive baseline tandem active (+${Math.round(bonus * 100)}%)`);
+    chemReport.push(`🟢 Dynamic Duo${coach === 'jackson' ? ' ⭐ Triangle' : coach === 'spoelstra' ? ' ⭐ Heat' : ''}: Explosive baseline tandem active (+${Math.round(bonus * 100)}%)`);
   }
 
   const pfCBpg = starters.filter(p => p.pos === 'PF' || p.pos === 'C').reduce((sum, p) => sum + p.bpg, 0);
@@ -653,11 +670,21 @@ function calculateChemistry(starters, bench) {
     chemReport.push(`🟢 Second Unit General${coach === 'popovich' ? ' ⭐ Pop' : ''}: Secondary unit run by a natural Playmaker (+${Math.round(bonus * 100)}%)`);
   }
 
-  if (aSharpCount >= 2 && aLockdownCount >= 2) { chemBonus += 0.08; chemReport.push('🟢 Three-and-D Paradigm: Flawless modern floor symmetry (+8%)'); }
+  if (aSharpCount >= 2 && aLockdownCount >= 2) {
+    const bonus = coach === 'kerr' ? 0.12 : 0.08;
+    chemBonus += bonus;
+    chemReport.push(`🟢 Three-and-D Paradigm${coach === 'kerr' ? ' ⭐ Kerr' : ''}: Flawless modern floor symmetry (+${Math.round(bonus * 100)}%)`);
+  }
 
   const sPerimSteals = starters.filter(p => p.pos === 'PG' || p.pos === 'SG').reduce((sum, p) => sum + p.spg, 0);
   if (starters.filter(p => p.pos === 'PG' || p.pos === 'SG').length === 2 && sPerimSteals >= 3.6) {
     chemBonus += 0.07; chemReport.push('🟢 Perimeter Clamps: Stifling backcourt on-ball pressure (+7%)');
+  }
+
+  // ── COACH-EXCLUSIVE SYNERGIES ──
+  if (coach === 'spoelstra' && aTwoWayCount >= 3) {
+    chemBonus += 0.10;
+    chemReport.push('🟢 Heat Culture ⭐ Spoelstra: Versatile two-way roster maximizes positionless defense (+10%)');
   }
 
   // ── PENALTIES ──
@@ -668,13 +695,14 @@ function calculateChemistry(starters, bench) {
   }
 
   if (sDemandCount >= 3) {
-    const penalty = coach === 'jackson' ? 0.02 : 0.05;
+    const penalty = (coach === 'jackson' || coach === 'spoelstra') ? 0.02 : 0.05;
     chemBonus -= penalty;
-    chemReport.push(`🔴 Clashing Egos${coach === 'jackson' ? ' (softened by Phil)' : ''}: Too many ball-dominant players in the Starting 5 (-${Math.round(penalty * 100)}%)`);
+    chemReport.push(`🔴 Clashing Egos${coach === 'jackson' ? ' (softened by Phil)' : coach === 'spoelstra' ? ' (softened by Spo)' : ''}: Too many ball-dominant players in the Starting 5 (-${Math.round(penalty * 100)}%)`);
   }
+
   if (!aHasPlaymaker) { chemBonus -= 0.05; chemReport.push('🔴 No Playmaking: Zero Playmakers on the roster (-5%)'); }
 
-  if (coach !== 'riley') {
+  if (coach !== 'riley' && coach !== 'daly') {
     const defLiabilityCount = starters.filter(p => (p.spg + p.bpg) < 1.5).length;
     if (defLiabilityCount >= 3) { chemBonus -= 0.02; chemReport.push('🔴 Defensive Liability: 3+ starters have weak defensive stats (-2%)'); }
   }
@@ -682,7 +710,11 @@ function calculateChemistry(starters, bench) {
   const startingC_Reb = starters.find(p => p.pos === 'C');
   if (!aHasPaintBeast && startingC_Reb && startingC_Reb.rpg < 8.0) { chemBonus -= 0.05; chemReport.push('🔴 Rebounding Crisis: Missing length/boards inside paint (-5%)'); }
 
-  if (sSlashPaintCount >= 3 && sDemandCount >= 3) { chemBonus -= 0.05; chemReport.push('🔴 Ball Stoppers: Isolation overlaps halt ball movement (-5%)'); }
+  if (sSlashPaintCount >= 3 && sDemandCount >= 3) {
+    const penalty = coach === 'brown' ? 0.02 : 0.05;
+    chemBonus -= penalty;
+    chemReport.push(`🔴 Ball Stoppers${coach === 'brown' ? ' (softened by Brown)' : ''}: Isolation overlaps halt ball movement (-${Math.round(penalty * 100)}%)`);
+  }
 
   const sFrontcourtDef = starters.filter(p => p.pos === 'SF' || p.pos === 'PF' || p.pos === 'C');
   if (sFrontcourtDef.length === 3 && !sFrontcourtDef.some(p => p.archetype === 'Lockdown Defender' || p.archetype === 'Paint Beast')) {
@@ -692,7 +724,11 @@ function calculateChemistry(starters, bench) {
   }
 
   const highUsageCount = starters.filter(p => p.ppg > 25.0 && p.apg < 5.0).length;
-  if (highUsageCount >= 3) { chemBonus -= 0.05; chemReport.push('🔴 High Usage Overlap: 3+ starters average >25.0 PPG but <5.0 APG, stalling ball movement (-5%)'); }
+  if (highUsageCount >= 3) {
+    const penalty = coach === 'brown' ? 0.02 : 0.05;
+    chemBonus -= penalty;
+    chemReport.push(`🔴 High Usage Overlap${coach === 'brown' ? ' (softened by Brown)' : ''}: 3+ starters average >25.0 PPG but <5.0 APG, stalling ball movement (-${Math.round(penalty * 100)}%)`);
+  }
 
   const perimSlotsFilled = starters.filter(p => p.pos === 'PG' || p.pos === 'SG' || p.pos === 'SF').length;
   const perimWeakCount   = starters.filter(p => (p.pos === 'PG' || p.pos === 'SG' || p.pos === 'SF') && p.rpg < 4.5).length;
@@ -884,6 +920,34 @@ const COACHES = [
     system: 'Grit & Grind / Showtime',
     desc:   'Defense and transition driven — Showtime Transition and All-Defensive Team amplified ×1.5; Defensive Liability penalty negated.',
     accent: '#4ade80',
+  },
+  {
+    id:     'kerr',
+    name:   'Steve Kerr',
+    system: 'Positionless Basketball',
+    desc:   'Spacing and three-and-D — Drive & Kick and Small Ball Heat bonuses amplified ×1.5; Three-and-D Paradigm bonus amplified ×1.5.',
+    accent: '#fb923c',
+  },
+  {
+    id:     'daly',
+    name:   'Chuck Daly',
+    system: 'Bad Boys Defense',
+    desc:   'Physical defense — All-Defensive Team and Perimeter Lockdown bonuses amplified ×1.5; Bully Ball Frontcourt amplified; Defensive Liability penalty negated.',
+    accent: '#a78bfa',
+  },
+  {
+    id:     'spoelstra',
+    name:   'Erik Spoelstra',
+    system: 'Heat Culture',
+    desc:   'Versatility-first — Dynamic Duo and Heliocentric Engine bonuses amplified ×1.5; unlocks Heat Culture bonus for 3+ Two-Way Stars on the roster.',
+    accent: '#f43f5e',
+  },
+  {
+    id:     'brown',
+    name:   'Larry Brown',
+    system: 'Play the Right Way',
+    desc:   'Fundamental basketball — Floor General and Pick & Roll Maestros amplified ×1.5; ball-hogging and High Usage Overlap penalties softened to −2%.',
+    accent: '#14b8a6',
   },
 ];
 
@@ -2074,7 +2138,7 @@ function renderPlayoffs() {
   const renderTeamCard = (team, seriesScore = null, won = null) => {
     const isPlayer = team.isPlayer;
     const border   = isPlayer ? 'border-primary' : 'border-border';
-    const bg       = isPlayer ? 'bg-primary/10' : 'bg-card';
+    const bg       = isPlayer ? 'bg-blue-50' : 'bg-card';
     const badge    = won === true ? '✅' : won === false ? '❌' : '';
     return `
       <div class="flex items-center gap-2 px-3 py-2 rounded-lg border ${border} ${bg}">
@@ -2125,7 +2189,7 @@ function renderPlayoffs() {
       const pWins = sr.games.slice(0, ts.revealedGames).filter(g => g === 'W').length;
       const oWins = sr.games.slice(0, ts.revealedGames).filter(g => g === 'L').length;
       return `
-        <div class="flex flex-col gap-2 p-3 rounded-xl border ${isPlayerSeries ? 'border-primary/40 bg-primary/5' : 'border-border bg-card'}" >
+        <div class="flex flex-col gap-2 p-3 rounded-xl border ${isPlayerSeries ? 'border-blue-200 bg-blue-50' : 'border-border bg-card'}" >
           <div class="flex items-center justify-between gap-2">
             <span class="text-xs font-bold ${sr.teamA.isPlayer ? 'text-primary' : 'text-foreground'} truncate">${sr.teamA.isPlayer ? '⭐ ' : ''}${sr.teamA.name}</span>
             <span class="text-xs font-mono text-foreground font-black">${pWins}–${oWins}</span>
@@ -2267,7 +2331,7 @@ function renderEliminated() {
     const w   = sr.teamA.isPlayer ? sr.playerWins : sr.oppWins;
     const l   = sr.teamA.isPlayer ? sr.oppWins : sr.playerWins;
     const won = w > l;
-    return `<p class="text-sm ${won ? 'text-muted-fg' : 'text-red-400'}">${po.roundNames[i]}: <span class="${won ? 'text-foreground' : 'text-red-300'} font-semibold">${won ? `def. ${opp.name} ${w}–${l}` : `lost to ${opp.name} ${w}–${l}`}</span></p>`;
+    return `<p class="text-sm ${won ? 'text-muted-fg' : 'text-red-600'}">${po.roundNames[i]}: <span class="${won ? 'text-foreground' : 'text-red-600'} font-semibold">${won ? `def. ${opp.name} ${w}–${l}` : `lost to ${opp.name} ${w}–${l}`}</span></p>`;
   }).join('');
 
   return `
