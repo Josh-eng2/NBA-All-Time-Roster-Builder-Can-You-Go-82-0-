@@ -96,6 +96,7 @@ function dispatch(action) {
 
   // ── Season & playoffs ──────────────────────────────────────────────────────
   if (action === 'simulate')            { doSimulate();          return; }
+  if (action === 'save-run')             { doSaveRun();           return; }
   if (action === 'advance-to-playoffs') { doAdvanceToPlayoffs(); return; }
   if (action === 'sim-next-round')      { doSimNextRound();      return; }
 
@@ -234,9 +235,19 @@ function placePlayer(pos) {
 function doSimulate() {
   const starters = POSITIONS.map(p => S.roster[p]).filter(Boolean);
   const bench    = BENCH_POSITIONS.map(p => S.roster[p]).filter(Boolean);
-  S.result = simulateSeason(starters, bench);
-  S.phase  = 'results';
+  S.result  = simulateSeason(starters, bench);
+  S.phase   = 'results';
+  S.runSaved = false;
+  render();
+}
+
+function doSaveRun() {
+  const input = document.getElementById('team-name-input');
+  const raw   = input ? input.value.trim() : '';
+  S.teamName  = raw.slice(0, 20) || 'Untitled Team';
+  S.runSaved  = true;
   saveLeaderboard();
+  showToast('✅ Saved to Leaderboard!');
   render();
 }
 

@@ -210,5 +210,7 @@ export function startGame(era = 'all') {
     },
     result:  null,
     playoffs: null,
+    teamName: '',
+    runSaved: false,
   };
 }

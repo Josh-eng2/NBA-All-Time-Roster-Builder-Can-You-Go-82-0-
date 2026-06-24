@@ -563,6 +563,41 @@ function renderResults() {
             ${BENCH_POSITIONS.map(pos => rosterRow(S.roster[pos], S.roster[pos]?.pos || 'BN', false)).join('')}
           </div>
         </div>
+        <!-- ── Save to Leaderboard card ─────────────────────────────── -->
+        <div id="save-run-card" class="rounded-2xl border bg-white p-4 card-shadow"
+          style="border-color:${S.runSaved ? '#bbf7d0' : '#e2e8f0'};background:${S.runSaved ? '#f0fdf4' : '#ffffff'}">
+          ${S.runSaved ? `
+          <div class="flex items-center gap-3">
+            <span class="text-2xl">✅</span>
+            <div>
+              <p class="font-black text-sm text-green-700">Saved to Leaderboard!</p>
+              <p class="text-xs text-green-600 mt-0.5">"${S.teamName}" &nbsp;·&nbsp; ${r.wins}–${r.losses}</p>
+            </div>
+            <button data-action="open-leaderboard" class="ml-auto text-xs font-bold px-3 py-1.5 rounded-lg border border-green-300 bg-white text-green-700 hover:bg-green-50 transition-all cursor-pointer">
+              View Board
+            </button>
+          </div>` : `
+          <p class="text-xs font-bold uppercase tracking-widest text-muted-fg mb-3">Save Your Run</p>
+          <div class="flex gap-2">
+            <div class="flex-1 relative">
+              <input
+                id="team-name-input"
+                type="text"
+                maxlength="20"
+                value="${S.teamName || ''}"
+                placeholder="Untitled Team"
+                class="w-full rounded-xl border border-border bg-white px-3 py-2.5 text-sm font-semibold text-foreground placeholder:text-muted-fg focus:outline-none focus:border-primary focus:ring-2 focus:ring-blue-100 transition-all"
+              />
+              <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-muted pointer-events-none" id="team-name-counter">20</span>
+            </div>
+            <button data-action="save-run"
+              class="flex-shrink-0 px-4 rounded-xl font-bold text-sm bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer card-shadow">
+              Save
+            </button>
+          </div>
+          <p class="text-[10px] text-muted-fg mt-2">Defaults to "Untitled Team" if left blank · max 20 characters</p>`}
+        </div>
+        <!-- ── Action buttons ────────────────────────────────────────── -->
         <div class="flex flex-col gap-3">
           <button data-action="advance-to-playoffs" class="py-3.5 rounded-xl font-bold text-sm bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer text-center card-shadow">
             Advance to Playoffs 🏆
@@ -856,5 +891,16 @@ export function render() {
   else if (S.phase === 'playoffs')     $app.innerHTML = renderPlayoffs();
   else if (S.phase === 'trophy-room')  $app.innerHTML = renderTrophyRoom();
   bindEvents();
+
+  // Wire up character counter for the team name input (results screen only)
+  if (S.phase === 'results' && !S.runSaved) {
+    const input   = document.getElementById('team-name-input');
+    const counter = document.getElementById('team-name-counter');
+    if (input && counter) {
+      const update = () => { counter.textContent = 20 - input.value.length; };
+      update();
+      input.addEventListener('input', update);
+    }
+  }
 }
 

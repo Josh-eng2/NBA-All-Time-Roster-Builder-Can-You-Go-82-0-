@@ -25,6 +25,7 @@ export function saveLeaderboard() {
   if (!r) return;
   const entry = {
     date:     new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+    teamName: (S.teamName || '').trim().slice(0, 20) || 'Untitled Team',
     wins:     r.wins,
     losses:   r.losses,
     starters: POSITIONS.map(p => S.roster[p]?.name || '—').join(', '),
@@ -74,18 +75,23 @@ function renderLeaderboardModal() {
         const rowBg     = isPerfect
           ? 'background:#fffbeb;border-color:#fcd34d'
           : 'background:#f8fafc;border-color:#e2e8f0';
+        const medals    = ['🥇','🥈','🥉','4️⃣','5️⃣'];
         const rankColor = i === 0 ? '#2563eb' : '#94a3b8';
         const winsColor = isPerfect ? '#b45309' : '#0f172a';
+        const name      = e.teamName || 'Untitled Team';
         return `
         <div style="border-radius:12px;border:1.5px solid;padding:12px;display:flex;align-items:center;gap:12px;${rowBg}">
-          <span style="font-size:18px;font-weight:900;width:28px;text-align:center;flex-shrink:0;color:${rankColor}">${i + 1}</span>
+          <span style="font-size:20px;width:28px;text-align:center;flex-shrink:0">${medals[i]}</span>
           <div style="flex:1;min-width:0">
-            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-              <span style="font-weight:900;font-size:16px;color:${winsColor}">${e.wins}–${e.losses}</span>
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:2px">
+              <span style="font-weight:900;font-size:15px;color:#0f172a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px">${name}</span>
               ${isPerfect ? '<span style="font-size:10px;font-weight:900;padding:2px 8px;border-radius:999px;background:#fef3c7;color:#92400e;border:1px solid #fcd34d">🏆 PERFECT</span>' : ''}
             </div>
-            <p style="font-size:12px;color:#64748b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:2px 0 0">${e.starters}</p>
-            <p style="font-size:10px;color:#94a3b8;margin:2px 0 0">${e.date}</p>
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+              <span style="font-weight:900;font-size:16px;color:${winsColor}">${e.wins}–${e.losses}</span>
+              <span style="font-size:11px;color:#64748b">${e.date}</span>
+            </div>
+            <p style="font-size:11px;color:#94a3b8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:3px 0 0">${e.starters}</p>
           </div>
         </div>`;
       }).join('');
