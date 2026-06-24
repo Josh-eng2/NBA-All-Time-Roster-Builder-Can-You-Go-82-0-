@@ -104,7 +104,27 @@ export function simulateSeason(starters, bench) {
 
   const { chemBonus, chemScore, chemReport } = calculateChemistry(starters, bench);
 
-  const adjustedStrength = Math.max(0, strength - balancePenalty + chemBonus);
+  const baseStrength     = Math.max(0, strength - balancePenalty + chemBonus);
+
+  // ── Popularity / Fan-Hype modifier ───────────────────────────────────────
+  // Smoothly maps avg roster popularity (floor 35 → ceil 100) to a multiplier
+  // of 0.95x (low-key role-player team) up to 1.08x (all-time superstar lineup).
+  const POP_FLOOR   = 35;
+  const POP_CEIL    = 100;
+  const MUL_MIN     = 0.95;
+  const MUL_MAX     = 1.08;
+  const allPlayers  = [...starters, ...bench];
+  const avgPop      = allPlayers.length
+    ? allPlayers.reduce((s, p) => s + (p.popularity || 50), 0) / allPlayers.length
+    : 50;
+  const popNorm     = Math.max(0, Math.min(1, (avgPop - POP_FLOOR) / (POP_CEIL - POP_FLOOR)));
+  const popMul      = MUL_MIN + popNorm * (MUL_MAX - MUL_MIN);
+  const adjustedStrength = baseStrength * popMul;
+  const popEloDelta = +(baseStrength * (popMul - 1)).toFixed(3); // signed delta
+
+  // Fan base size — power curve: 2M (avg=35) → ~20M (avg=70) → 40M (avg=100)
+  const fansM = +(Math.pow(popNorm, 1.5) * 38 + 2).toFixed(1);
+
   const winPct = Math.min(
     WIN_CAP,
     1 / (1 + Math.exp(-SIM_K * (adjustedStrength - SIM_CENTER)))
@@ -124,11 +144,15 @@ export function simulateSeason(starters, bench) {
 
   return {
     wins,
-    losses:   82 - wins,
-    winPct:   +(winPct * 100).toFixed(1),
-    strength: +adjustedStrength.toFixed(2),
+    losses:     82 - wins,
+    winPct:     +(winPct * 100).toFixed(1),
+    strength:   +adjustedStrength.toFixed(3),
+    baseStrength: +baseStrength.toFixed(3),
     totals, ratio, sTotals, bTotals,
     chemScore, chemReport,
+    avgPopularity: +avgPop.toFixed(1),
+    popEloDelta,
+    fansM,
   };
 }
 

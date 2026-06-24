@@ -467,6 +467,34 @@ function renderResults() {
 
   const winsColor = isPerfect || isHistoric ? '#d97706' : isElite ? '#16a34a' : isPlayoff ? '#2563eb' : '#dc2626';
 
+  // ── Popularity / Fan-Hype display helpers ─────────────────────────────────
+  const popDelta    = r.popEloDelta ?? 0;
+  const fansM       = r.fansM       ?? 2;
+  const avgPop      = r.avgPopularity ?? 50;
+
+  const fansLabel = fansM >= 10
+    ? `${fansM.toFixed(1)}M`
+    : `${(fansM * 1000).toFixed(0)}K`;   // sub-10M → show in K
+
+  const hypeBadge = (() => {
+    if (Math.abs(popDelta) < 0.002) return ''; // negligible — don't show
+    const pos    = popDelta >= 0;
+    const sign   = pos ? '+' : '';
+    const pctImp = (popDelta / (r.baseStrength || 1) * 100).toFixed(1);
+    const bg     = pos ? '#f0fdf4' : '#fef2f2';
+    const border = pos ? '#bbf7d0' : '#fecaca';
+    const color  = pos ? '#15803d' : '#dc2626';
+    const lbl    = pos ? 'Fan Hype' : 'Low Popularity';
+    return `<span class="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full border"
+      style="background:${bg};border-color:${border};color:${color}">
+      ${pos ? '📈' : '📉'} ${sign}${pctImp}% Elo · ${lbl}
+    </span>`;
+  })();
+
+  const popBarPct  = Math.round(((avgPop - 35) / 65) * 100);
+  const popBarCol  = avgPop >= 80 ? '#2563eb' : avgPop >= 60 ? '#d97706' : '#94a3b8';
+  const popTier    = avgPop >= 85 ? 'Superstar Lineup' : avgPop >= 70 ? 'Star Power' : avgPop >= 55 ? 'Solid Roster' : 'Under the Radar';
+
   const maxes = { ppg: 280, rpg: 120, apg: 75, spg: 22, bpg: 18 };
   const statBar = (key, lbl, val) => {
     const pct   = Math.min(100, (val / maxes[key]) * 100);
@@ -533,7 +561,13 @@ function renderResults() {
             <span class="text-muted-fg">${r.losses}</span>
           </div>
           <span class="inline-block text-sm font-bold px-4 py-1.5 rounded-full mb-2" style="background:${labelBg};color:${labelColor}">${emoji} ${label}</span>
-          <p class="text-xs text-muted-fg">Win% ${r.winPct}% &nbsp;·&nbsp; Strength Index ${r.strength}</p>
+          <p class="text-xs text-muted-fg mb-2">Win% ${r.winPct}% &nbsp;·&nbsp; Strength Index ${r.strength}</p>
+          <div class="flex items-center justify-center gap-2 flex-wrap">
+            <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full border border-border bg-slate-50 text-slate-600">
+              🌍 Global Fanbase: ${fansLabel}
+            </span>
+            ${hypeBadge}
+          </div>
         </div>
         <div class="rounded-2xl border border-border bg-white p-4 card-shadow">
           <div class="flex items-center justify-between mb-3">
@@ -541,6 +575,52 @@ function renderResults() {
             ${chemScoreBadge}
           </div>
           <div class="flex flex-col gap-2">${chemReportHtml}</div>
+        </div>
+        <!-- ── Popularity / Fan-Hype card ───────────────────────────── -->
+        <div class="rounded-2xl border border-border bg-white p-4 card-shadow">
+          <div class="flex items-center justify-between mb-3">
+            <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Fan Popularity</p>
+            <span class="text-xs font-bold px-2 py-0.5 rounded-full border"
+              style="background:#f8fafc;color:${popBarCol};border-color:${popBarCol}30">${popTier}</span>
+          </div>
+          <!-- Popularity bar -->
+          <div class="mb-3">
+            <div class="flex justify-between text-xs mb-1.5">
+              <span class="text-muted-fg font-medium">Avg. Roster Popularity</span>
+              <span class="font-bold text-foreground">${avgPop}/100</span>
+            </div>
+            <div class="h-2 rounded-full bg-border overflow-hidden">
+              <div class="h-full rounded-full stat-bar-fill" style="width:${popBarPct}%;background:${popBarCol}"></div>
+            </div>
+          </div>
+          <!-- Fanbase + Elo impact row -->
+          <div class="flex gap-3 flex-wrap">
+            <div class="flex-1 rounded-xl border border-border bg-slate-50 px-3 py-2.5 text-center">
+              <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg mb-1">Global Fanbase</p>
+              <p class="text-xl font-black text-foreground">🌍 ${fansLabel}</p>
+            </div>
+            <div class="flex-1 rounded-xl border px-3 py-2.5 text-center"
+              style="background:${popDelta >= 0 ? '#f0fdf4' : '#fef2f2'};border-color:${popDelta >= 0 ? '#bbf7d0' : '#fecaca'}">
+              <p class="text-[10px] font-bold uppercase tracking-wider mb-1" style="color:${popDelta >= 0 ? '#15803d' : '#dc2626'}">${popDelta >= 0 ? '📈 Hype Boost' : '📉 Hype Penalty'}</p>
+              <p class="text-xl font-black" style="color:${popDelta >= 0 ? '#15803d' : '#dc2626'}">${popDelta >= 0 ? '+' : ''}${(popDelta / (r.baseStrength || 1) * 100).toFixed(1)}% Elo</p>
+            </div>
+          </div>
+          <!-- Player popularity breakdown -->
+          <div class="mt-3 flex flex-col gap-1.5">
+            ${[...Object.entries(S.roster)].filter(([,p]) => p).map(([pos, p]) => {
+              const pop     = p.popularity ?? 50;
+              const pct     = Math.round(((pop - 35) / 65) * 100);
+              const barCol  = pop >= 80 ? '#2563eb' : pop >= 60 ? '#d97706' : '#94a3b8';
+              return `<div class="flex items-center gap-2">
+                <span class="text-[10px] font-black w-6 flex-shrink-0 text-muted-fg">${pos}</span>
+                <span class="text-xs font-semibold text-foreground w-28 flex-shrink-0 truncate">${p.name}</span>
+                <div class="flex-1 h-1.5 rounded-full bg-border overflow-hidden">
+                  <div class="h-full rounded-full" style="width:${pct}%;background:${barCol}"></div>
+                </div>
+                <span class="text-[10px] font-bold text-muted-fg w-6 text-right flex-shrink-0">${pop}</span>
+              </div>`;
+            }).join('')}
+          </div>
         </div>
         <div class="rounded-2xl border border-border bg-white p-4 card-shadow">
           <p class="text-xs font-bold uppercase tracking-widest text-muted-fg mb-4">Team Statistics</p>
