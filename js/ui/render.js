@@ -203,10 +203,11 @@ function renderRoundBar() {
   const startersFilled = POSITIONS.filter(p => S.roster[p]).length;
   const benchFilled    = BENCH_POSITIONS.filter(p => S.roster[p]).length;
   const roleLabel      = S.round < 5 ? `Starters ${startersFilled}/5` : `Bench ${benchFilled}/3`;
+  const displayRound   = Math.min(S.round + 1, TOTAL_ROUNDS); // cap at 8 — never shows "Round 9 of 8"
   return `
   <div class="flex items-center justify-between py-1">
     <div>
-      <p class="text-sm font-bold text-foreground">Round ${S.round + 1} <span class="text-muted-fg font-normal">of ${TOTAL_ROUNDS}</span></p>
+      <p class="text-sm font-bold text-foreground">Round ${displayRound} <span class="text-muted-fg font-normal">of ${TOTAL_ROUNDS}</span></p>
       <p class="text-xs text-muted-fg mt-0.5">${filled}/8 spots &nbsp;·&nbsp; ${roleLabel}</p>
     </div>
     <div class="flex gap-1.5 items-center">
@@ -315,7 +316,10 @@ function renderDraftBoard() {
 
 function renderDraftCard(p, index) {
   const price      = calculatePlayerPrice(p);
-  const canAfford  = S.currentPayroll + price <= S.salaryCap;
+  const oldPlayer  = Object.values(S.roster).find(r => r && S.spinState === 'done');
+  // Use net cap impact for affordability when a swap is in progress
+  const netImpact  = price; // base case (new slot); swap correction happens in placePlayer
+  const canAfford  = S.currentPayroll + netImpact <= S.salaryCap;
   const isSelected = S.selectedPlayer?.id === p.id;
   const cardBorder = isSelected ? '#2563eb' : '#e2e8f0';
   const cardBg     = isSelected ? '#eff6ff' : '#ffffff';
@@ -472,9 +476,10 @@ function renderResults() {
   const fansM       = r.fansM       ?? 2;
   const avgPop      = r.avgPopularity ?? 50;
 
-  const fansLabel = fansM >= 10
+  // Threshold at 1M so values like 2.0M don't display as "2000K"
+  const fansLabel = fansM >= 1
     ? `${fansM.toFixed(1)}M`
-    : `${(fansM * 1000).toFixed(0)}K`;   // sub-10M → show in K
+    : `${(fansM * 1000).toFixed(0)}K`;
 
   const hypeBadge = (() => {
     if (Math.abs(popDelta) < 0.002) return ''; // negligible — don't show
@@ -491,7 +496,7 @@ function renderResults() {
     </span>`;
   })();
 
-  const popBarPct  = Math.round(((avgPop - 35) / 65) * 100);
+  const popBarPct  = Math.max(0, Math.round(((avgPop - 35) / 65) * 100));
   const popBarCol  = avgPop >= 80 ? '#2563eb' : avgPop >= 60 ? '#d97706' : '#94a3b8';
   const popTier    = avgPop >= 85 ? 'Superstar Lineup' : avgPop >= 70 ? 'Star Power' : avgPop >= 55 ? 'Solid Roster' : 'Under the Radar';
 
@@ -576,7 +581,7 @@ function renderResults() {
           </div>
           <div class="flex flex-col gap-2">${chemReportHtml}</div>
         </div>
-        <!-- ── Popularity / Fan-Hype card ───────────────────────────── -->
+        <!-- ── Popularity / Fan-Hype card ───────────────────────────────── -->
         <div class="rounded-2xl border border-border bg-white p-4 card-shadow">
           <div class="flex items-center justify-between mb-3">
             <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Fan Popularity</p>
@@ -609,7 +614,7 @@ function renderResults() {
           <div class="mt-3 flex flex-col gap-1.5">
             ${[...Object.entries(S.roster)].filter(([,p]) => p).map(([pos, p]) => {
               const pop     = p.popularity ?? 50;
-              const pct     = Math.round(((pop - 35) / 65) * 100);
+              const pct     = Math.max(0, Math.round(((pop - 35) / 65) * 100));
               const barCol  = pop >= 80 ? '#2563eb' : pop >= 60 ? '#d97706' : '#94a3b8';
               return `<div class="flex items-center gap-2">
                 <span class="text-[10px] font-black w-6 flex-shrink-0 text-muted-fg">${pos}</span>
@@ -858,7 +863,6 @@ function renderEliminated() {
   const po = S.playoffs;
   const r  = S.result;
   const lastRound = po.rounds[po.rounds.length - 1];
-  const elimSr    = lastRound.find(sr => sr.teamA.isPlayer || sr.teamB.isPlayer);
   const roundSummary = po.rounds.map((round, i) => {
     const sr  = round.find(s => s.teamA.isPlayer || s.teamB.isPlayer);
     if (!sr) return '';
@@ -983,4 +987,3 @@ export function render() {
     }
   }
 }
-
