@@ -31,13 +31,19 @@ window.closeLeaderboardModal = closeLeaderboardModal;
 
 // ── Event binding ─────────────────────────────────────────────────────────────
 
+// A single permanent delegated listener. Calling bindEvents() multiple times
+// is safe — the guard ensures the listener is only ever attached once.
+let _bound = false;
+
 export function bindEvents() {
-  $app.addEventListener('click', handleClick, { once: true });
+  if (_bound) return;
+  _bound = true;
+  $app.addEventListener('click', handleClick);
 }
 
 function handleClick(e) {
   const btn = e.target.closest('[data-action]');
-  if (!btn) { bindEvents(); return; }
+  if (!btn) return;
   dispatch(btn.dataset.action);
 }
 
@@ -101,10 +107,10 @@ function dispatch(action) {
   if (action === 'sim-next-round')      { doSimNextRound();      return; }
 
   // ── UI helpers ─────────────────────────────────────────────────────────────
-  if (action === 'share')            { doShare();            return; }
+  if (action === 'share')            { doShare();             return; }
   if (action === 'open-leaderboard') { showLeaderboardModal(); return; }
 
-  render(); // fallback — re-bind for unhandled actions
+  render(); // fallback — re-render for unhandled actions
 }
 
 // ── Game lifecycle ────────────────────────────────────────────────────────────
@@ -170,7 +176,12 @@ function doSpin() {
     if (ticks >= total) {
       clearInterval(interval);
       const spin = spinResult();
-      if (!spin) { render(); return; }
+      if (!spin) {
+        // All player slots exhausted — reset to idle so the user isn't stuck
+        S.spinState = 'idle';
+        render();
+        return;
+      }
       S.currentSpin      = spin;
       S.spinState        = 'done';
       S.availablePlayers = getAvailablePlayers(spin.team, spin.decade);
@@ -215,13 +226,27 @@ function placePlayer(pos) {
   const spin   = S.currentSpin;
   const player = { ...S.selectedPlayer, team: spin?.team, decade: spin?.decade };
   const price  = calculatePlayerPrice(S.selectedPlayer);
-  if (S.currentPayroll + price > S.salaryCap) { render(); return; }
+
+  // When swapping into an occupied slot, account for the old player's cap hit
+  const oldPlayer = S.roster[pos];
+  const oldPrice  = oldPlayer ? calculatePlayerPrice(oldPlayer) : 0;
+
+  if (S.currentPayroll - oldPrice + price > S.salaryCap) { render(); return; }
+
+  // Remove the displaced player from all tracking before placing the new one
+  if (oldPlayer) {
+    S.currentPayroll -= oldPrice;
+    const idIdx = S.usedPlayerIds.indexOf(oldPlayer.id);
+    if (idIdx !== -1) S.usedPlayerIds.splice(idIdx, 1);
+    const decIdx = S.usedDecades.indexOf(oldPlayer.decade);
+    if (decIdx !== -1) S.usedDecades.splice(decIdx, 1);
+  }
 
   S.currentPayroll  += price;
   S.roster[pos]      = player;
   S.usedDecades.push(spin?.decade);
   S.usedPlayerIds.push(player.id);
-  S.round++;
+  if (!oldPlayer) S.round++;  // swaps don't consume an additional round
   S.spinState        = 'idle';
   S.currentSpin      = null;
   S.availablePlayers = [];
@@ -301,6 +326,8 @@ function doShare() {
       .then(()  => showToast('Copied to clipboard! 🏀'))
       .catch(() => showToast('Failed to copy to clipboard'));
   }
+
+  render(); // ensure click handlers remain active after share dialog dismissal
 }
 
 // ── Playoffs ──────────────────────────────────────────────────────────────────
@@ -375,4 +402,3 @@ function doSimNextRound() {
     }
   }, 400);
 }
-
