@@ -1,0 +1,367 @@
+/**
+ * js/ui/events.js — Event Listeners & Game Action Handlers
+ *
+ * Exports:
+ *   bindEvents()    — attaches the single delegated click listener to #app
+ *   confirmLeave()  — modal guard when leaving an in-progress draft
+ *
+ * Side-effects on load:
+ *   window.closeLeaderboardModal is set so the inline onclick in the
+ *   leaderboard modal HTML (rendered by storage.js) can call it.
+ */
+
+import {
+  S, startGame, ALL_POSITIONS, POSITIONS, BENCH_POSITIONS,
+  TEAMS, DECADES, pick, buildBracket, getPlayerSeed,
+} from '../logic/state.js';
+import {
+  spinResult, getAvailablePlayers, availableDecades, calculatePlayerPrice,
+} from '../logic/draft.js';
+import { simulateSeason, simulateSeries }            from '../logic/simulation.js';
+import {
+  saveLeaderboard, saveToTrophyRoom,
+  showLeaderboardModal, closeLeaderboardModal,
+} from '../utils/storage.js';
+import {
+  render, $app, fmtPlayerLine, fmtDecadeShort, showToast,
+} from '../ui/render.js'; // circular — safe (used only inside function bodies)
+
+// Expose the close helper globally so the inline onclick in the modal HTML works
+window.closeLeaderboardModal = closeLeaderboardModal;
+
+// ── Event binding ─────────────────────────────────────────────────────────────
+
+export function bindEvents() {
+  $app.addEventListener('click', handleClick, { once: true });
+}
+
+function handleClick(e) {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) { bindEvents(); return; }
+  dispatch(btn.dataset.action);
+}
+
+// ── Action dispatcher ─────────────────────────────────────────────────────────
+
+function dispatch(action) {
+  // ── Coach & Era selection ──────────────────────────────────────────────────
+  if (action.startsWith('coach-pick-')) {
+    S.coach = action.slice(11);
+    S.phase = 'era-select';
+    render(); return;
+  }
+  if (action.startsWith('era-')) { doStartGame(action.slice(4)); return; }
+
+  // ── Navigation ─────────────────────────────────────────────────────────────
+  if (action === 'restart') {
+    confirmLeave(() => { S.phase = 'coach-select'; S.coach = null; render(); }); return;
+  }
+  if (action === 'draft-new-roster') { S.phase = 'coach-select'; S.coach = null; render(); return; }
+  if (action === 'view-trophies')    { S.phase = 'trophy-room'; render(); return; }
+  if (action === 'back-to-menu')     { S.phase = 'coach-select'; render(); return; }
+
+  // ── Draft actions ──────────────────────────────────────────────────────────
+  if (action === 'spin')         { doSpin();       return; }
+  if (action === 'skip-team')    { doSkipTeam();   return; }
+  if (action === 'skip-decade')  { doSkipDecade(); return; }
+  if (action === 'use-mulligan') {
+    if (!S.hasMulligan) return;
+    S.hasMulligan    = false;
+    S.spinState      = 'idle';
+    S.selectedPlayer = null;
+    S.currentSpin    = null;
+    S.draftBoard     = [];
+    doSpin(); return;
+  }
+  if (action.startsWith('draft-pick-')) {
+    const idx = parseInt(action.slice(11), 10);
+    const p   = S.draftBoard[idx];
+    if (!p) { render(); return; }
+    S.selectedPlayer = S.selectedPlayer?.id === p.id ? null : p;
+    render(); return;
+  }
+  if (action.startsWith('pick-')) {
+    const id = action.slice(5);
+    const p  = S.availablePlayers.find(x => x.id === id);
+    if (!p) { render(); return; }
+    S.selectedPlayer = S.selectedPlayer?.id === id ? null : p;
+    render(); return;
+  }
+  if (action.startsWith('place-')) { placePlayer(action.slice(6));  return; }
+  if (action.startsWith('swap-'))  {
+    if (S.selectedPlayer) placePlayer(action.slice(5));
+    else render();
+    return;
+  }
+
+  // ── Season & playoffs ──────────────────────────────────────────────────────
+  if (action === 'simulate')            { doSimulate();          return; }
+  if (action === 'advance-to-playoffs') { doAdvanceToPlayoffs(); return; }
+  if (action === 'sim-next-round')      { doSimNextRound();      return; }
+
+  // ── UI helpers ─────────────────────────────────────────────────────────────
+  if (action === 'share')            { doShare();            return; }
+  if (action === 'open-leaderboard') { showLeaderboardModal(); return; }
+
+  render(); // fallback — re-bind for unhandled actions
+}
+
+// ── Game lifecycle ────────────────────────────────────────────────────────────
+
+function doStartGame(era = 'all') {
+  startGame(era); // resets S in state.js
+  render();
+}
+
+/**
+ * Shows a confirmation modal before abandoning an active draft.
+ * Calls fn() immediately if there is nothing to lose.
+ */
+export function confirmLeave(fn) {
+  const safe = ['coach-select', 'era-select', 'results', 'playoffs', 'trophy-room'];
+  if (safe.includes(S.phase)) { fn(); return; }
+  const overlay = document.createElement('div');
+  overlay.style.cssText =
+    'position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;' +
+    'align-items:center;justify-content:center;z-index:9999';
+  overlay.innerHTML = `
+    <div style="background:#ffffff;border:1.5px solid #e2e8f0;border-radius:16px;padding:24px;
+      max-width:320px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.12);text-align:center">
+      <p style="font-size:18px;font-weight:800;color:#0f172a;margin-bottom:8px">Leave Game?</p>
+      <p style="font-size:14px;color:#64748b;margin-bottom:20px">Your progress will be lost.</p>
+      <div style="display:flex;gap:10px;justify-content:center">
+        <button id="_cl_cancel"
+          style="flex:1;padding:10px 16px;border-radius:10px;background:#f1f5f9;
+                 border:1.5px solid #e2e8f0;color:#0f172a;font-weight:700;cursor:pointer">Cancel</button>
+        <button id="_cl_confirm"
+          style="flex:1;padding:10px 16px;border-radius:10px;background:#2563eb;
+                 border:none;color:#ffffff;font-weight:700;cursor:pointer">Yes, Restart</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  const close = () => overlay.remove();
+  overlay.querySelector('#_cl_cancel').onclick  = () => { close(); render(); };
+  overlay.querySelector('#_cl_confirm').onclick = () => { close(); fn(); };
+  overlay.addEventListener('keydown', e => { if (e.key === 'Escape') { close(); render(); } });
+  setTimeout(() => overlay.querySelector('#_cl_cancel').focus(), 0);
+}
+
+// ── Draft mechanics ───────────────────────────────────────────────────────────
+
+function doSpin() {
+  S.spinState      = 'spinning';
+  S.selectedPlayer = null;
+  render();
+
+  const eraLocked = S.selectedEra && S.selectedEra !== 'all';
+  let ticks = 0;
+  const total    = 14;
+  const interval = setInterval(() => {
+    ticks++;
+    const teamEl   = document.getElementById('slot-team');
+    const decadeEl = document.getElementById('slot-decade');
+    const decPool  = availableDecades();
+    if (teamEl)   teamEl.textContent   = pick(TEAMS);
+    if (decadeEl) decadeEl.textContent = eraLocked
+      ? S.selectedEra
+      : pick(decPool.length ? decPool : DECADES);
+
+    if (ticks >= total) {
+      clearInterval(interval);
+      const spin = spinResult();
+      if (!spin) { render(); return; }
+      S.currentSpin      = spin;
+      S.spinState        = 'done';
+      S.availablePlayers = getAvailablePlayers(spin.team, spin.decade);
+      S.draftBoard       = [...S.availablePlayers].sort(() => Math.random() - 0.5).slice(0, 3);
+      S.selectedPlayer   = null;
+      render();
+    }
+  }, 90);
+}
+
+function doSkipTeam() {
+  if (S.teamSkips <= 0 || !S.currentSpin) { render(); return; }
+  S.teamSkips--;
+  const spin = spinResult(null, S.currentSpin.decade);
+  if (spin) {
+    S.currentSpin      = spin;
+    S.availablePlayers = getAvailablePlayers(spin.team, spin.decade);
+    S.draftBoard       = [...S.availablePlayers].sort(() => Math.random() - 0.5).slice(0, 3);
+    S.selectedPlayer   = null;
+  }
+  render();
+}
+
+function doSkipDecade() {
+  if (S.selectedEra !== 'all')          { render(); return; }
+  if (S.decadeSkips <= 0 || !S.currentSpin) { render(); return; }
+  S.decadeSkips--;
+  const pool = availableDecades().filter(d => d !== S.currentSpin.decade);
+  if (!pool.length) { render(); return; }
+  const spin = spinResult(S.currentSpin.team, pick(pool));
+  if (spin) {
+    S.currentSpin      = spin;
+    S.availablePlayers = getAvailablePlayers(spin.team, spin.decade);
+    S.draftBoard       = [...S.availablePlayers].sort(() => Math.random() - 0.5).slice(0, 3);
+    S.selectedPlayer   = null;
+  }
+  render();
+}
+
+function placePlayer(pos) {
+  if (!S.selectedPlayer) { render(); return; }
+  const spin   = S.currentSpin;
+  const player = { ...S.selectedPlayer, team: spin?.team, decade: spin?.decade };
+  const price  = calculatePlayerPrice(S.selectedPlayer);
+  if (S.currentPayroll + price > S.salaryCap) { render(); return; }
+
+  S.currentPayroll  += price;
+  S.roster[pos]      = player;
+  S.usedDecades.push(spin?.decade);
+  S.usedPlayerIds.push(player.id);
+  S.round++;
+  S.spinState        = 'idle';
+  S.currentSpin      = null;
+  S.availablePlayers = [];
+  S.draftBoard       = [];
+  S.selectedPlayer   = null;
+  render();
+}
+
+// ── Season simulation ─────────────────────────────────────────────────────────
+
+function doSimulate() {
+  const starters = POSITIONS.map(p => S.roster[p]).filter(Boolean);
+  const bench    = BENCH_POSITIONS.map(p => S.roster[p]).filter(Boolean);
+  S.result = simulateSeason(starters, bench);
+  S.phase  = 'results';
+  saveLeaderboard();
+  render();
+}
+
+// ── Share ─────────────────────────────────────────────────────────────────────
+
+function doShare() {
+  const r = S.result;
+  if (!r) return;
+
+  const isPerfect  = r.wins === 82;
+  const isHistoric = r.wins >= 75;
+  const isElite    = r.wins >= 70;
+  const isPlayoff  = r.wins >= 60;
+
+  let tier;
+  if (isPerfect)       tier = '🏆 PERFECT SEASON';
+  else if (isHistoric) tier = '🔥 Historic Season';
+  else if (isElite)    tier = '⚡ Elite Season';
+  else if (isPlayoff)  tier = '✅ Playoff Contender';
+  else                 tier = '😬 Rough Season';
+
+  const starterLines = POSITIONS.map(pos => {
+    const p = S.roster[pos];
+    return p ? `🌟 ${fmtPlayerLine(p)}` : '';
+  }).filter(Boolean).join('\n');
+
+  const benchLines = BENCH_POSITIONS.map(pos => {
+    const p = S.roster[pos];
+    return p ? `💪 ${fmtPlayerLine(p)}` : '';
+  }).filter(Boolean).join('\n');
+
+  const chemLine = r.chemScore !== undefined ? `\nChemistry: ${Math.round(r.chemScore)}%` : '';
+
+  const text = [
+    `🏀 ${r.wins}-${r.losses} — ${tier}`,
+    '',
+    'Starters:',
+    starterLines,
+    '',
+    'Bench:',
+    benchLines,
+    chemLine,
+    '',
+    'Can you beat it? → 82-0.com',
+  ].join('\n').replace(/\n{3,}/g, '\n\n').trim();
+
+  if (navigator.share) {
+    navigator.share({ title: '82-0', text }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(text)
+      .then(()  => showToast('Copied to clipboard! 🏀'))
+      .catch(() => showToast('Failed to copy to clipboard'));
+  }
+}
+
+// ── Playoffs ──────────────────────────────────────────────────────────────────
+
+function doAdvanceToPlayoffs() {
+  const playerStrength = S.result.strength;
+  const playerSeed     = getPlayerSeed(S.result.wins);
+  const bracket        = buildBracket(playerSeed, playerStrength);
+
+  S.playoffs = {
+    playerSeed,
+    playerStrength,
+    initialBracket: bracket.map(pair => pair.map(t => ({ ...t }))),
+    rounds:       [],
+    currentRound: 0,
+    bracket,
+    eliminated:   false,
+    champion:     false,
+    tickState:    null,
+    roundNames:   ['Conference Quarterfinals', 'Conference Semifinals', 'NBA Finals'],
+  };
+  S.phase = 'playoffs';
+  render();
+}
+
+function doSimNextRound() {
+  const po = S.playoffs;
+  if (po.tickState) return; // guard against double-click during animation
+
+  const results = po.bracket.map(([teamA, teamB]) => {
+    const series = simulateSeries(teamA.strength, teamB.strength);
+    return { teamA, teamB, ...series };
+  });
+
+  const playerResult = results.find(r => r.teamA.isPlayer || r.teamB.isPlayer);
+  const playerWon    = playerResult
+    ? (playerResult.teamA.isPlayer ? playerResult.won : !playerResult.won)
+    : true;
+
+  const maxGames = Math.max(...results.map(r => r.games.length));
+  po.tickState   = { results, revealedGames: 0, maxGames, done: false, playerWon };
+  render();
+
+  const ticker = setInterval(() => {
+    po.tickState.revealedGames++;
+    render();
+    if (po.tickState.revealedGames >= po.tickState.maxGames) {
+      clearInterval(ticker);
+      po.tickState.done = true;
+      render();
+      setTimeout(() => {
+        po.rounds.push(po.tickState.results);
+        const { results: r2, playerWon: pw } = po.tickState;
+        po.tickState = null;
+        if (!pw) {
+          po.eliminated   = true;
+          po.eliminatedIn = po.roundNames[po.currentRound];
+        } else {
+          const winners = r2.map(r => r.won ? r.teamA : r.teamB);
+          po.currentRound++;
+          if (po.currentRound === 3) {
+            po.champion = true;
+          } else {
+            po.bracket = [];
+            for (let i = 0; i < winners.length; i += 2) {
+              po.bracket.push([winners[i], winners[i + 1]]);
+            }
+          }
+        }
+        render();
+      }, 800);
+    }
+  }, 400);
+}
+

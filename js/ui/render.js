@@ -1,0 +1,860 @@
+/**
+ * js/ui/render.js — HTML Template Rendering
+ *
+ * Exports:
+ *   render()        — phase dispatcher; sets #app innerHTML then binds events
+ *   $app            — the #app DOM node (shared with events.js)
+ *   archetypeBadge  — archetype pill HTML helper
+ *   fmtDecadeShort  — "1990s" → "90s"
+ *   fmtPlayerLine   — "Jordan (Bulls 90s)"
+ *   showToast       — ephemeral bottom toast notification
+ */
+
+import {
+  S, POSITIONS, BENCH_POSITIONS, ALL_POSITIONS, TOTAL_ROUNDS,
+  COACHES, ERA_DESC, TEAM_COLORS, ARCHETYPE_STYLE, DECADES, TEAMS, pick,
+} from '../logic/state.js';
+import { calculateChemistry }                             from '../logic/chemistry.js';
+import { calculatePlayerPrice, rosterFull, availableDecades } from '../logic/draft.js';
+import { saveToTrophyRoom }                               from '../utils/storage.js';
+import { bindEvents }                                     from '../ui/events.js'; // circular — safe (called inside functions only)
+
+// ── Mount point ───────────────────────────────────────────────────────────────
+export const $app = document.getElementById('app');
+
+// ── SVG icons ─────────────────────────────────────────────────────────────────
+function iconBall(cls = '') {
+  return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="10"/>
+    <path d="M4.93 4.93a14.5 14.5 0 0 1 0 14.14"/>
+    <path d="M19.07 4.93a14.5 14.5 0 0 0 0 14.14"/>
+    <path d="M2 12h20"/><path d="M12 2v20"/>
+  </svg>`;
+}
+function iconCheck(cls = '') {
+  return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>`;
+}
+function iconPlus(cls = '') {
+  return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16m8-8H4"/></svg>`;
+}
+
+// ── Public helpers ────────────────────────────────────────────────────────────
+export function archetypeBadge(arch) {
+  if (!arch) return '';
+  const c = ARCHETYPE_STYLE[arch] || { bg: '#27272a', text: '#a1a1aa' };
+  return `<span class="inline-block text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full mt-0.5" style="background:${c.bg};color:${c.text}">${arch}</span>`;
+}
+
+export function fmtDecadeShort(decade) {
+  if (!decade) return '';
+  const m = decade.match(/(\d{2})(\d{2})s/);
+  return m ? m[2] + 's' : decade;
+}
+
+export function fmtPlayerLine(p) {
+  if (!p) return '—';
+  const era = [p.team, p.decade ? fmtDecadeShort(p.decade) : ''].filter(Boolean).join(' ');
+  return era ? `${p.name} (${era})` : p.name;
+}
+
+export function showToast(msg, duration = 2500) {
+  const el = document.createElement('div');
+  el.textContent = msg;
+  el.style.cssText =
+    'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);' +
+    'background:#0f172a;color:#fff;font-family:Fira Sans,sans-serif;font-weight:700;' +
+    'font-size:13px;padding:10px 20px;border-radius:999px;z-index:99999;' +
+    'box-shadow:0 4px 24px rgba(0,0,0,0.2);transition:opacity 0.3s;white-space:nowrap';
+  document.body.appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 350); }, duration);
+}
+
+// ── Shared chrome ─────────────────────────────────────────────────────────────
+function renderHeader(showRestart = false) {
+  const eraLabel = S.selectedEra && S.selectedEra !== 'all' ? S.selectedEra : 'All Eras';
+  const coachObj = S.coach ? COACHES.find(c => c.id === S.coach) : null;
+  return `
+  <header class="sticky top-0 z-50 w-full border-b border-border bg-white" style="box-shadow:0 1px 3px rgba(0,0,0,0.05)">
+    <div class="mx-auto flex h-12 max-w-2xl items-center justify-between px-4">
+      <div class="flex items-center gap-2 font-black text-base text-foreground">
+        ${iconBall('h-5 w-5 text-primary')}
+        <span>82-0</span>
+      </div>
+      <div class="flex items-center gap-1.5">
+        ${coachObj ? `<span class="text-[11px] px-2.5 py-1 rounded-full font-bold border border-border bg-card2 text-muted-fg">${coachObj.system}</span>` : ''}
+        <span class="text-[11px] px-2.5 py-1 rounded-full font-bold border border-border bg-card2 text-muted-fg">${eraLabel}</span>
+        ${S.phase === 'drafting' ? `<span class="text-[11px] px-2.5 py-1 rounded-full font-bold border ${S.hasMulligan ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-border bg-card2 text-muted opacity-50'}">🎲 ${S.hasMulligan ? 'Mulligan' : 'Used'}</span>` : ''}
+        <button data-action="open-leaderboard" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Personal Leaderboard">🏅</button>
+        ${showRestart ? `<button data-action="restart" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">Restart</button>` : ''}
+      </div>
+    </div>
+  </header>`;
+}
+
+function renderFooter() {
+  return `
+  <footer class="w-full py-4 text-center border-t border-border mt-auto bg-card">
+    <p class="text-xs text-muted">82-0.com is an independent fan project — not affiliated with the NBA.</p>
+  </footer>`;
+}
+
+// ── Coach selection ───────────────────────────────────────────────────────────
+function renderCoachSelect() {
+  const coachIcon = `<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`;
+  let trophies = [];
+  try { trophies = JSON.parse(localStorage.getItem('nba820_trophies') || '[]'); } catch (e) {}
+  return `
+  <div class="flex flex-col min-h-screen main-gradient">
+    ${renderHeader(false)}
+    <main class="flex-1 flex flex-col items-center px-4 pt-6 pb-8">
+      <div class="w-full max-w-2xl flex flex-col gap-4 animate-fade-up">
+        <div class="text-center pb-2">
+          <p class="text-xs font-bold uppercase tracking-widest text-primary mb-2">Step 1 of 2</p>
+          <h1 class="text-2xl font-black text-foreground mb-1.5">Choose Your Coach</h1>
+          <p class="text-sm text-muted-fg">Your coach reshapes the chemistry engine — pick a system that fits your philosophy.</p>
+        </div>
+        <div class="flex flex-col gap-3">
+          ${COACHES.map(c => `
+            <button data-action="coach-pick-${c.id}"
+              class="w-full rounded-2xl border border-border bg-card p-5 text-left cursor-pointer transition-all card-shadow hover:border-primary hover:shadow-md">
+              <div class="flex items-start gap-4">
+                <div class="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center" style="background:${c.accent}18;color:${c.accent}">
+                  ${coachIcon}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex flex-wrap items-center gap-2 mb-1">
+                    <p class="font-black text-base text-foreground">${c.name}</p>
+                    <span class="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border" style="background:${c.accent}12;color:${c.accent};border-color:${c.accent}30">${c.system}</span>
+                  </div>
+                  <p class="text-sm text-muted-fg leading-relaxed">${c.desc}</p>
+                </div>
+              </div>
+            </button>
+          `).join('')}
+        </div>
+        ${trophies.length > 0 ? `
+          <button data-action="view-trophies"
+            class="w-full py-3.5 rounded-xl font-bold text-sm border border-amber-200 bg-amber-50 text-amber-700 cursor-pointer transition-all hover:bg-amber-100 hover:border-amber-300 card-shadow">
+            🏆 View Trophy Room · ${trophies.length} Championship${trophies.length === 1 ? '' : 's'}
+          </button>` : ''}
+      </div>
+    </main>
+    ${renderFooter()}
+  </div>`;
+}
+
+// ── Era selection ─────────────────────────────────────────────────────────────
+function renderEraSelect() {
+  return `
+  <div class="flex flex-col min-h-screen main-gradient">
+    ${renderHeader(false)}
+    <main class="flex-1 flex flex-col items-center px-4 pt-6 pb-8">
+      <div class="w-full max-w-2xl flex flex-col gap-4 animate-fade-up">
+        <div class="text-center pb-2">
+          <p class="text-xs font-bold uppercase tracking-widest text-primary mb-2">Step 2 of 2</p>
+          <h1 class="text-2xl font-black text-foreground mb-1.5">Choose Your Era</h1>
+          <p class="text-sm text-muted-fg">Lock into a decade or let the draft board decide every round.</p>
+        </div>
+        <button data-action="era-all" class="era-card w-full rounded-2xl border-2 border-primary bg-primary/5 p-5 text-left cursor-pointer card-shadow">
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex-1 min-w-0">
+              <p class="text-[10px] font-bold uppercase tracking-widest text-primary mb-1">Recommended</p>
+              <p class="font-black text-xl text-foreground mb-1">All Eras</p>
+              <p class="text-sm text-muted-fg">Random decade each spin — 7-era gauntlet across every NBA generation</p>
+            </div>
+            <div class="flex-shrink-0 mt-1">${iconBall('h-8 w-8 text-primary/40')}</div>
+          </div>
+        </button>
+        <div class="grid grid-cols-2 gap-3">
+          ${DECADES.map(d => `
+            <button data-action="era-${d}" class="era-card rounded-xl border border-border bg-card p-4 text-left cursor-pointer card-shadow">
+              <p class="font-black text-xl text-foreground mb-1">${d}</p>
+              <p class="text-xs text-muted-fg leading-snug">${ERA_DESC[d]}</p>
+            </button>
+          `).join('')}
+        </div>
+      </div>
+    </main>
+    ${renderFooter()}
+  </div>`;
+}
+
+// ── Drafting screen ───────────────────────────────────────────────────────────
+function renderDrafting() {
+  const full = rosterFull();
+  return `
+  <div class="flex flex-col min-h-screen main-gradient">
+    ${renderHeader(true)}
+    <main class="flex-1 flex flex-col items-center px-4 pt-4 pb-8">
+      <div class="w-full max-w-2xl flex flex-col gap-4">
+        ${renderRoundBar()}
+        ${renderCapBar()}
+        ${full ? renderSimulateCard() : renderSlotMachine()}
+        ${S.spinState === 'done' ? renderDraftBoard() : ''}
+        ${renderChemDashboard()}
+        ${renderRoster()}
+      </div>
+    </main>
+  </div>`;
+}
+
+function renderRoundBar() {
+  const filled         = ALL_POSITIONS.filter(p => S.roster[p]).length;
+  const startersFilled = POSITIONS.filter(p => S.roster[p]).length;
+  const benchFilled    = BENCH_POSITIONS.filter(p => S.roster[p]).length;
+  const roleLabel      = S.round < 5 ? `Starters ${startersFilled}/5` : `Bench ${benchFilled}/3`;
+  return `
+  <div class="flex items-center justify-between py-1">
+    <div>
+      <p class="text-sm font-bold text-foreground">Round ${S.round + 1} <span class="text-muted-fg font-normal">of ${TOTAL_ROUNDS}</span></p>
+      <p class="text-xs text-muted-fg mt-0.5">${filled}/8 spots &nbsp;·&nbsp; ${roleLabel}</p>
+    </div>
+    <div class="flex gap-1.5 items-center">
+      ${Array.from({ length: TOTAL_ROUNDS }, (_, i) => {
+        const isStarter = i < 5;
+        const done   = i < S.round;
+        const active = i === S.round;
+        const color  = done || active ? (isStarter ? '#2563eb' : '#64748b') : '#e2e8f0';
+        return `<div class="rounded-full transition-all" style="width:${active ? 9 : 7}px;height:${active ? 9 : 7}px;background:${color};border:${active ? '2px solid ' + (isStarter ? '#2563eb' : '#64748b') : 'none'}"></div>`;
+      }).join('')}
+    </div>
+  </div>`;
+}
+
+function renderCapBar() {
+  const spent    = S.currentPayroll;
+  const cap      = S.salaryCap;
+  const pct      = Math.min(100, Math.round((spent / cap) * 100));
+  const isTight  = spent >= 120;
+  const barColor = spent >= 140 ? '#dc2626' : spent >= 120 ? '#d97706' : '#16a34a';
+  return `
+  <div class="rounded-xl border border-border bg-card px-4 py-3 card-shadow">
+    <div class="flex items-center justify-between mb-2">
+      <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg">Salary Cap</p>
+      <p class="text-xs font-bold ${isTight ? 'text-amber-600' : 'text-foreground'}">$${spent}M <span class="text-muted-fg font-normal">/ $${cap}M</span></p>
+    </div>
+    <div class="h-1.5 rounded-full overflow-hidden bg-border">
+      <div class="h-full rounded-full transition-all stat-bar-fill" style="width:${pct}%;background:${barColor}"></div>
+    </div>
+    ${isTight ? `<p class="text-[10px] mt-1.5 font-medium text-amber-600">⚠ Cap space is tight — choose contracts wisely</p>` : ''}
+  </div>`;
+}
+
+function renderSlotMachine() {
+  const isDone    = S.spinState === 'done';
+  const isSpin    = S.spinState === 'spinning';
+  const tc        = isDone ? TEAM_COLORS[S.currentSpin.team] : null;
+  const eraLocked = S.selectedEra && S.selectedEra !== 'all';
+  const decPool   = availableDecades();
+  return `
+  <div class="rounded-2xl border border-border bg-card p-4 animate-scale-in card-shadow">
+    <div class="flex items-center gap-2 mb-3">
+      <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Draft Board — Round ${S.round + 1}</p>
+      <div class="ml-auto flex gap-1.5">
+        ${isDone && S.teamSkips > 0 ? `<button data-action="skip-team" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">Skip Team (${S.teamSkips})</button>` : ''}
+        ${isDone && S.decadeSkips > 0 && !eraLocked ? `<button data-action="skip-decade" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">Skip Era (${S.decadeSkips})</button>` : ''}
+      </div>
+    </div>
+    <div class="grid grid-cols-2 gap-3 mb-4 ${isSpin ? 'slot-spinning' : ''}">
+      <div class="rounded-xl border-2 p-4 flex flex-col items-center justify-center min-h-[88px] transition-all"
+        style="background:${isDone && tc ? tc.bg + '12' : '#f1f5f9'};border-color:${isDone && tc ? tc.bg + '88' : '#e2e8f0'}">
+        <span class="text-[10px] font-bold uppercase tracking-widest mb-2 text-muted-fg">TEAM</span>
+        <span class="slot-badge text-xl font-black text-foreground" id="slot-team">
+          ${isDone ? S.currentSpin.team : isSpin ? pick(TEAMS) : '—'}
+        </span>
+        ${isDone ? `<span class="mt-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary text-white uppercase tracking-wider">LOCKED</span>` : ''}
+      </div>
+      <div class="rounded-xl border-2 p-4 flex flex-col items-center justify-center min-h-[88px] transition-all"
+        style="background:${isDone ? '#eff6ff' : '#f1f5f9'};border-color:${isDone ? '#93c5fd' : '#e2e8f0'}">
+        <span class="text-[10px] font-bold uppercase tracking-widest mb-2 text-muted-fg">ERA</span>
+        <span class="slot-badge text-xl font-black text-foreground" id="slot-decade">
+          ${isDone ? S.currentSpin.decade : isSpin ? (eraLocked ? S.selectedEra : pick(decPool.length ? decPool : DECADES)) : '—'}
+        </span>
+        ${isDone ? `<span class="mt-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary text-white uppercase tracking-wider">LOCKED</span>` : ''}
+      </div>
+    </div>
+    ${S.spinState === 'idle' ? `
+      <button data-action="spin" class="w-full py-3 rounded-xl font-black text-sm uppercase tracking-widest bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer animate-pulse-glow">
+        SPIN THE DRAFT BOARD
+      </button>
+    ` : S.spinState === 'spinning' ? `
+      <button disabled class="w-full py-3 rounded-xl font-black text-sm uppercase tracking-widest bg-primary/70 text-white cursor-not-allowed">
+        SPINNING...
+      </button>
+    ` : `
+      <p class="text-center text-xs text-muted-fg py-1">Select a player below, then tap a roster slot to place them</p>
+      ${S.hasMulligan ? `
+        <button data-action="use-mulligan"
+          class="mt-2 w-full py-2.5 rounded-xl font-bold text-sm border-2 border-dashed border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-all cursor-pointer">
+          🎲 Use Mulligan <span class="font-normal text-emerald-500 text-xs">(1 Remaining)</span>
+        </button>
+      ` : ''}
+    `}
+  </div>`;
+}
+
+// ── Draft board (3-player pick) ───────────────────────────────────────────────
+function renderDraftBoard() {
+  if (!S.draftBoard || !S.draftBoard.length) return '';
+  const team      = S.currentSpin?.team;
+  const decade    = S.currentSpin?.decade;
+  const tc        = team ? TEAM_COLORS[team] : null;
+  const remaining = S.salaryCap - S.currentPayroll;
+  return `
+  <div class="animate-fade-up">
+    <div class="flex items-center gap-2 mb-3">
+      ${tc ? `<span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${tc.bg}"></span>` : ''}
+      <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">${team} · ${decade}</p>
+      <span class="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700">$${remaining}M cap space</span>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      ${S.draftBoard.map((p, i) => renderDraftCard(p, i)).join('')}
+    </div>
+  </div>`;
+}
+
+function renderDraftCard(p, index) {
+  const price      = calculatePlayerPrice(p);
+  const canAfford  = S.currentPayroll + price <= S.salaryCap;
+  const isSelected = S.selectedPlayer?.id === p.id;
+  const cardBorder = isSelected ? '#2563eb' : '#e2e8f0';
+  const cardBg     = isSelected ? '#eff6ff' : '#ffffff';
+  return `
+  <div class="rounded-xl border-2 flex flex-col overflow-hidden transition-all card-shadow"
+    style="border-color:${cardBorder};background:${cardBg}">
+    <div class="p-3 flex-1">
+      <div class="flex items-center gap-1.5 mb-2">
+        <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full border border-border bg-card2 text-muted-fg">${p.pos}</span>
+        ${archetypeBadge(p.archetype)}
+        <span class="ml-auto text-sm font-black" style="color:${canAfford ? '#16a34a' : '#dc2626'}">$${price}M</span>
+      </div>
+      <p class="font-bold text-sm text-foreground leading-tight mb-1.5">${p.name}</p>
+      <div class="flex flex-wrap gap-x-2 gap-y-0.5">
+        ${[['PPG', p.ppg], ['RPG', p.rpg], ['APG', p.apg], ['SPG', p.spg], ['BPG', p.bpg]].map(([l, v]) =>
+          `<span class="text-[10px] text-muted-fg"><span class="font-semibold text-foreground">${v}</span> ${l}</span>`
+        ).join('')}
+      </div>
+      ${p.traits && p.traits.length ? `
+        <div class="flex flex-wrap gap-1 mt-1.5">
+          ${p.traits.map(t => `<span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">${t}</span>`).join('')}
+        </div>` : ''}
+    </div>
+    <div class="px-3 pb-3">
+      ${canAfford
+        ? `<button data-action="draft-pick-${index}"
+            class="w-full py-2 rounded-lg font-bold text-xs transition-all cursor-pointer"
+            style="background:${isSelected ? '#2563eb' : '#eff6ff'};color:${isSelected ? '#fff' : '#2563eb'};border:1.5px solid ${isSelected ? '#2563eb' : '#bfdbfe'}">
+            ${isSelected ? '✓ Selected — Tap a Roster Slot' : 'Draft Player'}
+           </button>`
+        : `<button disabled class="w-full py-2 rounded-lg font-bold text-xs cursor-not-allowed bg-card2 text-muted border border-border">Over Cap</button>`
+      }
+    </div>
+  </div>`;
+}
+
+// ── Roster ────────────────────────────────────────────────────────────────────
+function renderRoster() {
+  const hasSelected = !!S.selectedPlayer;
+  const filledCount = ALL_POSITIONS.filter(p => S.roster[p]).length;
+  return `
+  <div>
+    <div class="flex items-center justify-between mb-2">
+      <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Your Roster <span class="text-primary">${filledCount}/8</span></p>
+      ${hasSelected ? `<p class="text-xs text-primary animate-fade-up font-medium">Tap a slot to place ${S.selectedPlayer.name}</p>` : ''}
+    </div>
+    <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg/50 mb-1.5">Starters</p>
+    <div class="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-3">
+      ${POSITIONS.map(pos => renderRosterSlot(pos, hasSelected, false)).join('')}
+    </div>
+    <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg/50 mb-1.5">Bench</p>
+    <div class="grid grid-cols-3 gap-2">
+      ${BENCH_POSITIONS.map(pos => renderRosterSlot(pos, hasSelected, true)).join('')}
+    </div>
+  </div>`;
+}
+
+function renderRosterSlot(pos, canPlace, isBench) {
+  const p       = S.roster[pos];
+  const canDrop = canPlace && !p;
+  const canSwap = canPlace && !!p;
+  const label   = isBench ? 'BN' : pos;
+  const filledBorderColor = isBench ? '#cbd5e1' : '#93c5fd';
+  const filledBorderTop   = isBench ? '3px solid #94a3b8' : '3px solid #2563eb';
+  const filledLabelColor  = isBench ? '#64748b' : '#2563eb';
+  if (p) {
+    return `
+    <div data-action="swap-${pos}"
+      class="rounded-xl border bg-white p-2 flex flex-col items-center gap-0.5 text-center overflow-hidden transition-all card-shadow ${canSwap ? 'cursor-pointer hover:border-amber-400' : ''}"
+      style="border-color:${filledBorderColor};border-top:${filledBorderTop}" title="${canSwap ? 'Tap to replace' : p.name}">
+      <span class="text-[10px] font-black uppercase leading-none" style="color:${filledLabelColor}">${label}</span>
+      <span class="text-[11px] font-bold text-foreground leading-tight w-full text-center truncate px-0.5">${p.name.split(' ').pop()}</span>
+      <span class="text-[10px] text-muted-fg leading-none">${p.ppg}pt</span>
+    </div>`;
+  }
+  return `
+  <div data-action="${canDrop ? 'place-' + pos : ''}"
+    class="rounded-xl border-2 border-dashed p-2 flex flex-col items-center gap-1 text-center transition-all ${canDrop ? 'slot-empty droppable' : ''}"
+    style="background:${canDrop ? '#eff6ff' : '#f8fafc'};border-color:${canDrop ? '#93c5fd' : '#cbd5e1'}">
+    <span class="text-[10px] font-black uppercase" style="color:${canDrop ? '#2563eb' : '#94a3b8'}">${label}</span>
+    <span class="text-xs" style="color:${canDrop ? '#60a5fa' : '#cbd5e1'}">${canDrop ? 'Place' : 'Empty'}</span>
+  </div>`;
+}
+
+// ── Live Chemistry Dashboard ──────────────────────────────────────────────────
+function renderChemDashboard() {
+  const starters = POSITIONS.map(p => S.roster[p]).filter(Boolean);
+  const bench    = BENCH_POSITIONS.map(p => S.roster[p]).filter(Boolean);
+  if (starters.length === 0 && bench.length === 0) {
+    return `
+    <div class="rounded-2xl border border-border bg-card p-4 card-shadow">
+      <p class="text-xs font-bold uppercase tracking-widest text-muted-fg mb-2">Live Chemistry</p>
+      <p class="text-xs text-muted-fg">Draft your first player to see team chemistry.</p>
+    </div>`;
+  }
+  const { chemScore, chemReport } = calculateChemistry(starters, bench);
+  const scoreColor = chemScore >= 70 ? '#16a34a' : chemScore >= 45 ? '#d97706' : '#dc2626';
+  const scoreBg    = chemScore >= 70 ? '#f0fdf4'  : chemScore >= 45 ? '#fffbeb'  : '#fef2f2';
+  const scoreLabel = chemScore >= 70 ? 'Strong'   : chemScore >= 45 ? 'Neutral'  : 'Weak';
+  return `
+  <div class="rounded-2xl border border-border bg-card p-4 card-shadow">
+    <div class="flex items-center justify-between mb-3">
+      <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Live Chemistry</p>
+      <span class="text-xs font-bold px-2 py-0.5 rounded-full border" style="background:${scoreBg};color:${scoreColor};border-color:${scoreColor}30">${scoreLabel} · ${chemScore}%</span>
+    </div>
+    <div class="flex items-center gap-3 mb-3">
+      <div class="flex-1 h-2 rounded-full overflow-hidden bg-border">
+        <div class="h-full rounded-full stat-bar-fill" style="width:${chemScore}%;background:${scoreColor}"></div>
+      </div>
+    </div>
+    ${chemReport.length > 0 ? `
+    <div class="flex flex-col gap-1.5">
+      ${chemReport.map(item => {
+        const isGood = item.startsWith('🟢');
+        return `<div class="rounded-lg px-2.5 py-1.5 text-xs font-medium border"
+          style="background:${isGood ? '#f0fdf4' : '#fef2f2'};color:${isGood ? '#15803d' : '#dc2626'};border-color:${isGood ? '#bbf7d0' : '#fecaca'}">${item}</div>`;
+      }).join('')}
+    </div>` : `<p class="text-xs text-muted-fg">No synergies yet — keep drafting.</p>`}
+  </div>`;
+}
+
+// ── Simulate card ─────────────────────────────────────────────────────────────
+function renderSimulateCard() {
+  return `
+  <div class="rounded-2xl border-2 border-primary bg-white p-5 text-center animate-scale-in card-shadow">
+    <div class="flex justify-center mb-3">${iconBall('h-10 w-10 text-primary')}</div>
+    <p class="font-black text-lg text-foreground mb-1">Roster Complete</p>
+    <p class="text-sm text-muted-fg mb-5">All 8 spots locked in — starters and bench. Time to simulate.</p>
+    <button data-action="simulate" class="w-full py-3.5 rounded-xl font-black text-sm uppercase tracking-widest bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer animate-pulse-glow">
+      Simulate 82 Games →
+    </button>
+  </div>`;
+}
+
+// ── Results screen ────────────────────────────────────────────────────────────
+function renderResults() {
+  const r          = S.result;
+  const isPerfect  = r.wins === 82;
+  const isHistoric = r.wins >= 73;
+  const isElite    = r.wins >= 65;
+  const isPlayoff  = r.wins >= 50;
+
+  let label, labelColor, labelBg, emoji;
+  if (isPerfect)       { label = 'PERFECT SEASON';        labelColor = '#92400e'; labelBg = '#fef3c7'; emoji = '🏆'; }
+  else if (isHistoric) { label = 'Historic Season';        labelColor = '#b45309'; labelBg = '#fffbeb'; emoji = '🔥'; }
+  else if (isElite)    { label = 'Championship Contender'; labelColor = '#166534'; labelBg = '#f0fdf4'; emoji = '⭐'; }
+  else if (isPlayoff)  { label = 'Playoff Contender';      labelColor = '#1e40af'; labelBg = '#eff6ff'; emoji = '✅'; }
+  else                 { label = 'Rebuild Required';       labelColor = '#991b1b'; labelBg = '#fef2f2'; emoji = '📋'; }
+
+  const winsColor = isPerfect || isHistoric ? '#d97706' : isElite ? '#16a34a' : isPlayoff ? '#2563eb' : '#dc2626';
+
+  const maxes = { ppg: 280, rpg: 120, apg: 75, spg: 22, bpg: 18 };
+  const statBar = (key, lbl, val) => {
+    const pct   = Math.min(100, (val / maxes[key]) * 100);
+    const color = pct >= 70 ? '#2563eb' : pct >= 45 ? '#d97706' : '#94a3b8';
+    return `
+    <div>
+      <div class="flex justify-between text-xs mb-1.5">
+        <span class="text-muted-fg font-medium">${lbl}</span>
+        <span class="font-bold text-foreground">${val.toFixed(1)}</span>
+      </div>
+      <div class="h-1.5 rounded-full bg-border overflow-hidden">
+        <div class="h-full rounded-full stat-bar-fill" style="width:${pct}%;background:${color}"></div>
+      </div>
+    </div>`;
+  };
+
+  const rosterRow = (p, posLabel, isStarter) => {
+    if (!p) return '';
+    return `
+    <div class="flex items-center gap-3 py-2.5 border-b border-border last:border-0">
+      <span class="text-[10px] font-black w-7 flex-shrink-0 ${isStarter ? 'text-primary' : 'text-muted-fg'}">${posLabel}</span>
+      <div class="flex-1 min-w-0">
+        <p class="font-semibold text-sm text-foreground truncate">${p.name}</p>
+        <div class="flex items-center gap-1.5 mt-0.5">
+          <p class="text-xs text-muted-fg">${p.team || ''} ${p.decade ? fmtDecadeShort(p.decade) : ''}</p>
+          ${p.archetype ? archetypeBadge(p.archetype) : ''}
+        </div>
+      </div>
+      <div class="flex gap-3 text-xs text-muted-fg flex-shrink-0">
+        <span><span class="font-semibold text-foreground">${p.ppg}</span> PPG</span>
+        <span><span class="font-semibold text-foreground">${p.rpg}</span> RPG</span>
+        <span class="hidden sm:inline"><span class="font-semibold text-foreground">${p.apg}</span> APG</span>
+      </div>
+    </div>`;
+  };
+
+  const chemReportHtml = r.chemReport && r.chemReport.length > 0
+    ? r.chemReport.map(item => {
+        const isGood = item.startsWith('🟢');
+        return `<div class="rounded-lg px-3 py-2 text-sm font-medium border"
+          style="background:${isGood ? '#f0fdf4' : '#fef2f2'};border-color:${isGood ? '#bbf7d0' : '#fecaca'};color:${isGood ? '#15803d' : '#dc2626'}">${item}</div>`;
+      }).join('')
+    : `<p class="text-sm text-muted-fg py-1">No synergies or penalties — balanced roster.</p>`;
+
+  const chemScoreBadge = r.chemScore !== undefined ? (() => {
+    const sc      = r.chemScore;
+    const scColor = sc >= 70 ? '#16a34a' : sc >= 45 ? '#d97706' : '#dc2626';
+    const scBg    = sc >= 70 ? '#f0fdf4'  : sc >= 45 ? '#fffbeb'  : '#fef2f2';
+    const scLabel = sc >= 70 ? 'Strong'   : sc >= 45 ? 'Neutral'  : 'Weak';
+    return `<span class="text-xs font-bold px-2 py-0.5 rounded-full border" style="background:${scBg};color:${scColor};border-color:${scColor}30">${scLabel} · ${sc}%</span>`;
+  })() : '';
+
+  return `
+  <div class="flex flex-col min-h-screen main-gradient">
+    ${renderHeader(false)}
+    <main class="flex-1 flex flex-col items-center px-4 py-6">
+      <div class="w-full max-w-2xl flex flex-col gap-4 animate-fade-up">
+        <div class="rounded-2xl border-2 bg-white p-6 text-center card-shadow ${isPerfect ? 'perfect-glow' : ''}"
+          style="border-color:${isPerfect ? '#fcd34d' : '#e2e8f0'}">
+          <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg mb-3">Season Record</p>
+          <div class="text-7xl sm:text-8xl font-black mb-3 flex items-center justify-center gap-3 leading-none">
+            <span style="color:${winsColor}">${r.wins}</span>
+            <span class="text-muted text-4xl font-light">–</span>
+            <span class="text-muted-fg">${r.losses}</span>
+          </div>
+          <span class="inline-block text-sm font-bold px-4 py-1.5 rounded-full mb-2" style="background:${labelBg};color:${labelColor}">${emoji} ${label}</span>
+          <p class="text-xs text-muted-fg">Win% ${r.winPct}% &nbsp;·&nbsp; Strength Index ${r.strength}</p>
+        </div>
+        <div class="rounded-2xl border border-border bg-white p-4 card-shadow">
+          <div class="flex items-center justify-between mb-3">
+            <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Chemistry Report</p>
+            ${chemScoreBadge}
+          </div>
+          <div class="flex flex-col gap-2">${chemReportHtml}</div>
+        </div>
+        <div class="rounded-2xl border border-border bg-white p-4 card-shadow">
+          <p class="text-xs font-bold uppercase tracking-widest text-muted-fg mb-4">Team Statistics</p>
+          <div class="flex flex-col gap-3">
+            ${statBar('ppg', 'Points Per Game',   r.totals.ppg)}
+            ${statBar('rpg', 'Rebounds Per Game', r.totals.rpg)}
+            ${statBar('apg', 'Assists Per Game',  r.totals.apg)}
+            ${statBar('spg', 'Steals Per Game',   r.totals.spg)}
+            ${statBar('bpg', 'Blocks Per Game',   r.totals.bpg)}
+          </div>
+        </div>
+        <div class="rounded-2xl border border-border bg-white p-4 card-shadow">
+          <p class="text-xs font-bold uppercase tracking-widest text-muted-fg mb-3">Final Roster</p>
+          <p class="text-[10px] font-bold uppercase tracking-wider text-primary mb-1">Starters</p>
+          <div class="flex flex-col mb-4">
+            ${POSITIONS.map(pos => rosterRow(S.roster[pos], pos, true)).join('')}
+          </div>
+          <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg mb-1">Bench</p>
+          <div class="flex flex-col">
+            ${BENCH_POSITIONS.map(pos => rosterRow(S.roster[pos], S.roster[pos]?.pos || 'BN', false)).join('')}
+          </div>
+        </div>
+        <div class="flex flex-col gap-3">
+          <button data-action="advance-to-playoffs" class="py-3.5 rounded-xl font-bold text-sm bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer text-center card-shadow">
+            Advance to Playoffs 🏆
+          </button>
+          <div class="grid grid-cols-2 gap-3">
+            <button data-action="restart" class="py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer card-shadow">
+              Build Another
+            </button>
+            <button data-action="share" class="py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer card-shadow">
+              Share Result
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+    ${renderFooter()}
+  </div>`;
+}
+
+// ── Playoffs ──────────────────────────────────────────────────────────────────
+function renderPlayoffs() {
+  const po = S.playoffs;
+  const r  = S.result;
+  if (po.champion)   return renderChampionship();
+  if (po.eliminated) return renderEliminated();
+
+  const roundName       = po.roundNames[po.currentRound];
+  const completedRounds = po.rounds;
+
+  const renderTeamCard = (team, seriesScore = null, won = null) => {
+    const isPlayer = team.isPlayer;
+    const badge    = won === true ? '✅' : won === false ? '❌' : '';
+    return `
+      <div class="flex items-center gap-2 px-3 py-2 rounded-lg border ${isPlayer ? 'border-primary' : 'border-border'} ${isPlayer ? 'bg-blue-50' : 'bg-white'} card-shadow">
+        <span class="text-xs font-bold ${isPlayer ? 'text-primary' : 'text-foreground'} flex-1 truncate">${isPlayer ? '⭐ ' : ''}${team.name}</span>
+        ${seriesScore !== null ? `<span class="text-xs font-mono font-bold text-muted-fg">${seriesScore}</span>` : ''}
+        ${badge ? `<span class="text-xs">${badge}</span>` : ''}
+      </div>`;
+  };
+
+  const renderMatchup = (teamA, teamB, seriesA = null, seriesB = null) => {
+    const wonA = seriesA !== null ? (seriesA > seriesB) : null;
+    const wonB = seriesB !== null ? (seriesB > seriesA) : null;
+    return `
+      <div class="flex flex-col gap-1">
+        ${renderTeamCard(teamA, seriesA, wonA)}
+        <div class="text-center text-[10px] text-muted-fg font-bold">vs</div>
+        ${renderTeamCard(teamB, seriesB, wonB)}
+      </div>`;
+  };
+
+  let bracketHTML = '';
+  const ts = po.tickState;
+
+  for (let ri = 0; ri < completedRounds.length; ri++) {
+    bracketHTML += `
+      <div class="mb-4">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg mb-2">${po.roundNames[ri]}</p>
+        <div class="grid grid-cols-2 gap-3">
+          ${completedRounds[ri].map(sr => renderMatchup(sr.teamA, sr.teamB, sr.playerWins, sr.oppWins)).join('')}
+        </div>
+      </div>`;
+  }
+
+  if (ts) {
+    const renderTickingMatchup = (sr) => {
+      const isPlayerSeries = sr.teamA.isPlayer || sr.teamB.isPlayer;
+      const revealedGames  = sr.games.slice(0, ts.revealedGames);
+      const pending        = !ts.done && revealedGames.length < sr.games.length;
+      const gameBubbles    = revealedGames.map(g =>
+        `<span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-[10px] font-black ${g === 'W' ? 'bg-green-100 text-green-700 border border-green-300' : 'bg-red-100 text-red-600 border border-red-200'}">${g}</span>`
+      ).join('');
+      const pendingDot = pending
+        ? `<span class="inline-flex items-center justify-center w-6 h-6 rounded-full border-2 border-dashed border-border text-muted-fg text-[10px] animate-pulse">·</span>`
+        : '';
+      const pWins = revealedGames.filter(g => g === 'W').length;
+      const oWins = revealedGames.filter(g => g === 'L').length;
+      return `
+        <div class="flex flex-col gap-2 p-3 rounded-xl border ${isPlayerSeries ? 'border-primary bg-blue-50' : 'border-border bg-white'} card-shadow">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-xs font-bold ${sr.teamA.isPlayer ? 'text-primary' : 'text-foreground'} truncate">${sr.teamA.isPlayer ? '⭐ ' : ''}${sr.teamA.name}</span>
+            <span class="text-xs font-mono text-foreground font-black">${pWins}–${oWins}</span>
+            <span class="text-xs font-bold ${sr.teamB.isPlayer ? 'text-primary' : 'text-foreground'} truncate text-right">${sr.teamB.isPlayer ? '⭐ ' : ''}${sr.teamB.name}</span>
+          </div>
+          <div class="flex flex-wrap gap-1">${gameBubbles}${pendingDot}</div>
+        </div>`;
+    };
+    bracketHTML += `
+      <div class="mb-4">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-primary mb-2">${roundName} — Simulating...</p>
+        <div class="flex flex-col gap-3">${ts.results.map(sr => renderTickingMatchup(sr)).join('')}</div>
+      </div>`;
+  } else {
+    bracketHTML += `
+      <div class="mb-4">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-primary mb-2">${roundName} — Up Next</p>
+        <div class="grid grid-cols-2 gap-3">
+          ${po.bracket.map(([a, b]) => renderMatchup(a, b)).join('')}
+        </div>
+      </div>`;
+  }
+
+  return `
+  <div class="min-h-screen flex flex-col main-gradient">
+    ${renderHeader(false)}
+    <main class="flex-1 flex flex-col items-center px-4 py-8">
+      <div class="w-full max-w-lg flex flex-col gap-5">
+        <div class="text-center">
+          <p class="text-xs font-bold uppercase tracking-widest text-primary mb-1">NBA Playoffs</p>
+          <h1 class="text-2xl font-black text-foreground">Playoff Bracket</h1>
+          <p class="text-sm text-muted-fg mt-1">Regular Season: ${r.wins}–${r.losses} · Seed #${po.playerSeed}</p>
+        </div>
+        <div class="rounded-2xl border border-border bg-white p-4 card-shadow">${bracketHTML}</div>
+        <button data-action="sim-next-round" ${ts ? 'disabled' : ''}
+          class="py-4 rounded-xl font-black text-base transition-all text-center card-shadow ${ts ? 'bg-card2 border border-border text-muted-fg cursor-not-allowed' : 'bg-primary text-white hover:bg-blue-700 cursor-pointer'}">
+          ${ts ? 'Simulating...' : `Simulate ${roundName} →`}
+        </button>
+        <button data-action="draft-new-roster"
+          class="py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer text-center card-shadow">
+          Draft New Roster
+        </button>
+      </div>
+    </main>
+    ${renderFooter()}
+  </div>`;
+}
+
+function renderChampionship() {
+  const po = S.playoffs;
+  const r  = S.result;
+  if (!po.hasSavedTrophy) {
+    po.hasSavedTrophy = true;
+    saveToTrophyRoom();
+    setTimeout(() => {
+      if (typeof confetti !== 'undefined') {
+        confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#f97316', '#eab308', '#ffffff'] });
+      }
+    }, 200);
+  }
+  const finalsResult = po.rounds[po.rounds.length - 1].find(sr => sr.teamA.isPlayer || sr.teamB.isPlayer);
+  const oppTeam = finalsResult.teamA.isPlayer ? finalsResult.teamB : finalsResult.teamA;
+  const score   = finalsResult.teamA.isPlayer
+    ? `${finalsResult.playerWins}–${finalsResult.oppWins}`
+    : `${finalsResult.oppWins}–${finalsResult.playerWins}`;
+  const roundSummary = po.rounds.map((round, i) => {
+    const sr = round.find(s => s.teamA.isPlayer || s.teamB.isPlayer);
+    if (!sr) return '';
+    const opp = sr.teamA.isPlayer ? sr.teamB : sr.teamA;
+    const w   = sr.teamA.isPlayer ? sr.playerWins : sr.oppWins;
+    const l   = sr.teamA.isPlayer ? sr.oppWins   : sr.playerWins;
+    return `<p class="text-sm text-muted-fg">${po.roundNames[i]}: <span class="text-foreground font-semibold">def. ${opp.name} ${w}–${l}</span></p>`;
+  }).join('');
+  return `
+  <div class="min-h-screen flex flex-col main-gradient">
+    ${renderHeader(false)}
+    <main class="flex-1 flex flex-col items-center justify-center px-4 py-8">
+      <div class="w-full max-w-lg flex flex-col gap-5 items-center text-center animate-fade-up">
+        <div class="text-6xl mb-2">🏆</div>
+        <h1 class="text-3xl font-black text-primary">WORLD CHAMPIONS!</h1>
+        <p class="text-base text-foreground">Your team conquered the NBA Playoffs!</p>
+        <div class="rounded-2xl border-2 border-amber-300 bg-amber-50 p-5 w-full text-left card-shadow">
+          <p class="text-xs font-bold uppercase tracking-widest text-amber-600 mb-3">Championship Run</p>
+          ${roundSummary}
+          <p class="text-base font-black text-amber-700 mt-3">NBA Finals: def. ${oppTeam.name} ${score}</p>
+          <p class="text-sm text-muted-fg mt-2">Regular Season: ${r.wins}–${r.losses} · Seed #${po.playerSeed}</p>
+        </div>
+        <div class="flex flex-col gap-3 w-full">
+          <button data-action="share" class="py-3 rounded-xl font-bold text-sm bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer card-shadow">Share Championship 🏆</button>
+          <button data-action="draft-new-roster" class="py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer card-shadow">Draft New Roster</button>
+        </div>
+      </div>
+    </main>
+    ${renderFooter()}
+  </div>`;
+}
+
+function renderEliminated() {
+  const po = S.playoffs;
+  const r  = S.result;
+  const lastRound = po.rounds[po.rounds.length - 1];
+  const elimSr    = lastRound.find(sr => sr.teamA.isPlayer || sr.teamB.isPlayer);
+  const roundSummary = po.rounds.map((round, i) => {
+    const sr  = round.find(s => s.teamA.isPlayer || s.teamB.isPlayer);
+    if (!sr) return '';
+    const opp = sr.teamA.isPlayer ? sr.teamB : sr.teamA;
+    const w   = sr.teamA.isPlayer ? sr.playerWins : sr.oppWins;
+    const l   = sr.teamA.isPlayer ? sr.oppWins   : sr.playerWins;
+    const won = w > l;
+    return `<p class="text-sm ${won ? 'text-muted-fg' : 'text-red-500'}">${po.roundNames[i]}: <span class="${won ? 'text-foreground' : 'text-red-600'} font-semibold">${won ? `def. ${opp.name} ${w}–${l}` : `lost to ${opp.name} ${w}–${l}`}</span></p>`;
+  }).join('');
+  return `
+  <div class="min-h-screen flex flex-col main-gradient">
+    ${renderHeader(false)}
+    <main class="flex-1 flex flex-col items-center justify-center px-4 py-8">
+      <div class="w-full max-w-lg flex flex-col gap-5 items-center text-center animate-fade-up">
+        <div class="text-5xl mb-2">💔</div>
+        <h1 class="text-2xl font-black text-foreground">Eliminated</h1>
+        <p class="text-sm text-muted-fg">in the <span class="text-foreground font-semibold">${po.eliminatedIn}</span></p>
+        <div class="rounded-2xl border border-border bg-white p-5 w-full text-left card-shadow">
+          <p class="text-xs font-bold uppercase tracking-widest text-muted-fg mb-3">Playoff Run</p>
+          ${roundSummary}
+          <p class="text-sm text-muted-fg mt-3">Regular Season: ${r.wins}–${r.losses} · Seed #${po.playerSeed}</p>
+        </div>
+        <div class="flex flex-col gap-3 w-full">
+          <button data-action="draft-new-roster" class="py-3 rounded-xl font-bold text-sm bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer card-shadow">Draft New Roster</button>
+          <button data-action="share" class="py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer card-shadow">Share Result</button>
+        </div>
+      </div>
+    </main>
+    ${renderFooter()}
+  </div>`;
+}
+
+// ── Trophy Room ───────────────────────────────────────────────────────────────
+function renderTrophyRoom() {
+  let trophies = [];
+  try { trophies = JSON.parse(localStorage.getItem('nba820_trophies') || '[]'); } catch (e) {}
+  const emptyState = `
+    <div class="flex flex-col items-center justify-center gap-4 py-16 text-center">
+      <div class="text-5xl">🏀</div>
+      <h2 class="text-xl font-black text-foreground">No Championships Yet</h2>
+      <p class="text-sm text-muted-fg max-w-xs">Draft your first legendary roster and win the NBA Finals to enshrine it here.</p>
+    </div>`;
+  const trophyCards = trophies.map(t => {
+    const isPerfect = t.wins === 82 && t.losses === 0;
+    const cb  = isPerfect ? 'border-amber-300' : 'border-border';
+    const cbg = isPerfect ? 'bg-amber-50' : 'bg-white';
+    const cgl = isPerfect ? 'style="box-shadow:0 2px 16px rgba(217,119,6,0.15)"' : 'class="card-shadow"';
+    return `
+      <div class="rounded-2xl border p-4 flex flex-col gap-3 ${cb} ${cbg}" ${cgl}>
+        ${isPerfect ? `<p class="text-[10px] font-black uppercase tracking-widest text-amber-600">⭐ Perfect Season — 82-0</p>` : ''}
+        <div class="flex items-start justify-between gap-2">
+          <div class="min-w-0">
+            <p class="font-black text-base ${isPerfect ? 'text-amber-700' : 'text-primary'} truncate">${t.coachName}</p>
+            <p class="text-xs text-muted-fg">${t.coachSystem}</p>
+          </div>
+          <div class="text-right flex-shrink-0">
+            <p class="font-black text-lg ${isPerfect ? 'text-amber-700' : 'text-foreground'}">${t.wins}–${t.losses}</p>
+            <p class="text-xs text-muted-fg">${t.date}</p>
+          </div>
+        </div>
+        <div class="border-t ${isPerfect ? 'border-amber-200' : 'border-border'} pt-3 flex flex-col gap-2">
+          <div>
+            <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg mb-1">Starting 5</p>
+            <p class="text-xs text-foreground leading-relaxed">${t.starters}</p>
+          </div>
+          <div>
+            <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg mb-1">Bench</p>
+            <p class="text-xs text-foreground leading-relaxed">${t.bench}</p>
+          </div>
+        </div>
+        <div class="flex items-center justify-between border-t ${isPerfect ? 'border-amber-200' : 'border-border'} pt-2.5">
+          <p class="text-xs text-muted-fg">Chemistry</p>
+          <p class="text-xs font-bold ${isPerfect ? 'text-amber-600' : 'text-primary'}">${t.chemScore}%</p>
+        </div>
+        ${t.payroll !== undefined ? `
+        <div class="flex items-center justify-between">
+          <p class="text-xs text-muted-fg">Total Salary</p>
+          <p class="text-xs font-semibold text-muted-fg">$${t.payroll}M</p>
+        </div>` : ''}
+      </div>`;
+  }).join('');
+  return `
+  <div class="flex flex-col min-h-screen main-gradient">
+    ${renderHeader(false)}
+    <main class="flex-1 flex flex-col items-center px-4 pt-6 pb-8">
+      <div class="w-full max-w-2xl flex flex-col gap-5 animate-fade-up">
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-widest text-amber-600 mb-1">Hall of Fame</p>
+            <h1 class="text-2xl font-black text-foreground">Trophy Room</h1>
+          </div>
+          <button data-action="back-to-menu"
+            class="flex-shrink-0 text-[11px] px-3 py-1.5 rounded-full border border-border bg-card2 text-muted-fg hover:text-foreground hover:border-primary transition-all cursor-pointer">
+            ← Main Menu
+          </button>
+        </div>
+        ${trophies.length === 0 ? emptyState : `<div class="flex flex-col gap-4">${trophyCards}</div>`}
+      </div>
+    </main>
+    ${renderFooter()}
+  </div>`;
+}
+
+// ── Main render dispatcher ────────────────────────────────────────────────────
+export function render() {
+  if      (S.phase === 'coach-select') $app.innerHTML = renderCoachSelect();
+  else if (S.phase === 'era-select')   $app.innerHTML = renderEraSelect();
+  else if (S.phase === 'drafting')     $app.innerHTML = renderDrafting();
+  else if (S.phase === 'results')      $app.innerHTML = renderResults();
+  else if (S.phase === 'playoffs')     $app.innerHTML = renderPlayoffs();
+  else if (S.phase === 'trophy-room')  $app.innerHTML = renderTrophyRoom();
+  bindEvents();
+}
+
