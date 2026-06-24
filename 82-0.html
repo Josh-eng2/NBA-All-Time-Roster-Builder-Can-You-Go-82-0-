@@ -1038,7 +1038,16 @@ function getPlayers(team, decade) {
 }
 
 function getAvailablePlayers(team, decade) {
-  return getPlayers(team, decade).filter(p => !S.usedPlayerIds.includes(p.id));
+  const usedNames = new Set();
+  if (typeof S !== 'undefined' && S.roster) {
+    for (const pos of ALL_POSITIONS) {
+      if (S.roster[pos]) usedNames.add(S.roster[pos].name);
+    }
+  }
+  const usedIds = (typeof S !== 'undefined' && S.usedPlayerIds) ? S.usedPlayerIds : [];
+  return getPlayers(team, decade).filter(p =>
+    !usedIds.includes(p.id) && !usedNames.has(p.name)
+  );
 }
 
 function availableDecades() {
