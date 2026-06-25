@@ -19,9 +19,9 @@ import { calculateChemistry } from '../logic/chemistry.js';
 // SIM_CENTER: adjustedStrength that maps to exactly 50 % win rate
 //             (raise to make 82-0 rarer, lower to make it easier)
 // WIN_CAP:    hard ceiling — prevents a mathematically guaranteed perfect season
-const SIM_K      = 15;
-const SIM_CENTER = 1.18;
-const WIN_CAP    = 0.965;
+const SIM_K      = 16;
+const SIM_CENTER = 1.24;
+const WIN_CAP    = 0.930;
 
 /**
  * Derives dynamic STARTER_BASE / BENCH_BASE from the live DB.
@@ -100,7 +100,7 @@ export function simulateSeason(starters, bench, coach = null) {
     ratio.bpg * 0.10;
 
   const minStarterRatio = Math.min(...Object.values(sRatio));
-  const balancePenalty  = minStarterRatio < 0.80 ? (0.80 - minStarterRatio) * 0.6 : 0;
+  const balancePenalty  = minStarterRatio < 0.82 ? (0.82 - minStarterRatio) * 0.8 : 0;
 
   const { chemBonus, chemScore, chemReport } = calculateChemistry(starters, bench, coach);
 
