@@ -18,8 +18,9 @@ import { S } from '../logic/state.js';
  * @returns {{ chemBonus: number, chemScore: number, chemReport: string[] }}
  */
 export function calculateChemistry(starters, bench) {
-  const allPlayers = [...starters, ...bench];
-  const coach = (typeof S !== 'undefined' && S.coach) ? S.coach : null;
+  const allPlayers  = [...starters, ...bench];
+  const coach       = (typeof S !== 'undefined' && S.coach)              ? S.coach              : null;
+  const sportsPsych = (typeof S !== 'undefined' && S.upgrades?.sportsPsych) ? true              : false;
 
   // Archetype shorthand
   const sA = starters.map(p => p.archetype || '');
@@ -52,7 +53,7 @@ export function calculateChemistry(starters, bench) {
   // Glue Guys on the floor and Phil Jackson's triangle reduce the penalty.
   const top3PPG = [...starters].sort((a, b) => b.ppg - a.ppg).slice(0, 3)
     .reduce((s, p) => s + p.ppg, 0);
-  if (top3PPG > 80) {
+  if (top3PPG > 80 && !sportsPsych) {
     const glueCount = sT.filter(t => t === 'Glue Guy').length;
     let satPenalty  = (top3PPG - 80) * 0.005;
     if (coach === 'jackson') satPenalty *= 0.4;
@@ -265,7 +266,7 @@ export function calculateChemistry(starters, bench) {
     chemReport.push(`🔴 No Spacing: Too many paint-cloggers, no shooters (-${Math.round(penalty * 100)}%)`);
   }
 
-  if (sDemandCount >= 3) {
+  if (sDemandCount >= 3 && !sportsPsych) {
     const glueGuys = sT.filter(t => t === 'Glue Guy').length;
     let penalty    = coach === 'jackson' ? 0.02 : 0.05;
     penalty        = Math.max(0, penalty - glueGuys * 0.015);
@@ -310,7 +311,7 @@ export function calculateChemistry(starters, bench) {
   }
 
   const highUsageCount = starters.filter(p => p.ppg > 25.0 && p.apg < 5.0).length;
-  if (highUsageCount >= 3) {
+  if (highUsageCount >= 3 && !sportsPsych) {
     chemBonus -= 0.05;
     chemReport.push('🔴 High Usage Overlap: 3+ starters average >25 PPG but <5 APG, stalling ball movement (-5%)');
   }
@@ -353,6 +354,10 @@ export function calculateChemistry(starters, bench) {
   if (Object.values(starterPosCounts).some(n => n >= 3)) {
     chemBonus -= 0.10;
     chemReport.push('🔴 Positional Logjam: 3+ starters play the same position — role clarity breaks down (-10%)');
+  }
+
+  if (sportsPsych) {
+    chemReport.push('🟢 Sports Psychologist: Ego clashes neutralized (+0 penalty)');
   }
 
   // ── FINAL SCORE (70 baseline = neutral roster) ────────────────────────────────

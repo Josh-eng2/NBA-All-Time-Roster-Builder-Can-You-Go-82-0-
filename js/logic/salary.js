@@ -84,3 +84,23 @@ export function fmtSalary(n) {
   const m = n / 1_000_000;
   return '$' + (Number.isInteger(m) ? m.toFixed(0) : m.toFixed(1)) + 'M';
 }
+
+// ── Front Office Upgrades ────────────────────────────────────────────────────
+
+export const UPGRADE_COSTS = {
+  practiceFacility: 15_000_000,
+  sportsPsych:      10_000_000,
+  prCampaign:        8_000_000,
+};
+
+/**
+ * Total cost of all purchased upgrades.
+ * @param {object} upgrades  S.upgrades map
+ * @returns {number}
+ */
+export function upgradeSpend(upgrades) {
+  if (!upgrades) return 0;
+  return Object.entries(UPGRADE_COSTS).reduce(
+    (sum, [k, v]) => sum + (upgrades[k] ? v : 0), 0
+  );
+}

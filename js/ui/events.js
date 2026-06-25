@@ -18,7 +18,7 @@ import {
   spinResult, getAvailablePlayers, availableDecades,
 } from '../logic/draft.js';
 import { simulateSeason, simulateSeries }            from '../logic/simulation.js';
-import { computePayroll, computeGmElo }              from '../logic/salary.js';
+import { computePayroll, computeGmElo, upgradeSpend, UPGRADE_COSTS } from '../logic/salary.js';
 import {
   saveLeaderboard, saveToTrophyRoom,
   showLeaderboardModal, closeLeaderboardModal,
@@ -110,6 +110,23 @@ function dispatch(action) {
   if (action === 'advance-to-playoffs') { doAdvanceToPlayoffs(); return; }
   if (action === 'sim-next-round')      { doSimNextRound();      return; }
 
+  // ── Front Office Shop ──────────────────────────────────────────────────────
+  if (action === 'open-shop')  { S.phase = 'shop'; render(); return; }
+  if (action === 'close-shop') { S.phase = 'drafting'; render(); return; }
+  if (action === 'shop-simulate') { doSimulate(); return; }
+  if (action.startsWith('buy-upgrade-')) {
+    const key = action.slice(12); // 'practiceFacility' | 'sportsPsych' | 'prCampaign'
+    if (!S.upgrades || !(key in S.upgrades)) return;
+    if (S.upgrades[key]) return; // already purchased
+    const cost      = UPGRADE_COSTS[key];
+    const payroll   = computePayroll(S.roster);
+    const alreadySpent = upgradeSpend(S.upgrades);
+    const remaining = CAP - payroll - alreadySpent;
+    if (remaining < cost) return; // can't afford
+    S.upgrades[key] = true;
+    render(); return;
+  }
+
   // ── UI helpers ─────────────────────────────────────────────────────────────
   if (action === 'share')                  { doShare();                          return; }
   if (action === 'open-leaderboard')       { showLeaderboardModal();             return; }
@@ -131,7 +148,7 @@ function doStartGame(era = 'all') {
  * Calls fn() immediately if there is nothing to lose.
  */
 export function confirmLeave(fn) {
-  const safe = ['coach-select', 'era-select', 'results', 'playoffs', 'trophy-room'];
+  const safe = ['coach-select', 'era-select', 'shop', 'results', 'playoffs', 'trophy-room'];
   if (safe.includes(S.phase)) { fn(); return; }
   const overlay = document.createElement('div');
   overlay.style.cssText =
@@ -258,8 +275,8 @@ function placePlayer(pos) {
 function doSimulate() {
   const starters = POSITIONS.map(p => S.roster[p]).filter(Boolean);
   const bench    = BENCH_POSITIONS.map(p => S.roster[p]).filter(Boolean);
-  S.result  = simulateSeason(starters, bench, S.coach);
-  const payroll = computePayroll(S.roster);
+  S.result  = simulateSeason(starters, bench, S.coach, S.upgrades);
+  const payroll = computePayroll(S.roster) + upgradeSpend(S.upgrades || {});
   S.result.payroll = payroll;
   S.result.gmElo   = computeGmElo(payroll);
   S.phase   = 'results';
