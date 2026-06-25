@@ -2,19 +2,15 @@
  * js/logic/salary.js — Fantasy Budget & Dynamic Salary Engine
  *
  * Salary tiers (popularity-driven linear interpolation):
- *   Generational Superstars (pop 95–100) : $28,000,000 – $30,000,000
- *   All-Stars               (pop 85– 94) : $18,000,000 – $25,000,000
- *   Solid Starters          (pop 75– 84) : $ 8,000,000 – $15,000,000
- *   Role Players / Bench    (pop  0– 74) : $ 1,500,000 –  $5,000,000
- *
- * With 5 max-tier superstars ($30M × 5 = $150M) + 2 minimum bench
- * players ($1.5M × 2 = $3M) the total is $153M — just under the
- * $154,647,000 soft cap. Any upgrade to the bench breaks the cap.
+ *   Generational Superstars (pop 95–100) : $38,000,000 – $50,000,000
+ *   All-Stars               (pop 85– 94) : $22,000,000 – $35,000,000
+ *   Solid Starters          (pop 75– 84) : $10,000,000 – $20,000,000
+ *   Role Players / Bench    (pop  0– 74) : $ 2,500,000 –  $8,000,000
  *
  * GM Elo:
  *   Base 1500
  *   –15 pts per $1M over cap  (luxury tax punishes overspending)
- *   +5 pts per $1M under cap  (reward for staying lean)
+ *   +5  pts per $1M under cap (reward for staying lean)
  */
 
 export const CAP = 154_647_000;
@@ -29,19 +25,19 @@ export function getPlayerSalary(player) {
   const pop = player.popularity ?? 50;
 
   if (pop >= 95) {
-    // Generational Superstar: $28M – $30M
-    return Math.round(28_000_000 + ((pop - 95) / 5) * 2_000_000);
+    // Generational Superstar: $38M – $50M
+    return Math.round(38_000_000 + ((pop - 95) / 5) * 12_000_000);
   }
   if (pop >= 85) {
-    // All-Star: $18M – $25M
-    return Math.round(18_000_000 + ((pop - 85) / 9) * 7_000_000);
+    // All-Star: $22M – $35M
+    return Math.round(22_000_000 + ((pop - 85) / 9) * 13_000_000);
   }
   if (pop >= 75) {
-    // Solid Starter: $8M – $15M
-    return Math.round(8_000_000 + ((pop - 75) / 9) * 7_000_000);
+    // Solid Starter: $10M – $20M
+    return Math.round(10_000_000 + ((pop - 75) / 9) * 10_000_000);
   }
-  // Role Player / Bench: $1.5M – $5M
-  return Math.round(1_500_000 + (pop / 74) * 3_500_000);
+  // Role Player / Bench: $2.5M – $8M
+  return Math.round(2_500_000 + (pop / 74) * 5_500_000);
 }
 
 /**
@@ -79,28 +75,8 @@ export function computeGmElo(payroll) {
   return Math.round(deltaMil > 0 ? 1500 - deltaMil * 15 : 1500 - deltaMil * 5);
 }
 
-/** "$28M" or "$1.5M" (one decimal only when non-integer millions) */
+/** "$38M" or "$2.5M" (one decimal only when non-integer millions) */
 export function fmtSalary(n) {
   const m = n / 1_000_000;
   return '$' + (Number.isInteger(m) ? m.toFixed(0) : m.toFixed(1)) + 'M';
-}
-
-// ── Front Office Upgrades ────────────────────────────────────────────────────
-
-export const UPGRADE_COSTS = {
-  practiceFacility: 15_000_000,
-  sportsPsych:      10_000_000,
-  prCampaign:        8_000_000,
-};
-
-/**
- * Total cost of all purchased upgrades.
- * @param {object} upgrades  S.upgrades map
- * @returns {number}
- */
-export function upgradeSpend(upgrades) {
-  if (!upgrades) return 0;
-  return Object.entries(UPGRADE_COSTS).reduce(
-    (sum, [k, v]) => sum + (upgrades[k] ? v : 0), 0
-  );
 }

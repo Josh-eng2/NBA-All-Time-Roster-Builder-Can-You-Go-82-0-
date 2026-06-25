@@ -18,7 +18,6 @@ import { calculateChemistry }                             from '../logic/chemist
 import {
   getPlayerSalary, getSalaryTier, computePayroll,
   computeGmElo, fmtSalary, CAP,
-  UPGRADE_COSTS, upgradeSpend,
 }                                                         from '../logic/salary.js';
 import { rosterFull, availableDecades }                  from '../logic/draft.js';
 import { saveToTrophyRoom }                               from '../utils/storage.js';
@@ -467,148 +466,14 @@ function renderChemDashboard() {
 
 // ── Simulate card ─────────────────────────────────────────────────────────────
 function renderSimulateCard() {
-  const upgrades  = S.upgrades || {};
-  const purchased = Object.values(upgrades).filter(Boolean).length;
   return `
   <div class="rounded-2xl border-2 border-primary bg-white p-5 text-center animate-scale-in card-shadow">
     <div class="flex justify-center mb-3">${iconBall('h-10 w-10 text-primary')}</div>
     <p class="font-black text-lg text-foreground mb-1">Roster Complete</p>
-    <p class="text-sm text-muted-fg mb-4">All 7 spots locked in. Visit the Front Office to spend remaining cap space, or simulate now.</p>
-    <button data-action="open-shop"
-      class="w-full py-3 rounded-xl font-bold text-sm border-2 border-primary text-primary bg-white hover:bg-blue-50 transition-all cursor-pointer mb-3 flex items-center justify-center gap-2">
-      🏢 Front Office Upgrades
-      ${purchased > 0 ? `<span class="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-primary text-white">${purchased} active</span>` : ''}
-    </button>
+    <p class="text-sm text-muted-fg mb-4">All 7 spots locked in. Ready to run the season.</p>
     <button data-action="simulate" class="w-full py-3.5 rounded-xl font-black text-sm uppercase tracking-widest bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer animate-pulse-glow">
       Simulate 82 Games →
     </button>
-  </div>`;
-}
-
-// ── Front Office Shop ─────────────────────────────────────────────────────────
-function renderShop() {
-  const upgrades   = S.upgrades || {};
-  const payroll    = computePayroll(S.roster);
-  const spent      = upgradeSpend(upgrades);
-  const totalSpend = payroll + spent;
-  const remaining  = CAP - totalSpend;
-  const isOverCap  = totalSpend > CAP;
-  const capPct     = Math.min(100, (totalSpend / CAP) * 100);
-  const capBarCol  = isOverCap ? '#dc2626' : capPct > 85 ? '#d97706' : '#2563eb';
-
-  const SHOP_ITEMS = [
-    {
-      key:    'practiceFacility',
-      name:   'State-of-the-Art Practice Facility',
-      icon:   '🏟️',
-      cost:   UPGRADE_COSTS.practiceFacility,
-      desc:   'Grants a massive home-court advantage, boosting win probability in all home games.',
-      effect: '+7.5% win probability on all 41 home games',
-      color:  '#2563eb',
-      bg:     '#eff6ff',
-      border: '#bfdbfe',
-    },
-    {
-      key:    'sportsPsych',
-      name:   'World-Class Sports Psychologist',
-      icon:   '🧠',
-      cost:   UPGRADE_COSTS.sportsPsych,
-      desc:   "Completely removes 'Clashing Egos' and 'Usage Overload' chemistry penalties.",
-      effect: 'Ego clash & usage overlap penalties zeroed out',
-      color:  '#7c3aed',
-      bg:     '#f5f3ff',
-      border: '#ddd6fe',
-    },
-    {
-      key:    'prCampaign',
-      name:   'Global PR & Marketing Campaign',
-      icon:   '📣',
-      cost:   UPGRADE_COSTS.prCampaign,
-      desc:   "Boosts your team's total Popularity rating by a flat +20 for leaderboard tie-breakers.",
-      effect: '+20 to effective team popularity score',
-      color:  '#d97706',
-      bg:     '#fffbeb',
-      border: '#fde68a',
-    },
-  ];
-
-  const cards = SHOP_ITEMS.map(item => {
-    const purchased = upgrades[item.key];
-    const canAfford = !purchased && remaining >= item.cost;
-    const sal       = fmtSalary(item.cost);
-    return `
-    <div class="rounded-2xl border-2 bg-white p-4 card-shadow transition-all"
-      style="border-color:${purchased ? item.color : '#e2e8f0'};background:${purchased ? item.bg : '#ffffff'}">
-      <div class="flex items-start gap-3 mb-3">
-        <span class="text-2xl flex-shrink-0 mt-0.5">${item.icon}</span>
-        <div class="flex-1 min-w-0">
-          <p class="font-black text-sm text-foreground leading-tight mb-1.5">${item.name}</p>
-          <span class="inline-block text-xs font-black px-2 py-0.5 rounded-full border"
-            style="background:${item.bg};color:${item.color};border-color:${item.border}">${sal}</span>
-        </div>
-        ${purchased ? `<span class="text-[10px] font-black px-2 py-1 rounded-full flex-shrink-0"
-          style="background:${item.color};color:#fff">✓ ACTIVE</span>` : ''}
-      </div>
-      <p class="text-xs text-muted-fg leading-relaxed mb-2">${item.desc}</p>
-      <p class="text-[10px] font-bold uppercase tracking-wider mb-3" style="color:${item.color}">⚡ ${item.effect}</p>
-      ${purchased
-        ? `<div class="w-full py-2.5 rounded-xl text-center text-xs font-black uppercase tracking-widest"
-             style="background:${item.bg};color:${item.color};border:2px solid ${item.border}">✓ Upgrade Active</div>`
-        : `<button data-action="buy-upgrade-${item.key}"
-             class="w-full py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all"
-             style="background:${canAfford ? item.color : '#f1f5f9'};color:${canAfford ? '#fff' : '#94a3b8'};
-                    border:2px solid ${canAfford ? item.color : '#e2e8f0'};
-                    cursor:${canAfford ? 'pointer' : 'not-allowed'}"
-             ${canAfford ? '' : 'disabled'}>
-             ${canAfford ? `Purchase — ${sal}` : `Can't Afford — ${sal}`}
-           </button>`
-      }
-    </div>`;
-  }).join('');
-
-  return `
-  <div class="flex flex-col min-h-screen main-gradient">
-    ${renderHeader(false)}
-    <main class="flex-1 flex flex-col items-center px-4 py-6">
-      <div class="w-full max-w-2xl flex flex-col gap-4 animate-fade-up">
-        <div class="flex items-center gap-3">
-          <button data-action="close-shop"
-            class="text-xs font-bold px-3 py-1.5 rounded-lg border border-border bg-white text-muted-fg hover:text-foreground transition-colors cursor-pointer card-shadow">
-            ← Roster
-          </button>
-          <div>
-            <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg">Front Office</p>
-            <p class="font-black text-lg text-foreground leading-tight">Upgrade HQ</p>
-          </div>
-        </div>
-        <div class="rounded-2xl border bg-white p-4 card-shadow"
-          style="border-color:${isOverCap ? '#fecaca' : '#e2e8f0'}">
-          <div class="flex items-center justify-between mb-2">
-            <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">💰 Available Budget</p>
-            <span class="text-xs font-bold px-2 py-0.5 rounded-full border"
-              style="background:${isOverCap ? '#fef2f2' : '#f0fdf4'};color:${isOverCap ? '#dc2626' : '#16a34a'};border-color:${isOverCap ? '#fecaca' : '#bbf7d0'}">
-              ${isOverCap ? '🔴 Over Cap' : '✅ Under Cap'}
-            </span>
-          </div>
-          <div class="flex items-baseline gap-2 mb-2">
-            <span class="text-3xl font-black" style="color:${isOverCap ? '#dc2626' : '#0f172a'}">${fmtSalary(Math.max(0, remaining))}</span>
-            <span class="text-sm text-muted-fg">remaining of $154.6M cap</span>
-          </div>
-          <div class="h-1.5 rounded-full overflow-hidden bg-border mb-1.5">
-            <div class="h-full rounded-full transition-all" style="width:${capPct.toFixed(1)}%;background:${capBarCol}"></div>
-          </div>
-          <div class="flex justify-between text-[10px] text-muted-fg">
-            <span>Roster ${fmtSalary(payroll)}</span>
-            <span>Upgrades ${fmtSalary(spent)}</span>
-          </div>
-        </div>
-        ${cards}
-        <button data-action="shop-simulate"
-          class="w-full py-4 rounded-xl font-black text-sm uppercase tracking-widest bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer animate-pulse-glow">
-          Simulate 82 Games →
-        </button>
-      </div>
-    </main>
   </div>`;
 }
 
@@ -1248,7 +1113,6 @@ export function render() {
   if      (S.phase === 'coach-select') $app.innerHTML = renderCoachSelect();
   else if (S.phase === 'era-select')   $app.innerHTML = renderEraSelect();
   else if (S.phase === 'drafting')     $app.innerHTML = renderDrafting();
-  else if (S.phase === 'shop')         $app.innerHTML = renderShop();
   else if (S.phase === 'results')      $app.innerHTML = renderResults();
   else if (S.phase === 'playoffs')     $app.innerHTML = renderPlayoffs();
   else if (S.phase === 'trophy-room')  $app.innerHTML = renderTrophyRoom();
