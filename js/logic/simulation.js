@@ -48,11 +48,10 @@ function computeSimBaselines() {
  *
  * @param {object[]} starters  5 starting player objects
  * @param {object[]} bench     2 bench player objects
- * @param {object|null} upgrades  S.upgrades — Front Office purchases
  * @returns {object}  { wins, losses, winPct, strength, totals, ratio,
  *                      sTotals, bTotals, chemScore, chemReport }
  */
-export function simulateSeason(starters, bench, coach = null, upgrades = null) {
+export function simulateSeason(starters, bench, coach = null) {
   const sumStats = arr => arr.reduce(
     (acc, p) => ({
       ppg: acc.ppg + p.ppg,
@@ -132,11 +131,9 @@ export function simulateSeason(starters, bench, coach = null, upgrades = null) {
   const MUL_MIN     = 0.95;
   const MUL_MAX     = 1.08;
   const allPlayers  = [...starters, ...bench];
-  const rawAvgPop   = allPlayers.length
+  const avgPop      = allPlayers.length
     ? allPlayers.reduce((s, p) => s + (p.popularity || 50), 0) / allPlayers.length
     : 50;
-  // PR Campaign boosts effective popularity by +20 (capped at 100)
-  const avgPop      = upgrades?.prCampaign ? Math.min(100, rawAvgPop + 20) : rawAvgPop;
   const popNorm     = Math.max(0, Math.min(1, (avgPop - POP_FLOOR) / (POP_CEIL - POP_FLOOR)));
   const popMul      = MUL_MIN + popNorm * (MUL_MAX - MUL_MIN);
   const adjustedStrength = baseStrength * popMul;
@@ -150,15 +147,8 @@ export function simulateSeason(starters, bench, coach = null, upgrades = null) {
   const clutchBoost = competitiveFactor * (popNorm - 0.4) * 0.04;
   const winPct = Math.min(WIN_CAP, Math.max(0, baseWinPct + clutchBoost));
 
-  // Practice Facility: +7.5% win probability on the 41 home games
-  const homeWinPct = upgrades?.practiceFacility
-    ? Math.min(WIN_CAP, winPct + 0.075)
-    : winPct;
   let wins = 0;
-  for (let i = 0; i < 82; i++) {
-    const isHome = i % 2 === 0; // alternating schedule: 41 home, 41 away
-    if (Math.random() < (isHome ? homeWinPct : winPct)) wins++;
-  }
+  for (let i = 0; i < 82; i++) { if (Math.random() < winPct) wins++; }
   wins = Math.max(0, Math.min(82, wins));
 
   const totals = {

@@ -181,7 +181,7 @@ export function buildBracket(playerSeed, playerStrength) {
 
 /** @type {object} */
 export let S = {
-  phase:       'coach-select', // 'coach-select' | 'era-select' | 'drafting' | 'shop' | 'results' | 'playoffs' | 'trophy-room'
+  phase:       'coach-select', // 'coach-select' | 'era-select' | 'drafting' | 'results' | 'playoffs' | 'trophy-room'
   coach:       null,
   selectedEra: null,
 };
@@ -219,10 +219,5 @@ export function startGame(era = 'all') {
     runSaved: false,
     globalScoreSubmitted: false,
     globalSubmitError:    null,
-    upgrades: {
-      practiceFacility: false,
-      sportsPsych:      false,
-      prCampaign:       false,
-    },
   };
 }
