@@ -431,17 +431,10 @@ function renderRosterSlot(pos, canPlace, isBench) {
 function renderChemDashboard() {
   const starters = POSITIONS.map(p => S.roster[p]).filter(Boolean);
   const bench    = BENCH_POSITIONS.map(p => S.roster[p]).filter(Boolean);
-  if (starters.length === 0 && bench.length === 0) {
-    return `
-    <div class="rounded-2xl border border-border bg-card p-4 card-shadow">
-      <p class="text-xs font-bold uppercase tracking-widest text-muted-fg mb-2">Live Chemistry</p>
-      <p class="text-xs text-muted-fg">Draft your first player to see team chemistry.</p>
-    </div>`;
-  }
   const { chemScore, chemReport } = calculateChemistry(starters, bench);
-  const scoreColor = chemScore >= 70 ? '#16a34a' : chemScore >= 45 ? '#d97706' : '#dc2626';
-  const scoreBg    = chemScore >= 70 ? '#f0fdf4'  : chemScore >= 45 ? '#fffbeb'  : '#fef2f2';
-  const scoreLabel = chemScore >= 70 ? 'Strong'   : chemScore >= 45 ? 'Neutral'  : 'Weak';
+  const scoreColor = chemScore >= 60 ? '#16a34a' : chemScore >= 40 ? '#d97706' : '#dc2626';
+  const scoreBg    = chemScore >= 60 ? '#f0fdf4'  : chemScore >= 40 ? '#fffbeb'  : '#fef2f2';
+  const scoreLabel = chemScore >= 60 ? 'Strong'   : chemScore >= 40 ? 'Neutral'  : 'Weak';
   return `
   <div class="rounded-2xl border border-border bg-card p-4 card-shadow">
     <div class="flex items-center justify-between mb-3">
@@ -577,9 +570,9 @@ function renderResults() {
 
   const chemScoreBadge = r.chemScore !== undefined ? (() => {
     const sc      = r.chemScore;
-    const scColor = sc >= 70 ? '#16a34a' : sc >= 45 ? '#d97706' : '#dc2626';
-    const scBg    = sc >= 70 ? '#f0fdf4'  : sc >= 45 ? '#fffbeb'  : '#fef2f2';
-    const scLabel = sc >= 70 ? 'Strong'   : sc >= 45 ? 'Neutral'  : 'Weak';
+    const scColor = sc >= 60 ? '#16a34a' : sc >= 40 ? '#d97706' : '#dc2626';
+    const scBg    = sc >= 60 ? '#f0fdf4'  : sc >= 40 ? '#fffbeb'  : '#fef2f2';
+    const scLabel = sc >= 60 ? 'Strong'   : sc >= 40 ? 'Neutral'  : 'Weak';
     return `<span class="text-xs font-bold px-2 py-0.5 rounded-full border" style="background:${scBg};color:${scColor};border-color:${scColor}30">${scLabel} · ${sc}%</span>`;
   })() : '';
 
