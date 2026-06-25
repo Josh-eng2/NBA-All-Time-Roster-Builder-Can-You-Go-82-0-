@@ -15,7 +15,7 @@ import {
   TEAMS, DECADES, pick, buildBracket, getPlayerSeed,
 } from '../logic/state.js';
 import {
-  spinResult, getAvailablePlayers, availableDecades, calculatePlayerPrice,
+  spinResult, getAvailablePlayers, availableDecades,
 } from '../logic/draft.js';
 import { simulateSeason, simulateSeries }            from '../logic/simulation.js';
 import {
@@ -223,26 +223,18 @@ function doSkipDecade() {
 
 function placePlayer(pos) {
   if (!S.selectedPlayer) { render(); return; }
-  const spin   = S.currentSpin;
-  const player = { ...S.selectedPlayer, team: spin?.team, decade: spin?.decade };
-  const price  = calculatePlayerPrice(S.selectedPlayer);
-
-  // When swapping into an occupied slot, account for the old player's cap hit
+  const spin      = S.currentSpin;
+  const player    = { ...S.selectedPlayer, team: spin?.team, decade: spin?.decade };
   const oldPlayer = S.roster[pos];
-  const oldPrice  = oldPlayer ? calculatePlayerPrice(oldPlayer) : 0;
 
-  if (S.currentPayroll - oldPrice + price > S.salaryCap) { render(); return; }
-
-  // Remove the displaced player from all tracking before placing the new one
+  // Remove the displaced player from tracking before placing the new one
   if (oldPlayer) {
-    S.currentPayroll -= oldPrice;
     const idIdx = S.usedPlayerIds.indexOf(oldPlayer.id);
     if (idIdx !== -1) S.usedPlayerIds.splice(idIdx, 1);
     const decIdx = S.usedDecades.indexOf(oldPlayer.decade);
     if (decIdx !== -1) S.usedDecades.splice(decIdx, 1);
   }
 
-  S.currentPayroll  += price;
   S.roster[pos]      = player;
   S.usedDecades.push(spin?.decade);
   S.usedPlayerIds.push(player.id);
@@ -260,7 +252,7 @@ function placePlayer(pos) {
 function doSimulate() {
   const starters = POSITIONS.map(p => S.roster[p]).filter(Boolean);
   const bench    = BENCH_POSITIONS.map(p => S.roster[p]).filter(Boolean);
-  S.result  = simulateSeason(starters, bench);
+  S.result  = simulateSeason(starters, bench, S.coach);
   S.phase   = 'results';
   S.runSaved = false;
   render();
