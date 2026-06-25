@@ -20,9 +20,9 @@ export const TEAMS = [
 export const DECADES = ['1960s','1970s','1980s','1990s','2000s','2010s','2020s'];
 
 export const POSITIONS       = ['PG','SG','SF','PF','C'];
-export const BENCH_POSITIONS = ['B1','B2','B3'];
+export const BENCH_POSITIONS = ['B1','B2'];
 export const ALL_POSITIONS   = [...POSITIONS, ...BENCH_POSITIONS];
-export const TOTAL_ROUNDS    = 8;
+export const TOTAL_ROUNDS    = 7;
 
 export const ERA_DESC = {
   '1960s': 'Chamberlain · West · Russell',
@@ -211,7 +211,7 @@ export function startGame(era = 'all') {
     selectedPlayer:   null,
     roster: {
       PG: null, SG: null, SF: null, PF: null, C: null,
-      B1: null, B2: null, B3: null,
+      B1: null, B2: null,
     },
     result:  null,
     playoffs: null,

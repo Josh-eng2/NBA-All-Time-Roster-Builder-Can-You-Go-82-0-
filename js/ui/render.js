@@ -203,13 +203,13 @@ function renderRoundBar() {
   const filled         = ALL_POSITIONS.filter(p => S.roster[p]).length;
   const startersFilled = POSITIONS.filter(p => S.roster[p]).length;
   const benchFilled    = BENCH_POSITIONS.filter(p => S.roster[p]).length;
-  const roleLabel      = S.round < 5 ? `Starters ${startersFilled}/5` : `Bench ${benchFilled}/3`;
+  const roleLabel      = S.round < 5 ? `Starters ${startersFilled}/5` : `Bench ${benchFilled}/2`;
   const displayRound   = Math.min(S.round + 1, TOTAL_ROUNDS); // cap at 8 — never shows "Round 9 of 8"
   return `
   <div class="flex items-center justify-between py-1">
     <div>
       <p class="text-sm font-bold text-foreground">Round ${displayRound} <span class="text-muted-fg font-normal">of ${TOTAL_ROUNDS}</span></p>
-      <p class="text-xs text-muted-fg mt-0.5">${filled}/8 spots &nbsp;·&nbsp; ${roleLabel}</p>
+      <p class="text-xs text-muted-fg mt-0.5">${filled}/${ALL_POSITIONS.length} spots &nbsp;·&nbsp; ${roleLabel}</p>
     </div>
     <div class="flex gap-1.5 items-center">
       ${Array.from({ length: TOTAL_ROUNDS }, (_, i) => {
@@ -357,7 +357,7 @@ function renderRoster() {
   return `
   <div>
     <div class="flex items-center justify-between mb-2">
-      <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Your Roster <span class="text-primary">${filledCount}/8</span></p>
+      <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Your Roster <span class="text-primary">${filledCount}/${ALL_POSITIONS.length}</span></p>
       ${hasSelected ? `<p class="text-xs text-primary animate-fade-up font-medium">Tap a slot to place ${S.selectedPlayer.name}</p>` : ''}
     </div>
     <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg/50 mb-1.5">Starters</p>
@@ -365,7 +365,7 @@ function renderRoster() {
       ${POSITIONS.map(pos => renderRosterSlot(pos, hasSelected, false)).join('')}
     </div>
     <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg/50 mb-1.5">Bench</p>
-    <div class="grid grid-cols-3 gap-2">
+    <div class="grid grid-cols-2 gap-2">
       ${BENCH_POSITIONS.map(pos => renderRosterSlot(pos, hasSelected, true)).join('')}
     </div>
   </div>`;
@@ -441,7 +441,7 @@ function renderSimulateCard() {
   <div class="rounded-2xl border-2 border-primary bg-white p-5 text-center animate-scale-in card-shadow">
     <div class="flex justify-center mb-3">${iconBall('h-10 w-10 text-primary')}</div>
     <p class="font-black text-lg text-foreground mb-1">Roster Complete</p>
-    <p class="text-sm text-muted-fg mb-5">All 8 spots locked in — starters and bench. Time to simulate.</p>
+    <p class="text-sm text-muted-fg mb-5">All 7 spots locked in — starters and bench. Time to simulate.</p>
     <button data-action="simulate" class="w-full py-3.5 rounded-xl font-black text-sm uppercase tracking-widest bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer animate-pulse-glow">
       Simulate 82 Games →
     </button>
