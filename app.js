@@ -70,18 +70,25 @@ const COACHES = [
     accent: '#60a5fa',
   },
   {
-    id:     'dantoni',
-    name:   "Mike D'Antoni",
-    system: 'Seven Seconds or Less',
-    desc:   'Pace and spacing driven — Small Ball Heat and Pace & Space Blitz amplified ×1.5; Defensive Sieve penalty increased to −8%.',
-    accent: '#fbbf24',
+    id:     'auerbach',
+    name:   'Red Auerbach',
+    system: 'Celtic Pride',
+    desc:   'Defense-first — Twin Towers, Defensive Anchor, and All-Defensive Team bonuses amplified; interior defense penalties negated.',
+    accent: '#4ade80',
   },
   {
     id:     'riley',
     name:   'Pat Riley',
     system: 'Grit & Grind / Showtime',
     desc:   'Defense and transition driven — Showtime Transition and All-Defensive Team amplified ×1.5; Defensive Liability penalty negated.',
-    accent: '#4ade80',
+    accent: '#f87171',
+  },
+  {
+    id:     'kerr',
+    name:   'Steve Kerr',
+    system: 'Motion Offense',
+    desc:   'Spacing and ball-movement driven — Small Ball Heat, Three-and-D Paradigm, and Floor General bonuses amplified; Defensive Sieve penalty heightened.',
+    accent: '#fbbf24',
   },
 ];
 
@@ -231,12 +238,6 @@ function archetypeBadge(arch) {
   if (!arch) return '';
   const c = ARCHETYPE_STYLE[arch] || { bg:'#27272a', text:'#a1a1aa' };
   return `<span class="inline-block text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full mt-0.5" style="background:${c.bg};color:${c.text}">${arch}</span>`;
-}
-
-// ── Salary cap ─────────────────────────────────────────────────────────────────
-function calculatePlayerPrice(p) {
-  let price = Math.round((p.ppg * 1.2) + (p.rpg * 0.9) + (p.apg * 1.1) + (p.spg * 2.5) + (p.bpg * 2.5));
-  return Math.max(5, price);
 }
 
 // ── Share / leaderboard helpers ────────────────────────────────────────────────
@@ -395,7 +396,7 @@ function renderDrafting() {
     <main class="flex-1 flex flex-col items-center px-4 pt-4 pb-8">
       <div class="w-full max-w-2xl flex flex-col gap-4">
         ${renderRoundBar()}
-        ${renderCapBar()}
+        ${renderPopularityBar()}
         ${full ? renderSimulateCard() : renderSlotMachine()}
         ${S.spinState === 'done' ? renderDraftBoard() : ''}
         ${renderChemDashboard()}
@@ -431,22 +432,23 @@ function renderRoundBar() {
   </div>`;
 }
 
-function renderCapBar() {
-  const spent    = S.currentPayroll;
-  const cap      = S.salaryCap;
-  const pct      = Math.min(100, Math.round((spent / cap) * 100));
-  const isTight  = spent >= 120;
-  const barColor = spent >= 140 ? '#dc2626' : spent >= 120 ? '#d97706' : '#16a34a';
+function renderPopularityBar() {
+  const drafted = Object.values(S.roster).filter(Boolean);
+  if (drafted.length === 0) return '';
+  const avgPop  = drafted.reduce((s, p) => s + (p.popularity || 50), 0) / drafted.length;
+  const pct     = Math.max(0, Math.round(((avgPop - 35) / 65) * 100));
+  const barCol  = avgPop >= 80 ? '#2563eb' : avgPop >= 60 ? '#d97706' : '#94a3b8';
+  const tier    = avgPop >= 85 ? 'Superstar Lineup' : avgPop >= 70 ? 'Star Power' : avgPop >= 55 ? 'Solid Roster' : 'Under the Radar';
   return `
   <div class="rounded-xl border border-border bg-card px-4 py-3 card-shadow">
     <div class="flex items-center justify-between mb-2">
-      <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg">Salary Cap</p>
-      <p class="text-xs font-bold ${isTight ? 'text-amber-600' : 'text-foreground'}">$${spent}M <span class="text-muted-fg font-normal">/ $${cap}M</span></p>
+      <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg">Team Popularity</p>
+      <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border" style="color:${barCol};background:${barCol}18;border-color:${barCol}30">${tier} · ${Math.round(avgPop)}/100</span>
     </div>
     <div class="h-1.5 rounded-full overflow-hidden bg-border">
-      <div class="h-full rounded-full transition-all stat-bar-fill" style="width:${pct}%;background:${barColor}"></div>
+      <div class="h-full rounded-full transition-all stat-bar-fill" style="width:${pct}%;background:${barCol}"></div>
     </div>
-    ${isTight ? `<p class="text-[10px] mt-1.5 font-medium text-amber-600">⚠ Cap space is tight — choose contracts wisely</p>` : ''}
+    <p class="text-[10px] mt-1.5 text-muted-fg">High popularity boosts home-court advantage in close games</p>
   </div>`;
 }
 
@@ -525,16 +527,14 @@ function renderPlayerPool() {
 
 function renderDraftBoard() {
   if (!S.draftBoard || !S.draftBoard.length) return '';
-  const team      = S.currentSpin?.team;
-  const decade    = S.currentSpin?.decade;
-  const tc        = team ? TEAM_COLORS[team] : null;
-  const remaining = S.salaryCap - S.currentPayroll;
+  const team   = S.currentSpin?.team;
+  const decade = S.currentSpin?.decade;
+  const tc     = team ? TEAM_COLORS[team] : null;
   return `
   <div class="animate-fade-up">
     <div class="flex items-center gap-2 mb-3">
       ${tc ? `<span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${tc.bg}"></span>` : ''}
       <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">${team} · ${decade}</p>
-      <span class="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700">$${remaining}M cap space</span>
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
       ${S.draftBoard.map((p, i) => renderDraftCard(p, i)).join('')}
@@ -543,10 +543,10 @@ function renderDraftBoard() {
 }
 
 function renderDraftCard(p, index) {
-  const price      = calculatePlayerPrice(p);
-  const canAfford  = S.currentPayroll + price <= S.salaryCap;
+  const pop        = p.popularity ?? 50;
+  const popCol     = pop >= 80 ? '#2563eb' : pop >= 60 ? '#d97706' : '#94a3b8';
   const isSelected = S.selectedPlayer?.id === p.id;
-  const cardBorder = isSelected ? '#2563eb' : canAfford ? '#e2e8f0' : '#e2e8f0';
+  const cardBorder = isSelected ? '#2563eb' : '#e2e8f0';
   const cardBg     = isSelected ? '#eff6ff' : '#ffffff';
   return `
   <div class="rounded-xl border-2 flex flex-col overflow-hidden transition-all card-shadow"
@@ -555,7 +555,7 @@ function renderDraftCard(p, index) {
       <div class="flex items-center gap-1.5 mb-2">
         <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full border border-border bg-card2 text-muted-fg">${p.pos}</span>
         ${archetypeBadge(p.archetype)}
-        <span class="ml-auto text-sm font-black" style="color:${canAfford ? '#16a34a' : '#dc2626'}">$${price}M</span>
+        <span class="ml-auto text-xs font-black" style="color:${popCol}">★ ${pop}</span>
       </div>
       <p class="font-bold text-sm text-foreground leading-tight mb-1.5">${p.name}</p>
       <div class="flex flex-wrap gap-x-2 gap-y-0.5">
@@ -563,19 +563,17 @@ function renderDraftCard(p, index) {
           <span class="text-[10px] text-muted-fg"><span class="font-semibold text-foreground">${v}</span> ${l}</span>
         `).join('')}
       </div>
+      ${p.traits && p.traits.length ? `
+        <div class="flex flex-wrap gap-1 mt-1.5">
+          ${p.traits.map(t => `<span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">${t}</span>`).join('')}
+        </div>` : ''}
     </div>
     <div class="px-3 pb-3">
-      ${canAfford
-        ? `<button data-action="draft-pick-${index}"
-            class="w-full py-2 rounded-lg font-bold text-xs transition-all cursor-pointer"
-            style="background:${isSelected ? '#2563eb' : '#eff6ff'};color:${isSelected ? '#fff' : '#2563eb'};border:1.5px solid ${isSelected ? '#2563eb' : '#bfdbfe'}">
-            ${isSelected ? '✓ Selected — Tap a Roster Slot' : 'Draft Player'}
-           </button>`
-        : `<button disabled
-            class="w-full py-2 rounded-lg font-bold text-xs cursor-not-allowed bg-card2 text-muted border border-border">
-            Over Cap
-           </button>`
-      }
+      <button data-action="draft-pick-${index}"
+        class="w-full py-2 rounded-lg font-bold text-xs transition-all cursor-pointer"
+        style="background:${isSelected ? '#2563eb' : '#eff6ff'};color:${isSelected ? '#fff' : '#2563eb'};border:1.5px solid ${isSelected ? '#2563eb' : '#bfdbfe'}">
+        ${isSelected ? '✓ Selected — Tap a Roster Slot' : 'Draft Player'}
+      </button>
     </div>
   </div>`;
 }
@@ -947,8 +945,6 @@ function startGame(era = 'all') {
     teamSkips:   1,
     decadeSkips: 1,
     hasMulligan:    true,
-    salaryCap:      150,
-    currentPayroll: 0,
     spinState:   'idle',
     currentSpin: null,
     availablePlayers: [],
@@ -1022,16 +1018,21 @@ function doSkipDecade() {
 
 function placePlayer(pos) {
   if (!S.selectedPlayer) { render(); return; }
-  const spin   = S.currentSpin;
-  const player = { ...S.selectedPlayer, team: spin?.team, decade: spin?.decade };
-  const price  = calculatePlayerPrice(S.selectedPlayer);
-  if (S.currentPayroll + price > S.salaryCap) { render(); return; }
+  const spin      = S.currentSpin;
+  const player    = { ...S.selectedPlayer, team: spin?.team, decade: spin?.decade };
+  const oldPlayer = S.roster[pos];
 
-  S.currentPayroll  += price;
+  if (oldPlayer) {
+    const idIdx = S.usedPlayerIds.indexOf(oldPlayer.id);
+    if (idIdx !== -1) S.usedPlayerIds.splice(idIdx, 1);
+    const decIdx = S.usedDecades.indexOf(oldPlayer.decade);
+    if (decIdx !== -1) S.usedDecades.splice(decIdx, 1);
+  }
+
   S.roster[pos]      = player;
   S.usedDecades.push(spin?.decade);
   S.usedPlayerIds.push(player.id);
-  S.round++;
+  if (!oldPlayer) S.round++;
   S.spinState        = 'idle';
   S.currentSpin      = null;
   S.availablePlayers = [];
@@ -1043,7 +1044,7 @@ function placePlayer(pos) {
 function doSimulate() {
   const starters = POSITIONS.map(p => S.roster[p]).filter(Boolean);
   const bench    = BENCH_POSITIONS.map(p => S.roster[p]).filter(Boolean);
-  S.result = simulateSeason(starters, bench);
+  S.result = simulateSeason(starters, bench, S.coach);
   S.phase  = 'results';
   saveLeaderboard();
   render();
@@ -1118,7 +1119,6 @@ function saveToTrophyRoom() {
     wins:        r.wins,
     losses:      r.losses,
     chemScore:   Math.round(r.chemScore),
-    payroll:     S.currentPayroll,
     starters:    POSITIONS.map(p => S.roster[p]?.name || '—').join(', '),
     bench:       BENCH_POSITIONS.map(p => S.roster[p]?.name || '—').join(', '),
   };
@@ -1585,11 +1585,6 @@ function renderTrophyRoom() {
           <p class="text-xs text-muted-fg">Chemistry</p>
           <p class="text-xs font-bold ${chemColor}">${t.chemScore}%</p>
         </div>
-        ${t.payroll !== undefined ? `
-        <div class="flex items-center justify-between">
-          <p class="text-xs text-muted-fg">Total Salary</p>
-          <p class="text-xs font-semibold text-muted-fg">$${t.payroll}M</p>
-        </div>` : ''}
       </div>`;
   }).join('');
 
