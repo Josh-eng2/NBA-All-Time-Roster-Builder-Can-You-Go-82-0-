@@ -217,5 +217,7 @@ export function startGame(era = 'all') {
     playoffs: null,
     teamName: '',
     runSaved: false,
+    globalScoreSubmitted: false,
+    globalSubmitError:    null,
   };
 }

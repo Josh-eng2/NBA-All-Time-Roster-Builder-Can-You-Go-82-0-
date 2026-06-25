@@ -84,7 +84,8 @@ function renderHeader(showRestart = false) {
         ${coachObj ? `<span class="text-[11px] px-2.5 py-1 rounded-full font-bold border border-border bg-card2 text-muted-fg">${coachObj.system}</span>` : ''}
         <span class="text-[11px] px-2.5 py-1 rounded-full font-bold border border-border bg-card2 text-muted-fg">${eraLabel}</span>
         ${S.phase === 'drafting' ? `<span class="text-[11px] px-2.5 py-1 rounded-full font-bold border ${S.hasMulligan ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-border bg-card2 text-muted opacity-50'}">🎲 ${S.hasMulligan ? 'Mulligan' : 'Used'}</span>` : ''}
-        <button data-action="open-leaderboard" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Personal Leaderboard">🏅</button>
+        <button data-action="open-leaderboard" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Personal Best">🏅</button>
+        <button data-action="open-global-leaderboard" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Global Leaderboard">🌍</button>
         ${showRestart ? `<button data-action="restart" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">Restart</button>` : ''}
       </div>
     </div>
@@ -695,6 +696,68 @@ function renderResults() {
   </div>`;
 }
 
+// ── Global score submit card ──────────────────────────────────────────────────
+
+function renderGlobalSubmitCard(champion) {
+  const r = S.result;
+  if (!r) return '';
+
+  if (S.globalScoreSubmitted) {
+    const record = `${r.wins}–${r.losses}${champion ? ' · 🏆 Champion' : ''}`;
+    return `
+    <div class="rounded-2xl border p-4 card-shadow" style="border-color:#bbf7d0;background:#f0fdf4">
+      <div class="flex items-start gap-3 mb-3">
+        <span class="text-2xl flex-shrink-0">🌍</span>
+        <div class="flex-1 min-w-0">
+          <p class="font-black text-sm text-green-700">You're on the Global Board!</p>
+          <p class="text-xs text-green-600 mt-0.5">"${S.teamName}" &nbsp;·&nbsp; ${record}</p>
+        </div>
+      </div>
+      <button data-action="open-global-leaderboard"
+        class="w-full py-2.5 rounded-xl font-bold text-sm border border-emerald-300 bg-white text-green-700 hover:bg-emerald-50 transition-all cursor-pointer">
+        View Global Leaderboard 🌍
+      </button>
+    </div>`;
+  }
+
+  const label    = champion ? 'Submit Championship Run' : 'Submit Season Record';
+  const subLabel = champion ? 'Your championship goes on the global board' : 'Share your season results with the world';
+  const errorHtml = S.globalSubmitError
+    ? `<p class="text-xs text-red-500 mt-2">⚠️ ${S.globalSubmitError}
+        &nbsp;<button data-action="submit-global" class="underline cursor-pointer font-bold">Retry</button></p>`
+    : '';
+
+  return `
+  <div class="rounded-2xl border border-border bg-white p-4 card-shadow">
+    <div class="flex items-center gap-2 mb-3">
+      <span class="text-lg">🌍</span>
+      <div>
+        <p class="text-xs font-black text-foreground">${label}</p>
+        <p class="text-[10px] text-muted-fg">${subLabel}</p>
+      </div>
+    </div>
+    <div class="flex gap-2">
+      <div class="flex-1 relative">
+        <input
+          id="global-team-name-input"
+          type="text"
+          maxlength="30"
+          value="${S.teamName || ''}"
+          placeholder="Franchise Name"
+          class="w-full rounded-xl border border-border bg-white px-3 py-2.5 text-sm font-semibold text-foreground placeholder:text-muted-fg focus:outline-none focus:border-primary focus:ring-2 focus:ring-blue-100 transition-all"
+        />
+        <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-muted pointer-events-none" id="global-team-name-counter">30</span>
+      </div>
+      <button data-action="submit-global" id="submit-global-btn"
+        class="flex-shrink-0 px-4 rounded-xl font-bold text-sm bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer card-shadow">
+        Submit
+      </button>
+    </div>
+    ${errorHtml}
+    <p class="text-[10px] text-muted-fg mt-2">Compete against players worldwide · max 30 characters</p>
+  </div>`;
+}
+
 // ── Playoffs ──────────────────────────────────────────────────────────────────
 function renderPlayoffs() {
   const po = S.playoffs;
@@ -842,6 +905,7 @@ function renderChampionship() {
           <p class="text-base font-black text-amber-700 mt-3">NBA Finals: def. ${oppTeam.name} ${score}</p>
           <p class="text-sm text-muted-fg mt-2">Regular Season: ${r.wins}–${r.losses} · Seed #${po.playerSeed}</p>
         </div>
+        ${renderGlobalSubmitCard(true)}
         <div class="flex flex-col gap-3 w-full">
           <button data-action="share" class="py-3 rounded-xl font-bold text-sm bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer card-shadow">Share Championship 🏆</button>
           <button data-action="draft-new-roster" class="py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer card-shadow">Draft New Roster</button>
@@ -878,6 +942,7 @@ function renderEliminated() {
           ${roundSummary}
           <p class="text-sm text-muted-fg mt-3">Regular Season: ${r.wins}–${r.losses} · Seed #${po.playerSeed}</p>
         </div>
+        ${renderGlobalSubmitCard(false)}
         <div class="flex flex-col gap-3 w-full">
           <button data-action="draft-new-roster" class="py-3 rounded-xl font-bold text-sm bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer card-shadow">Draft New Roster</button>
           <button data-action="share" class="py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer card-shadow">Share Result</button>
@@ -964,7 +1029,7 @@ export function render() {
   else if (S.phase === 'trophy-room')  $app.innerHTML = renderTrophyRoom();
   bindEvents();
 
-  // Wire up character counter for the team name input (results screen only)
+  // Wire up character counter for the local save input (results screen)
   if (S.phase === 'results' && !S.runSaved) {
     const input   = document.getElementById('team-name-input');
     const counter = document.getElementById('team-name-counter');
@@ -972,6 +1037,17 @@ export function render() {
       const update = () => { counter.textContent = 20 - input.value.length; };
       update();
       input.addEventListener('input', update);
+    }
+  }
+
+  // Wire up character counter for the global submit input (championship / eliminated)
+  if (!S.globalScoreSubmitted) {
+    const gInput   = document.getElementById('global-team-name-input');
+    const gCounter = document.getElementById('global-team-name-counter');
+    if (gInput && gCounter) {
+      const update = () => { gCounter.textContent = 30 - gInput.value.length; };
+      update();
+      gInput.addEventListener('input', update);
     }
   }
 }
