@@ -14,7 +14,7 @@ import { S } from '../logic/state.js';
 
 /**
  * @param {object[]} starters  5 starter player objects
- * @param {object[]} bench     up to 3 bench player objects
+ * @param {object[]} bench     2 bench player objects
  * @returns {{ chemBonus: number, chemScore: number, chemReport: string[] }}
  */
 export function calculateChemistry(starters, bench) {
@@ -338,11 +338,11 @@ export function calculateChemistry(starters, bench) {
     }
   }
 
-  if (coach !== 'popovich' && (starters.length + bench.length) === 8) {
+  if (coach !== 'popovich' && (starters.length + bench.length) === 7) {
     const benchTotalPpg = bench.reduce((sum, p) => sum + p.ppg, 0);
-    if (benchTotalPpg < 32.0) {
+    if (benchTotalPpg < 15.0) {
       chemBonus -= 0.04;
-      chemReport.push(`🔴 Barren Bench: Bench combines for only ${benchTotalPpg.toFixed(1)} PPG — starters can't rest (-4%)`);
+      chemReport.push(`🔴 Barren Bench: Bench combines for only ${benchTotalPpg.toFixed(1)} PPG — starters will be gassed (-4%)`);
     }
   }
 

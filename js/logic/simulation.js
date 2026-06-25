@@ -25,21 +25,21 @@ const WIN_CAP    = 0.965;
 
 /**
  * Derives dynamic STARTER_BASE / BENCH_BASE from the live DB.
- * Treats the top 62.5 % of players (by composite score) as the starter tier.
+ * Treats the top ~71.4 % of players (by composite score) as the starter tier.
  * Auto-adjusts whenever players are added or stats change.
  */
 function computeSimBaselines() {
   const all    = Object.values(DB).flat();
   const score  = p => p.ppg * 0.35 + p.rpg * 0.20 + p.apg * 0.20 + p.spg * 0.15 + p.bpg * 0.10;
   const sorted = [...all].sort((a, b) => score(b) - score(a));
-  const cut    = Math.round(sorted.length * 5 / 8);
+  const cut    = Math.round(sorted.length * 5 / 7);
   const sTier  = sorted.slice(0, cut);
   const bTier  = sorted.slice(cut);
   const avg    = (arr, stat) => arr.reduce((s, p) => s + p[stat], 0) / arr.length;
   const STATS  = ['ppg', 'rpg', 'apg', 'spg', 'bpg'];
   return {
     STARTER_BASE: Object.fromEntries(STATS.map(k => [k, avg(sTier, k) * 5])),
-    BENCH_BASE:   Object.fromEntries(STATS.map(k => [k, avg(bTier, k) * 3])),
+    BENCH_BASE:   Object.fromEntries(STATS.map(k => [k, avg(bTier, k) * 2])),
   };
 }
 
@@ -47,7 +47,7 @@ function computeSimBaselines() {
  * Simulates a full 82-game regular season.
  *
  * @param {object[]} starters  5 starting player objects
- * @param {object[]} bench     up to 3 bench player objects
+ * @param {object[]} bench     2 bench player objects
  * @returns {object}  { wins, losses, winPct, strength, totals, ratio,
  *                      sTotals, bTotals, chemScore, chemReport }
  */
