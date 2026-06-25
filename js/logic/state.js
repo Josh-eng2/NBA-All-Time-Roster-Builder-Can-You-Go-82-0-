@@ -80,18 +80,25 @@ export const COACHES = [
     accent: '#60a5fa',
   },
   {
-    id:     'dantoni',
-    name:   "Mike D'Antoni",
-    system: 'Seven Seconds or Less',
-    desc:   'Pace and spacing driven — Small Ball Heat and Pace & Space Blitz amplified ×1.5; Defensive Sieve penalty increased to −8%.',
-    accent: '#fbbf24',
+    id:     'auerbach',
+    name:   'Red Auerbach',
+    system: 'Celtic Pride',
+    desc:   'Defense-first — Twin Towers, Defensive Anchor, and All-Defensive Team bonuses amplified; interior defense penalties negated.',
+    accent: '#4ade80',
   },
   {
     id:     'riley',
     name:   'Pat Riley',
     system: 'Grit & Grind / Showtime',
     desc:   'Defense and transition driven — Showtime Transition and All-Defensive Team amplified ×1.5; Defensive Liability penalty negated.',
-    accent: '#4ade80',
+    accent: '#f87171',
+  },
+  {
+    id:     'kerr',
+    name:   'Steve Kerr',
+    system: 'Motion Offense',
+    desc:   'Spacing and ball-movement driven — Small Ball Heat, Three-and-D Paradigm, and Floor General bonuses amplified; Defensive Sieve penalty heightened.',
+    accent: '#fbbf24',
   },
 ];
 
@@ -197,8 +204,6 @@ export function startGame(era = 'all') {
     teamSkips:        1,
     decadeSkips:      1,
     hasMulligan:      true,
-    salaryCap:        150,
-    currentPayroll:   0,
     spinState:        'idle',   // 'idle' | 'spinning' | 'done'
     currentSpin:      null,     // { team, decade }
     availablePlayers: [],

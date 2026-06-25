@@ -51,7 +51,7 @@ function computeSimBaselines() {
  * @returns {object}  { wins, losses, winPct, strength, totals, ratio,
  *                      sTotals, bTotals, chemScore, chemReport }
  */
-export function simulateSeason(starters, bench) {
+export function simulateSeason(starters, bench, coach = null) {
   const sumStats = arr => arr.reduce(
     (acc, p) => ({
       ppg: acc.ppg + p.ppg,
@@ -102,9 +102,26 @@ export function simulateSeason(starters, bench) {
   const minStarterRatio = Math.min(...Object.values(sRatio));
   const balancePenalty  = minStarterRatio < 0.80 ? (0.80 - minStarterRatio) * 0.6 : 0;
 
-  const { chemBonus, chemScore, chemReport } = calculateChemistry(starters, bench);
+  const { chemBonus, chemScore, chemReport } = calculateChemistry(starters, bench, coach);
 
-  const baseStrength     = Math.max(0, strength - balancePenalty + chemBonus);
+  let coachBoost = 0;
+  const allForCoach = [...starters, ...bench];
+  if (coach === 'jackson') {
+    coachBoost = 0.025;
+  } else if (coach === 'popovich') {
+    coachBoost = 0.020;
+  } else if (coach === 'auerbach') {
+    const defCount = allForCoach.filter(p => p.archetype === 'Lockdown Defender' || p.archetype === 'Paint Beast').length;
+    coachBoost = Math.min(0.06, defCount * 0.012);
+  } else if (coach === 'riley') {
+    const avgDef = allForCoach.reduce((s, p) => s + p.spg + p.bpg, 0) / (allForCoach.length || 1);
+    coachBoost = Math.min(0.05, avgDef * 0.012);
+  } else if (coach === 'kerr') {
+    const shooterCount = allForCoach.filter(p => p.archetype === 'Sharpshooter').length;
+    coachBoost = Math.min(0.05, shooterCount * 0.010);
+  }
+
+  const baseStrength = Math.max(0, strength - balancePenalty + chemBonus + coachBoost);
 
   // ── Popularity / Fan-Hype modifier ───────────────────────────────────────
   // Smoothly maps avg roster popularity (floor 35 → ceil 100) to a multiplier
@@ -125,10 +142,10 @@ export function simulateSeason(starters, bench) {
   // Fan base size — power curve: 2M (avg=35) → ~20M (avg=70) → 40M (avg=100)
   const fansM = +(Math.pow(popNorm, 1.5) * 38 + 2).toFixed(1);
 
-  const winPct = Math.min(
-    WIN_CAP,
-    1 / (1 + Math.exp(-SIM_K * (adjustedStrength - SIM_CENTER)))
-  );
+  const baseWinPct = Math.min(WIN_CAP, 1 / (1 + Math.exp(-SIM_K * (adjustedStrength - SIM_CENTER))));
+  const competitiveFactor = Math.max(0, 1 - Math.abs(baseWinPct - 0.5) * 5);
+  const clutchBoost = competitiveFactor * (popNorm - 0.4) * 0.04;
+  const winPct = Math.min(WIN_CAP, Math.max(0, baseWinPct + clutchBoost));
 
   let wins = 0;
   for (let i = 0; i < 82; i++) { if (Math.random() < winPct) wins++; }
@@ -153,6 +170,7 @@ export function simulateSeason(starters, bench) {
     avgPopularity: +avgPop.toFixed(1),
     popEloDelta,
     fansM,
+    coachBoost: +coachBoost.toFixed(3),
   };
 }
 

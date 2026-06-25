@@ -1,18 +1,8 @@
 /**
- * js/logic/draft.js — Draft Pool, Duplicate Prevention, Cap Pricing
- * Core implementations are here; spinResult / getAvailablePlayers
- * are stubs until Response 3 writes the full file.
+ * js/logic/draft.js — Draft Pool & Duplicate Prevention
  */
 import { S, ALL_POSITIONS, TEAMS, DECADES, pick } from '../logic/state.js';
 import { DB }                                     from '../data/players.js';
-
-/** Price a player for the salary cap. */
-export function calculatePlayerPrice(p) {
-  const price = Math.round(
-    (p.ppg * 1.2) + (p.rpg * 0.9) + (p.apg * 1.1) + (p.spg * 2.5) + (p.bpg * 2.5)
-  );
-  return Math.max(5, price);
-}
 
 /** True once all 8 roster slots are filled. */
 export function rosterFull() {

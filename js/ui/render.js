@@ -15,7 +15,7 @@ import {
   COACHES, ERA_DESC, TEAM_COLORS, ARCHETYPE_STYLE, DECADES, TEAMS, pick,
 } from '../logic/state.js';
 import { calculateChemistry }                             from '../logic/chemistry.js';
-import { calculatePlayerPrice, rosterFull, availableDecades } from '../logic/draft.js';
+import { rosterFull, availableDecades }                  from '../logic/draft.js';
 import { saveToTrophyRoom }                               from '../utils/storage.js';
 import { bindEvents }                                     from '../ui/events.js'; // circular — safe (called inside functions only)
 
@@ -188,7 +188,7 @@ function renderDrafting() {
     <main class="flex-1 flex flex-col items-center px-4 pt-4 pb-8">
       <div class="w-full max-w-2xl flex flex-col gap-4">
         ${renderRoundBar()}
-        ${renderCapBar()}
+        ${renderPopularityBar()}
         ${full ? renderSimulateCard() : renderSlotMachine()}
         ${S.spinState === 'done' ? renderDraftBoard() : ''}
         ${renderChemDashboard()}
@@ -222,22 +222,23 @@ function renderRoundBar() {
   </div>`;
 }
 
-function renderCapBar() {
-  const spent    = S.currentPayroll;
-  const cap      = S.salaryCap;
-  const pct      = Math.min(100, Math.round((spent / cap) * 100));
-  const isTight  = spent >= 120;
-  const barColor = spent >= 140 ? '#dc2626' : spent >= 120 ? '#d97706' : '#16a34a';
+function renderPopularityBar() {
+  const drafted = Object.values(S.roster).filter(Boolean);
+  if (drafted.length === 0) return '';
+  const avgPop  = drafted.reduce((s, p) => s + (p.popularity || 50), 0) / drafted.length;
+  const pct     = Math.max(0, Math.round(((avgPop - 35) / 65) * 100));
+  const barCol  = avgPop >= 80 ? '#2563eb' : avgPop >= 60 ? '#d97706' : '#94a3b8';
+  const tier    = avgPop >= 85 ? 'Superstar Lineup' : avgPop >= 70 ? 'Star Power' : avgPop >= 55 ? 'Solid Roster' : 'Under the Radar';
   return `
   <div class="rounded-xl border border-border bg-card px-4 py-3 card-shadow">
     <div class="flex items-center justify-between mb-2">
-      <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg">Salary Cap</p>
-      <p class="text-xs font-bold ${isTight ? 'text-amber-600' : 'text-foreground'}">$${spent}M <span class="text-muted-fg font-normal">/ $${cap}M</span></p>
+      <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg">Team Popularity</p>
+      <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border" style="color:${barCol};background:${barCol}18;border-color:${barCol}30">${tier} · ${Math.round(avgPop)}/100</span>
     </div>
     <div class="h-1.5 rounded-full overflow-hidden bg-border">
-      <div class="h-full rounded-full transition-all stat-bar-fill" style="width:${pct}%;background:${barColor}"></div>
+      <div class="h-full rounded-full transition-all stat-bar-fill" style="width:${pct}%;background:${barCol}"></div>
     </div>
-    ${isTight ? `<p class="text-[10px] mt-1.5 font-medium text-amber-600">⚠ Cap space is tight — choose contracts wisely</p>` : ''}
+    <p class="text-[10px] mt-1.5 text-muted-fg">High popularity boosts home-court advantage in close games</p>
   </div>`;
 }
 
@@ -297,16 +298,14 @@ function renderSlotMachine() {
 // ── Draft board (3-player pick) ───────────────────────────────────────────────
 function renderDraftBoard() {
   if (!S.draftBoard || !S.draftBoard.length) return '';
-  const team      = S.currentSpin?.team;
-  const decade    = S.currentSpin?.decade;
-  const tc        = team ? TEAM_COLORS[team] : null;
-  const remaining = S.salaryCap - S.currentPayroll;
+  const team   = S.currentSpin?.team;
+  const decade = S.currentSpin?.decade;
+  const tc     = team ? TEAM_COLORS[team] : null;
   return `
   <div class="animate-fade-up">
     <div class="flex items-center gap-2 mb-3">
       ${tc ? `<span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${tc.bg}"></span>` : ''}
       <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">${team} · ${decade}</p>
-      <span class="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700">$${remaining}M cap space</span>
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
       ${S.draftBoard.map((p, i) => renderDraftCard(p, i)).join('')}
@@ -315,11 +314,8 @@ function renderDraftBoard() {
 }
 
 function renderDraftCard(p, index) {
-  const price      = calculatePlayerPrice(p);
-  const oldPlayer  = Object.values(S.roster).find(r => r && S.spinState === 'done');
-  // Use net cap impact for affordability when a swap is in progress
-  const netImpact  = price; // base case (new slot); swap correction happens in placePlayer
-  const canAfford  = S.currentPayroll + netImpact <= S.salaryCap;
+  const pop        = p.popularity ?? 50;
+  const popCol     = pop >= 80 ? '#2563eb' : pop >= 60 ? '#d97706' : '#94a3b8';
   const isSelected = S.selectedPlayer?.id === p.id;
   const cardBorder = isSelected ? '#2563eb' : '#e2e8f0';
   const cardBg     = isSelected ? '#eff6ff' : '#ffffff';
@@ -330,7 +326,7 @@ function renderDraftCard(p, index) {
       <div class="flex items-center gap-1.5 mb-2">
         <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full border border-border bg-card2 text-muted-fg">${p.pos}</span>
         ${archetypeBadge(p.archetype)}
-        <span class="ml-auto text-sm font-black" style="color:${canAfford ? '#16a34a' : '#dc2626'}">$${price}M</span>
+        <span class="ml-auto text-xs font-black" style="color:${popCol}">★ ${pop}</span>
       </div>
       <p class="font-bold text-sm text-foreground leading-tight mb-1.5">${p.name}</p>
       <div class="flex flex-wrap gap-x-2 gap-y-0.5">
@@ -344,14 +340,11 @@ function renderDraftCard(p, index) {
         </div>` : ''}
     </div>
     <div class="px-3 pb-3">
-      ${canAfford
-        ? `<button data-action="draft-pick-${index}"
-            class="w-full py-2 rounded-lg font-bold text-xs transition-all cursor-pointer"
-            style="background:${isSelected ? '#2563eb' : '#eff6ff'};color:${isSelected ? '#fff' : '#2563eb'};border:1.5px solid ${isSelected ? '#2563eb' : '#bfdbfe'}">
-            ${isSelected ? '✓ Selected — Tap a Roster Slot' : 'Draft Player'}
-           </button>`
-        : `<button disabled class="w-full py-2 rounded-lg font-bold text-xs cursor-not-allowed bg-card2 text-muted border border-border">Over Cap</button>`
-      }
+      <button data-action="draft-pick-${index}"
+        class="w-full py-2 rounded-lg font-bold text-xs transition-all cursor-pointer"
+        style="background:${isSelected ? '#2563eb' : '#eff6ff'};color:${isSelected ? '#fff' : '#2563eb'};border:1.5px solid ${isSelected ? '#2563eb' : '#bfdbfe'}">
+        ${isSelected ? '✓ Selected — Tap a Roster Slot' : 'Draft Player'}
+      </button>
     </div>
   </div>`;
 }
@@ -937,11 +930,6 @@ function renderTrophyRoom() {
           <p class="text-xs text-muted-fg">Chemistry</p>
           <p class="text-xs font-bold ${isPerfect ? 'text-amber-600' : 'text-primary'}">${t.chemScore}%</p>
         </div>
-        ${t.payroll !== undefined ? `
-        <div class="flex items-center justify-between">
-          <p class="text-xs text-muted-fg">Total Salary</p>
-          <p class="text-xs font-semibold text-muted-fg">$${t.payroll}M</p>
-        </div>` : ''}
       </div>`;
   }).join('');
   return `

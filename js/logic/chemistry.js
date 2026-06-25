@@ -52,11 +52,13 @@ export function calculateChemistry(starters, bench) {
   }
 
   if (sHasPaintBeast && sHasLockdown) {
-    chemBonus += 0.10;
-    chemReport.push('🟢 Twin Towers (Elite ×1.5): Interior dominance in the Starting 5 (+10%)');
+    const bonus = coach === 'auerbach' ? 0.14 : 0.10;
+    chemBonus += bonus;
+    chemReport.push(`🟢 Twin Towers (Elite ×1.5)${coach === 'auerbach' ? ' ⭐ Auerbach' : ''}: Interior dominance in the Starting 5 (+${Math.round(bonus * 100)}%)`);
   } else if (aHasPaintBeast && aHasLockdown) {
-    chemBonus += 0.07;
-    chemReport.push('🟢 Twin Towers: Interior dominance on both ends (+7%)');
+    const bonus = coach === 'auerbach' ? 0.10 : 0.07;
+    chemBonus += bonus;
+    chemReport.push(`🟢 Twin Towers${coach === 'auerbach' ? ' ⭐ Auerbach' : ''}: Interior dominance on both ends (+${Math.round(bonus * 100)}%)`);
   }
 
   if (sHasPlaymaker && sHasPaintBeast) {
@@ -68,9 +70,9 @@ export function calculateChemistry(starters, bench) {
   }
 
   if (sHasPlaymaker && aSharpCount >= 2) {
-    const bonus = coach === 'popovich' ? 0.12 : 0.08;
+    const bonus = coach === 'popovich' ? 0.12 : coach === 'kerr' ? 0.11 : 0.08;
     chemBonus += bonus;
-    chemReport.push(`🟢 Floor General${coach === 'popovich' ? ' ⭐ Pop' : ''}: Starter Playmaker unlocks multiple shooters (+${Math.round(bonus * 100)}%)`);
+    chemReport.push(`🟢 Floor General${coach === 'popovich' ? ' ⭐ Pop' : coach === 'kerr' ? ' ⭐ Kerr' : ''}: Starter Playmaker unlocks multiple shooters (+${Math.round(bonus * 100)}%)`);
   }
 
   const defAnchor = starters.find(
@@ -78,41 +80,45 @@ export function calculateChemistry(starters, bench) {
          (p.spg + p.bpg) >= 2.5
   );
   if (defAnchor) {
-    chemBonus += 0.08;
-    chemReport.push(`🟢 Defensive Anchor: ${defAnchor.name.split(' ').pop()} anchors the defense (+8%)`);
+    const bonus = coach === 'auerbach' ? 0.12 : 0.08;
+    chemBonus += bonus;
+    chemReport.push(`🟢 Defensive Anchor${coach === 'auerbach' ? ' ⭐ Auerbach' : ''}: ${defAnchor.name.split(' ').pop()} anchors the defense (+${Math.round(bonus * 100)}%)`);
   }
 
   const sLockdownCount = sA.filter(a => a === 'Lockdown Defender').length;
   if (sLockdownCount >= 2) {
-    chemBonus += 0.08;
-    chemReport.push('🟢 Perimeter Lockdown: Multiple locking wings in the Starting 5 (+8%)');
+    const bonus = coach === 'auerbach' ? 0.12 : 0.08;
+    chemBonus += bonus;
+    chemReport.push(`🟢 Perimeter Lockdown${coach === 'auerbach' ? ' ⭐ Auerbach' : ''}: Multiple locking wings in the Starting 5 (+${Math.round(bonus * 100)}%)`);
   }
 
   const aSlasherCount = aA.filter(a => a === 'Slasher').length;
   if (aHasPlaymaker && aSlasherCount >= 2) {
-    const bonus = coach === 'dantoni' ? 0.12 : 0.08;
+    const bonus = coach === 'kerr' ? 0.12 : 0.08;
     chemBonus += bonus;
-    chemReport.push(`🟢 Pace & Space Blitz${coach === 'dantoni' ? " ⭐ D'Antoni" : ''}: High transition attack engine ready (+${Math.round(bonus * 100)}%)`);
+    chemReport.push(`🟢 Pace & Space Blitz${coach === 'kerr' ? ' ⭐ Kerr' : ''}: High transition attack engine ready (+${Math.round(bonus * 100)}%)`);
   }
 
   if (aSharpCount >= 3) {
-    const bonus = coach === 'dantoni' ? 0.105 : 0.07;
+    const bonus = coach === 'kerr' ? 0.105 : 0.07;
     chemBonus += bonus;
-    chemReport.push(`🟢 Small Ball Heat${coach === 'dantoni' ? " ⭐ D'Antoni" : ''}: Spacing overload with 3+ shooters on the roster (+${+(bonus * 100).toFixed(1)}%)`);
+    chemReport.push(`🟢 Small Ball Heat${coach === 'kerr' ? ' ⭐ Kerr' : ''}: Spacing overload with 3+ shooters on the roster (+${+(bonus * 100).toFixed(1)}%)`);
   }
 
   const sixthMan = bench.find(p => p.ppg > 18.0);
   if (sixthMan) {
-    chemBonus += 0.06;
-    chemReport.push(`🟢 Sixth Man Spark: ${sixthMan.name.split(' ').pop()} provides elite scoring off the bench (+6%)`);
+    const bonus = coach === 'popovich' ? 0.09 : 0.06;
+    chemBonus += bonus;
+    chemReport.push(`🟢 Sixth Man Spark${coach === 'popovich' ? ' ⭐ Pop' : ''}: ${sixthMan.name.split(' ').pop()} provides elite scoring off the bench (+${Math.round(bonus * 100)}%)`);
   }
 
   const stretchBig = starters.find(
     p => (p.pos === 'C' || p.pos === 'PF') && p.archetype === 'Sharpshooter'
   );
   if (stretchBig) {
-    chemBonus += 0.07;
-    chemReport.push(`🟢 Stretch Five Dynamic: ${stretchBig.name.split(' ').pop()} opens up the interior lane (+7%)`);
+    const bonus = coach === 'kerr' ? 0.10 : 0.07;
+    chemBonus += bonus;
+    chemReport.push(`🟢 Stretch Five Dynamic${coach === 'kerr' ? ' ⭐ Kerr' : ''}: ${stretchBig.name.split(' ').pop()} opens up the interior lane (+${Math.round(bonus * 100)}%)`);
   }
 
   const showtimePG      = starters.find(p => p.archetype === 'Playmaker'  && p.apg  > 7.0);
@@ -134,9 +140,9 @@ export function calculateChemistry(starters, bench) {
 
   const aLockdownCount = aA.filter(a => a === 'Lockdown Defender').length;
   if (aLockdownCount >= 3) {
-    const bonus = coach === 'riley' ? 0.135 : 0.09;
+    const bonus = (coach === 'riley' || coach === 'auerbach') ? 0.135 : 0.09;
     chemBonus += bonus;
-    chemReport.push(`🟢 All-Defensive Team${coach === 'riley' ? ' ⭐ Riley' : ''}: High baseline lock pressure across roster (+${+(bonus * 100).toFixed(1)}%)`);
+    chemReport.push(`🟢 All-Defensive Team${coach === 'riley' ? ' ⭐ Riley' : coach === 'auerbach' ? ' ⭐ Auerbach' : ''}: High baseline lock pressure across roster (+${+(bonus * 100).toFixed(1)}%)`);
   }
 
   const helioPG = starters.find(p => p.archetype === 'Playmaker' && p.apg > 9.0);
@@ -156,8 +162,9 @@ export function calculateChemistry(starters, bench) {
   const startingPF = starters.find(p => p.pos === 'PF');
   const startingC  = starters.find(p => p.pos === 'C');
   if (startingPF?.archetype === 'Paint Beast' && startingC?.archetype === 'Paint Beast') {
-    chemBonus += 0.07;
-    chemReport.push('🟢 Bully Ball Frontcourt: Combined paint beasts completely overwhelm low blocks (+7%)');
+    const bonus = coach === 'auerbach' ? 0.10 : 0.07;
+    chemBonus += bonus;
+    chemReport.push(`🟢 Bully Ball Frontcourt${coach === 'auerbach' ? ' ⭐ Auerbach' : ''}: Combined paint beasts completely overwhelm low blocks (+${Math.round(bonus * 100)}%)`);
   }
 
   const eliteScorers = starters.filter(p => p.ppg > 26.0);
@@ -182,8 +189,9 @@ export function calculateChemistry(starters, bench) {
   }
 
   if (aSharpCount >= 2 && aLockdownCount >= 2) {
-    chemBonus += 0.08;
-    chemReport.push('🟢 Three-and-D Paradigm: Flawless modern floor symmetry (+8%)');
+    const bonus = coach === 'kerr' ? 0.11 : 0.08;
+    chemBonus += bonus;
+    chemReport.push(`🟢 Three-and-D Paradigm${coach === 'kerr' ? ' ⭐ Kerr' : ''}: Flawless modern floor symmetry (+${Math.round(bonus * 100)}%)`);
   }
 
   const sPerimSteals = starters
@@ -213,7 +221,7 @@ export function calculateChemistry(starters, bench) {
     chemReport.push('🔴 No Playmaking: Zero Playmakers on the roster — no one to run the offense (-5%)');
   }
 
-  if (coach !== 'riley') {
+  if (coach !== 'riley' && coach !== 'auerbach') {
     const defLiabilityCount = starters.filter(p => (p.spg + p.bpg) < 1.5).length;
     if (defLiabilityCount >= 3) {
       chemBonus -= 0.02;
@@ -237,9 +245,9 @@ export function calculateChemistry(starters, bench) {
     p => p.archetype === 'Lockdown Defender' || p.archetype === 'Paint Beast'
   );
   if (sFrontcourt.length === 3 && !hasFrontDefend) {
-    const penalty = coach === 'dantoni' ? 0.08 : 0.05;
+    const penalty = coach === 'kerr' ? 0.08 : coach === 'auerbach' ? 0.09 : 0.05;
     chemBonus -= penalty;
-    chemReport.push(`🔴 Defensive Sieve${coach === 'dantoni' ? " (heightened by D'Antoni)" : ''}: Starting frontcourt offers zero rim/wing protection (-${Math.round(penalty * 100)}%)`);
+    chemReport.push(`🔴 Defensive Sieve${coach === 'kerr' ? ' (heightened by Kerr)' : coach === 'auerbach' ? ' (critical for Auerbach)' : ''}: Starting frontcourt offers zero rim/wing protection (-${Math.round(penalty * 100)}%)`);
   }
 
   const highUsageCount = starters.filter(p => p.ppg > 25.0 && p.apg < 5.0).length;
@@ -261,12 +269,14 @@ export function calculateChemistry(starters, bench) {
     chemReport.push('🔴 Offensive Black Hole: 3+ starters average under 12.0 PPG, killing floor gravity (-5%)');
   }
 
-  const pfcBlocksLow = starters
-    .filter(p => p.pos === 'PF' || p.pos === 'C')
-    .reduce((sum, p) => sum + p.bpg, 0);
-  if (starters.filter(p => p.pos === 'PF' || p.pos === 'C').length === 2 && pfcBlocksLow < 1.5) {
-    chemBonus -= 0.05;
-    chemReport.push('🔴 No Paint Protection: Frontcourt blocks fall below 1.5 BPG (-5%)');
+  if (coach !== 'auerbach') {
+    const pfcBlocksLow = starters
+      .filter(p => p.pos === 'PF' || p.pos === 'C')
+      .reduce((sum, p) => sum + p.bpg, 0);
+    if (starters.filter(p => p.pos === 'PF' || p.pos === 'C').length === 2 && pfcBlocksLow < 1.5) {
+      chemBonus -= 0.05;
+      chemReport.push('🔴 No Paint Protection: Frontcourt blocks fall below 1.5 BPG (-5%)');
+    }
   }
 
   if (coach !== 'popovich' && (starters.length + bench.length) === 8) {
@@ -280,4 +290,3 @@ export function calculateChemistry(starters, bench) {
   const chemScore = Math.round(Math.max(0, Math.min(100, 70 + (chemBonus / 0.60) * 30)));
   return { chemBonus, chemScore, chemReport };
 }
-
