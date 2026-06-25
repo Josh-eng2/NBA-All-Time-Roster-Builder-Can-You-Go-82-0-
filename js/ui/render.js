@@ -15,6 +15,11 @@ import {
   COACHES, ERA_DESC, TEAM_COLORS, ARCHETYPE_STYLE, DECADES, TEAMS, pick,
 } from '../logic/state.js';
 import { calculateChemistry }                             from '../logic/chemistry.js';
+import {
+  getPlayerSalary, getSalaryTier, computePayroll,
+  computeGmElo, fmtSalary, CAP,
+  UPGRADE_COSTS, upgradeSpend,
+}                                                         from '../logic/salary.js';
 import { rosterFull, availableDecades }                  from '../logic/draft.js';
 import { saveToTrophyRoom }                               from '../utils/storage.js';
 import { bindEvents }                                     from '../ui/events.js'; // circular — safe (called inside functions only)
@@ -204,21 +209,44 @@ function renderRoundBar() {
   const startersFilled = POSITIONS.filter(p => S.roster[p]).length;
   const benchFilled    = BENCH_POSITIONS.filter(p => S.roster[p]).length;
   const roleLabel      = S.round < 5 ? `Starters ${startersFilled}/5` : `Bench ${benchFilled}/2`;
-  const displayRound   = Math.min(S.round + 1, TOTAL_ROUNDS); // cap at 8 — never shows "Round 9 of 8"
+  const displayRound   = Math.min(S.round + 1, TOTAL_ROUNDS);
+
+  const payroll    = computePayroll(S.roster);
+  const isOverCap  = payroll > CAP;
+  const remaining  = CAP - payroll;
+  const capPct     = Math.min(100, (payroll / CAP) * 100);
+  const capBarCol  = isOverCap ? '#dc2626' : capPct > 85 ? '#d97706' : '#2563eb';
+  const capStatus  = payroll === 0
+    ? `Cap: $154.6M`
+    : isOverCap
+      ? `🔴 Luxury Tax +${fmtSalary(Math.abs(remaining))}`
+      : `Remaining: ${fmtSalary(remaining)}`;
+
   return `
-  <div class="flex items-center justify-between py-1">
-    <div>
-      <p class="text-sm font-bold text-foreground">Round ${displayRound} <span class="text-muted-fg font-normal">of ${TOTAL_ROUNDS}</span></p>
-      <p class="text-xs text-muted-fg mt-0.5">${filled}/${ALL_POSITIONS.length} spots &nbsp;·&nbsp; ${roleLabel}</p>
+  <div class="flex flex-col gap-1.5 py-1">
+    <div class="flex items-center justify-between">
+      <div>
+        <p class="text-sm font-bold text-foreground">Round ${displayRound} <span class="text-muted-fg font-normal">of ${TOTAL_ROUNDS}</span></p>
+        <p class="text-xs text-muted-fg mt-0.5">${filled}/${ALL_POSITIONS.length} spots &nbsp;·&nbsp; ${roleLabel}</p>
+      </div>
+      <div class="flex gap-1.5 items-center">
+        ${Array.from({ length: TOTAL_ROUNDS }, (_, i) => {
+          const isStarter = i < 5;
+          const done   = i < S.round;
+          const active = i === S.round;
+          const color  = done || active ? (isStarter ? '#2563eb' : '#64748b') : '#e2e8f0';
+          return `<div class="rounded-full transition-all" style="width:${active ? 9 : 7}px;height:${active ? 9 : 7}px;background:${color};border:${active ? '2px solid ' + (isStarter ? '#2563eb' : '#64748b') : 'none'}"></div>`;
+        }).join('')}
+      </div>
     </div>
-    <div class="flex gap-1.5 items-center">
-      ${Array.from({ length: TOTAL_ROUNDS }, (_, i) => {
-        const isStarter = i < 5;
-        const done   = i < S.round;
-        const active = i === S.round;
-        const color  = done || active ? (isStarter ? '#2563eb' : '#64748b') : '#e2e8f0';
-        return `<div class="rounded-full transition-all" style="width:${active ? 9 : 7}px;height:${active ? 9 : 7}px;background:${color};border:${active ? '2px solid ' + (isStarter ? '#2563eb' : '#64748b') : 'none'}"></div>`;
-      }).join('')}
+    <div class="rounded-lg border px-2.5 py-1.5" style="background:${isOverCap ? '#fef2f2' : '#f8fafc'};border-color:${isOverCap ? '#fecaca' : '#e2e8f0'}">
+      <div class="flex items-center justify-between mb-1">
+        <span class="text-[10px] font-bold uppercase tracking-widest text-muted-fg">💰 Payroll</span>
+        <span class="text-[10px] font-bold" style="color:${capBarCol}">${fmtSalary(payroll)} / $154.6M &nbsp;·&nbsp; ${capStatus}</span>
+      </div>
+      <div class="h-1 rounded-full overflow-hidden bg-border">
+        <div class="h-full rounded-full transition-all" style="width:${capPct.toFixed(1)}%;background:${capBarCol}"></div>
+      </div>
     </div>
   </div>`;
 }
@@ -327,6 +355,7 @@ function renderDraftCard(p, index) {
       <div class="flex items-center gap-1.5 mb-2">
         <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full border border-border bg-card2 text-muted-fg">${p.pos}</span>
         ${archetypeBadge(p.archetype)}
+        <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full border" style="background:#f0fdf4;border-color:#bbf7d0;color:#15803d">${fmtSalary(getPlayerSalary(p))}</span>
         <span class="ml-auto text-xs font-black" style="color:${popCol}">★ ${pop}</span>
       </div>
       <p class="font-bold text-sm text-foreground leading-tight mb-1.5">${p.name}</p>
@@ -387,6 +416,7 @@ function renderRosterSlot(pos, canPlace, isBench) {
       <span class="text-[10px] font-black uppercase leading-none" style="color:${filledLabelColor}">${label}</span>
       <span class="text-[11px] font-bold text-foreground leading-tight w-full text-center truncate px-0.5">${p.name.split(' ').pop()}</span>
       <span class="text-[10px] text-muted-fg leading-none">${p.ppg}pt</span>
+      <span class="text-[9px] font-bold leading-none" style="color:#15803d">${fmtSalary(getPlayerSalary(p))}</span>
     </div>`;
   }
   return `
@@ -437,14 +467,148 @@ function renderChemDashboard() {
 
 // ── Simulate card ─────────────────────────────────────────────────────────────
 function renderSimulateCard() {
+  const upgrades  = S.upgrades || {};
+  const purchased = Object.values(upgrades).filter(Boolean).length;
   return `
   <div class="rounded-2xl border-2 border-primary bg-white p-5 text-center animate-scale-in card-shadow">
     <div class="flex justify-center mb-3">${iconBall('h-10 w-10 text-primary')}</div>
     <p class="font-black text-lg text-foreground mb-1">Roster Complete</p>
-    <p class="text-sm text-muted-fg mb-5">All 7 spots locked in — starters and bench. Time to simulate.</p>
+    <p class="text-sm text-muted-fg mb-4">All 7 spots locked in. Visit the Front Office to spend remaining cap space, or simulate now.</p>
+    <button data-action="open-shop"
+      class="w-full py-3 rounded-xl font-bold text-sm border-2 border-primary text-primary bg-white hover:bg-blue-50 transition-all cursor-pointer mb-3 flex items-center justify-center gap-2">
+      🏢 Front Office Upgrades
+      ${purchased > 0 ? `<span class="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-primary text-white">${purchased} active</span>` : ''}
+    </button>
     <button data-action="simulate" class="w-full py-3.5 rounded-xl font-black text-sm uppercase tracking-widest bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer animate-pulse-glow">
       Simulate 82 Games →
     </button>
+  </div>`;
+}
+
+// ── Front Office Shop ─────────────────────────────────────────────────────────
+function renderShop() {
+  const upgrades   = S.upgrades || {};
+  const payroll    = computePayroll(S.roster);
+  const spent      = upgradeSpend(upgrades);
+  const totalSpend = payroll + spent;
+  const remaining  = CAP - totalSpend;
+  const isOverCap  = totalSpend > CAP;
+  const capPct     = Math.min(100, (totalSpend / CAP) * 100);
+  const capBarCol  = isOverCap ? '#dc2626' : capPct > 85 ? '#d97706' : '#2563eb';
+
+  const SHOP_ITEMS = [
+    {
+      key:    'practiceFacility',
+      name:   'State-of-the-Art Practice Facility',
+      icon:   '🏟️',
+      cost:   UPGRADE_COSTS.practiceFacility,
+      desc:   'Grants a massive home-court advantage, boosting win probability in all home games.',
+      effect: '+7.5% win probability on all 41 home games',
+      color:  '#2563eb',
+      bg:     '#eff6ff',
+      border: '#bfdbfe',
+    },
+    {
+      key:    'sportsPsych',
+      name:   'World-Class Sports Psychologist',
+      icon:   '🧠',
+      cost:   UPGRADE_COSTS.sportsPsych,
+      desc:   "Completely removes 'Clashing Egos' and 'Usage Overload' chemistry penalties.",
+      effect: 'Ego clash & usage overlap penalties zeroed out',
+      color:  '#7c3aed',
+      bg:     '#f5f3ff',
+      border: '#ddd6fe',
+    },
+    {
+      key:    'prCampaign',
+      name:   'Global PR & Marketing Campaign',
+      icon:   '📣',
+      cost:   UPGRADE_COSTS.prCampaign,
+      desc:   "Boosts your team's total Popularity rating by a flat +20 for leaderboard tie-breakers.",
+      effect: '+20 to effective team popularity score',
+      color:  '#d97706',
+      bg:     '#fffbeb',
+      border: '#fde68a',
+    },
+  ];
+
+  const cards = SHOP_ITEMS.map(item => {
+    const purchased = upgrades[item.key];
+    const canAfford = !purchased && remaining >= item.cost;
+    const sal       = fmtSalary(item.cost);
+    return `
+    <div class="rounded-2xl border-2 bg-white p-4 card-shadow transition-all"
+      style="border-color:${purchased ? item.color : '#e2e8f0'};background:${purchased ? item.bg : '#ffffff'}">
+      <div class="flex items-start gap-3 mb-3">
+        <span class="text-2xl flex-shrink-0 mt-0.5">${item.icon}</span>
+        <div class="flex-1 min-w-0">
+          <p class="font-black text-sm text-foreground leading-tight mb-1.5">${item.name}</p>
+          <span class="inline-block text-xs font-black px-2 py-0.5 rounded-full border"
+            style="background:${item.bg};color:${item.color};border-color:${item.border}">${sal}</span>
+        </div>
+        ${purchased ? `<span class="text-[10px] font-black px-2 py-1 rounded-full flex-shrink-0"
+          style="background:${item.color};color:#fff">✓ ACTIVE</span>` : ''}
+      </div>
+      <p class="text-xs text-muted-fg leading-relaxed mb-2">${item.desc}</p>
+      <p class="text-[10px] font-bold uppercase tracking-wider mb-3" style="color:${item.color}">⚡ ${item.effect}</p>
+      ${purchased
+        ? `<div class="w-full py-2.5 rounded-xl text-center text-xs font-black uppercase tracking-widest"
+             style="background:${item.bg};color:${item.color};border:2px solid ${item.border}">✓ Upgrade Active</div>`
+        : `<button data-action="buy-upgrade-${item.key}"
+             class="w-full py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all"
+             style="background:${canAfford ? item.color : '#f1f5f9'};color:${canAfford ? '#fff' : '#94a3b8'};
+                    border:2px solid ${canAfford ? item.color : '#e2e8f0'};
+                    cursor:${canAfford ? 'pointer' : 'not-allowed'}"
+             ${canAfford ? '' : 'disabled'}>
+             ${canAfford ? `Purchase — ${sal}` : `Can't Afford — ${sal}`}
+           </button>`
+      }
+    </div>`;
+  }).join('');
+
+  return `
+  <div class="flex flex-col min-h-screen main-gradient">
+    ${renderHeader(false)}
+    <main class="flex-1 flex flex-col items-center px-4 py-6">
+      <div class="w-full max-w-2xl flex flex-col gap-4 animate-fade-up">
+        <div class="flex items-center gap-3">
+          <button data-action="close-shop"
+            class="text-xs font-bold px-3 py-1.5 rounded-lg border border-border bg-white text-muted-fg hover:text-foreground transition-colors cursor-pointer card-shadow">
+            ← Roster
+          </button>
+          <div>
+            <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg">Front Office</p>
+            <p class="font-black text-lg text-foreground leading-tight">Upgrade HQ</p>
+          </div>
+        </div>
+        <div class="rounded-2xl border bg-white p-4 card-shadow"
+          style="border-color:${isOverCap ? '#fecaca' : '#e2e8f0'}">
+          <div class="flex items-center justify-between mb-2">
+            <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">💰 Available Budget</p>
+            <span class="text-xs font-bold px-2 py-0.5 rounded-full border"
+              style="background:${isOverCap ? '#fef2f2' : '#f0fdf4'};color:${isOverCap ? '#dc2626' : '#16a34a'};border-color:${isOverCap ? '#fecaca' : '#bbf7d0'}">
+              ${isOverCap ? '🔴 Over Cap' : '✅ Under Cap'}
+            </span>
+          </div>
+          <div class="flex items-baseline gap-2 mb-2">
+            <span class="text-3xl font-black" style="color:${isOverCap ? '#dc2626' : '#0f172a'}">${fmtSalary(Math.max(0, remaining))}</span>
+            <span class="text-sm text-muted-fg">remaining of $154.6M cap</span>
+          </div>
+          <div class="h-1.5 rounded-full overflow-hidden bg-border mb-1.5">
+            <div class="h-full rounded-full transition-all" style="width:${capPct.toFixed(1)}%;background:${capBarCol}"></div>
+          </div>
+          <div class="flex justify-between text-[10px] text-muted-fg">
+            <span>Roster ${fmtSalary(payroll)}</span>
+            <span>Upgrades ${fmtSalary(spent)}</span>
+          </div>
+        </div>
+        ${cards}
+        <button data-action="shop-simulate"
+          class="w-full py-4 rounded-xl font-black text-sm uppercase tracking-widest bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer animate-pulse-glow">
+          Simulate 82 Games →
+        </button>
+      </div>
+    </main>
   </div>`;
 }
 
@@ -464,6 +628,14 @@ function renderResults() {
   else                 { label = 'Rebuild Required';       labelColor = '#991b1b'; labelBg = '#fef2f2'; emoji = '📋'; }
 
   const winsColor = isPerfect || isHistoric ? '#d97706' : isElite ? '#16a34a' : isPlayoff ? '#2563eb' : '#dc2626';
+
+  // ── Budget & GM Elo helpers ────────────────────────────────────────────────
+  const payroll      = r.payroll  ?? computePayroll(S.roster);
+  const gmElo        = r.gmElo    ?? computeGmElo(payroll);
+  const isOverBudget = payroll > CAP;
+  const capRemaining = CAP - payroll;
+  const capPct       = Math.min(100, (payroll / CAP) * 100);
+  const capBarCol    = isOverBudget ? '#dc2626' : capPct > 85 ? '#d97706' : '#2563eb';
 
   // ── Popularity / Fan-Hype display helpers ─────────────────────────────────
   const popDelta    = r.popEloDelta ?? 0;
@@ -566,6 +738,58 @@ function renderResults() {
               🌍 Global Fanbase: ${fansLabel}
             </span>
             ${hypeBadge}
+          </div>
+        </div>
+        <!-- ── GM Budget card ────────────────────────────────────────────── -->
+        <div class="rounded-2xl border-2 bg-white p-4 card-shadow"
+          style="border-color:${isOverBudget ? '#fecaca' : '#bbf7d0'}">
+          <div class="flex items-center justify-between mb-3">
+            <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">GM Budget</p>
+            <span class="text-xs font-bold px-2 py-0.5 rounded-full border"
+              style="background:${isOverBudget ? '#fef2f2' : '#f0fdf4'};color:${isOverBudget ? '#dc2626' : '#16a34a'};border-color:${isOverBudget ? '#fecaca' : '#bbf7d0'}">
+              ${isOverBudget ? '🔴 Luxury Tax' : '✅ Under Cap'}
+            </span>
+          </div>
+          <div class="grid grid-cols-3 gap-2 text-center mb-3">
+            <div class="rounded-xl border border-border bg-slate-50 px-2 py-2.5">
+              <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg mb-1">Total Payroll</p>
+              <p class="text-lg font-black text-foreground">${fmtSalary(payroll)}</p>
+            </div>
+            <div class="rounded-xl border px-2 py-2.5"
+              style="background:${isOverBudget ? '#fef2f2' : '#f0fdf4'};border-color:${isOverBudget ? '#fecaca' : '#bbf7d0'}">
+              <p class="text-[10px] font-bold uppercase tracking-wider mb-1"
+                style="color:${isOverBudget ? '#dc2626' : '#15803d'}">${isOverBudget ? 'Luxury Tax' : 'Cap Space'}</p>
+              <p class="text-lg font-black" style="color:${isOverBudget ? '#dc2626' : '#16a34a'}">${fmtSalary(Math.abs(capRemaining))}</p>
+            </div>
+            <div class="rounded-xl border border-border bg-slate-50 px-2 py-2.5">
+              <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg mb-1">GM Elo</p>
+              <p class="text-lg font-black" style="color:${gmElo >= 1500 ? '#16a34a' : '#dc2626'}">${gmElo}</p>
+            </div>
+          </div>
+          <div class="mb-3">
+            <div class="h-2 rounded-full overflow-hidden bg-border">
+              <div class="h-full rounded-full transition-all stat-bar-fill" style="width:${capPct.toFixed(1)}%;background:${capBarCol}"></div>
+            </div>
+            <div class="flex justify-between text-[10px] mt-1 text-muted-fg">
+              <span>$0</span>
+              <span class="font-bold" style="color:${capBarCol}">$154,647,000 Cap</span>
+            </div>
+          </div>
+          <div class="flex flex-col gap-1.5">
+            ${[...Object.entries(S.roster)].filter(([,p]) => p).map(([pos, p]) => {
+              const sal     = getPlayerSalary(p);
+              const tier    = getSalaryTier(p);
+              const tierCol = (p.popularity ?? 50) >= 95 ? '#7c3aed'
+                            : (p.popularity ?? 50) >= 85 ? '#2563eb'
+                            : (p.popularity ?? 50) >= 75 ? '#d97706' : '#64748b';
+              return `<div class="flex items-center gap-2">
+                <span class="text-[10px] font-black w-6 flex-shrink-0 text-muted-fg">${pos}</span>
+                <span class="text-xs font-semibold text-foreground flex-1 truncate">${p.name.split(' ').pop()}</span>
+                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full border"
+                  style="color:${tierCol};border-color:${tierCol}30;background:${tierCol}10">${tier}</span>
+                <span class="text-xs font-black" style="color:${capBarCol}">${fmtSalary(sal)}</span>
+              </div>`;
+            }).join('')}
           </div>
         </div>
         <div class="rounded-2xl border border-border bg-white p-4 card-shadow">
@@ -1024,6 +1248,7 @@ export function render() {
   if      (S.phase === 'coach-select') $app.innerHTML = renderCoachSelect();
   else if (S.phase === 'era-select')   $app.innerHTML = renderEraSelect();
   else if (S.phase === 'drafting')     $app.innerHTML = renderDrafting();
+  else if (S.phase === 'shop')         $app.innerHTML = renderShop();
   else if (S.phase === 'results')      $app.innerHTML = renderResults();
   else if (S.phase === 'playoffs')     $app.innerHTML = renderPlayoffs();
   else if (S.phase === 'trophy-room')  $app.innerHTML = renderTrophyRoom();
