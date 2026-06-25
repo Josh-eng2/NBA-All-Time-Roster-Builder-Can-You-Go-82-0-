@@ -12,7 +12,7 @@
 
 import {
   S, startGame, ALL_POSITIONS, POSITIONS, BENCH_POSITIONS,
-  TEAMS, DECADES, pick, buildBracket, getPlayerSeed,
+  TEAMS, DECADES, COACHES, pick, buildBracket, getPlayerSeed,
 } from '../logic/state.js';
 import {
   spinResult, getAvailablePlayers, availableDecades,
@@ -21,13 +21,16 @@ import { simulateSeason, simulateSeries }            from '../logic/simulation.j
 import {
   saveLeaderboard, saveToTrophyRoom,
   showLeaderboardModal, closeLeaderboardModal,
+  showGlobalLeaderboardModal, closeGlobalLeaderboardModal,
 } from '../utils/storage.js';
+import { submitGlobalScore } from '../utils/firebase.js';
 import {
   render, $app, fmtPlayerLine, fmtDecadeShort, showToast,
 } from '../ui/render.js'; // circular — safe (used only inside function bodies)
 
-// Expose the close helper globally so the inline onclick in the modal HTML works
-window.closeLeaderboardModal = closeLeaderboardModal;
+// Expose modal close helpers globally — inline onclicks in modal HTML are outside #app
+window.closeLeaderboardModal       = closeLeaderboardModal;
+window.closeGlobalLeaderboardModal = closeGlobalLeaderboardModal;
 
 // ── Event binding ─────────────────────────────────────────────────────────────
 
@@ -107,8 +110,10 @@ function dispatch(action) {
   if (action === 'sim-next-round')      { doSimNextRound();      return; }
 
   // ── UI helpers ─────────────────────────────────────────────────────────────
-  if (action === 'share')            { doShare();             return; }
-  if (action === 'open-leaderboard') { showLeaderboardModal(); return; }
+  if (action === 'share')                  { doShare();                          return; }
+  if (action === 'open-leaderboard')       { showLeaderboardModal();             return; }
+  if (action === 'open-global-leaderboard'){ showGlobalLeaderboardModal();       return; }
+  if (action === 'submit-global')          { doSubmitGlobal();                   return; }
 
   render(); // fallback — re-render for unhandled actions
 }
@@ -266,6 +271,52 @@ function doSaveRun() {
   saveLeaderboard();
   showToast('✅ Saved to Leaderboard!');
   render();
+}
+
+// ── Global leaderboard submit ─────────────────────────────────────────────────
+
+async function doSubmitGlobal() {
+  if (S.globalScoreSubmitted) return;
+
+  // Read team name from the global input; fall back to any previously saved name
+  const input  = document.getElementById('global-team-name-input');
+  const raw    = input ? input.value.trim() : '';
+  S.teamName   = raw.slice(0, 30) || S.teamName || 'Untitled Team';
+
+  // Optimistic button feedback
+  const btn = document.getElementById('submit-global-btn');
+  if (btn) {
+    btn.disabled         = true;
+    btn.textContent      = 'Submitting…';
+    btn.style.opacity    = '0.7';
+    btn.style.cursor     = 'not-allowed';
+  }
+
+  const coachObj = S.coach ? COACHES.find(c => c.id === S.coach) : null;
+  const r        = S.result;
+  const isChamp  = S.playoffs?.champion ?? false;
+
+  try {
+    await submitGlobalScore({
+      teamName:    S.teamName,
+      wins:        r.wins,
+      losses:      r.losses,
+      champion:    isChamp,
+      coachId:     S.coach         ?? '',
+      coachName:   coachObj?.name  ?? '',
+      era:         S.selectedEra   ?? 'all',
+      chemScore:   Math.round(r.chemScore ?? 0),
+      starters:    POSITIONS.map(p => S.roster[p]?.name || '—').join(', '),
+      timestampMs: Date.now(),
+    });
+    S.globalScoreSubmitted = true;
+    S.globalSubmitError    = null;
+    render();
+    showToast('🌍 You\'re on the global board!');
+  } catch (err) {
+    S.globalSubmitError = err.message || 'Submission failed — check your connection.';
+    render();
+  }
 }
 
 // ── Share ─────────────────────────────────────────────────────────────────────
