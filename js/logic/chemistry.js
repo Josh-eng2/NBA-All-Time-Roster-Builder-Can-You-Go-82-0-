@@ -453,7 +453,7 @@ export function calculateChemistry(starters, bench) {
   }
 
   // ── FINAL SCORE (30 baseline = neutral roster) ────────────────────────────────
-  const chemScore = Math.round(Math.max(0, Math.min(100, 30 + (chemBonus / 0.60) * 50)));
+  const chemScore = Math.round(Math.max(0, Math.min(100, 0 + (chemBonus / 0.60) * 50)));
   return { chemBonus, chemScore, chemReport, lineupAssignment: assignment };
 }
 
