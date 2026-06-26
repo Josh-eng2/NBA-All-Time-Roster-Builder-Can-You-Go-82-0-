@@ -188,9 +188,10 @@ function renderDrafting() {
     ${renderHeader(true)}
     <main class="flex-1 flex flex-col items-center px-4 pt-2 pb-3">
       <div class="w-full max-w-2xl flex flex-col gap-2">
+        ${full ? renderSimulateCard() : ''}
         ${renderRoundBar()}
-        ${full ? renderSimulateCard() : renderSlotMachine()}
-        ${S.spinState === 'done' ? renderDraftBoard() : ''}
+        ${!full ? renderSlotMachine() : ''}
+        ${!full && S.spinState === 'done' ? renderDraftBoard() : ''}
         ${renderChemDashboard()}
         ${renderRoster()}
       </div>
