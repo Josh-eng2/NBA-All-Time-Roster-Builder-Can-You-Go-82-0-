@@ -555,11 +555,19 @@ function renderResults() {
     </div>`;
   };
 
-  const rosterRow = (p, posLabel, isStarter) => {
+  const rosterRow = (p, posLabel, isStarter, fit = null) => {
     if (!p) return '';
+    const fitBg    = fit === 'primary' ? '#dcfce7' : fit === 'flex' ? '#fef9c3' : fit ? '#fee2e2' : null;
+    const fitColor = fit === 'primary' ? '#15803d' : fit === 'flex' ? '#a16207' : fit ? '#dc2626' : null;
+    const fitText  = fit === 'primary' ? '✓' : fit === 'flex' ? '↔' : fit === 'severe' ? '!!' : fit ? '!' : null;
+    const fitBadge = fit
+      ? `<span class="text-[8px] font-black px-1 py-0.5 rounded leading-none ml-0.5" style="background:${fitBg};color:${fitColor}">${fitText}</span>`
+      : '';
     return `
     <div class="flex items-center gap-3 py-2.5 border-b border-border last:border-0">
-      <span class="text-[10px] font-black w-7 flex-shrink-0 ${isStarter ? 'text-primary' : 'text-muted-fg'}">${posLabel}</span>
+      <div class="flex items-center gap-0 w-12 flex-shrink-0">
+        <span class="text-[10px] font-black ${isStarter ? 'text-primary' : 'text-muted-fg'}">${posLabel}</span>${fitBadge}
+      </div>
       <div class="flex-1 min-w-0">
         <p class="font-semibold text-sm text-foreground truncate">${p.name}</p>
         <div class="flex items-center gap-1.5 mt-0.5">
@@ -729,10 +737,22 @@ function renderResults() {
           </div>
         </div>
         <div class="rounded-2xl border border-border bg-white p-4 card-shadow">
-          <p class="text-xs font-bold uppercase tracking-widest text-muted-fg mb-3">Final Roster</p>
-          <p class="text-[10px] font-bold uppercase tracking-wider text-primary mb-1">Starters</p>
+          <div class="flex items-center justify-between mb-3">
+            <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Optimized Lineup</p>
+            ${r.lineupAssignment?.length === 5 ? (() => {
+              const allPrimary = r.lineupAssignment.every(a => a.fit === 'primary');
+              const hasOOP     = r.lineupAssignment.some(a => a.fit === 'oop' || a.fit === 'severe');
+              const bg    = allPrimary ? '#f0fdf4' : hasOOP ? '#fef2f2' : '#fefce8';
+              const color = allPrimary ? '#15803d' : hasOOP ? '#dc2626' : '#a16207';
+              const label = allPrimary ? '🟢 Flawless' : hasOOP ? '🔴 Mismatches' : '🟡 Flex Lineup';
+              return `<span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full border" style="background:${bg};color:${color};border-color:${color}30">${label}</span>`;
+            })() : ''}
+          </div>
+          <p class="text-[10px] font-bold uppercase tracking-wider text-primary mb-1">Starters — Engine Optimal Floor Assignment</p>
           <div class="flex flex-col mb-4">
-            ${POSITIONS.map(pos => rosterRow(S.roster[pos], pos, true)).join('')}
+            ${r.lineupAssignment?.length
+              ? r.lineupAssignment.map(({ slot, player, fit }) => rosterRow(player, slot, true, fit)).join('')
+              : POSITIONS.map(pos => rosterRow(S.roster[pos], pos, true)).join('')}
           </div>
           <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg mb-1">Bench</p>
           <div class="flex flex-col">
