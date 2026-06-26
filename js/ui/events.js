@@ -233,17 +233,25 @@ function placePlayer(pos) {
   const player    = { ...S.selectedPlayer, team: spin?.team, decade: spin?.decade };
   const oldPlayer = S.roster[pos];
 
+  // Block if a different era version of this player is already on the roster
+  if (S.draftedPlayerNames?.has(player.name) && oldPlayer?.name !== player.name) {
+    showToast('Player already on roster!');
+    return;
+  }
+
   // Remove the displaced player from tracking before placing the new one
   if (oldPlayer) {
     const idIdx = S.usedPlayerIds.indexOf(oldPlayer.id);
     if (idIdx !== -1) S.usedPlayerIds.splice(idIdx, 1);
     const decIdx = S.usedDecades.indexOf(oldPlayer.decade);
     if (decIdx !== -1) S.usedDecades.splice(decIdx, 1);
+    S.draftedPlayerNames?.delete(oldPlayer.name);
   }
 
   S.roster[pos]      = player;
   S.usedDecades.push(spin?.decade);
   S.usedPlayerIds.push(player.id);
+  S.draftedPlayerNames?.add(player.name);
   if (!oldPlayer) S.round++;  // swaps don't consume an additional round
   S.spinState        = 'idle';
   S.currentSpin      = null;

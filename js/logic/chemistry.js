@@ -12,10 +12,100 @@
 
 import { S } from '../logic/state.js';
 
+// ── Lineup Optimizer ──────────────────────────────────────────────────────────
+
+const FLOOR_SLOTS = ['PG', 'SG', 'SF', 'PF', 'C'];
+const SLOT_IDX    = { PG: 0, SG: 1, SF: 2, PF: 3, C: 4 };
+
+function posDistance(a, b) {
+  return Math.abs((SLOT_IDX[a] ?? 2) - (SLOT_IDX[b] ?? 2));
+}
+
+// Returns the raw chemBonus contribution for one player-slot pair.
+function slotFitScore(player, slot) {
+  if (player.pos === slot) return 0.02;
+  if ((player.secondaryPos || []).includes(slot)) return 0.00;
+  const d = posDistance(player.pos, slot);
+  return d >= 3 ? -0.20 : -(d * 0.06);
+}
+
+/**
+ * Brute-force optimal assignment of up to 5 starters into floor slots.
+ * Tries all P(5, n) ordered slot selections — at most 120 iterations for n=5.
+ *
+ * @param {object[]} starters
+ * @returns {{ assignment: object[], posBonus: number, posReport: string[], flawless: boolean }}
+ */
+function optimizeLineup(starters) {
+  const n = Math.min(starters.length, 5);
+  if (n === 0) return { assignment: [], posBonus: 0, posReport: [], flawless: false };
+
+  const players = starters.slice(0, n);
+
+  function slotOrders(pool, r) {
+    if (r === 0) return [[]];
+    const out = [];
+    for (let i = 0; i < pool.length; i++) {
+      const rest = [...pool.slice(0, i), ...pool.slice(i + 1)];
+      for (const sub of slotOrders(rest, r - 1)) out.push([pool[i], ...sub]);
+    }
+    return out;
+  }
+
+  let bestSlots = null;
+  let bestScore = -Infinity;
+  for (const perm of slotOrders(FLOOR_SLOTS, n)) {
+    const score = players.reduce((s, p, i) => s + slotFitScore(p, perm[i]), 0);
+    if (score > bestScore) { bestScore = score; bestSlots = perm; }
+  }
+
+  // Build assignment
+  const assignment = [];
+  let posBonus = 0;
+  for (let i = 0; i < n; i++) {
+    const p     = players[i];
+    const slot  = bestSlots[i];
+    const score = slotFitScore(p, slot);
+    let fit;
+    if (p.pos === slot)                              fit = 'primary';
+    else if ((p.secondaryPos || []).includes(slot)) fit = 'flex';
+    else                                              fit = posDistance(p.pos, slot) >= 3 ? 'severe' : 'oop';
+    assignment.push({ slot, player: p, fit, bonus: score });
+    posBonus += score;
+  }
+
+  const allPrimary = n === 5 && assignment.every(a => a.fit === 'primary');
+  if (allPrimary) posBonus += 0.10;
+
+  // Build human-readable report
+  const posReport = [];
+  if (allPrimary) {
+    posReport.push('🟢 Flawless Construction: All 5 starters are playing their natural positions (+10%)');
+    for (const { slot, player } of assignment) {
+      posReport.push(`🟢 Perfect Fit: ${player.name} plays natural ${slot} (+2%)`);
+    }
+  } else {
+    for (const { slot, player, fit } of assignment) {
+      const d = posDistance(player.pos, slot);
+      if (fit === 'primary') {
+        posReport.push(`🟢 Perfect Fit: ${player.name} plays natural ${slot} (+2%)`);
+      } else if (fit === 'flex') {
+        posReport.push(`🟢 Flex Fit: ${player.name} (${player.pos}) covers ${slot} via secondary position (+0%)`);
+      } else if (fit === 'severe') {
+        posReport.push(`🔴 Severe Mismatch: ${player.name} is forced to play ${slot} — ${d} spots from natural ${player.pos} (-20%)`);
+      } else {
+        posReport.push(`🔴 Out of Position: ${player.name} is forced to play ${slot} instead of ${player.pos} (-${d * 6}%)`);
+      }
+    }
+  }
+
+  return { assignment, posBonus, posReport, flawless: allPrimary };
+}
+
 /**
  * @param {object[]} starters  5 starter player objects
  * @param {object[]} bench     2 bench player objects
- * @returns {{ chemBonus: number, chemScore: number, chemReport: string[] }}
+ * @returns {{ chemBonus: number, chemScore: number, chemReport: string[], lineupAssignment: object[] }}
  */
 export function calculateChemistry(starters, bench) {
   const allPlayers  = [...starters, ...bench];
@@ -46,6 +136,11 @@ export function calculateChemistry(starters, bench) {
 
   let chemBonus = 0;
   const chemReport = [];
+
+  // ── PHASE 0: LINEUP OPTIMIZER (POSITIONAL FIT) ───────────────────────────────
+  const { assignment, posBonus, posReport, flawless } = optimizeLineup(starters);
+  chemBonus += posBonus;
+  for (const line of posReport) chemReport.push(line);
 
   // ── PHASE 1: USAGE & OFFENSIVE FLOW ──────────────────────────────────────────
   // Dynamic scoring saturation: top 3 scorers demanding too many shots.
@@ -359,7 +454,7 @@ export function calculateChemistry(starters, bench) {
 
   // ── FINAL SCORE (50 baseline = neutral roster) ────────────────────────────────
   const chemScore = Math.round(Math.max(0, Math.min(100, 50 + (chemBonus / 0.60) * 50)));
-  return { chemBonus, chemScore, chemReport };
+  return { chemBonus, chemScore, chemReport, lineupAssignment: assignment };
 }
 
 /**

@@ -201,6 +201,7 @@ export function startGame(era = 'all') {
     round:            0,
     usedDecades:      [],
     usedPlayerIds:    [],
+    draftedPlayerNames: new Set(), // names of players currently on the roster (blocks cross-era clones)
     teamSkips:        1,
     decadeSkips:      1,
     hasMulligan:      true,

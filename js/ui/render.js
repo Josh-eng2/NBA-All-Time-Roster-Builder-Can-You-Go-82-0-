@@ -342,14 +342,16 @@ function renderDraftBoard() {
 }
 
 function renderDraftCard(p, index) {
-  const pop        = p.popularity ?? 50;
-  const popCol     = pop >= 80 ? '#2563eb' : pop >= 60 ? '#d97706' : '#94a3b8';
-  const isSelected = S.selectedPlayer?.id === p.id;
-  const cardBorder = isSelected ? '#2563eb' : '#e2e8f0';
-  const cardBg     = isSelected ? '#eff6ff' : '#ffffff';
+  const pop           = p.popularity ?? 50;
+  const popCol        = pop >= 80 ? '#2563eb' : pop >= 60 ? '#d97706' : '#94a3b8';
+  const alreadyOnRoster = S.draftedPlayerNames?.has(p.name) ?? false;
+  const isSelected    = !alreadyOnRoster && S.selectedPlayer?.id === p.id;
+  const cardBorder    = alreadyOnRoster ? '#e2e8f0' : isSelected ? '#2563eb' : '#e2e8f0';
+  const cardBg        = alreadyOnRoster ? '#f8fafc' : isSelected ? '#eff6ff' : '#ffffff';
+  const cardOpacity   = alreadyOnRoster ? 'opacity:0.55;' : '';
   return `
   <div class="rounded-xl border-2 flex flex-col overflow-hidden transition-all card-shadow"
-    style="border-color:${cardBorder};background:${cardBg}">
+    style="border-color:${cardBorder};background:${cardBg};${cardOpacity}">
     <div class="p-3 flex-1">
       <div class="flex items-center gap-1.5 mb-2">
         <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full border border-border bg-card2 text-muted-fg">${p.secondaryPos?.length ? `${p.pos} / ${p.secondaryPos[0]}` : p.pos}</span>
@@ -369,11 +371,14 @@ function renderDraftCard(p, index) {
         </div>` : ''}
     </div>
     <div class="px-3 pb-3">
-      <button data-action="draft-pick-${index}"
-        class="w-full py-2 rounded-lg font-bold text-xs transition-all cursor-pointer"
-        style="background:${isSelected ? '#2563eb' : '#eff6ff'};color:${isSelected ? '#fff' : '#2563eb'};border:1.5px solid ${isSelected ? '#2563eb' : '#bfdbfe'}">
-        ${isSelected ? '✓ Selected — Tap a Roster Slot' : 'Draft Player'}
-      </button>
+      ${alreadyOnRoster
+        ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs" style="background:#f1f5f9;color:#94a3b8;border:1.5px solid #e2e8f0;cursor:not-allowed">Already on Roster</button>`
+        : `<button data-action="draft-pick-${index}"
+            class="w-full py-2 rounded-lg font-bold text-xs transition-all cursor-pointer"
+            style="background:${isSelected ? '#2563eb' : '#eff6ff'};color:${isSelected ? '#fff' : '#2563eb'};border:1.5px solid ${isSelected ? '#2563eb' : '#bfdbfe'}">
+            ${isSelected ? '✓ Selected — Tap a Roster Slot' : 'Draft Player'}
+          </button>`
+      }
     </div>
   </div>`;
 }
@@ -550,11 +555,19 @@ function renderResults() {
     </div>`;
   };
 
-  const rosterRow = (p, posLabel, isStarter) => {
+  const rosterRow = (p, posLabel, isStarter, fit = null) => {
     if (!p) return '';
+    const fitBg    = fit === 'primary' ? '#dcfce7' : fit === 'flex' ? '#fef9c3' : fit ? '#fee2e2' : null;
+    const fitColor = fit === 'primary' ? '#15803d' : fit === 'flex' ? '#a16207' : fit ? '#dc2626' : null;
+    const fitText  = fit === 'primary' ? '✓' : fit === 'flex' ? '↔' : fit === 'severe' ? '!!' : fit ? '!' : null;
+    const fitBadge = fit
+      ? `<span class="text-[8px] font-black px-1 py-0.5 rounded leading-none ml-0.5" style="background:${fitBg};color:${fitColor}">${fitText}</span>`
+      : '';
     return `
     <div class="flex items-center gap-3 py-2.5 border-b border-border last:border-0">
-      <span class="text-[10px] font-black w-7 flex-shrink-0 ${isStarter ? 'text-primary' : 'text-muted-fg'}">${posLabel}</span>
+      <div class="flex items-center gap-0 w-12 flex-shrink-0">
+        <span class="text-[10px] font-black ${isStarter ? 'text-primary' : 'text-muted-fg'}">${posLabel}</span>${fitBadge}
+      </div>
       <div class="flex-1 min-w-0">
         <p class="font-semibold text-sm text-foreground truncate">${p.name}</p>
         <div class="flex items-center gap-1.5 mt-0.5">
@@ -724,10 +737,22 @@ function renderResults() {
           </div>
         </div>
         <div class="rounded-2xl border border-border bg-white p-4 card-shadow">
-          <p class="text-xs font-bold uppercase tracking-widest text-muted-fg mb-3">Final Roster</p>
-          <p class="text-[10px] font-bold uppercase tracking-wider text-primary mb-1">Starters</p>
+          <div class="flex items-center justify-between mb-3">
+            <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Optimized Lineup</p>
+            ${r.lineupAssignment?.length === 5 ? (() => {
+              const allPrimary = r.lineupAssignment.every(a => a.fit === 'primary');
+              const hasOOP     = r.lineupAssignment.some(a => a.fit === 'oop' || a.fit === 'severe');
+              const bg    = allPrimary ? '#f0fdf4' : hasOOP ? '#fef2f2' : '#fefce8';
+              const color = allPrimary ? '#15803d' : hasOOP ? '#dc2626' : '#a16207';
+              const label = allPrimary ? '🟢 Flawless' : hasOOP ? '🔴 Mismatches' : '🟡 Flex Lineup';
+              return `<span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full border" style="background:${bg};color:${color};border-color:${color}30">${label}</span>`;
+            })() : ''}
+          </div>
+          <p class="text-[10px] font-bold uppercase tracking-wider text-primary mb-1">Starters — Engine Optimal Floor Assignment</p>
           <div class="flex flex-col mb-4">
-            ${POSITIONS.map(pos => rosterRow(S.roster[pos], pos, true)).join('')}
+            ${r.lineupAssignment?.length
+              ? r.lineupAssignment.map(({ slot, player, fit }) => rosterRow(player, slot, true, fit)).join('')
+              : POSITIONS.map(pos => rosterRow(S.roster[pos], pos, true)).join('')}
           </div>
           <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg mb-1">Bench</p>
           <div class="flex flex-col">

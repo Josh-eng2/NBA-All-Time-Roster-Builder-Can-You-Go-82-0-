@@ -102,7 +102,7 @@ export function simulateSeason(starters, bench, coach = null) {
   const minStarterRatio = Math.min(...Object.values(sRatio));
   const balancePenalty  = minStarterRatio < 0.82 ? (0.82 - minStarterRatio) * 0.8 : 0;
 
-  const { chemBonus, chemScore, chemReport } = calculateChemistry(starters, bench, coach);
+  const { chemBonus, chemScore, chemReport, lineupAssignment } = calculateChemistry(starters, bench, coach);
 
   let coachBoost = 0;
   const allForCoach = [...starters, ...bench];
@@ -166,7 +166,7 @@ export function simulateSeason(starters, bench, coach = null) {
     strength:   +adjustedStrength.toFixed(3),
     baseStrength: +baseStrength.toFixed(3),
     totals, ratio, sTotals, bTotals,
-    chemScore, chemReport,
+    chemScore, chemReport, lineupAssignment,
     avgPopularity: +avgPop.toFixed(1),
     popEloDelta,
     fansM,
