@@ -18,10 +18,10 @@ import { calculateChemistry } from '../logic/chemistry.js';
 // SIM_K:      steepness — higher = more decisive gap between good/bad teams
 // SIM_CENTER: adjustedStrength that maps to exactly 50 % win rate
 //             (raise to make 82-0 rarer, lower to make it easier)
-// WIN_CAP:    hard ceiling — prevents a mathematically guaranteed perfect season
+// WIN_CAP:    removed — elite teams can reach 82-0 (that's the whole point)
 const SIM_K      = 16;
 const SIM_CENTER = 1.24;
-const WIN_CAP    = 0.930;
+const WIN_CAP    = 1.0;
 
 /**
  * Derives dynamic STARTER_BASE / BENCH_BASE from the live DB.
