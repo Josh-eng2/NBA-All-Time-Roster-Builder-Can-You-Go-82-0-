@@ -256,9 +256,12 @@ async function _loadGlobalLb(tab) {
     if (tableEl) tableEl.innerHTML = _globalLbRowsHtml(entries);
   } catch (err) {
     const tableEl = document.getElementById('global-lb-table');
+    const isPermission = err.message.includes('permission') || err.message.includes('Permission') || err.message.includes('PERMISSION');
     const msg     = err.message.includes('not configured')
       ? 'Firebase not set up yet — see <code>js/utils/firebase.js</code> for instructions.'
-      : 'Failed to load — check your connection. <button onclick="window.switchGlobalLbTab(\'' + tab + '\')" style="text-decoration:underline;cursor:pointer;font-family:Fira Sans,sans-serif">Retry</button>';
+      : isPermission
+        ? 'Firestore permission denied — open Firebase Console → Firestore → Rules and publish the allow-read rule. <button onclick="window.switchGlobalLbTab(\'' + tab + '\')" style="text-decoration:underline;cursor:pointer;font-family:Fira Sans,sans-serif">Retry</button>'
+        : 'Failed to load — check your connection. <button onclick="window.switchGlobalLbTab(\'' + tab + '\')" style="text-decoration:underline;cursor:pointer;font-family:Fira Sans,sans-serif">Retry</button>';
     if (tableEl) tableEl.innerHTML = `<p style="color:#dc2626;font-size:13px;text-align:center;padding:24px 0;font-family:Fira Sans,sans-serif">${msg}</p>`;
   }
 }
