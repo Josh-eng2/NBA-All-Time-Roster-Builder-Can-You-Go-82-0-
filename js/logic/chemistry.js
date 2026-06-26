@@ -135,22 +135,6 @@ export function calculateChemistry(starters, bench) {
   chemBonus += posBonus;
   for (const line of posReport) chemReport.push(line);
 
-  // ── PHASE 1: USAGE & OFFENSIVE FLOW ──────────────────────────────────────────
-  // Dynamic scoring saturation: top 3 scorers demanding too many shots.
-  // Glue Guys on the floor and Phil Jackson's triangle reduce the penalty.
-  const top3PPG = [...starters].sort((a, b) => b.ppg - a.ppg).slice(0, 3)
-    .reduce((s, p) => s + p.ppg, 0);
-  if (top3PPG > 80) {
-    const glueCount = sT.filter(t => t === 'Glue Guy').length;
-    let satPenalty  = (top3PPG - 80) * 0.005;
-    if (coach === 'jackson') satPenalty *= 0.4;
-    satPenalty = Math.max(0, satPenalty - glueCount * 0.015);
-    if (satPenalty > 0) {
-      chemBonus -= satPenalty;
-      chemReport.push(`🔴 Scoring Saturation: Top 3 scorers combine for ${top3PPG.toFixed(1)} PPG — shot distribution strained (-${Math.round(satPenalty * 100)}%)`);
-    }
-  }
-
   // ── PHASE 2: ARCHETYPE SYNERGIES ────────────────────────────────────────────
 
   if (sHasPlaymaker && sHasSharpshooter) {
@@ -351,6 +335,16 @@ export function calculateChemistry(starters, bench) {
     const penalty = sSlashPaintCount >= 3 ? 0.06 : 0.04;
     chemBonus -= penalty;
     chemReport.push(`🔴 No Spacing: Too many paint-cloggers, no shooters (-${Math.round(penalty * 100)}%)`);
+  }
+
+  if (sDemandCount >= 3) {
+    const glueGuys = sT.filter(t => t === 'Glue Guy').length;
+    let penalty    = coach === 'jackson' ? 0.02 : 0.05;
+    penalty        = Math.max(0, penalty - glueGuys * 0.015);
+    if (penalty > 0) {
+      chemBonus -= penalty;
+      chemReport.push(`🔴 Clashing Egos${coach === 'jackson' ? ' (softened by Phil)' : ''}: Too many ball-dominant players in the Starting 5 (-${Math.round(penalty * 100)}%)`);
+    }
   }
 
   if (!aHasPlaymaker && allPlayers.length > 4) {
