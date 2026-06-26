@@ -452,8 +452,8 @@ export function calculateChemistry(starters, bench) {
     chemReport.push('🔴 Positional Logjam: 3+ starters play the same position — role clarity breaks down (-10%)');
   }
 
-  // ── FINAL SCORE (50 baseline = neutral roster) ────────────────────────────────
-  const chemScore = Math.round(Math.max(0, Math.min(100, 50 + (chemBonus / 0.60) * 50)));
+  // ── FINAL SCORE (30 baseline = neutral roster) ────────────────────────────────
+  const chemScore = Math.round(Math.max(0, Math.min(100, 30 + (chemBonus / 0.60) * 50)));
   return { chemBonus, chemScore, chemReport, lineupAssignment: assignment };
 }
 
