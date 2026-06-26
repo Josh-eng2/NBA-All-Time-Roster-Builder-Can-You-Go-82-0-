@@ -119,16 +119,16 @@ export async function fetchLeaderboard(filter = 'alltime') {
 
   let q;
   if (filter === 'alltime') {
-    q = query(col, orderBy('wins', 'desc'), limit(50));
+    q = query(col, orderBy('wins', 'desc'), limit(10));
   } else {
     const msInDay = 24 * 60 * 60 * 1000;
     const cutoff  = Date.now() - (filter === '24h' ? msInDay : 7 * msInDay);
     // Same-field where + orderBy — no composite index required
-    q = query(col, where('timestampMs', '>', cutoff), orderBy('timestampMs', 'desc'), limit(200));
+    q = query(col, where('timestampMs', '>', cutoff), orderBy('timestampMs', 'desc'), limit(100));
   }
 
   const snap    = await getDocs(q);
   const entries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   if (filter !== 'alltime') entries.sort((a, b) => b.wins - a.wins);
-  return entries.slice(0, 50);
+  return entries.slice(0, 10);
 }
