@@ -8475,5 +8475,428 @@
       ],
       "popularity": 52
     }
+  ],
+  "Knicks_1960s": [
+    {
+      "id": "reed_69",
+      "name": "Willis Reed",
+      "pos": "C",
+      "ppg": 21.1,
+      "rpg": 13.9,
+      "apg": 1.8,
+      "spg": 0.7,
+      "bpg": 1.5,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Rim Protector",
+        "Clutch",
+        "Rebounding Machine"
+      ],
+      "popularity": 87
+    },
+    {
+      "id": "frazier_69",
+      "name": "Walt Frazier",
+      "pos": "PG",
+      "ppg": 17.5,
+      "rpg": 5.9,
+      "apg": 7.0,
+      "spg": 2.1,
+      "bpg": 0.4,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Elite Playmaker",
+        "Clutch Assassin",
+        "Lockdown Defender"
+      ],
+      "popularity": 91
+    },
+    {
+      "id": "debusschere_knk_69",
+      "name": "Dave DeBusschere",
+      "pos": "PF",
+      "secondaryPos": ["SF"],
+      "ppg": 16.1,
+      "rpg": 11.0,
+      "apg": 2.9,
+      "spg": 1.1,
+      "bpg": 0.7,
+      "archetype": "Lockdown Defender",
+      "traits": [
+        "Glue Guy",
+        "Hustle Player"
+      ],
+      "popularity": 74
+    }
+  ],
+  "Pistons_1960s": [
+    {
+      "id": "bing_68",
+      "name": "Dave Bing",
+      "pos": "PG",
+      "secondaryPos": ["SG"],
+      "ppg": 23.4,
+      "rpg": 4.5,
+      "apg": 6.4,
+      "spg": 1.7,
+      "bpg": 0.3,
+      "archetype": "Playmaker",
+      "traits": [
+        "Volume Shooter",
+        "Elite Playmaker",
+        "Clutch"
+      ],
+      "popularity": 83
+    },
+    {
+      "id": "debusschere_pis_65",
+      "name": "Dave DeBusschere",
+      "pos": "PF",
+      "secondaryPos": ["SF"],
+      "ppg": 14.7,
+      "rpg": 11.4,
+      "apg": 3.0,
+      "spg": 1.0,
+      "bpg": 0.7,
+      "archetype": "Lockdown Defender",
+      "traits": [
+        "Glue Guy",
+        "Hustle Player"
+      ],
+      "popularity": 72
+    },
+    {
+      "id": "howell_64",
+      "name": "Bailey Howell",
+      "pos": "PF",
+      "ppg": 19.8,
+      "rpg": 11.9,
+      "apg": 2.3,
+      "spg": 0.8,
+      "bpg": 0.5,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Rebounding Machine",
+        "Volume Shooter"
+      ],
+      "popularity": 56
+    }
+  ],
+  "Warriors_1960s": [
+    {
+      "id": "chamberlain_war_63",
+      "name": "Wilt Chamberlain",
+      "pos": "C",
+      "ppg": 44.8,
+      "rpg": 24.3,
+      "apg": 2.4,
+      "spg": 0.7,
+      "bpg": 3.0,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Volume Shooter",
+        "Rim Protector",
+        "Rebounding Machine"
+      ],
+      "popularity": 99
+    },
+    {
+      "id": "thurmond_67",
+      "name": "Nate Thurmond",
+      "pos": "C",
+      "secondaryPos": ["PF"],
+      "ppg": 20.4,
+      "rpg": 22.0,
+      "apg": 2.8,
+      "spg": 1.0,
+      "bpg": 4.0,
+      "archetype": "Lockdown Defender",
+      "traits": [
+        "Rim Protector",
+        "Rebounding Machine"
+      ],
+      "popularity": 81
+    },
+    {
+      "id": "rbarry_67",
+      "name": "Rick Barry",
+      "pos": "SF",
+      "secondaryPos": ["SG"],
+      "ppg": 25.7,
+      "rpg": 8.8,
+      "apg": 4.3,
+      "spg": 2.5,
+      "bpg": 0.6,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Volume Shooter",
+        "Floor Spacer",
+        "Elite Playmaker"
+      ],
+      "popularity": 84
+    }
+  ],
+  "Bulls_1960s": [
+    {
+      "id": "sloan_69",
+      "name": "Jerry Sloan",
+      "pos": "SG",
+      "secondaryPos": ["SF"],
+      "ppg": 14.7,
+      "rpg": 7.5,
+      "apg": 2.7,
+      "spg": 2.5,
+      "bpg": 0.5,
+      "archetype": "Lockdown Defender",
+      "traits": [
+        "Lockdown Defender",
+        "Hustle Player",
+        "Glue Guy"
+      ],
+      "popularity": 67
+    },
+    {
+      "id": "rodgers_67",
+      "name": "Guy Rodgers",
+      "pos": "PG",
+      "ppg": 11.3,
+      "rpg": 3.8,
+      "apg": 11.1,
+      "spg": 1.2,
+      "bpg": 0.1,
+      "archetype": "Playmaker",
+      "traits": [
+        "Elite Playmaker",
+        "Floor General"
+      ],
+      "popularity": 57
+    },
+    {
+      "id": "boozer_67",
+      "name": "Bob Boozer",
+      "pos": "PF",
+      "ppg": 18.1,
+      "rpg": 10.5,
+      "apg": 2.0,
+      "spg": 0.8,
+      "bpg": 0.6,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Rebounding Machine",
+        "Volume Shooter"
+      ],
+      "popularity": 48
+    }
+  ],
+  "Rockets_1960s": [
+    {
+      "id": "hayes_69",
+      "name": "Elvin Hayes",
+      "pos": "C",
+      "secondaryPos": ["PF"],
+      "ppg": 28.4,
+      "rpg": 17.1,
+      "apg": 1.5,
+      "spg": 0.8,
+      "bpg": 1.8,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Volume Shooter",
+        "Rebounding Machine",
+        "Rim Protector"
+      ],
+      "popularity": 88
+    },
+    {
+      "id": "kojis_68",
+      "name": "Don Kojis",
+      "pos": "SF",
+      "secondaryPos": ["PF"],
+      "ppg": 17.0,
+      "rpg": 7.5,
+      "apg": 2.5,
+      "spg": 1.3,
+      "bpg": 0.5,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Hustle Player",
+        "Glue Guy"
+      ],
+      "popularity": 48
+    },
+    {
+      "id": "awilliams_69",
+      "name": "Art Williams",
+      "pos": "PG",
+      "ppg": 12.1,
+      "rpg": 4.5,
+      "apg": 6.7,
+      "spg": 1.9,
+      "bpg": 0.2,
+      "archetype": "Playmaker",
+      "traits": [
+        "Elite Playmaker",
+        "Floor General"
+      ],
+      "popularity": 43
+    }
+  ],
+  "Thunder_1960s": [
+    {
+      "id": "rule_69",
+      "name": "Bob Rule",
+      "pos": "C",
+      "secondaryPos": ["PF"],
+      "ppg": 24.0,
+      "rpg": 14.0,
+      "apg": 1.6,
+      "spg": 0.8,
+      "bpg": 1.5,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Volume Shooter",
+        "Rebounding Machine"
+      ],
+      "popularity": 62
+    },
+    {
+      "id": "hazzard_68",
+      "name": "Walt Hazzard",
+      "pos": "PG",
+      "ppg": 17.2,
+      "rpg": 4.1,
+      "apg": 7.5,
+      "spg": 1.5,
+      "bpg": 0.2,
+      "archetype": "Playmaker",
+      "traits": [
+        "Elite Playmaker",
+        "Floor General"
+      ],
+      "popularity": 55
+    },
+    {
+      "id": "meschery_68",
+      "name": "Tom Meschery",
+      "pos": "PF",
+      "secondaryPos": ["C"],
+      "ppg": 11.0,
+      "rpg": 7.8,
+      "apg": 1.9,
+      "spg": 0.7,
+      "bpg": 0.5,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Glue Guy",
+        "Hustle Player"
+      ],
+      "popularity": 38
+    }
+  ],
+  "Suns_1960s": [
+    {
+      "id": "vanarsdale_69",
+      "name": "Dick Van Arsdale",
+      "pos": "SF",
+      "secondaryPos": ["SG"],
+      "ppg": 21.0,
+      "rpg": 4.0,
+      "apg": 3.0,
+      "spg": 1.8,
+      "bpg": 0.3,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Volume Shooter",
+        "Clutch",
+        "Hustle Player"
+      ],
+      "popularity": 70
+    },
+    {
+      "id": "goodrich_69",
+      "name": "Gail Goodrich",
+      "pos": "SG",
+      "ppg": 18.6,
+      "rpg": 3.8,
+      "apg": 4.7,
+      "spg": 1.7,
+      "bpg": 0.2,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Floor Spacer",
+        "Volume Shooter",
+        "Clutch Assassin"
+      ],
+      "popularity": 75
+    },
+    {
+      "id": "silas_69",
+      "name": "Paul Silas",
+      "pos": "PF",
+      "secondaryPos": ["C"],
+      "ppg": 9.0,
+      "rpg": 12.5,
+      "apg": 2.1,
+      "spg": 0.7,
+      "bpg": 0.5,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Rebounding Machine",
+        "Glue Guy",
+        "Hustle Player"
+      ],
+      "popularity": 58
+    }
+  ],
+  "Bucks_1960s": [
+    {
+      "id": "mcglocklin_69",
+      "name": "Jon McGlocklin",
+      "pos": "SG",
+      "ppg": 19.6,
+      "rpg": 3.8,
+      "apg": 3.6,
+      "spg": 1.1,
+      "bpg": 0.1,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Floor Spacer",
+        "Volume Shooter",
+        "Glue Guy"
+      ],
+      "popularity": 65
+    },
+    {
+      "id": "chappell_69",
+      "name": "Len Chappell",
+      "pos": "PF",
+      "ppg": 15.0,
+      "rpg": 8.5,
+      "apg": 1.8,
+      "spg": 0.7,
+      "bpg": 0.5,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Rebounding Machine",
+        "Glue Guy"
+      ],
+      "popularity": 42
+    },
+    {
+      "id": "embry_69",
+      "name": "Wayne Embry",
+      "pos": "C",
+      "ppg": 11.6,
+      "rpg": 8.9,
+      "apg": 1.5,
+      "spg": 0.7,
+      "bpg": 0.5,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Glue Guy",
+        "Rim Protector"
+      ],
+      "popularity": 47
+    }
   ]
 }
