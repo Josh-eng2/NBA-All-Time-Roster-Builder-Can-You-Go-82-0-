@@ -347,15 +347,48 @@ export function calculateChemistry(starters, bench) {
   }
 
   // 3 or more starters locked to the same position — role clarity collapses
+  // Exception: if secondary positions allow at least one player to slide over,
+  // the logjam resolves automatically and no penalty is applied.
   const starterPosCounts = starters.reduce((acc, p) => {
     acc[p.pos] = (acc[p.pos] || 0) + 1; return acc;
   }, {});
-  if (Object.values(starterPosCounts).some(n => n >= 3)) {
+  if (Object.values(starterPosCounts).some(n => n >= 3) && !logjamResolvable(starters)) {
     chemBonus -= 0.10;
     chemReport.push('🔴 Positional Logjam: 3+ starters play the same position — role clarity breaks down (-10%)');
   }
 
-  // ── FINAL SCORE (70 baseline = neutral roster) ────────────────────────────────
-  const chemScore = Math.round(Math.max(0, Math.min(100, 70 + (chemBonus / 0.60) * 30)));
+  // ── FINAL SCORE (50 baseline = neutral roster) ────────────────────────────────
+  const chemScore = Math.round(Math.max(0, Math.min(100, 50 + (chemBonus / 0.60) * 50)));
   return { chemBonus, chemScore, chemReport };
+}
+
+/**
+ * Returns true if the positional logjam (3+ starters at the same pos) can be
+ * resolved by sliding one or more players to their secondary position.
+ *
+ * Uses backtracking over each player's [primary, ...secondary] options.
+ * Worst case: 2^5 = 32 paths — negligible.
+ *
+ * @param {object[]} starters
+ * @returns {boolean}
+ */
+function logjamResolvable(starters) {
+  const posOptions = starters.map(p => [p.pos, ...(p.secondaryPos || [])]);
+
+  function tryAssign(idx, counts) {
+    if (idx === posOptions.length) {
+      return Object.values(counts).every(n => n < 3);
+    }
+    for (const pos of posOptions[idx]) {
+      counts[pos] = (counts[pos] || 0) + 1;
+      if (tryAssign(idx + 1, counts)) {
+        counts[pos]--;
+        return true;
+      }
+      counts[pos]--;
+    }
+    return false;
+  }
+
+  return tryAssign(0, {});
 }

@@ -352,7 +352,7 @@ function renderDraftCard(p, index) {
     style="border-color:${cardBorder};background:${cardBg}">
     <div class="p-3 flex-1">
       <div class="flex items-center gap-1.5 mb-2">
-        <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full border border-border bg-card2 text-muted-fg">${p.pos}</span>
+        <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full border border-border bg-card2 text-muted-fg">${p.secondaryPos?.length ? `${p.pos} / ${p.secondaryPos[0]}` : p.pos}</span>
         ${archetypeBadge(p.archetype)}
         <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full border" style="background:#f0fdf4;border-color:#bbf7d0;color:#15803d">${fmtSalary(getPlayerSalary(p))}</span>
         <span class="ml-auto text-xs font-black" style="color:${popCol}">★ ${pop}</span>
@@ -418,12 +418,22 @@ function renderRosterSlot(pos, canPlace, isBench) {
       <span class="text-[9px] font-bold leading-none" style="color:#15803d">${fmtSalary(getPlayerSalary(p))}</span>
     </div>`;
   }
+  // Position-match check: does the selected player fit this slot by primary or secondary pos?
+  const sp = S.selectedPlayer;
+  const posMatch = canDrop && !isBench && sp &&
+    (sp.pos === pos || (sp.secondaryPos || []).includes(pos));
+
+  const slotBg     = !canDrop ? '#f8fafc' : (isBench || posMatch) ? '#eff6ff' : '#fffbeb';
+  const slotBorder = !canDrop ? '#cbd5e1' : (isBench || posMatch) ? '#93c5fd' : '#fde68a';
+  const slotColor  = !canDrop ? '#94a3b8' : (isBench || posMatch) ? '#2563eb' : '#d97706';
+  const slotText   = !canDrop ? 'Empty'   : (isBench || posMatch) ? 'Place'   : 'Flex';
+
   return `
   <div data-action="${canDrop ? 'place-' + pos : ''}"
     class="rounded-xl border-2 border-dashed p-2 flex flex-col items-center gap-1 text-center transition-all ${canDrop ? 'slot-empty droppable' : ''}"
-    style="background:${canDrop ? '#eff6ff' : '#f8fafc'};border-color:${canDrop ? '#93c5fd' : '#cbd5e1'}">
-    <span class="text-[10px] font-black uppercase" style="color:${canDrop ? '#2563eb' : '#94a3b8'}">${label}</span>
-    <span class="text-xs" style="color:${canDrop ? '#60a5fa' : '#cbd5e1'}">${canDrop ? 'Place' : 'Empty'}</span>
+    style="background:${slotBg};border-color:${slotBorder}">
+    <span class="text-[10px] font-black uppercase" style="color:${slotColor}">${label}</span>
+    <span class="text-xs" style="color:${slotColor}">${slotText}</span>
   </div>`;
 }
 
@@ -431,17 +441,10 @@ function renderRosterSlot(pos, canPlace, isBench) {
 function renderChemDashboard() {
   const starters = POSITIONS.map(p => S.roster[p]).filter(Boolean);
   const bench    = BENCH_POSITIONS.map(p => S.roster[p]).filter(Boolean);
-  if (starters.length === 0 && bench.length === 0) {
-    return `
-    <div class="rounded-2xl border border-border bg-card p-4 card-shadow">
-      <p class="text-xs font-bold uppercase tracking-widest text-muted-fg mb-2">Live Chemistry</p>
-      <p class="text-xs text-muted-fg">Draft your first player to see team chemistry.</p>
-    </div>`;
-  }
   const { chemScore, chemReport } = calculateChemistry(starters, bench);
-  const scoreColor = chemScore >= 70 ? '#16a34a' : chemScore >= 45 ? '#d97706' : '#dc2626';
-  const scoreBg    = chemScore >= 70 ? '#f0fdf4'  : chemScore >= 45 ? '#fffbeb'  : '#fef2f2';
-  const scoreLabel = chemScore >= 70 ? 'Strong'   : chemScore >= 45 ? 'Neutral'  : 'Weak';
+  const scoreColor = chemScore >= 60 ? '#16a34a' : chemScore >= 40 ? '#d97706' : '#dc2626';
+  const scoreBg    = chemScore >= 60 ? '#f0fdf4'  : chemScore >= 40 ? '#fffbeb'  : '#fef2f2';
+  const scoreLabel = chemScore >= 60 ? 'Strong'   : chemScore >= 40 ? 'Neutral'  : 'Weak';
   return `
   <div class="rounded-2xl border border-border bg-card p-4 card-shadow">
     <div class="flex items-center justify-between mb-3">
@@ -577,9 +580,9 @@ function renderResults() {
 
   const chemScoreBadge = r.chemScore !== undefined ? (() => {
     const sc      = r.chemScore;
-    const scColor = sc >= 70 ? '#16a34a' : sc >= 45 ? '#d97706' : '#dc2626';
-    const scBg    = sc >= 70 ? '#f0fdf4'  : sc >= 45 ? '#fffbeb'  : '#fef2f2';
-    const scLabel = sc >= 70 ? 'Strong'   : sc >= 45 ? 'Neutral'  : 'Weak';
+    const scColor = sc >= 60 ? '#16a34a' : sc >= 40 ? '#d97706' : '#dc2626';
+    const scBg    = sc >= 60 ? '#f0fdf4'  : sc >= 40 ? '#fffbeb'  : '#fef2f2';
+    const scLabel = sc >= 60 ? 'Strong'   : sc >= 40 ? 'Neutral'  : 'Weak';
     return `<span class="text-xs font-bold px-2 py-0.5 rounded-full border" style="background:${scBg};color:${scColor};border-color:${scColor}30">${scLabel} · ${sc}%</span>`;
   })() : '';
 
