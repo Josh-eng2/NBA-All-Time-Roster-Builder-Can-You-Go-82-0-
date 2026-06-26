@@ -184,9 +184,9 @@ function renderEraSelect() {
 function renderDrafting() {
   const full = rosterFull();
   return `
-  <div class="flex flex-col min-h-screen main-gradient">
+  <div class="min-h-screen main-gradient">
     ${renderHeader(true)}
-    <main class="flex-1 flex flex-col items-center px-4 pt-2 pb-3">
+    <main class="flex flex-col items-center px-4 pt-2 pb-8">
       <div class="w-full max-w-2xl flex flex-col gap-2">
         ${full ? renderSimulateCard() : ''}
         ${renderRoundBar()}
@@ -311,10 +311,8 @@ function renderDraftBoard() {
       ${tc ? `<span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${tc.bg}"></span>` : ''}
       <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">${team} · ${decade}</p>
     </div>
-    <div class="overflow-y-auto rounded-xl" style="max-height:280px">
-      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        ${S.draftBoard.map((p, i) => renderDraftCard(p, i)).join('')}
-      </div>
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      ${S.draftBoard.map((p, i) => renderDraftCard(p, i)).join('')}
     </div>
   </div>`;
 }
