@@ -83,7 +83,7 @@ export function simulateSeason(starters, bench, coach = null) {
     bpg: bTotals.bpg / BENCH_BASE.bpg,
   };
 
-  const SW = 0.78, BW = 0.22;
+  const SW = 0.92, BW = 0.08;
   const ratio = {
     ppg: sRatio.ppg * SW + bRatio.ppg * BW,
     rpg: sRatio.rpg * SW + bRatio.rpg * BW,

@@ -210,6 +210,7 @@ export function startGame(era = 'all') {
     availablePlayers: [],
     draftBoard:       [],       // 3-player pick array
     selectedPlayer:   null,
+    movingPos:        null,
     roster: {
       PG: null, SG: null, SF: null, PF: null, C: null,
       B1: null, B2: null,
