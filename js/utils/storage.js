@@ -21,32 +21,26 @@
 
 import { S, COACHES, POSITIONS, BENCH_POSITIONS } from '../logic/state.js';
 import { fetchLeaderboard }                        from '../utils/firebase.js';
-import { computePayroll, computeGmElo }            from '../logic/salary.js';
 
 // ── Save leaderboard entry ────────────────────────────────────────────────────
 
 export function saveLeaderboard() {
   const r = S.result;
   if (!r) return;
-  const payroll = r.payroll ?? computePayroll(S.roster);
   const entry = {
     date:          new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
     teamName:      (S.teamName || '').trim().slice(0, 20) || 'Untitled Team',
     wins:          r.wins,
     losses:        r.losses,
     starters:      POSITIONS.map(p => S.roster[p]?.name || '—').join(', '),
-    payroll,
-    gmElo:         r.gmElo         ?? computeGmElo(payroll),
     avgPopularity: r.avgPopularity ?? 50,
   };
   let lb = [];
   try { lb = JSON.parse(localStorage.getItem('nba820_lb') || '[]'); } catch (e) {}
   lb.push(entry);
-  // Tie-breakers: 1° wins  2° GM Elo  3° Team Popularity
+  // Tie-breakers: 1° wins  2° Team Popularity
   lb.sort((a, b) => {
     if (b.wins !== a.wins) return b.wins - a.wins;
-    const eloA = a.gmElo ?? 1500, eloB = b.gmElo ?? 1500;
-    if (eloB !== eloA) return eloB - eloA;
     return (b.avgPopularity ?? 50) - (a.avgPopularity ?? 50);
   });
   if (lb.length > 20) lb = lb.slice(0, 20);
@@ -58,7 +52,6 @@ export function saveLeaderboard() {
 export function saveToTrophyRoom() {
   const r        = S.result;
   const coachObj = S.coach ? COACHES.find(c => c.id === S.coach) : null;
-  const trophyPayroll = r.payroll ?? computePayroll(S.roster);
   const entry = {
     date:        new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
     coachName:   coachObj ? coachObj.name   : 'Unknown',
@@ -68,8 +61,6 @@ export function saveToTrophyRoom() {
     chemScore:   Math.round(r.chemScore),
     starters:    POSITIONS.map(p => S.roster[p]?.name || '—').join(', '),
     bench:       BENCH_POSITIONS.map(p => S.roster[p]?.name || '—').join(', '),
-    payroll:     trophyPayroll,
-    gmElo:       r.gmElo ?? computeGmElo(trophyPayroll),
   };
   let trophies = [];
   try { trophies = JSON.parse(localStorage.getItem('nba820_trophies') || '[]'); } catch (e) {}

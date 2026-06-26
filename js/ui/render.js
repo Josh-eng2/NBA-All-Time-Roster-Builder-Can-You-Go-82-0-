@@ -15,10 +15,6 @@ import {
   COACHES, ERA_DESC, TEAM_COLORS, ARCHETYPE_STYLE, DECADES, TEAMS, pick,
 } from '../logic/state.js';
 import { calculateChemistry }                             from '../logic/chemistry.js';
-import {
-  getPlayerSalary, getSalaryTier, computePayroll,
-  computeGmElo, fmtSalary, CAP,
-}                                                         from '../logic/salary.js';
 import { rosterFull, availableDecades }                  from '../logic/draft.js';
 import { saveToTrophyRoom }                               from '../utils/storage.js';
 import { bindEvents }                                     from '../ui/events.js'; // circular — safe (called inside functions only)
@@ -210,17 +206,6 @@ function renderRoundBar() {
   const roleLabel      = S.round < 5 ? `Starters ${startersFilled}/5` : `Bench ${benchFilled}/2`;
   const displayRound   = Math.min(S.round + 1, TOTAL_ROUNDS);
 
-  const payroll    = computePayroll(S.roster);
-  const isOverCap  = payroll > CAP;
-  const remaining  = CAP - payroll;
-  const capPct     = Math.min(100, (payroll / CAP) * 100);
-  const capBarCol  = isOverCap ? '#dc2626' : capPct > 85 ? '#d97706' : '#2563eb';
-  const capStatus  = payroll === 0
-    ? `Cap: $154.6M`
-    : isOverCap
-      ? `🔴 Luxury Tax +${fmtSalary(Math.abs(remaining))}`
-      : `Remaining: ${fmtSalary(remaining)}`;
-
   return `
   <div class="flex flex-col gap-1.5 py-1">
     <div class="flex items-center justify-between">
@@ -236,15 +221,6 @@ function renderRoundBar() {
           const color  = done || active ? (isStarter ? '#2563eb' : '#64748b') : '#e2e8f0';
           return `<div class="rounded-full transition-all" style="width:${active ? 9 : 7}px;height:${active ? 9 : 7}px;background:${color};border:${active ? '2px solid ' + (isStarter ? '#2563eb' : '#64748b') : 'none'}"></div>`;
         }).join('')}
-      </div>
-    </div>
-    <div class="rounded-lg border px-2.5 py-1.5" style="background:${isOverCap ? '#fef2f2' : '#f8fafc'};border-color:${isOverCap ? '#fecaca' : '#e2e8f0'}">
-      <div class="flex items-center justify-between mb-1">
-        <span class="text-[10px] font-bold uppercase tracking-widest text-muted-fg">💰 Payroll</span>
-        <span class="text-[10px] font-bold" style="color:${capBarCol}">${fmtSalary(payroll)} / $154.6M &nbsp;·&nbsp; ${capStatus}</span>
-      </div>
-      <div class="h-1 rounded-full overflow-hidden bg-border">
-        <div class="h-full rounded-full transition-all" style="width:${capPct.toFixed(1)}%;background:${capBarCol}"></div>
       </div>
     </div>
   </div>`;
@@ -335,7 +311,7 @@ function renderDraftBoard() {
       ${tc ? `<span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${tc.bg}"></span>` : ''}
       <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">${team} · ${decade}</p>
     </div>
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
       ${S.draftBoard.map((p, i) => renderDraftCard(p, i)).join('')}
     </div>
   </div>`;
@@ -356,7 +332,6 @@ function renderDraftCard(p, index) {
       <div class="flex items-center gap-1.5 mb-2">
         <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full border border-border bg-card2 text-muted-fg">${p.secondaryPos?.length ? `${p.pos} / ${p.secondaryPos[0]}` : p.pos}</span>
         ${archetypeBadge(p.archetype)}
-        <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full border" style="background:#f0fdf4;border-color:#bbf7d0;color:#15803d">${fmtSalary(getPlayerSalary(p))}</span>
         <span class="ml-auto text-xs font-black" style="color:${popCol}">★ ${pop}</span>
       </div>
       <p class="font-bold text-sm text-foreground leading-tight mb-1.5">${p.name}</p>
@@ -420,7 +395,6 @@ function renderRosterSlot(pos, canPlace, isBench) {
       <span class="text-[10px] font-black uppercase leading-none" style="color:${filledLabelColor}">${label}</span>
       <span class="text-[11px] font-bold text-foreground leading-tight w-full text-center truncate px-0.5">${p.name.split(' ').pop()}</span>
       <span class="text-[10px] text-muted-fg leading-none">${p.ppg}pt</span>
-      <span class="text-[9px] font-bold leading-none" style="color:#15803d">${fmtSalary(getPlayerSalary(p))}</span>
     </div>`;
   }
   // Position-match check: does the selected player fit this slot by primary or secondary pos?
@@ -501,14 +475,6 @@ function renderResults() {
   else                 { label = 'Rebuild Required';       labelColor = '#991b1b'; labelBg = '#fef2f2'; emoji = '📋'; }
 
   const winsColor = isPerfect || isHistoric ? '#d97706' : isElite ? '#16a34a' : isPlayoff ? '#2563eb' : '#dc2626';
-
-  // ── Budget & GM Elo helpers ────────────────────────────────────────────────
-  const payroll      = r.payroll  ?? computePayroll(S.roster);
-  const gmElo        = r.gmElo    ?? computeGmElo(payroll);
-  const isOverBudget = payroll > CAP;
-  const capRemaining = CAP - payroll;
-  const capPct       = Math.min(100, (payroll / CAP) * 100);
-  const capBarCol    = isOverBudget ? '#dc2626' : capPct > 85 ? '#d97706' : '#2563eb';
 
   // ── Popularity / Fan-Hype display helpers ─────────────────────────────────
   const popDelta    = r.popEloDelta ?? 0;
@@ -619,58 +585,6 @@ function renderResults() {
               🌍 Global Fanbase: ${fansLabel}
             </span>
             ${hypeBadge}
-          </div>
-        </div>
-        <!-- ── GM Budget card ────────────────────────────────────────────── -->
-        <div class="rounded-2xl border-2 bg-white p-4 card-shadow"
-          style="border-color:${isOverBudget ? '#fecaca' : '#bbf7d0'}">
-          <div class="flex items-center justify-between mb-3">
-            <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">GM Budget</p>
-            <span class="text-xs font-bold px-2 py-0.5 rounded-full border"
-              style="background:${isOverBudget ? '#fef2f2' : '#f0fdf4'};color:${isOverBudget ? '#dc2626' : '#16a34a'};border-color:${isOverBudget ? '#fecaca' : '#bbf7d0'}">
-              ${isOverBudget ? '🔴 Luxury Tax' : '✅ Under Cap'}
-            </span>
-          </div>
-          <div class="grid grid-cols-3 gap-2 text-center mb-3">
-            <div class="rounded-xl border border-border bg-slate-50 px-2 py-2.5">
-              <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg mb-1">Total Payroll</p>
-              <p class="text-lg font-black text-foreground">${fmtSalary(payroll)}</p>
-            </div>
-            <div class="rounded-xl border px-2 py-2.5"
-              style="background:${isOverBudget ? '#fef2f2' : '#f0fdf4'};border-color:${isOverBudget ? '#fecaca' : '#bbf7d0'}">
-              <p class="text-[10px] font-bold uppercase tracking-wider mb-1"
-                style="color:${isOverBudget ? '#dc2626' : '#15803d'}">${isOverBudget ? 'Luxury Tax' : 'Cap Space'}</p>
-              <p class="text-lg font-black" style="color:${isOverBudget ? '#dc2626' : '#16a34a'}">${fmtSalary(Math.abs(capRemaining))}</p>
-            </div>
-            <div class="rounded-xl border border-border bg-slate-50 px-2 py-2.5">
-              <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg mb-1">GM Elo</p>
-              <p class="text-lg font-black" style="color:${gmElo >= 1500 ? '#16a34a' : '#dc2626'}">${gmElo}</p>
-            </div>
-          </div>
-          <div class="mb-3">
-            <div class="h-2 rounded-full overflow-hidden bg-border">
-              <div class="h-full rounded-full transition-all stat-bar-fill" style="width:${capPct.toFixed(1)}%;background:${capBarCol}"></div>
-            </div>
-            <div class="flex justify-between text-[10px] mt-1 text-muted-fg">
-              <span>$0</span>
-              <span class="font-bold" style="color:${capBarCol}">$154,647,000 Cap</span>
-            </div>
-          </div>
-          <div class="flex flex-col gap-1.5">
-            ${[...Object.entries(S.roster)].filter(([,p]) => p).map(([pos, p]) => {
-              const sal     = getPlayerSalary(p);
-              const tier    = getSalaryTier(p);
-              const tierCol = (p.popularity ?? 50) >= 95 ? '#7c3aed'
-                            : (p.popularity ?? 50) >= 85 ? '#2563eb'
-                            : (p.popularity ?? 50) >= 75 ? '#d97706' : '#64748b';
-              return `<div class="flex items-center gap-2">
-                <span class="text-[10px] font-black w-6 flex-shrink-0 text-muted-fg">${pos}</span>
-                <span class="text-xs font-semibold text-foreground flex-1 truncate">${p.name.split(' ').pop()}</span>
-                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full border"
-                  style="color:${tierCol};border-color:${tierCol}30;background:${tierCol}10">${tier}</span>
-                <span class="text-xs font-black" style="color:${capBarCol}">${fmtSalary(sal)}</span>
-              </div>`;
-            }).join('')}
           </div>
         </div>
         <div class="rounded-2xl border border-border bg-white p-4 card-shadow">
