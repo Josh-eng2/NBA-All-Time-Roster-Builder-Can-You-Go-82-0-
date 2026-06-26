@@ -73,15 +73,6 @@ function dispatch(action) {
   if (action === 'spin')         { doSpin();       return; }
   if (action === 'skip-team')    { doSkipTeam();   return; }
   if (action === 'skip-decade')  { doSkipDecade(); return; }
-  if (action === 'use-mulligan') {
-    if (!S.hasMulligan) return;
-    S.hasMulligan    = false;
-    S.spinState      = 'idle';
-    S.selectedPlayer = null;
-    S.currentSpin    = null;
-    S.draftBoard     = [];
-    doSpin(); return;
-  }
   if (action.startsWith('draft-pick-')) {
     const idx = parseInt(action.slice(11), 10);
     const p   = S.draftBoard[idx];
@@ -96,10 +87,17 @@ function dispatch(action) {
     S.selectedPlayer = S.selectedPlayer?.id === id ? null : p;
     render(); return;
   }
-  if (action.startsWith('place-')) { placePlayer(action.slice(6));  return; }
-  if (action.startsWith('swap-'))  {
-    if (S.selectedPlayer) placePlayer(action.slice(5));
-    else render();
+  if (action.startsWith('place-')) {
+    const pos = action.slice(6);
+    if (S.movingPos) moveRosterPlayer(S.movingPos, pos);
+    else placePlayer(pos);
+    return;
+  }
+  if (action.startsWith('swap-')) {
+    const pos = action.slice(5);
+    if (S.selectedPlayer)    placePlayer(pos);
+    else if (S.movingPos)    moveRosterPlayer(S.movingPos, pos);
+    else                     { S.movingPos = pos; render(); }
     return;
   }
 
@@ -160,9 +158,20 @@ export function confirmLeave(fn) {
 
 // ── Draft mechanics ───────────────────────────────────────────────────────────
 
+function moveRosterPlayer(fromPos, toPos) {
+  S.movingPos = null;
+  if (fromPos === toPos) { render(); return; }
+  const a = S.roster[fromPos];
+  const b = S.roster[toPos] || null;
+  S.roster[fromPos] = b;
+  S.roster[toPos]   = a;
+  render();
+}
+
 function doSpin() {
   S.spinState      = 'spinning';
   S.selectedPlayer = null;
+  S.movingPos      = null;
   render();
 
   const eraLocked = S.selectedEra && S.selectedEra !== 'all';

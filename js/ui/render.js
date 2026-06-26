@@ -83,7 +83,6 @@ function renderHeader(showRestart = false) {
       <div class="flex items-center gap-1.5">
         ${coachObj ? `<span class="text-[11px] px-2.5 py-1 rounded-full font-bold border border-border bg-card2 text-muted-fg">${coachObj.system}</span>` : ''}
         <span class="text-[11px] px-2.5 py-1 rounded-full font-bold border border-border bg-card2 text-muted-fg">${eraLabel}</span>
-        ${S.phase === 'drafting' ? `<span class="text-[11px] px-2.5 py-1 rounded-full font-bold border ${S.hasMulligan ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-border bg-card2 text-muted opacity-50'}">🎲 ${S.hasMulligan ? 'Mulligan' : 'Used'}</span>` : ''}
         <button data-action="open-leaderboard" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Personal Best">🏅</button>
         <button data-action="open-global-leaderboard" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Global Leaderboard">🌍</button>
         ${showRestart ? `<button data-action="restart" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">Restart</button>` : ''}
@@ -192,6 +191,7 @@ function renderDrafting() {
         ${renderRoundBar()}
         ${!full ? renderSlotMachine() : ''}
         ${!full && S.spinState === 'done' ? renderDraftBoard() : ''}
+        ${renderPopularityBar()}
         ${renderChemDashboard()}
         ${renderRoster()}
       </div>
@@ -289,12 +289,6 @@ function renderSlotMachine() {
       </button>
     ` : `
       <p class="text-center text-xs text-muted-fg py-1">Select a player below, then tap a roster slot to place them</p>
-      ${S.hasMulligan ? `
-        <button data-action="use-mulligan"
-          class="mt-2 w-full py-2.5 rounded-xl font-bold text-sm border-2 border-dashed border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-all cursor-pointer">
-          🎲 Use Mulligan <span class="font-normal text-emerald-500 text-xs">(1 Remaining)</span>
-        </button>
-      ` : ''}
     `}
   </div>`;
 }
@@ -361,12 +355,16 @@ function renderDraftCard(p, index) {
 // ── Roster ────────────────────────────────────────────────────────────────────
 function renderRoster() {
   const hasSelected = !!S.selectedPlayer;
+  const hasMoving   = !!S.movingPos;
   const filledCount = ALL_POSITIONS.filter(p => S.roster[p]).length;
+  const movingName  = hasMoving ? (S.roster[S.movingPos]?.name?.split(' ').pop() ?? '') : '';
   return `
   <div>
     <div class="flex items-center justify-between mb-2">
       <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Your Roster <span class="text-primary">${filledCount}/${ALL_POSITIONS.length}</span></p>
-      ${hasSelected ? `<p class="text-xs text-primary animate-fade-up font-medium">Tap a slot to place ${S.selectedPlayer.name}</p>` : ''}
+      ${hasSelected ? `<p class="text-xs text-primary animate-fade-up font-medium">Tap a slot to place ${S.selectedPlayer.name}</p>`
+        : hasMoving ? `<p class="text-xs font-medium animate-fade-up" style="color:#f97316">Moving ${movingName} — tap a slot</p>`
+        : filledCount > 0 ? `<p class="text-[10px] text-muted-fg font-medium">Tap a player to rearrange</p>` : ''}
     </div>
     <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg/50 mb-1.5">Starters</p>
     <div class="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-3">
@@ -380,35 +378,42 @@ function renderRoster() {
 }
 
 function renderRosterSlot(pos, canPlace, isBench) {
-  const p       = S.roster[pos];
-  const canDrop = canPlace && !p;
-  const canSwap = canPlace && !!p;
-  const label   = isBench ? 'BN' : pos;
-  const filledBorderColor = isBench ? '#cbd5e1' : '#93c5fd';
-  const filledBorderTop   = isBench ? '3px solid #94a3b8' : '3px solid #2563eb';
-  const filledLabelColor  = isBench ? '#64748b' : '#2563eb';
+  const p             = S.roster[pos];
+  const isMoveSrc     = S.movingPos === pos;
+  const hasMoveActive = !!S.movingPos;
+  const label         = isBench ? 'BN' : pos;
+
   if (p) {
+    const isTarget   = hasMoveActive && !isMoveSrc;
+    const interactive = isMoveSrc || isTarget || (canPlace && !hasMoveActive);
+    const borderColor = isMoveSrc ? '#f97316' : (isBench ? '#cbd5e1' : '#93c5fd');
+    const borderTop   = isMoveSrc ? '3px solid #f97316' : (isBench ? '3px solid #94a3b8' : '3px solid #2563eb');
+    const labelColor  = isMoveSrc ? '#f97316' : (isBench ? '#64748b' : '#2563eb');
     return `
     <div data-action="swap-${pos}"
-      class="rounded-xl border bg-white p-2 flex flex-col items-center gap-0.5 text-center overflow-hidden transition-all card-shadow ${canSwap ? 'cursor-pointer hover:border-amber-400' : ''}"
-      style="border-color:${filledBorderColor};border-top:${filledBorderTop}" title="${canSwap ? 'Tap to replace' : p.name}">
-      <span class="text-[10px] font-black uppercase leading-none" style="color:${filledLabelColor}">${label}</span>
+      class="rounded-xl border bg-white p-2 flex flex-col items-center gap-0.5 text-center overflow-hidden transition-all card-shadow ${interactive ? 'cursor-pointer hover:border-amber-400' : ''}"
+      style="border-color:${borderColor};border-top:${borderTop}"
+      title="${isMoveSrc ? 'Moving — tap another slot' : isTarget ? 'Swap here' : canPlace ? 'Tap to replace' : p.name}">
+      <span class="text-[10px] font-black uppercase leading-none" style="color:${labelColor}">${label}</span>
       <span class="text-[11px] font-bold text-foreground leading-tight w-full text-center truncate px-0.5">${p.name.split(' ').pop()}</span>
-      <span class="text-[10px] text-muted-fg leading-none">${p.ppg}pt</span>
+      <span class="text-[10px] text-muted-fg leading-none">${isMoveSrc ? 'Moving…' : p.ppg + 'pt'}</span>
     </div>`;
   }
-  // Position-match check: does the selected player fit this slot by primary or secondary pos?
-  const sp = S.selectedPlayer;
-  const posMatch = canDrop && !isBench && sp &&
-    (sp.pos === pos || (sp.secondaryPos || []).includes(pos));
 
-  const slotBg     = !canDrop ? '#f8fafc' : (isBench || posMatch) ? '#eff6ff' : '#fffbeb';
-  const slotBorder = !canDrop ? '#cbd5e1' : (isBench || posMatch) ? '#93c5fd' : '#fde68a';
-  const slotColor  = !canDrop ? '#94a3b8' : (isBench || posMatch) ? '#2563eb' : '#d97706';
-  const slotText   = !canDrop ? 'Empty'   : (isBench || posMatch) ? 'Place'   : 'Flex';
+  // Empty slot — droppable when placing a draft pick OR moving a roster player
+  const canDrop  = canPlace || hasMoveActive;
+  const sp       = S.selectedPlayer;
+  const posMatch = !hasMoveActive && canDrop && !isBench && sp &&
+    (sp.pos === pos || (sp.secondaryPos || []).includes(pos));
+  const action   = canDrop ? (hasMoveActive ? `swap-${pos}` : `place-${pos}`) : '';
+
+  const slotBg     = !canDrop ? '#f8fafc' : '#eff6ff';
+  const slotBorder = !canDrop ? '#cbd5e1' : (posMatch ? '#fde68a' : '#93c5fd');
+  const slotColor  = !canDrop ? '#94a3b8' : (posMatch ? '#d97706' : '#2563eb');
+  const slotText   = !canDrop ? 'Empty' : (hasMoveActive ? 'Move Here' : posMatch ? 'Flex' : 'Place');
 
   return `
-  <div data-action="${canDrop ? 'place-' + pos : ''}"
+  <div data-action="${action}"
     class="rounded-xl border-2 border-dashed p-2 flex flex-col items-center gap-1 text-center transition-all ${canDrop ? 'slot-empty droppable' : ''}"
     style="background:${slotBg};border-color:${slotBorder}">
     <span class="text-[10px] font-black uppercase" style="color:${slotColor}">${label}</span>
