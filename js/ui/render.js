@@ -228,16 +228,19 @@ function renderRoundBar() {
 
 function renderPopularityBar() {
   const drafted = Object.values(S.roster).filter(Boolean);
-  if (drafted.length === 0) return '';
-  const avgPop  = drafted.reduce((s, p) => s + (p.popularity || 50), 0) / drafted.length;
-  const pct     = Math.max(0, Math.round(((avgPop - 35) / 65) * 100));
-  const barCol  = avgPop >= 80 ? '#2563eb' : avgPop >= 60 ? '#d97706' : '#94a3b8';
-  const tier    = avgPop >= 85 ? 'Superstar Lineup' : avgPop >= 70 ? 'Star Power' : avgPop >= 55 ? 'Solid Roster' : 'Under the Radar';
+  const avgPop  = drafted.length
+    ? drafted.reduce((s, p) => s + (p.popularity || 50), 0) / drafted.length
+    : 0;
+  const pct     = drafted.length ? Math.max(0, Math.round(((avgPop - 35) / 65) * 100)) : 0;
+  const barCol  = !drafted.length ? '#cbd5e1' : avgPop >= 80 ? '#2563eb' : avgPop >= 60 ? '#d97706' : '#94a3b8';
+  const tier    = !drafted.length ? 'Draft players to build star power'
+    : avgPop >= 85 ? 'Superstar Lineup' : avgPop >= 70 ? 'Star Power' : avgPop >= 55 ? 'Solid Roster' : 'Under the Radar';
+  const scoreLabel = drafted.length ? ` · ${Math.round(avgPop)}/100` : '';
   return `
   <div class="rounded-xl border border-border bg-card px-4 py-3 card-shadow">
     <div class="flex items-center justify-between mb-2">
       <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg">Team Popularity</p>
-      <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border" style="color:${barCol};background:${barCol}18;border-color:${barCol}30">${tier} · ${Math.round(avgPop)}/100</span>
+      <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border" style="color:${barCol};background:${barCol}18;border-color:${barCol}30">${tier}${scoreLabel}</span>
     </div>
     <div class="h-1.5 rounded-full overflow-hidden bg-border">
       <div class="h-full rounded-full transition-all stat-bar-fill" style="width:${pct}%;background:${barCol}"></div>
@@ -305,8 +308,10 @@ function renderDraftBoard() {
       ${tc ? `<span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${tc.bg}"></span>` : ''}
       <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">${team} · ${decade}</p>
     </div>
-    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-      ${S.draftBoard.map((p, i) => renderDraftCard(p, i)).join('')}
+    <div class="overflow-y-auto rounded-xl" style="max-height:40vh">
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 pr-1">
+        ${S.draftBoard.map((p, i) => renderDraftCard(p, i)).join('')}
+      </div>
     </div>
   </div>`;
 }
