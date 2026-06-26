@@ -36,15 +36,15 @@ import {
   query, orderBy, limit, where, serverTimestamp,
 } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js';
 
-// ── Firebase project config — FILL THESE IN ───────────────────────────────────
-// Get from: Firebase Console → Project Settings → Your apps → Web → SDK config
+// ── Firebase project config ────────────────────────────────────────────────────
 const FIREBASE_CONFIG = {
-  apiKey:            'YOUR_API_KEY',
-  authDomain:        'YOUR_PROJECT_ID.firebaseapp.com',
-  projectId:         'YOUR_PROJECT_ID',
-  storageBucket:     'YOUR_PROJECT_ID.appspot.com',
-  messagingSenderId: 'YOUR_SENDER_ID',
-  appId:             'YOUR_APP_ID',
+  apiKey:            'AIzaSyBt1pbWJjeR7ELe0g1ZoRZsQpiiAGvbmNQ',
+  authDomain:        'basketball-gm-sim-c33ed.firebaseapp.com',
+  projectId:         'basketball-gm-sim-c33ed',
+  storageBucket:     'basketball-gm-sim-c33ed.firebasestorage.app',
+  messagingSenderId: '686961038101',
+  appId:             '1:686961038101:web:9287fec583fea933fc8f1c',
+  measurementId:     'G-NWPZD758GE',
 };
 
 // ── Configuration check ───────────────────────────────────────────────────────
