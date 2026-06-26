@@ -532,9 +532,9 @@ function renderResults() {
 
   const rosterRow = (p, posLabel, isStarter, fit = null) => {
     if (!p) return '';
-    const fitBg    = fit === 'primary' ? '#dcfce7' : fit === 'flex' ? '#fef9c3' : fit ? '#fee2e2' : null;
-    const fitColor = fit === 'primary' ? '#15803d' : fit === 'flex' ? '#a16207' : fit ? '#dc2626' : null;
-    const fitText  = fit === 'primary' ? '✓' : fit === 'flex' ? '↔' : fit === 'severe' ? '!!' : fit ? '!' : null;
+    const fitBg    = fit === 'primary' ? '#dcfce7' : fit === 'flex' ? '#fef9c3' : fit ? '#fefce8' : null;
+    const fitColor = fit === 'primary' ? '#15803d' : fit === 'flex' ? '#a16207' : fit ? '#d97706' : null;
+    const fitText  = fit === 'primary' ? '✓' : fit === 'flex' ? '↔' : fit ? '+' : null;
     const fitBadge = fit
       ? `<span class="text-[8px] font-black px-1 py-0.5 rounded leading-none ml-0.5" style="background:${fitBg};color:${fitColor}">${fitText}</span>`
       : '';
@@ -664,10 +664,10 @@ function renderResults() {
             <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Optimized Lineup</p>
             ${r.lineupAssignment?.length === 5 ? (() => {
               const allPrimary = r.lineupAssignment.every(a => a.fit === 'primary');
-              const hasOOP     = r.lineupAssignment.some(a => a.fit === 'oop' || a.fit === 'severe');
-              const bg    = allPrimary ? '#f0fdf4' : hasOOP ? '#fef2f2' : '#fefce8';
-              const color = allPrimary ? '#15803d' : hasOOP ? '#dc2626' : '#a16207';
-              const label = allPrimary ? '🟢 Flawless' : hasOOP ? '🔴 Mismatches' : '🟡 Flex Lineup';
+              const hasOOP     = r.lineupAssignment.some(a => a.fit === 'oop');
+              const bg    = allPrimary ? '#f0fdf4' : '#fefce8';
+              const color = allPrimary ? '#15803d' : '#a16207';
+              const label = allPrimary ? '🟢 Flawless' : hasOOP ? '🟡 Versatile' : '🟡 Flex Lineup';
               return `<span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full border" style="background:${bg};color:${color};border-color:${color}30">${label}</span>`;
             })() : ''}
           </div>

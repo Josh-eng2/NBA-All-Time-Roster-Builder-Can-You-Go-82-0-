@@ -15,18 +15,14 @@ import { S } from '../logic/state.js';
 // ── Lineup Optimizer ──────────────────────────────────────────────────────────
 
 const FLOOR_SLOTS = ['PG', 'SG', 'SF', 'PF', 'C'];
-const SLOT_IDX    = { PG: 0, SG: 1, SF: 2, PF: 3, C: 4 };
-
-function posDistance(a, b) {
-  return Math.abs((SLOT_IDX[a] ?? 2) - (SLOT_IDX[b] ?? 2));
-}
 
 // Returns the raw chemBonus contribution for one player-slot pair.
+// All values are positive — the system only rewards good fits, never punishes.
+// Primary match = +4%, secondary/flex = +2%, out-of-position = +3% (versatility).
 function slotFitScore(player, slot) {
-  if (player.pos === slot) return 0.02;
-  if ((player.secondaryPos || []).includes(slot)) return 0.00;
-  const d = posDistance(player.pos, slot);
-  return d >= 3 ? -0.20 : -(d * 0.06);
+  if (player.pos === slot) return 0.04;
+  if ((player.secondaryPos || []).includes(slot)) return 0.02;
+  return 0.03;
 }
 
 /**
@@ -69,7 +65,7 @@ function optimizeLineup(starters) {
     let fit;
     if (p.pos === slot)                              fit = 'primary';
     else if ((p.secondaryPos || []).includes(slot)) fit = 'flex';
-    else                                              fit = posDistance(p.pos, slot) >= 3 ? 'severe' : 'oop';
+    else                                              fit = 'oop';
     assignment.push({ slot, player: p, fit, bonus: score });
     posBonus += score;
   }
@@ -82,19 +78,16 @@ function optimizeLineup(starters) {
   if (allPrimary) {
     posReport.push('🟢 Flawless Construction: All 5 starters are playing their natural positions (+10%)');
     for (const { slot, player } of assignment) {
-      posReport.push(`🟢 Perfect Fit: ${player.name} plays natural ${slot} (+2%)`);
+      posReport.push(`🟢 Perfect Fit: ${player.name} plays natural ${slot} (+4%)`);
     }
   } else {
     for (const { slot, player, fit } of assignment) {
-      const d = posDistance(player.pos, slot);
       if (fit === 'primary') {
-        posReport.push(`🟢 Perfect Fit: ${player.name} plays natural ${slot} (+2%)`);
+        posReport.push(`🟢 Perfect Fit: ${player.name} plays natural ${slot} (+4%)`);
       } else if (fit === 'flex') {
-        posReport.push(`🟢 Flex Fit: ${player.name} (${player.pos}) covers ${slot} via secondary position (+0%)`);
-      } else if (fit === 'severe') {
-        posReport.push(`🔴 Severe Mismatch: ${player.name} is forced to play ${slot} — ${d} spots from natural ${player.pos} (-20%)`);
+        posReport.push(`🟢 Flex Fit: ${player.name} (${player.pos}) covers ${slot} via secondary position (+2%)`);
       } else {
-        posReport.push(`🔴 Out of Position: ${player.name} is forced to play ${slot} instead of ${player.pos} (-${d * 6}%)`);
+        posReport.push(`🟢 Versatile: ${player.name} fills the ${slot} role (+3%)`);
       }
     }
   }
@@ -358,16 +351,6 @@ export function calculateChemistry(starters, bench) {
     const penalty = sSlashPaintCount >= 3 ? 0.06 : 0.04;
     chemBonus -= penalty;
     chemReport.push(`🔴 No Spacing: Too many paint-cloggers, no shooters (-${Math.round(penalty * 100)}%)`);
-  }
-
-  if (sDemandCount >= 3) {
-    const glueGuys = sT.filter(t => t === 'Glue Guy').length;
-    let penalty    = coach === 'jackson' ? 0.02 : 0.05;
-    penalty        = Math.max(0, penalty - glueGuys * 0.015);
-    if (penalty > 0) {
-      chemBonus -= penalty;
-      chemReport.push(`🔴 Clashing Egos${coach === 'jackson' ? ' (softened by Phil)' : ''}: Too many ball-dominant players in the Starting 5 (-${Math.round(penalty * 100)}%)`);
-    }
   }
 
   if (!aHasPlaymaker && allPlayers.length > 4) {
