@@ -308,7 +308,7 @@ function renderDraftBoard() {
       ${tc ? `<span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${tc.bg}"></span>` : ''}
       <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">${team} · ${decade}</p>
     </div>
-    <div class="overflow-y-auto rounded-xl" style="max-height:40vh">
+    <div class="overflow-y-auto rounded-xl" style="max-height:24vh">
       <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 pr-1">
         ${S.draftBoard.map((p, i) => renderDraftCard(p, i)).join('')}
       </div>
