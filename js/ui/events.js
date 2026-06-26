@@ -18,7 +18,6 @@ import {
   spinResult, getAvailablePlayers, availableDecades,
 } from '../logic/draft.js';
 import { simulateSeason, simulateSeries }            from '../logic/simulation.js';
-import { computePayroll, computeGmElo } from '../logic/salary.js';
 import {
   saveLeaderboard, saveToTrophyRoom,
   showLeaderboardModal, closeLeaderboardModal,
@@ -191,7 +190,7 @@ function doSpin() {
       S.currentSpin      = spin;
       S.spinState        = 'done';
       S.availablePlayers = getAvailablePlayers(spin.team, spin.decade);
-      S.draftBoard       = [...S.availablePlayers].sort(() => Math.random() - 0.5).slice(0, 3);
+      S.draftBoard       = [...S.availablePlayers].sort((a, b) => (b.popularity ?? 50) - (a.popularity ?? 50));
       S.selectedPlayer   = null;
       render();
     }
@@ -205,7 +204,7 @@ function doSkipTeam() {
   if (spin) {
     S.currentSpin      = spin;
     S.availablePlayers = getAvailablePlayers(spin.team, spin.decade);
-    S.draftBoard       = [...S.availablePlayers].sort(() => Math.random() - 0.5).slice(0, 3);
+    S.draftBoard       = [...S.availablePlayers].sort((a, b) => (b.popularity ?? 50) - (a.popularity ?? 50));
     S.selectedPlayer   = null;
   }
   render();
@@ -221,7 +220,7 @@ function doSkipDecade() {
   if (spin) {
     S.currentSpin      = spin;
     S.availablePlayers = getAvailablePlayers(spin.team, spin.decade);
-    S.draftBoard       = [...S.availablePlayers].sort(() => Math.random() - 0.5).slice(0, 3);
+    S.draftBoard       = [...S.availablePlayers].sort((a, b) => (b.popularity ?? 50) - (a.popularity ?? 50));
     S.selectedPlayer   = null;
   }
   render();
@@ -267,9 +266,6 @@ function doSimulate() {
   const starters = POSITIONS.map(p => S.roster[p]).filter(Boolean);
   const bench    = BENCH_POSITIONS.map(p => S.roster[p]).filter(Boolean);
   S.result  = simulateSeason(starters, bench, S.coach);
-  const payroll = computePayroll(S.roster);
-  S.result.payroll = payroll;
-  S.result.gmElo   = computeGmElo(payroll);
   S.phase   = 'results';
   S.runSaved = false;
   render();
@@ -319,8 +315,6 @@ async function doSubmitGlobal() {
       era:         S.selectedEra   ?? 'all',
       chemScore:   Math.round(r.chemScore ?? 0),
       starters:    POSITIONS.map(p => S.roster[p]?.name || '—').join(', '),
-      payroll:     r.payroll  ?? 0,
-      gmElo:       r.gmElo    ?? 1500,
       timestampMs: Date.now(),
     });
     S.globalScoreSubmitted = true;
