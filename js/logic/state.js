@@ -69,7 +69,7 @@ export const COACHES = [
     id:     'jackson',
     name:   'Phil Jackson',
     system: 'Triangle Offense',
-    desc:   'Star-driven — Dynamic Duo and Heliocentric Engine bonuses amplified ×1.5; Clashing Egos penalty softened to −2%.',
+    desc:   'Star-driven — Dynamic Duo and Heliocentric Engine bonuses amplified ×1.5; elite scorers elevate each other.',
     accent: '#c084fc',
   },
   {
