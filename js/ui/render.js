@@ -83,7 +83,6 @@ function renderHeader(showRestart = false) {
       <div class="flex items-center gap-1.5">
         ${coachObj ? `<span class="text-[11px] px-2.5 py-1 rounded-full font-bold border border-border bg-card2 text-muted-fg">${coachObj.system}</span>` : ''}
         <span class="text-[11px] px-2.5 py-1 rounded-full font-bold border border-border bg-card2 text-muted-fg">${eraLabel}</span>
-        ${S.phase === 'drafting' ? `<span class="text-[11px] px-2.5 py-1 rounded-full font-bold border ${S.hasMulligan ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-border bg-card2 text-muted opacity-50'}">🎲 ${S.hasMulligan ? 'Mulligan' : 'Used'}</span>` : ''}
         <button data-action="open-leaderboard" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Personal Best">🏅</button>
         <button data-action="open-global-leaderboard" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Global Leaderboard">🌍</button>
         ${showRestart ? `<button data-action="restart" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">Restart</button>` : ''}
@@ -192,6 +191,7 @@ function renderDrafting() {
         ${renderRoundBar()}
         ${!full ? renderSlotMachine() : ''}
         ${!full && S.spinState === 'done' ? renderDraftBoard() : ''}
+        ${renderPopularityBar()}
         ${renderChemDashboard()}
         ${renderRoster()}
       </div>
@@ -289,12 +289,6 @@ function renderSlotMachine() {
       </button>
     ` : `
       <p class="text-center text-xs text-muted-fg py-1">Select a player below, then tap a roster slot to place them</p>
-      ${S.hasMulligan ? `
-        <button data-action="use-mulligan"
-          class="mt-2 w-full py-2.5 rounded-xl font-bold text-sm border-2 border-dashed border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-all cursor-pointer">
-          🎲 Use Mulligan <span class="font-normal text-emerald-500 text-xs">(1 Remaining)</span>
-        </button>
-      ` : ''}
     `}
   </div>`;
 }

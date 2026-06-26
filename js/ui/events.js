@@ -73,15 +73,6 @@ function dispatch(action) {
   if (action === 'spin')         { doSpin();       return; }
   if (action === 'skip-team')    { doSkipTeam();   return; }
   if (action === 'skip-decade')  { doSkipDecade(); return; }
-  if (action === 'use-mulligan') {
-    if (!S.hasMulligan) return;
-    S.hasMulligan    = false;
-    S.spinState      = 'idle';
-    S.selectedPlayer = null;
-    S.currentSpin    = null;
-    S.draftBoard     = [];
-    doSpin(); return;
-  }
   if (action.startsWith('draft-pick-')) {
     const idx = parseInt(action.slice(11), 10);
     const p   = S.draftBoard[idx];

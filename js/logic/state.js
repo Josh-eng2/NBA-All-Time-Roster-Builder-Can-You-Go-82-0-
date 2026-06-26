@@ -204,7 +204,7 @@ export function startGame(era = 'all') {
     draftedPlayerNames: new Set(), // names of players currently on the roster (blocks cross-era clones)
     teamSkips:        1,
     decadeSkips:      1,
-    hasMulligan:      true,
+
     spinState:        'idle',   // 'idle' | 'spinning' | 'done'
     currentSpin:      null,     // { team, decade }
     availablePlayers: [],
