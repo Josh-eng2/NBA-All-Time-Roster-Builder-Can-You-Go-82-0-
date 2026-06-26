@@ -208,30 +208,28 @@ function doSpin() {
 
 function doSkipTeam() {
   if (S.teamSkips <= 0 || !S.currentSpin) { render(); return; }
-  S.teamSkips--;
   const spin = spinResult(null, S.currentSpin.decade);
-  if (spin) {
-    S.currentSpin      = spin;
-    S.availablePlayers = getAvailablePlayers(spin.team, spin.decade);
-    S.draftBoard       = [...S.availablePlayers].sort((a, b) => (b.popularity ?? 50) - (a.popularity ?? 50));
-    S.selectedPlayer   = null;
-  }
+  if (!spin) { render(); return; }
+  S.teamSkips--;
+  S.currentSpin      = spin;
+  S.availablePlayers = getAvailablePlayers(spin.team, spin.decade);
+  S.draftBoard       = [...S.availablePlayers].sort((a, b) => (b.popularity ?? 50) - (a.popularity ?? 50));
+  S.selectedPlayer   = null;
   render();
 }
 
 function doSkipDecade() {
-  if (S.selectedEra !== 'all')          { render(); return; }
-  if (S.decadeSkips <= 0 || !S.currentSpin) { render(); return; }
-  S.decadeSkips--;
+  if (S.selectedEra !== 'all')               { render(); return; }
+  if (S.decadeSkips <= 0 || !S.currentSpin)  { render(); return; }
   const pool = availableDecades().filter(d => d !== S.currentSpin.decade);
   if (!pool.length) { render(); return; }
   const spin = spinResult(S.currentSpin.team, pick(pool));
-  if (spin) {
-    S.currentSpin      = spin;
-    S.availablePlayers = getAvailablePlayers(spin.team, spin.decade);
-    S.draftBoard       = [...S.availablePlayers].sort((a, b) => (b.popularity ?? 50) - (a.popularity ?? 50));
-    S.selectedPlayer   = null;
-  }
+  if (!spin) { render(); return; }
+  S.decadeSkips--;
+  S.currentSpin      = spin;
+  S.availablePlayers = getAvailablePlayers(spin.team, spin.decade);
+  S.draftBoard       = [...S.availablePlayers].sort((a, b) => (b.popularity ?? 50) - (a.popularity ?? 50));
+  S.selectedPlayer   = null;
   render();
 }
 
@@ -257,7 +255,7 @@ function placePlayer(pos) {
   }
 
   S.roster[pos]      = player;
-  S.usedDecades.push(spin?.decade);
+  if (spin?.decade) S.usedDecades.push(spin.decade);
   S.usedPlayerIds.push(player.id);
   S.draftedPlayerNames?.add(player.name);
   if (!oldPlayer) S.round++;  // swaps don't consume an additional round
@@ -432,6 +430,7 @@ function doSimNextRound() {
   render();
 
   const ticker = setInterval(() => {
+    if (S.phase !== 'playoffs') { clearInterval(ticker); return; }
     po.tickState.revealedGames++;
     render();
     if (po.tickState.revealedGames >= po.tickState.maxGames) {
@@ -439,6 +438,7 @@ function doSimNextRound() {
       po.tickState.done = true;
       render();
       setTimeout(() => {
+        if (S.phase !== 'playoffs') return;
         po.rounds.push(po.tickState.results);
         const { results: r2, playerWon: pw } = po.tickState;
         po.tickState = null;
@@ -450,6 +450,12 @@ function doSimNextRound() {
           po.currentRound++;
           if (po.currentRound === 3) {
             po.champion = true;
+            saveToTrophyRoom();
+            setTimeout(() => {
+              if (typeof confetti !== 'undefined') {
+                confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#f97316', '#eab308', '#ffffff'] });
+              }
+            }, 200);
           } else {
             po.bracket = [];
             for (let i = 0; i < winners.length; i += 2) {

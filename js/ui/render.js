@@ -16,7 +16,6 @@ import {
 } from '../logic/state.js';
 import { calculateChemistry }                             from '../logic/chemistry.js';
 import { rosterFull, availableDecades }                  from '../logic/draft.js';
-import { saveToTrophyRoom }                               from '../utils/storage.js';
 import { bindEvents }                                     from '../ui/events.js'; // circular — safe (called inside functions only)
 
 // ── Mount point ───────────────────────────────────────────────────────────────
@@ -910,15 +909,6 @@ function renderPlayoffs() {
 function renderChampionship() {
   const po = S.playoffs;
   const r  = S.result;
-  if (!po.hasSavedTrophy) {
-    po.hasSavedTrophy = true;
-    saveToTrophyRoom();
-    setTimeout(() => {
-      if (typeof confetti !== 'undefined') {
-        confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#f97316', '#eab308', '#ffffff'] });
-      }
-    }, 200);
-  }
   const finalsResult = po.rounds[po.rounds.length - 1].find(sr => sr.teamA.isPlayer || sr.teamB.isPlayer);
   const oppTeam = finalsResult.teamA.isPlayer ? finalsResult.teamB : finalsResult.teamA;
   const score   = finalsResult.teamA.isPlayer
