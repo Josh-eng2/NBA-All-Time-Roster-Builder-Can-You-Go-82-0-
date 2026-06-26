@@ -23,7 +23,10 @@ export function getPlayers(team, decade) {
 
 /** Players from a slot that haven't been drafted yet. */
 export function getAvailablePlayers(team, decade) {
-  return getPlayers(team, decade).filter(p => !S.usedPlayerIds.includes(p.id));
+  return getPlayers(team, decade).filter(p =>
+    !S.usedPlayerIds.includes(p.id) &&
+    !(S.draftedPlayerNames?.has(p.name))
+  );
 }
 
 /**

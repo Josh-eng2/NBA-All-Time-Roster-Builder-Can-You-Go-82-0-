@@ -342,14 +342,16 @@ function renderDraftBoard() {
 }
 
 function renderDraftCard(p, index) {
-  const pop        = p.popularity ?? 50;
-  const popCol     = pop >= 80 ? '#2563eb' : pop >= 60 ? '#d97706' : '#94a3b8';
-  const isSelected = S.selectedPlayer?.id === p.id;
-  const cardBorder = isSelected ? '#2563eb' : '#e2e8f0';
-  const cardBg     = isSelected ? '#eff6ff' : '#ffffff';
+  const pop           = p.popularity ?? 50;
+  const popCol        = pop >= 80 ? '#2563eb' : pop >= 60 ? '#d97706' : '#94a3b8';
+  const alreadyOnRoster = S.draftedPlayerNames?.has(p.name) ?? false;
+  const isSelected    = !alreadyOnRoster && S.selectedPlayer?.id === p.id;
+  const cardBorder    = alreadyOnRoster ? '#e2e8f0' : isSelected ? '#2563eb' : '#e2e8f0';
+  const cardBg        = alreadyOnRoster ? '#f8fafc' : isSelected ? '#eff6ff' : '#ffffff';
+  const cardOpacity   = alreadyOnRoster ? 'opacity:0.55;' : '';
   return `
   <div class="rounded-xl border-2 flex flex-col overflow-hidden transition-all card-shadow"
-    style="border-color:${cardBorder};background:${cardBg}">
+    style="border-color:${cardBorder};background:${cardBg};${cardOpacity}">
     <div class="p-3 flex-1">
       <div class="flex items-center gap-1.5 mb-2">
         <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full border border-border bg-card2 text-muted-fg">${p.secondaryPos?.length ? `${p.pos} / ${p.secondaryPos[0]}` : p.pos}</span>
@@ -369,11 +371,14 @@ function renderDraftCard(p, index) {
         </div>` : ''}
     </div>
     <div class="px-3 pb-3">
-      <button data-action="draft-pick-${index}"
-        class="w-full py-2 rounded-lg font-bold text-xs transition-all cursor-pointer"
-        style="background:${isSelected ? '#2563eb' : '#eff6ff'};color:${isSelected ? '#fff' : '#2563eb'};border:1.5px solid ${isSelected ? '#2563eb' : '#bfdbfe'}">
-        ${isSelected ? '✓ Selected — Tap a Roster Slot' : 'Draft Player'}
-      </button>
+      ${alreadyOnRoster
+        ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs" style="background:#f1f5f9;color:#94a3b8;border:1.5px solid #e2e8f0;cursor:not-allowed">Already on Roster</button>`
+        : `<button data-action="draft-pick-${index}"
+            class="w-full py-2 rounded-lg font-bold text-xs transition-all cursor-pointer"
+            style="background:${isSelected ? '#2563eb' : '#eff6ff'};color:${isSelected ? '#fff' : '#2563eb'};border:1.5px solid ${isSelected ? '#2563eb' : '#bfdbfe'}">
+            ${isSelected ? '✓ Selected — Tap a Roster Slot' : 'Draft Player'}
+          </button>`
+      }
     </div>
   </div>`;
 }
