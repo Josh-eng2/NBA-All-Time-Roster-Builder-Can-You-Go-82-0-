@@ -370,7 +370,7 @@ export function calculateChemistry(starters, bench) {
     }
   }
 
-  if (!aHasPlaymaker) {
+  if (!aHasPlaymaker && allPlayers.length > 4) {
     chemBonus -= 0.05;
     chemReport.push('🔴 No Playmaking: Zero Playmakers on the roster — no one to run the offense (-5%)');
   }
