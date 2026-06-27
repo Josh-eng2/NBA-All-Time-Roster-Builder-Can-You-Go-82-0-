@@ -9748,5 +9748,58 @@
       ],
       "popularity": 72
     }
+  ],
+  "Thunder_2000s": [
+    {
+      "id": "rallen_son_05",
+      "name": "Ray Allen",
+      "pos": "SG",
+      "ppg": 21.7,
+      "rpg": 4.0,
+      "apg": 3.9,
+      "spg": 1.3,
+      "bpg": 0.2,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Floor Spacer",
+        "Volume Shooter",
+        "Clutch Assassin"
+      ],
+      "popularity": 88
+    },
+    {
+      "id": "rlewis_06",
+      "name": "Rashard Lewis",
+      "pos": "SF",
+      "secondaryPos": ["PF"],
+      "ppg": 19.0,
+      "rpg": 6.9,
+      "apg": 2.3,
+      "spg": 0.8,
+      "bpg": 0.5,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Floor Spacer",
+        "Volume Shooter"
+      ],
+      "popularity": 75
+    },
+    {
+      "id": "gpayton_02",
+      "name": "Gary Payton",
+      "pos": "PG",
+      "ppg": 22.1,
+      "rpg": 4.8,
+      "apg": 8.3,
+      "spg": 1.8,
+      "bpg": 0.4,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Elite Playmaker",
+        "Lockdown Defender",
+        "Clutch Assassin"
+      ],
+      "popularity": 89
+    }
   ]
 }
