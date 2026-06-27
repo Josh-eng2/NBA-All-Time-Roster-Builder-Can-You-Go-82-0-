@@ -1,7 +1,7 @@
 /**
  * js/data/players.js — Inlined Player Database (auto-generated)
  *
- * 90 team-era buckets · 538 players total
+ * 98 team-era buckets · 562 players total
  *
  * DO NOT EDIT BY HAND.
  * Re-generate with:  node scripts/inline_players.js
@@ -8952,6 +8952,459 @@ const PLAYER_DB = {
         "Rim Protector"
       ],
       "popularity": 47
+    }
+  ],
+  "Bulls_1970s": [
+    {
+      "id": "blove_72",
+      "name": "Bob Love",
+      "pos": "SF",
+      "ppg": 25.8,
+      "rpg": 7.5,
+      "apg": 2.1,
+      "spg": 1.3,
+      "bpg": 0.5,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Volume Shooter",
+        "Floor Spacer",
+        "Clutch"
+      ],
+      "popularity": 72
+    },
+    {
+      "id": "vanlier_74",
+      "name": "Norm Van Lier",
+      "pos": "PG",
+      "secondaryPos": [
+        "SG"
+      ],
+      "ppg": 14.1,
+      "rpg": 4.7,
+      "apg": 7,
+      "spg": 2.7,
+      "bpg": 0.4,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Elite Playmaker",
+        "Lockdown Defender",
+        "Glue Guy"
+      ],
+      "popularity": 63
+    },
+    {
+      "id": "gilmore_77",
+      "name": "Artis Gilmore",
+      "pos": "C",
+      "ppg": 23.7,
+      "rpg": 16.7,
+      "apg": 2,
+      "spg": 1,
+      "bpg": 3,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Rim Protector",
+        "Rebounding Machine"
+      ],
+      "popularity": 78
+    }
+  ],
+  "Spurs_1970s": [
+    {
+      "id": "gervin_79",
+      "name": "George Gervin",
+      "pos": "SG",
+      "secondaryPos": [
+        "SF"
+      ],
+      "ppg": 27.8,
+      "rpg": 5.3,
+      "apg": 2.7,
+      "spg": 1.3,
+      "bpg": 0.7,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Volume Shooter",
+        "Clutch Assassin",
+        "Floor Spacer"
+      ],
+      "popularity": 91
+    },
+    {
+      "id": "silas_jm_77",
+      "name": "James Silas",
+      "pos": "PG",
+      "ppg": 23.5,
+      "rpg": 3.5,
+      "apg": 8.1,
+      "spg": 1.4,
+      "bpg": 0.2,
+      "archetype": "Playmaker",
+      "traits": [
+        "Elite Playmaker",
+        "Clutch Assassin"
+      ],
+      "popularity": 62
+    },
+    {
+      "id": "kenon_78",
+      "name": "Larry Kenon",
+      "pos": "SF",
+      "secondaryPos": [
+        "PF"
+      ],
+      "ppg": 21,
+      "rpg": 9.2,
+      "apg": 2.9,
+      "spg": 2.1,
+      "bpg": 0.5,
+      "archetype": "Slasher",
+      "traits": [
+        "Hustle Player",
+        "Volume Shooter"
+      ],
+      "popularity": 65
+    }
+  ],
+  "Jazz_1970s": [
+    {
+      "id": "maravich_78",
+      "name": "Pete Maravich",
+      "pos": "PG",
+      "secondaryPos": [
+        "SG"
+      ],
+      "ppg": 27.9,
+      "rpg": 4.6,
+      "apg": 5.5,
+      "spg": 1.5,
+      "bpg": 0.3,
+      "archetype": "Playmaker",
+      "traits": [
+        "Point God",
+        "Volume Shooter",
+        "Clutch Assassin"
+      ],
+      "popularity": 94
+    },
+    {
+      "id": "trobinson_78",
+      "name": "Truck Robinson",
+      "pos": "PF",
+      "secondaryPos": [
+        "C"
+      ],
+      "ppg": 24.2,
+      "rpg": 15.7,
+      "apg": 2.8,
+      "spg": 0.9,
+      "bpg": 0.7,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Rebounding Machine",
+        "Volume Shooter"
+      ],
+      "popularity": 68
+    },
+    {
+      "id": "goodrich_jaz_77",
+      "name": "Gail Goodrich",
+      "pos": "SG",
+      "ppg": 17.8,
+      "rpg": 3.5,
+      "apg": 4,
+      "spg": 1.5,
+      "bpg": 0.2,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Floor Spacer",
+        "Volume Shooter",
+        "Clutch"
+      ],
+      "popularity": 73
+    }
+  ],
+  "Pistons_1970s": [
+    {
+      "id": "lanier_74",
+      "name": "Bob Lanier",
+      "pos": "C",
+      "ppg": 24.5,
+      "rpg": 14.4,
+      "apg": 3.3,
+      "spg": 0.9,
+      "bpg": 2.1,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Rim Protector",
+        "Volume Shooter",
+        "Rebounding Machine"
+      ],
+      "popularity": 82
+    },
+    {
+      "id": "bing_73",
+      "name": "Dave Bing",
+      "pos": "PG",
+      "secondaryPos": [
+        "SG"
+      ],
+      "ppg": 22.6,
+      "rpg": 4.5,
+      "apg": 6.3,
+      "spg": 1.9,
+      "bpg": 0.3,
+      "archetype": "Playmaker",
+      "traits": [
+        "Elite Playmaker",
+        "Volume Shooter",
+        "Clutch"
+      ],
+      "popularity": 81
+    },
+    {
+      "id": "kporter_79",
+      "name": "Kevin Porter",
+      "pos": "PG",
+      "ppg": 15.4,
+      "rpg": 3.7,
+      "apg": 10,
+      "spg": 1.4,
+      "bpg": 0.1,
+      "archetype": "Playmaker",
+      "traits": [
+        "Elite Playmaker",
+        "Floor General"
+      ],
+      "popularity": 55
+    }
+  ],
+  "Sixers_1970s": [
+    {
+      "id": "erving_77",
+      "name": "Julius Erving",
+      "pos": "SF",
+      "secondaryPos": [
+        "SG"
+      ],
+      "ppg": 24.2,
+      "rpg": 8.5,
+      "apg": 4.1,
+      "spg": 2,
+      "bpg": 1.6,
+      "archetype": "Slasher",
+      "traits": [
+        "Clutch Assassin",
+        "Volume Shooter",
+        "Slasher"
+      ],
+      "popularity": 97
+    },
+    {
+      "id": "dcollins_77",
+      "name": "Doug Collins",
+      "pos": "SG",
+      "ppg": 20.7,
+      "rpg": 3.7,
+      "apg": 4.4,
+      "spg": 1.6,
+      "bpg": 0.3,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Floor Spacer",
+        "Volume Shooter",
+        "Clutch"
+      ],
+      "popularity": 72
+    },
+    {
+      "id": "mcginnis_77",
+      "name": "George McGinnis",
+      "pos": "PF",
+      "secondaryPos": [
+        "C"
+      ],
+      "ppg": 22,
+      "rpg": 12.7,
+      "apg": 3.6,
+      "spg": 2.1,
+      "bpg": 0.6,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Volume Shooter",
+        "Rebounding Machine"
+      ],
+      "popularity": 74
+    }
+  ],
+  "Rockets_1970s": [
+    {
+      "id": "cmurphy_75",
+      "name": "Calvin Murphy",
+      "pos": "PG",
+      "secondaryPos": [
+        "SG"
+      ],
+      "ppg": 21,
+      "rpg": 2.5,
+      "apg": 4.5,
+      "spg": 2,
+      "bpg": 0.2,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Volume Shooter",
+        "Clutch Assassin",
+        "Floor Spacer"
+      ],
+      "popularity": 76
+    },
+    {
+      "id": "rtomjanovich_77",
+      "name": "Rudy Tomjanovich",
+      "pos": "SF",
+      "secondaryPos": [
+        "PF"
+      ],
+      "ppg": 25,
+      "rpg": 9.7,
+      "apg": 2,
+      "spg": 0.8,
+      "bpg": 0.3,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Volume Shooter",
+        "Rebounding Machine",
+        "Clutch"
+      ],
+      "popularity": 75
+    },
+    {
+      "id": "mmalone_79",
+      "name": "Moses Malone",
+      "pos": "C",
+      "ppg": 17.8,
+      "rpg": 13.1,
+      "apg": 1.2,
+      "spg": 0.9,
+      "bpg": 1.8,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Rebounding Machine",
+        "Rim Protector"
+      ],
+      "popularity": 90
+    }
+  ],
+  "Nuggets_1970s": [
+    {
+      "id": "dthompson_78",
+      "name": "David Thompson",
+      "pos": "SG",
+      "secondaryPos": [
+        "SF"
+      ],
+      "ppg": 27.2,
+      "rpg": 4.3,
+      "apg": 3.3,
+      "spg": 1,
+      "bpg": 0.5,
+      "archetype": "Slasher",
+      "traits": [
+        "Volume Shooter",
+        "Clutch Assassin",
+        "Slasher"
+      ],
+      "popularity": 87
+    },
+    {
+      "id": "issel_78",
+      "name": "Dan Issel",
+      "pos": "C",
+      "secondaryPos": [
+        "PF"
+      ],
+      "ppg": 22.6,
+      "rpg": 9.3,
+      "apg": 3.1,
+      "spg": 0.7,
+      "bpg": 0.5,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Volume Shooter",
+        "Rebounding Machine"
+      ],
+      "popularity": 82
+    },
+    {
+      "id": "bjones_nug_78",
+      "name": "Bobby Jones",
+      "pos": "SF",
+      "secondaryPos": [
+        "PF"
+      ],
+      "ppg": 10.3,
+      "rpg": 7,
+      "apg": 1.5,
+      "spg": 1.8,
+      "bpg": 1.1,
+      "archetype": "Lockdown Defender",
+      "traits": [
+        "Glue Guy",
+        "Hustle Player",
+        "Rim Protector"
+      ],
+      "popularity": 60
+    }
+  ],
+  "Cavaliers_1970s": [
+    {
+      "id": "acarr_74",
+      "name": "Austin Carr",
+      "pos": "SG",
+      "ppg": 21.2,
+      "rpg": 3.5,
+      "apg": 3.3,
+      "spg": 1.2,
+      "bpg": 0.2,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Volume Shooter",
+        "Floor Spacer",
+        "Clutch"
+      ],
+      "popularity": 70
+    },
+    {
+      "id": "crussell_77",
+      "name": "Campy Russell",
+      "pos": "SF",
+      "ppg": 19.7,
+      "rpg": 6,
+      "apg": 3.5,
+      "spg": 1.2,
+      "bpg": 0.4,
+      "archetype": "Slasher",
+      "traits": [
+        "Volume Shooter",
+        "Clutch"
+      ],
+      "popularity": 62
+    },
+    {
+      "id": "chones_77",
+      "name": "Jim Chones",
+      "pos": "C",
+      "ppg": 15,
+      "rpg": 10,
+      "apg": 2.3,
+      "spg": 0.7,
+      "bpg": 1.3,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Rebounding Machine",
+        "Glue Guy"
+      ],
+      "popularity": 55
     }
   ]
 };
