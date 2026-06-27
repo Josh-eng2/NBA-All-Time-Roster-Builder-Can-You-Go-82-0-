@@ -9325,5 +9325,269 @@
       ],
       "popularity": 55
     }
+  ],
+  "Warriors_1980s": [
+    {
+      "id": "wbfree_82",
+      "name": "World B. Free",
+      "pos": "SG",
+      "secondaryPos": ["PG"],
+      "ppg": 27.1,
+      "rpg": 3.5,
+      "apg": 5.1,
+      "spg": 1.5,
+      "bpg": 0.2,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Volume Shooter",
+        "Clutch Assassin"
+      ],
+      "popularity": 70
+    },
+    {
+      "id": "pshort_84",
+      "name": "Purvis Short",
+      "pos": "SF",
+      "secondaryPos": ["SG"],
+      "ppg": 20.9,
+      "rpg": 4.6,
+      "apg": 2.5,
+      "spg": 1.0,
+      "bpg": 0.4,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Volume Shooter",
+        "Floor Spacer",
+        "Clutch"
+      ],
+      "popularity": 60
+    },
+    {
+      "id": "jbcarroll_83",
+      "name": "Joe Barry Carroll",
+      "pos": "C",
+      "ppg": 20.4,
+      "rpg": 9.5,
+      "apg": 2.1,
+      "spg": 0.8,
+      "bpg": 1.6,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Rebounding Machine",
+        "Volume Shooter"
+      ],
+      "popularity": 55
+    }
+  ],
+  "Knicks_1980s": [
+    {
+      "id": "bking_85",
+      "name": "Bernard King",
+      "pos": "SF",
+      "ppg": 24.6,
+      "rpg": 5.9,
+      "apg": 3.4,
+      "spg": 1.3,
+      "bpg": 0.5,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Volume Shooter",
+        "Clutch Assassin",
+        "Floor Spacer"
+      ],
+      "popularity": 85
+    },
+    {
+      "id": "ewing_89",
+      "name": "Patrick Ewing",
+      "pos": "C",
+      "ppg": 22.0,
+      "rpg": 10.5,
+      "apg": 2.5,
+      "spg": 0.9,
+      "bpg": 2.7,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Rim Protector",
+        "Rebounding Machine",
+        "Volume Shooter"
+      ],
+      "popularity": 91
+    },
+    {
+      "id": "mjackson_88",
+      "name": "Mark Jackson",
+      "pos": "PG",
+      "ppg": 14.5,
+      "rpg": 4.5,
+      "apg": 10.6,
+      "spg": 1.6,
+      "bpg": 0.2,
+      "archetype": "Playmaker",
+      "traits": [
+        "Elite Playmaker",
+        "Floor General"
+      ],
+      "popularity": 68
+    }
+  ],
+  "Suns_1980s": [
+    {
+      "id": "wdavis_83",
+      "name": "Walter Davis",
+      "pos": "SG",
+      "ppg": 23.5,
+      "rpg": 3.5,
+      "apg": 3.7,
+      "spg": 1.2,
+      "bpg": 0.3,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Volume Shooter",
+        "Floor Spacer",
+        "Clutch Assassin"
+      ],
+      "popularity": 78
+    },
+    {
+      "id": "lnance_86",
+      "name": "Larry Nance",
+      "pos": "PF",
+      "secondaryPos": ["SF"],
+      "ppg": 17.1,
+      "rpg": 7.7,
+      "apg": 2.1,
+      "spg": 1.3,
+      "bpg": 2.2,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Rim Protector",
+        "Hustle Player"
+      ],
+      "popularity": 70
+    },
+    {
+      "id": "kjohnson_89",
+      "name": "Kevin Johnson",
+      "pos": "PG",
+      "ppg": 20.4,
+      "rpg": 4.1,
+      "apg": 9.3,
+      "spg": 1.9,
+      "bpg": 0.3,
+      "archetype": "Playmaker",
+      "traits": [
+        "Point God",
+        "Elite Playmaker",
+        "Clutch"
+      ],
+      "popularity": 82
+    }
+  ],
+  "Rockets_1980s": [
+    {
+      "id": "hakeem_89",
+      "name": "Hakeem Olajuwon",
+      "pos": "C",
+      "ppg": 23.5,
+      "rpg": 13.0,
+      "apg": 2.5,
+      "spg": 2.1,
+      "bpg": 3.3,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Rim Protector",
+        "Rebounding Machine",
+        "Clutch Assassin"
+      ],
+      "popularity": 97
+    },
+    {
+      "id": "rsampson_86",
+      "name": "Ralph Sampson",
+      "pos": "C",
+      "secondaryPos": ["PF"],
+      "ppg": 21.0,
+      "rpg": 10.9,
+      "apg": 2.8,
+      "spg": 0.8,
+      "bpg": 2.4,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Rim Protector",
+        "Rebounding Machine",
+        "Volume Shooter"
+      ],
+      "popularity": 82
+    },
+    {
+      "id": "rreid_84",
+      "name": "Robert Reid",
+      "pos": "SF",
+      "secondaryPos": ["SG"],
+      "ppg": 14.0,
+      "rpg": 5.0,
+      "apg": 3.0,
+      "spg": 1.5,
+      "bpg": 0.7,
+      "archetype": "Lockdown Defender",
+      "traits": [
+        "Glue Guy",
+        "Lockdown Defender"
+      ],
+      "popularity": 52
+    }
+  ],
+  "Thunder_1980s": [
+    {
+      "id": "gwilliams_82",
+      "name": "Gus Williams",
+      "pos": "PG",
+      "ppg": 19.2,
+      "rpg": 4.5,
+      "apg": 6.8,
+      "spg": 2.4,
+      "bpg": 0.2,
+      "archetype": "Playmaker",
+      "traits": [
+        "Elite Playmaker",
+        "Lockdown Defender",
+        "Clutch"
+      ],
+      "popularity": 72
+    },
+    {
+      "id": "jsikma_85",
+      "name": "Jack Sikma",
+      "pos": "C",
+      "ppg": 17.8,
+      "rpg": 10.9,
+      "apg": 3.1,
+      "spg": 1.1,
+      "bpg": 0.9,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Rebounding Machine",
+        "Volume Shooter"
+      ],
+      "popularity": 70
+    },
+    {
+      "id": "dellis_88",
+      "name": "Dale Ellis",
+      "pos": "SG",
+      "ppg": 25.8,
+      "rpg": 4.8,
+      "apg": 2.0,
+      "spg": 1.0,
+      "bpg": 0.4,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Floor Spacer",
+        "Volume Shooter",
+        "Clutch"
+      ],
+      "popularity": 68
+    }
   ]
 }
