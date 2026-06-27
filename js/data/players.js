@@ -1,7 +1,7 @@
 /**
  * js/data/players.js — Inlined Player Database (auto-generated)
  *
- * 103 team-era buckets · 577 players total
+ * 106 team-era buckets · 586 players total
  *
  * DO NOT EDIT BY HAND.
  * Re-generate with:  node scripts/inline_players.js
@@ -9679,6 +9679,173 @@ const PLAYER_DB = {
         "Clutch"
       ],
       "popularity": 68
+    }
+  ],
+  "Nuggets_1990s": [
+    {
+      "id": "mutombo_95",
+      "name": "Dikembe Mutombo",
+      "pos": "C",
+      "ppg": 12,
+      "rpg": 12.3,
+      "apg": 1.2,
+      "spg": 0.9,
+      "bpg": 3.9,
+      "archetype": "Lockdown Defender",
+      "traits": [
+        "Rim Protector",
+        "Rebounding Machine",
+        "Glue Guy"
+      ],
+      "popularity": 88
+    },
+    {
+      "id": "abdrauf_95",
+      "name": "Mahmoud Abdul-Rauf",
+      "pos": "PG",
+      "secondaryPos": [
+        "SG"
+      ],
+      "ppg": 15.6,
+      "rpg": 2.7,
+      "apg": 4.4,
+      "spg": 1.1,
+      "bpg": 0.1,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Volume Shooter",
+        "Floor Spacer",
+        "Clutch Assassin"
+      ],
+      "popularity": 68
+    },
+    {
+      "id": "lellis_96",
+      "name": "LaPhonso Ellis",
+      "pos": "PF",
+      "secondaryPos": [
+        "SF"
+      ],
+      "ppg": 18,
+      "rpg": 8.7,
+      "apg": 2.4,
+      "spg": 1.3,
+      "bpg": 1.1,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Volume Shooter",
+        "Hustle Player"
+      ],
+      "popularity": 60
+    }
+  ],
+  "Bucks_1990s": [
+    {
+      "id": "grobinson_98",
+      "name": "Glenn Robinson",
+      "pos": "SF",
+      "ppg": 20.1,
+      "rpg": 6.4,
+      "apg": 2.5,
+      "spg": 0.9,
+      "bpg": 0.5,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Volume Shooter",
+        "Floor Spacer",
+        "Clutch"
+      ],
+      "popularity": 79
+    },
+    {
+      "id": "rallen_99",
+      "name": "Ray Allen",
+      "pos": "SG",
+      "ppg": 21,
+      "rpg": 4,
+      "apg": 4,
+      "spg": 1.4,
+      "bpg": 0.2,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Floor Spacer",
+        "Volume Shooter",
+        "Clutch Assassin"
+      ],
+      "popularity": 87
+    },
+    {
+      "id": "vbaker_96",
+      "name": "Vin Baker",
+      "pos": "PF",
+      "ppg": 19,
+      "rpg": 9.2,
+      "apg": 2.3,
+      "spg": 1,
+      "bpg": 1.3,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Rebounding Machine",
+        "Volume Shooter"
+      ],
+      "popularity": 72
+    }
+  ],
+  "Mavericks_1990s": [
+    {
+      "id": "jkidd_96",
+      "name": "Jason Kidd",
+      "pos": "PG",
+      "ppg": 14.1,
+      "rpg": 6.1,
+      "apg": 8.7,
+      "spg": 2,
+      "bpg": 0.3,
+      "archetype": "Playmaker",
+      "traits": [
+        "Point God",
+        "Elite Playmaker",
+        "Clutch Assassin"
+      ],
+      "popularity": 91
+    },
+    {
+      "id": "mashburn_96",
+      "name": "Jamal Mashburn",
+      "pos": "SF",
+      "secondaryPos": [
+        "PF"
+      ],
+      "ppg": 19.2,
+      "rpg": 5.1,
+      "apg": 3,
+      "spg": 1.2,
+      "bpg": 0.5,
+      "archetype": "Slasher",
+      "traits": [
+        "Volume Shooter",
+        "Slasher"
+      ],
+      "popularity": 74
+    },
+    {
+      "id": "jjackson_95",
+      "name": "Jim Jackson",
+      "pos": "SG",
+      "secondaryPos": [
+        "SF"
+      ],
+      "ppg": 22.4,
+      "rpg": 5.8,
+      "apg": 4.4,
+      "spg": 1.5,
+      "bpg": 0.4,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Volume Shooter",
+        "Clutch"
+      ],
+      "popularity": 72
     }
   ]
 };
