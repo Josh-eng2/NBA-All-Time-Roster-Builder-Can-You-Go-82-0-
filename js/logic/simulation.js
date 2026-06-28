@@ -15,12 +15,12 @@ import { DB }                  from '../data/players.js';
 import { calculateChemistry } from '../logic/chemistry.js';
 
 // ── Sigmoid tuning knobs ──────────────────────────────────────────────────────
-// SIM_K:      steepness — higher = more decisive gap between good/bad teams
+// SIM_K:      steepness — lower = more gradual spread between good/bad teams
 // SIM_CENTER: adjustedStrength that maps to exactly 50 % win rate
 //             (raise to make 82-0 rarer, lower to make it easier)
-// WIN_CAP:    removed — elite teams can reach 82-0 (that's the whole point)
-const SIM_K      = 16;
-const SIM_CENTER = 1.24;
+// WIN_CAP:    1.0 — 82-0 is possible only for genuinely elite rosters
+const SIM_K      = 7;
+const SIM_CENTER = 1.35;
 const WIN_CAP    = 1.0;
 
 /**
@@ -128,8 +128,8 @@ export function simulateSeason(starters, bench, coach = null) {
   // of 0.95x (low-key role-player team) up to 1.08x (all-time superstar lineup).
   const POP_FLOOR   = 35;
   const POP_CEIL    = 100;
-  const MUL_MIN     = 0.95;
-  const MUL_MAX     = 1.08;
+  const MUL_MIN     = 0.97;
+  const MUL_MAX     = 1.04;
   const allPlayers  = [...starters, ...bench];
   const avgPop      = allPlayers.length
     ? allPlayers.reduce((s, p) => s + (p.popularity || 50), 0) / allPlayers.length
@@ -142,10 +142,7 @@ export function simulateSeason(starters, bench, coach = null) {
   // Fan base size — power curve: 2M (avg=35) → ~20M (avg=70) → 40M (avg=100)
   const fansM = +(Math.pow(popNorm, 1.5) * 38 + 2).toFixed(1);
 
-  const baseWinPct = Math.min(WIN_CAP, 1 / (1 + Math.exp(-SIM_K * (adjustedStrength - SIM_CENTER))));
-  const competitiveFactor = Math.max(0, 1 - Math.abs(baseWinPct - 0.5) * 5);
-  const clutchBoost = competitiveFactor * (popNorm - 0.4) * 0.04;
-  const winPct = Math.min(WIN_CAP, Math.max(0, baseWinPct + clutchBoost));
+  const winPct = Math.min(WIN_CAP, 1 / (1 + Math.exp(-SIM_K * (adjustedStrength - SIM_CENTER))));
 
   let wins = 0;
   for (let i = 0; i < 82; i++) { if (Math.random() < winPct) wins++; }
