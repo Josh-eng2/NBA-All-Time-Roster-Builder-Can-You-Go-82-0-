@@ -20,7 +20,7 @@ import { calculateChemistry } from '../logic/chemistry.js';
 //             (raise to make 82-0 rarer, lower to make it easier)
 // WIN_CAP:    1.0 — 82-0 is possible only for genuinely elite rosters
 const SIM_K      = 7;
-const SIM_CENTER = 1.35;
+const SIM_CENTER = 1.45;
 const WIN_CAP    = 1.0;
 
 /**
