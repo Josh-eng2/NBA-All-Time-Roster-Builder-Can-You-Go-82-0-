@@ -1,7 +1,7 @@
 /**
  * js/data/players.js — Inlined Player Database (auto-generated)
  *
- * 110 team-era buckets · 598 players total
+ * 118 team-era buckets · 622 players total
  *
  * DO NOT EDIT BY HAND.
  * Re-generate with:  node scripts/inline_players.js
@@ -10072,6 +10072,475 @@ const PLAYER_DB = {
         "Glue Guy"
       ],
       "popularity": 70
+    }
+  ],
+  "Bulls_2020s": [
+    {
+      "id": "lavine_21",
+      "name": "Zach LaVine",
+      "pos": "SG",
+      "ppg": 27.4,
+      "rpg": 4.4,
+      "apg": 4.5,
+      "spg": 0.7,
+      "bpg": 0.4,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Volume Shooter",
+        "Floor Spacer",
+        "Clutch Assassin"
+      ],
+      "popularity": 87
+    },
+    {
+      "id": "derozan_bulls_22",
+      "name": "DeMar DeRozan",
+      "pos": "SF",
+      "secondaryPos": [
+        "SG"
+      ],
+      "ppg": 27.9,
+      "rpg": 4.7,
+      "apg": 5.4,
+      "spg": 1,
+      "bpg": 0.3,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Clutch Assassin",
+        "Volume Shooter",
+        "Mid-Range Maestro"
+      ],
+      "popularity": 88
+    },
+    {
+      "id": "vucevic_21",
+      "name": "Nikola Vucevic",
+      "pos": "C",
+      "secondaryPos": [
+        "PF"
+      ],
+      "ppg": 17.6,
+      "rpg": 11,
+      "apg": 3.2,
+      "spg": 0.7,
+      "bpg": 0.7,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Rebounding Machine",
+        "Floor Spacer",
+        "Post Scorer"
+      ],
+      "popularity": 78
+    }
+  ],
+  "Spurs_2020s": [
+    {
+      "id": "wembanyama_24",
+      "name": "Victor Wembanyama",
+      "pos": "C",
+      "secondaryPos": [
+        "PF"
+      ],
+      "ppg": 21.4,
+      "rpg": 10.6,
+      "apg": 3.9,
+      "spg": 1.2,
+      "bpg": 3.6,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Rim Protector",
+        "Floor Spacer",
+        "Franchise Player"
+      ],
+      "popularity": 91
+    },
+    {
+      "id": "dmurray_22",
+      "name": "Dejounte Murray",
+      "pos": "PG",
+      "secondaryPos": [
+        "SG"
+      ],
+      "ppg": 21.1,
+      "rpg": 8.3,
+      "apg": 9.2,
+      "spg": 2,
+      "bpg": 0.5,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Lockdown Defender",
+        "Elite Playmaker",
+        "Hustle Player"
+      ],
+      "popularity": 84
+    },
+    {
+      "id": "derozan_spurs_21",
+      "name": "DeMar DeRozan",
+      "pos": "SF",
+      "secondaryPos": [
+        "SG"
+      ],
+      "ppg": 21.6,
+      "rpg": 4.4,
+      "apg": 5.3,
+      "spg": 0.9,
+      "bpg": 0.3,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Clutch Assassin",
+        "Mid-Range Maestro",
+        "Volume Shooter"
+      ],
+      "popularity": 85
+    }
+  ],
+  "Knicks_2020s": [
+    {
+      "id": "brunson_24",
+      "name": "Jalen Brunson",
+      "pos": "PG",
+      "ppg": 28.7,
+      "rpg": 3.6,
+      "apg": 6.7,
+      "spg": 1,
+      "bpg": 0.2,
+      "archetype": "Playmaker",
+      "traits": [
+        "Elite Playmaker",
+        "Clutch Assassin",
+        "Volume Shooter"
+      ],
+      "popularity": 91
+    },
+    {
+      "id": "randle_21",
+      "name": "Julius Randle",
+      "pos": "PF",
+      "secondaryPos": [
+        "C"
+      ],
+      "ppg": 24.1,
+      "rpg": 10.2,
+      "apg": 6,
+      "spg": 0.8,
+      "bpg": 0.3,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Rebounding Machine",
+        "Post Scorer",
+        "Volume Shooter"
+      ],
+      "popularity": 84
+    },
+    {
+      "id": "rjbarrett_23",
+      "name": "RJ Barrett",
+      "pos": "SG",
+      "secondaryPos": [
+        "SF"
+      ],
+      "ppg": 21.8,
+      "rpg": 5.9,
+      "apg": 4,
+      "spg": 0.7,
+      "bpg": 0.4,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Volume Shooter",
+        "Slasher",
+        "Defensive Stopper"
+      ],
+      "popularity": 77
+    }
+  ],
+  "Jazz_2020s": [
+    {
+      "id": "dmitchell_22",
+      "name": "Donovan Mitchell",
+      "pos": "SG",
+      "ppg": 26.4,
+      "rpg": 4.4,
+      "apg": 5.9,
+      "spg": 1.5,
+      "bpg": 0.3,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Clutch Assassin",
+        "Volume Shooter",
+        "Floor Spacer"
+      ],
+      "popularity": 90
+    },
+    {
+      "id": "rgobert_21",
+      "name": "Rudy Gobert",
+      "pos": "C",
+      "ppg": 15.1,
+      "rpg": 14.7,
+      "apg": 1.3,
+      "spg": 0.8,
+      "bpg": 2.1,
+      "archetype": "Lockdown Defender",
+      "traits": [
+        "Rim Protector",
+        "Rebounding Machine",
+        "Lob Threat"
+      ],
+      "popularity": 85
+    },
+    {
+      "id": "markkanen_23",
+      "name": "Lauri Markkanen",
+      "pos": "PF",
+      "secondaryPos": [
+        "C"
+      ],
+      "ppg": 25.6,
+      "rpg": 8.6,
+      "apg": 1.9,
+      "spg": 0.6,
+      "bpg": 0.5,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Floor Spacer",
+        "Volume Shooter",
+        "Stretch Big"
+      ],
+      "popularity": 82
+    }
+  ],
+  "Pistons_2020s": [
+    {
+      "id": "cunningham_23",
+      "name": "Cade Cunningham",
+      "pos": "PG",
+      "secondaryPos": [
+        "SG"
+      ],
+      "ppg": 22.7,
+      "rpg": 4.4,
+      "apg": 7.5,
+      "spg": 1.5,
+      "bpg": 0.4,
+      "archetype": "Playmaker",
+      "traits": [
+        "Elite Playmaker",
+        "Volume Shooter",
+        "Floor Spacer"
+      ],
+      "popularity": 82
+    },
+    {
+      "id": "duren_23",
+      "name": "Jalen Duren",
+      "pos": "C",
+      "ppg": 13.6,
+      "rpg": 12.6,
+      "apg": 1.5,
+      "spg": 0.9,
+      "bpg": 1.4,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Rebounding Machine",
+        "Rim Protector",
+        "Lob Threat"
+      ],
+      "popularity": 73
+    },
+    {
+      "id": "sbey_22",
+      "name": "Saddiq Bey",
+      "pos": "SF",
+      "secondaryPos": [
+        "SG"
+      ],
+      "ppg": 16.2,
+      "rpg": 5,
+      "apg": 2.3,
+      "spg": 0.9,
+      "bpg": 0.3,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Floor Spacer",
+        "3-and-D",
+        "Volume Shooter"
+      ],
+      "popularity": 65
+    }
+  ],
+  "Magic_2020s": [
+    {
+      "id": "banchero_23",
+      "name": "Paolo Banchero",
+      "pos": "PF",
+      "secondaryPos": [
+        "SF"
+      ],
+      "ppg": 22.6,
+      "rpg": 6.9,
+      "apg": 5.4,
+      "spg": 1,
+      "bpg": 0.7,
+      "archetype": "Slasher",
+      "traits": [
+        "Slasher",
+        "Clutch Assassin",
+        "Volume Shooter"
+      ],
+      "popularity": 86
+    },
+    {
+      "id": "fwagner_23",
+      "name": "Franz Wagner",
+      "pos": "SF",
+      "secondaryPos": [
+        "SG"
+      ],
+      "ppg": 19.4,
+      "rpg": 4.8,
+      "apg": 3.6,
+      "spg": 0.8,
+      "bpg": 0.5,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Defensive Stopper",
+        "Volume Shooter",
+        "Slasher"
+      ],
+      "popularity": 80
+    },
+    {
+      "id": "canthony_22",
+      "name": "Cole Anthony",
+      "pos": "PG",
+      "ppg": 15.2,
+      "rpg": 5.1,
+      "apg": 5.6,
+      "spg": 0.9,
+      "bpg": 0.3,
+      "archetype": "Playmaker",
+      "traits": [
+        "Elite Playmaker",
+        "Volume Shooter",
+        "Clutch"
+      ],
+      "popularity": 70
+    }
+  ],
+  "Sixers_2020s": [
+    {
+      "id": "embiid_24",
+      "name": "Joel Embiid",
+      "pos": "C",
+      "ppg": 33.1,
+      "rpg": 10.2,
+      "apg": 4.2,
+      "spg": 1,
+      "bpg": 1.7,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Post Scorer",
+        "Rim Protector",
+        "Clutch Assassin"
+      ],
+      "popularity": 95
+    },
+    {
+      "id": "maxey_24",
+      "name": "Tyrese Maxey",
+      "pos": "PG",
+      "ppg": 25.9,
+      "rpg": 3.7,
+      "apg": 6.2,
+      "spg": 1.2,
+      "bpg": 0.5,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Floor Spacer",
+        "Volume Shooter",
+        "Clutch Assassin"
+      ],
+      "popularity": 88
+    },
+    {
+      "id": "tharris_21",
+      "name": "Tobias Harris",
+      "pos": "PF",
+      "secondaryPos": [
+        "SF"
+      ],
+      "ppg": 18.4,
+      "rpg": 6.9,
+      "apg": 2.7,
+      "spg": 0.8,
+      "bpg": 0.5,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Floor Spacer",
+        "Defensive Stopper",
+        "Volume Shooter"
+      ],
+      "popularity": 77
+    }
+  ],
+  "Rockets_2020s": [
+    {
+      "id": "jgreen_23",
+      "name": "Jalen Green",
+      "pos": "SG",
+      "ppg": 22,
+      "rpg": 4.1,
+      "apg": 3.8,
+      "spg": 0.9,
+      "bpg": 0.3,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Volume Shooter",
+        "Floor Spacer",
+        "Clutch Assassin"
+      ],
+      "popularity": 82
+    },
+    {
+      "id": "sengun_24",
+      "name": "Alperen Sengun",
+      "pos": "C",
+      "secondaryPos": [
+        "PF"
+      ],
+      "ppg": 21.1,
+      "rpg": 9.3,
+      "apg": 5,
+      "spg": 1.3,
+      "bpg": 0.9,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Post Scorer",
+        "Elite Playmaker",
+        "Rim Protector"
+      ],
+      "popularity": 83
+    },
+    {
+      "id": "jsmith_23",
+      "name": "Jabari Smith Jr.",
+      "pos": "PF",
+      "secondaryPos": [
+        "C"
+      ],
+      "ppg": 16.6,
+      "rpg": 7.3,
+      "apg": 1.6,
+      "spg": 1.3,
+      "bpg": 0.9,
+      "archetype": "Lockdown Defender",
+      "traits": [
+        "Defensive Stopper",
+        "Floor Spacer",
+        "3-and-D"
+      ],
+      "popularity": 72
     }
   ]
 };
