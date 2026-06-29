@@ -405,16 +405,17 @@ function renderRosterSlot(pos, canPlace, isBench) {
   }
 
   // Empty slot — droppable when placing a draft pick OR moving a roster player
-  const canDrop  = canPlace || hasMoveActive;
-  const sp       = S.selectedPlayer;
-  const posMatch = !hasMoveActive && canDrop && !isBench && sp &&
-    (sp.pos === pos || (sp.secondaryPos || []).includes(pos));
-  const action   = canDrop ? (hasMoveActive ? `swap-${pos}` : `place-${pos}`) : '';
+  const canDrop      = canPlace || hasMoveActive;
+  const sp           = S.selectedPlayer;
+  const primaryMatch = !hasMoveActive && canDrop && !isBench && sp && sp.pos === pos;
+  const flexMatch    = !hasMoveActive && canDrop && !isBench && sp && !primaryMatch &&
+    (sp.secondaryPos || []).includes(pos);
+  const action       = canDrop ? (hasMoveActive ? `swap-${pos}` : `place-${pos}`) : '';
 
   const slotBg     = !canDrop ? '#f8fafc' : '#eff6ff';
-  const slotBorder = !canDrop ? '#cbd5e1' : (posMatch ? '#fde68a' : '#93c5fd');
-  const slotColor  = !canDrop ? '#94a3b8' : (posMatch ? '#d97706' : '#2563eb');
-  const slotText   = !canDrop ? 'Empty' : (hasMoveActive ? 'Move Here' : posMatch ? 'Flex' : 'Place');
+  const slotBorder = !canDrop ? '#cbd5e1' : (primaryMatch ? '#86efac' : flexMatch ? '#fde68a' : '#93c5fd');
+  const slotColor  = !canDrop ? '#94a3b8' : (primaryMatch ? '#16a34a' : flexMatch ? '#d97706' : '#2563eb');
+  const slotText   = !canDrop ? 'Empty' : (hasMoveActive ? 'Move Here' : primaryMatch ? 'Primary' : flexMatch ? 'Flex' : 'Place');
 
   return `
   <div data-action="${action}"
