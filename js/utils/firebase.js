@@ -63,21 +63,23 @@ export function isFirebaseConfigured() {
 let _db        = null;
 let _analytics = null;
 
-function getApp() {
-  const existing = getApps();
-  return existing.length ? existing[0] : initializeApp(FIREBASE_CONFIG);
-}
+// Initialize the Firebase app and Analytics eagerly at module load so that
+// session tracking and page-view events fire immediately on page open.
+const _app = (() => {
+  if (!isFirebaseConfigured()) return null;
+  try {
+    const existing = getApps();
+    const app = existing.length ? existing[0] : initializeApp(FIREBASE_CONFIG);
+    try { _analytics = getAnalytics(app); } catch (_) { /* blocked by adblocker */ }
+    return app;
+  } catch (_) { return null; }
+})();
 
 function getDb() {
   if (_db) return _db;
-  _db = getFirestore(getApp());
+  if (!_app) return null;
+  _db = getFirestore(_app);
   return _db;
-}
-
-function getAnalyticsInstance() {
-  if (_analytics) return _analytics;
-  try { _analytics = getAnalytics(getApp()); } catch (_) { /* blocked by adblocker */ }
-  return _analytics;
 }
 
 /**
@@ -86,10 +88,8 @@ function getAnalyticsInstance() {
  * @param {object} [params]
  */
 export function logAnalyticsEvent(eventName, params = {}) {
-  if (!isFirebaseConfigured()) return;
   try {
-    const a = getAnalyticsInstance();
-    if (a) logEvent(a, eventName, params);
+    if (_analytics) logEvent(_analytics, eventName, params);
   } catch (_) { /* silently ignore */ }
 }
 
