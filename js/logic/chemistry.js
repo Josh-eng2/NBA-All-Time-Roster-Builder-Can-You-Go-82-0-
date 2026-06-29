@@ -126,7 +126,7 @@ export function calculateChemistry(starters, bench) {
   const aSharpCount      = aA.filter(a => a === 'Sharpshooter').length;
   const sSlashPaintCount = sA.filter(a => a === 'Slasher' || a === 'Paint Beast').length;
   const aSlashPaintCount = aA.filter(a => a === 'Slasher' || a === 'Paint Beast').length;
-  const sDemandCount     = sA.filter(a => a === 'Two-Way Star' || a === 'Playmaker').length;
+  const sDemandCount     = sA.filter(a => a === 'Playmaker').length;
 
   let chemBonus = 0;
   const chemReport = [];
@@ -242,7 +242,7 @@ export function calculateChemistry(starters, bench) {
 
   const helioPG = starters.find(p => p.archetype === 'Playmaker' && p.apg > 9.0);
   const otherStartersScoring = starters.filter(
-    p => p.archetype !== 'Playmaker' && p.ppg > 16.0
+    p => p.archetype !== 'Playmaker' && p.ppg > 14.0
   );
   if (
     helioPG &&
@@ -306,6 +306,30 @@ export function calculateChemistry(starters, bench) {
     chemReport.push(`🟢 Board Crashers${coach === 'auerbach' ? ' ⭐ Auerbach' : ''}: Frontcourt dominates the glass (${fcRPG.toFixed(1)} RPG combined) (+${Math.round(bonus * 100)}%)`);
   }
 
+  // Two-Way Pillars: Two-Way Star finally gets a positive synergy identity
+  const sTwoWayCount = sA.filter(a => a === 'Two-Way Star').length;
+  if (sTwoWayCount >= 2) {
+    const bonus = (coach === 'kerr' || coach === 'auerbach') ? 0.09 : 0.08;
+    chemBonus += bonus;
+    chemReport.push(`🟢 Two-Way Pillars${coach === 'kerr' ? ' ⭐ Kerr' : coach === 'auerbach' ? ' ⭐ Auerbach' : ''}: 2+ Two-Way Stars in the starting 5 — switchable on every possession (+${Math.round(bonus * 100)}%)`);
+  }
+
+  // Inside-Out Attack: Sharpshooter spaces the floor for the Slasher to attack
+  const sHasSlasher = sA.includes('Slasher');
+  if (sHasSharpshooter && sHasSlasher) {
+    const bonus = coach === 'kerr' ? 0.08 : 0.06;
+    chemBonus += bonus;
+    chemReport.push(`🟢 Inside-Out Attack${coach === 'kerr' ? ' ⭐ Kerr' : ''}: Sharpshooter and Slasher create an unsolvable spacing dilemma (+${Math.round(bonus * 100)}%)`);
+  }
+
+  // Lockdown Stars: Two-Way Star + Lockdown Defender eliminate any matchup
+  const sHasTwoWay = sA.includes('Two-Way Star');
+  if (sHasTwoWay && sHasLockdown) {
+    const bonus = (coach === 'riley' || coach === 'auerbach') ? 0.08 : 0.06;
+    chemBonus += bonus;
+    chemReport.push(`🟢 Lockdown Stars${coach === 'riley' ? ' ⭐ Riley' : coach === 'auerbach' ? ' ⭐ Auerbach' : ''}: Two-Way Star and Lockdown Defender erase any matchup (+${Math.round(bonus * 100)}%)`);
+  }
+
   // ── PHASE 3: TRAIT SYNERGIES ──────────────────────────────────────────────────
 
   // Pre-computed trait counts used across synergies and penalties
@@ -326,6 +350,10 @@ export function calculateChemistry(starters, bench) {
   const aTHustle          = aT.filter(t => t === 'Hustle Player').length;
   const aTClutchAssassin  = aT.filter(t => t === 'Clutch Assassin').length;
   const bTClutchAssassin  = bT.filter(t => t === 'Clutch Assassin').length;
+  const aTChampDNA        = aT.filter(t => t === 'Championship DNA').length;
+  const sTCourtVision     = sT.filter(t => t === 'Court Vision').length;
+  const aTIronMan         = aT.filter(t => t === 'Iron Man').length;
+  const sTPostMaestro     = sT.filter(t => t === 'Post Maestro').length;
 
   // ── Synergies ─────────────────────────────────────────────────────────────────
 
@@ -419,6 +447,31 @@ export function calculateChemistry(starters, bench) {
     chemReport.push(`🟢 Elite Second Unit${coach === 'popovich' ? ' ⭐ Pop' : ''}: Bench pairs a shot-creator with an orchestrator (+${Math.round(bonus * 100)}%)`);
   }
 
+  // Winner's Circle: championship pedigree across the roster
+  if (aTChampDNA >= 2) {
+    const bonus = aTChampDNA >= 3 ? 0.10 : 0.08;
+    chemBonus += bonus;
+    chemReport.push(`🟢 Winner's Circle: ${aTChampDNA} players with Championship DNA — rings breed rings (+${Math.round(bonus * 100)}%)`);
+  }
+
+  // Pinpoint Passing: Court Vision starter feeds wide-open shooters
+  if (sTCourtVision >= 1 && sTFloorSpacer >= 2) {
+    chemBonus += 0.07;
+    chemReport.push(`🟢 Pinpoint Passing: A Court Vision starter dissects defenses with ${sTFloorSpacer} shooters spread wide (+7%)`);
+  }
+
+  // Iron Man: bulletproof durability on the roster
+  if (aTIronMan >= 1) {
+    chemBonus += 0.04;
+    chemReport.push('🟢 Iron Man: Bulletproof durability on the roster — no load management needed (+4%)');
+  }
+
+  // Kick-Out Game: Post Maestro creates kick-out looks for perimeter shooters
+  if (sTPostMaestro >= 1 && sTFloorSpacer >= 2) {
+    chemBonus += 0.07;
+    chemReport.push(`🟢 Kick-Out Game: Post Maestro creates for ${sTFloorSpacer} shooters spread around the perimeter (+7%)`);
+  }
+
   // ── PHASE 4: PENALTIES ────────────────────────────────────────────────────────
 
   if (aSlashPaintCount >= 3 && !aHasSharpshooter) {
@@ -450,15 +503,10 @@ export function calculateChemistry(starters, bench) {
     }
   }
 
-  const startingC_Reb = starters.find(p => p.pos === 'C');
-  if (!aHasPaintBeast && startingC_Reb && startingC_Reb.rpg < 8.0) {
+  const totalFcRPG = frontcourt.reduce((s, p) => s + p.rpg, 0);
+  if (frontcourt.length >= 2 && !aHasPaintBeast && totalFcRPG < 18.0) {
     chemBonus -= 0.07;
-    chemReport.push('🔴 Rebounding Crisis: Missing length/boards inside paint (-7%)');
-  }
-
-  if (sSlashPaintCount >= 3 && sDemandCount >= 3) {
-    chemBonus -= 0.07;
-    chemReport.push('🔴 Ball Stoppers: Isolation overlaps halt ball movement (-7%)');
+    chemReport.push(`🔴 Rebounding Crisis: Frontcourt combines for only ${totalFcRPG.toFixed(1)} RPG with no Paint Beast in sight (-7%)`);
   }
 
   const sFrontcourt    = starters.filter(p => p.pos === 'SF' || p.pos === 'PF' || p.pos === 'C');
@@ -502,7 +550,8 @@ export function calculateChemistry(starters, bench) {
 
   if (coach !== 'popovich' && (starters.length + bench.length) === 7) {
     const benchTotalPpg = bench.reduce((sum, p) => sum + p.ppg, 0);
-    if (benchTotalPpg < 15.0) {
+    const ironManActive = aT.includes('Iron Man');
+    if (benchTotalPpg < 15.0 && !ironManActive) {
       chemBonus -= 0.05;
       chemReport.push(`🔴 Barren Bench: Bench combines for only ${benchTotalPpg.toFixed(1)} PPG — starters will be gassed (-5%)`);
     }
@@ -566,7 +615,7 @@ export function calculateChemistry(starters, bench) {
   // ── FINAL SCORE (scaled so 0.80 chemBonus = 100) ─────────────────────────────
   // Positional-only teams land ~"Neutral"; stacking synergies across archetypes and
   // traits reaches "Strong"; a complete elite build approaches 100%.
-  const chemScore = Math.round(Math.max(0, Math.min(100, (chemBonus / 0.80) * 100)));
+  const chemScore = Math.round(Math.max(0, Math.min(100, (chemBonus / 0.90) * 100)));
   return { chemBonus, chemScore, chemReport, lineupAssignment: assignment };
 }
 
