@@ -183,7 +183,7 @@ export function simulateSeason(starters, bench, coach = null) {
  * @returns {{ playerWins: number, oppWins: number, games: string[], won: boolean }}
  */
 export function simulateSeries(playerStrength, opponentStrength) {
-  const pWin = 1 / (1 + Math.exp(-14 * (playerStrength - opponentStrength)));
+  const pWin = 1 / (1 + Math.exp(-6 * (playerStrength - opponentStrength)));
   let playerWins = 0, oppWins = 0;
   const games = [];
   while (playerWins < 4 && oppWins < 4) {
