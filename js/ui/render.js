@@ -392,14 +392,23 @@ function renderRosterSlot(pos, canPlace, isBench) {
   const label         = isBench ? 'BN' : pos;
 
   if (p) {
-    const isTarget   = hasMoveActive && !isMoveSrc;
+    const isTarget    = hasMoveActive && !isMoveSrc;
     const interactive = isMoveSrc || isTarget || (canPlace && !hasMoveActive);
+
+    // Positional fit — only for starter slots while not mid-move
+    const fitType  = (!isMoveSrc && !isBench)
+      ? (p.pos === pos ? 'primary' : (p.secondaryPos || []).includes(pos) ? 'flex' : 'place')
+      : null;
+    const fitClass  = fitType ? 'fit-' + fitType : '';
+    const fitColors = { primary: '#16a34a', flex: '#d97706', place: '#dc2626' };
+
     const borderColor = isMoveSrc ? '#f97316' : (isBench ? '#cbd5e1' : '#93c5fd');
     const borderTop   = isMoveSrc ? '3px solid #f97316' : (isBench ? '3px solid #94a3b8' : '3px solid #2563eb');
-    const labelColor  = isMoveSrc ? '#f97316' : (isBench ? '#64748b' : '#2563eb');
+    const labelColor  = isMoveSrc ? '#f97316' : (isBench ? '#64748b' : (fitType ? fitColors[fitType] : '#2563eb'));
+
     return `
     <div data-action="swap-${pos}"
-      class="rounded-xl border bg-white p-2 flex flex-col items-center gap-0.5 text-center overflow-hidden transition-all card-shadow ${interactive ? 'cursor-pointer hover:border-amber-400' : ''}"
+      class="rounded-xl border bg-white p-2 flex flex-col items-center gap-0.5 text-center overflow-hidden transition-all card-shadow ${interactive ? 'cursor-pointer hover:border-amber-400' : ''} ${fitClass}"
       style="border-color:${borderColor};border-top:${borderTop}"
       title="${isMoveSrc ? 'Moving — tap another slot' : isTarget ? 'Swap here' : canPlace ? 'Tap to replace' : p.name}">
       <span class="text-[10px] font-black uppercase leading-none" style="color:${labelColor}">${label}</span>

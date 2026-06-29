@@ -39,6 +39,23 @@ body {
   background: #eff6ff !important;
 }
 
+/* ── Positional fit borders (filled roster slots) ──────────── */
+.fit-primary {
+  border-color: #22c55e !important;
+  border-top:   3px solid #22c55e !important;
+  box-shadow: 0 0 0 2px rgba(34,197,94,0.22), 0 1px 3px rgba(0,0,0,0.06) !important;
+}
+.fit-flex {
+  border-color: #f97316 !important;
+  border-top:   3px solid #f97316 !important;
+  box-shadow: 0 0 0 2px rgba(249,115,22,0.22), 0 1px 3px rgba(0,0,0,0.06) !important;
+}
+.fit-place {
+  border-color: #ef4444 !important;
+  border-top:   3px solid #ef4444 !important;
+  box-shadow: 0 0 0 2px rgba(239,68,68,0.22), 0 1px 3px rgba(0,0,0,0.06) !important;
+}
+
 /* ── Slot-machine spin animation ───────────────────────────── */
 .slot-badge { transition: all 0.12s; }
 .slot-spinning .slot-badge {
