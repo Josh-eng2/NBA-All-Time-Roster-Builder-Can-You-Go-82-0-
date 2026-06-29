@@ -111,6 +111,7 @@ export function calculateChemistry(starters, bench) {
 
   // Trait shorthand — safe even if a player has no traits array
   const sT = starters.flatMap(p => p.traits || []);
+  const bT = bench.flatMap(p => p.traits || []);
   const aT = allPlayers.flatMap(p => p.traits || []);
 
   // Pre-computed archetype flags
@@ -307,22 +308,111 @@ export function calculateChemistry(starters, bench) {
 
   // ── PHASE 3: TRAIT SYNERGIES ──────────────────────────────────────────────────
 
-  if (sT.includes('Point God') && sT.includes('Lob Threat')) {
-    chemBonus += 0.07;
-    chemReport.push('🟢 Lob City: A Point God feeding a premier Lob Threat — automatic highlight reel (+7%)');
+  // Pre-computed trait counts used across synergies and penalties
+  const sTPointGod        = sT.filter(t => t === 'Point God').length;
+  const sTElitePlaymaker  = sT.filter(t => t === 'Elite Playmaker').length;
+  const aTElitePlaymaker  = aT.filter(t => t === 'Elite Playmaker').length;
+  const sTRimProtector    = sT.filter(t => t === 'Rim Protector').length;
+  const aTRimProtector    = aT.filter(t => t === 'Rim Protector').length;
+  const bTRimProtector    = bT.filter(t => t === 'Rim Protector').length;
+  const sTFloorSpacer     = sT.filter(t => t === 'Floor Spacer').length;
+  const sTLockdownTrait   = sT.filter(t => t === 'Lockdown Defender').length;
+  const bTLockdownTrait   = bT.filter(t => t === 'Lockdown Defender').length;
+  const sTVolumeShooter   = sT.filter(t => t === 'Volume Shooter').length;
+  const aTVolumeShooter   = aT.filter(t => t === 'Volume Shooter').length;
+  const aTClutch          = aT.filter(t => t === 'Clutch').length;
+  const sTGlueGuy         = sT.filter(t => t === 'Glue Guy').length;
+  const sTRebMachine      = sT.filter(t => t === 'Rebounding Machine').length;
+  const aTHustle          = aT.filter(t => t === 'Hustle Player').length;
+  const aTClutchAssassin  = aT.filter(t => t === 'Clutch Assassin').length;
+  const bTClutchAssassin  = bT.filter(t => t === 'Clutch Assassin').length;
+
+  // ── Synergies ─────────────────────────────────────────────────────────────────
+
+  // Twin Engines: Point God + Elite Playmaker on two DIFFERENT starters
+  const pgStarters = starters.filter(p => (p.traits || []).includes('Point God'));
+  const epStarters = starters.filter(p => (p.traits || []).includes('Elite Playmaker'));
+  const pgEpUnion  = new Set([...pgStarters, ...epStarters].map(p => p.id));
+  if (sTPointGod >= 1 && sTElitePlaymaker >= 1 && pgEpUnion.size >= 2) {
+    chemBonus += 0.08;
+    chemReport.push('🟢 Twin Engines: A Point God and an Elite Playmaker in the starting 5 — dual-facilitation overload (+8%)');
   }
 
-  const clutchCount = aT.filter(t => t === 'Clutch Assassin' || t === 'Mamba Mentality').length;
-  if (clutchCount >= 2) {
+  // Modern Trifecta: all three pillars of modern basketball in the starting 5
+  if (sTElitePlaymaker >= 1 && sTRimProtector >= 1 && sTFloorSpacer >= 1) {
+    chemBonus += 0.08;
+    chemReport.push('🟢 Modern Trifecta: Elite Playmaker + Rim Protector + Floor Spacer in the starting 5 (+8%)');
+  }
+
+  // Shot Clock Killers: two interior threats
+  if (sTRimProtector >= 2) {
+    chemBonus += 0.07;
+    chemReport.push('🟢 Shot Clock Killers: 2+ Rim Protectors in the starting 5 — permanent paint threat every possession (+7%)');
+  }
+
+  // Defensive Wall: inside + outside sealed simultaneously
+  if (sTRimProtector >= 1 && sTLockdownTrait >= 1) {
+    chemBonus += 0.07;
+    chemReport.push('🟢 Defensive Wall: Rim Protector and Lockdown Defender both in the starting 5 — inside and outside sealed (+7%)');
+  }
+
+  // Boards and Space: glass control meets floor gravity
+  if (sTRebMachine >= 1 && sTFloorSpacer >= 1) {
+    chemBonus += 0.06;
+    chemReport.push('🟢 Boards and Space: Rebounding Machine and Floor Spacer in the starting 5 (+6%)');
+  }
+
+  // Clutch Culture: no chokers anywhere
+  if (aTClutch >= 4) {
+    chemBonus += 0.06;
+    chemReport.push(`🟢 Clutch Culture: ${aTClutch} clutch performers on the roster — built for close games (+6%)`);
+  }
+
+  // Role Player Heaven: selfless starters free up the stars
+  if (sTGlueGuy >= 2) {
+    chemBonus += 0.06;
+    chemReport.push('🟢 Role Player Heaven: 2+ Glue Guys in the starting 5 — selfless core frees the stars (+6%)');
+  }
+
+  // 3-and-D Foundation: modern spacing-defense backbone
+  if (sTLockdownTrait >= 1 && sTFloorSpacer >= 1) {
     chemBonus += 0.05;
-    chemReport.push(`🟢 Ice In Their Veins: ${clutchCount} closers on the roster thrive under 4th-quarter pressure (+5%)`);
+    chemReport.push('🟢 3-and-D Foundation: Lockdown Defender and Floor Spacer in the starting 5 (+5%)');
+  }
+
+  // Elite Spacing: maximum floor gravity
+  if (sTFloorSpacer >= 3) {
+    chemBonus += 0.05;
+    chemReport.push(`🟢 Elite Spacing: ${sTFloorSpacer} Floor Spacers in the starting 5 — maximum floor gravity (+5%)`);
+  }
+
+  // Ice In Their Veins: multiple closers dominate crunch time
+  if (aTClutchAssassin >= 2) {
+    chemBonus += 0.05;
+    chemReport.push(`🟢 Ice In Their Veins: ${aTClutchAssassin} Clutch Assassins on the roster thrive under 4th-quarter pressure (+5%)`);
+  }
+
+  // Second Chance City: grit generates extra possessions
+  if (aTHustle >= 1) {
+    chemBonus += 0.05;
+    chemReport.push('🟢 Second Chance City: A Hustle Player on the roster — grit generates extra possessions (+5%)');
+  }
+
+  // Ice Cold Bench: a closer waiting to flip the game
+  if (bTClutchAssassin >= 1) {
+    chemBonus += 0.05;
+    chemReport.push('🟢 Ice Cold Bench: A Clutch Assassin on the bench — a closer ready to flip the game (+5%)');
+  }
+
+  // Defensive Depth: defensive insurance off the bench
+  if (bTRimProtector >= 1 && bTLockdownTrait >= 1) {
+    chemBonus += 0.04;
+    chemReport.push('🟢 Defensive Depth: Rim Protector and Lockdown Defender on the bench — defensive insurance (+4%)');
   }
 
   // Elite bench: shot creator AND floor orchestrator — different players
-  const benchSpark        = bench.find(p => p.ppg > 18.0 || p.traits?.includes('Microwave'));
-  const benchOrchestrator = bench.find(
-    p => p.archetype === 'Playmaker' || p.traits?.includes('Floor General')
-  );
+  const benchSpark        = bench.find(p => p.ppg > 18.0);
+  const benchOrchestrator = bench.find(p => p.archetype === 'Playmaker');
   if (benchSpark && benchOrchestrator && benchSpark !== benchOrchestrator) {
     const bonus = coach === 'popovich' ? 0.07 : 0.05;
     chemBonus += bonus;
@@ -429,9 +519,54 @@ export function calculateChemistry(starters, bench) {
     chemReport.push('🔴 Positional Logjam: 3+ starters play the same position — role clarity breaks down (-12%)');
   }
 
-  // ── FINAL SCORE (scaled so 0.37 chemBonus = 100) ────────────────────────────
-  // Positional-only teams land ~"Neutral"; multiple stacking synergies reach "Strong"
-  const chemScore = Math.round(Math.max(0, Math.min(100, (chemBonus / 0.45) * 100)));
+  // ── PHASE 5: TRAIT PENALTIES ─────────────────────────────────────────────────
+
+  // ISO Hell: ball-dominant starters with nobody to facilitate
+  if (sTVolumeShooter >= 3 && aTElitePlaymaker === 0) {
+    chemBonus -= 0.07;
+    chemReport.push('🔴 ISO Hell: 3+ Volume Shooters in the starting 5 with no Elite Playmaker anywhere to facilitate (-7%)');
+  }
+
+  // Open Basket: no interior protection at all
+  if (sTRimProtector === 0 && starters.length >= 5) {
+    chemBonus -= 0.06;
+    chemReport.push('🔴 Open Basket: No Rim Protector in the starting 5 — every drive finishes uncontested (-6%)');
+  }
+
+  // Mental Fragility: team folds in close games
+  if (aTClutch === 0 && allPlayers.length >= 5) {
+    chemBonus -= 0.06;
+    chemReport.push('🔴 Mental Fragility: No clutch performers on the roster — team collapses in tight games (-6%)');
+  }
+
+  // Too Many Cooks: roster-wide ball-dominant congestion
+  if (aTVolumeShooter >= 4) {
+    chemBonus -= 0.07;
+    chemReport.push(`🔴 Too Many Cooks: ${aTVolumeShooter} Volume Shooters on the roster — everyone wants the ball, nobody passes (-7%)`);
+  }
+
+  // Spacing Nightmare: no spacing and no playmaking in the starting 5
+  if (sTFloorSpacer === 0 && sTElitePlaymaker === 0 && starters.length >= 5) {
+    chemBonus -= 0.05;
+    chemReport.push('🔴 Spacing Nightmare: No Floor Spacers and no Elite Playmaker in the starting 5 — halfcourt offense collapses (-5%)');
+  }
+
+  // Scoring Drought: lockdown-heavy lineup with no scorers anywhere
+  if (sTLockdownTrait >= 3 && aTVolumeShooter === 0) {
+    chemBonus -= 0.05;
+    chemReport.push('🔴 Scoring Drought: 3+ Lockdown Defenders in the starting 5 with no Volume Shooters anywhere to score (-5%)');
+  }
+
+  // Soft in the Paint: spacing without any rim protection
+  if (sTFloorSpacer >= 3 && aTRimProtector === 0) {
+    chemBonus -= 0.05;
+    chemReport.push('🔴 Soft in the Paint: 3+ Floor Spacers but no Rim Protector anywhere — annihilated at the rim (-5%)');
+  }
+
+  // ── FINAL SCORE (scaled so 0.80 chemBonus = 100) ─────────────────────────────
+  // Positional-only teams land ~"Neutral"; stacking synergies across archetypes and
+  // traits reaches "Strong"; a complete elite build approaches 100%.
+  const chemScore = Math.round(Math.max(0, Math.min(100, (chemBonus / 0.80) * 100)));
   return { chemBonus, chemScore, chemReport, lineupAssignment: assignment };
 }
 
