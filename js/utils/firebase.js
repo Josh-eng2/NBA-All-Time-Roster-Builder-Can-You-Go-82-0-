@@ -13,6 +13,8 @@
  *          match /leaderboard/{docId} {
  *            allow read: if true;
  *            allow create: if request.resource.data.wins is number
+ *                          && request.resource.data.wins >= 0
+ *                          && request.resource.data.wins <= 82
  *                          && request.resource.data.teamName is string
  *                          && request.resource.data.teamName.size() <= 30;
  *            allow update, delete: if false;
@@ -88,6 +90,8 @@ function getDb() {
  */
 export async function submitGlobalScore(entry) {
   if (!isFirebaseConfigured()) throw new Error('Firebase not configured — see js/utils/firebase.js setup instructions');
+  const wins = entry.wins ?? 0;
+  if (wins < 0 || wins > 82) throw new Error('Invalid wins value');
   const db  = getDb();
   const col = collection(db, 'leaderboard');
   const ref = await addDoc(col, {

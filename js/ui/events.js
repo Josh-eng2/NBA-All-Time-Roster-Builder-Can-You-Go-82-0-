@@ -37,6 +37,7 @@ window.closeGlobalLeaderboardModal = closeGlobalLeaderboardModal;
 // A single permanent delegated listener. Calling bindEvents() multiple times
 // is safe — the guard ensures the listener is only ever attached once.
 let _bound = false;
+let _submittingGlobal = false;
 
 export function bindEvents() {
   if (_bound) return;
@@ -174,10 +175,12 @@ function doSpin() {
   S.movingPos      = null;
   render();
 
-  const eraLocked = S.selectedEra && S.selectedEra !== 'all';
+  const eraLocked  = S.selectedEra && S.selectedEra !== 'all';
+  const spinGameId = S.gameId; // capture so a mid-spin restart can't mutate the new game
   let ticks = 0;
   const total    = 14;
   const interval = setInterval(() => {
+    if (S.gameId !== spinGameId) { clearInterval(interval); return; }
     ticks++;
     const teamEl   = document.getElementById('slot-team');
     const decadeEl = document.getElementById('slot-decade');
@@ -291,7 +294,8 @@ function doSaveRun() {
 // ── Global leaderboard submit ─────────────────────────────────────────────────
 
 async function doSubmitGlobal() {
-  if (S.globalScoreSubmitted) return;
+  if (S.globalScoreSubmitted || _submittingGlobal) return;
+  _submittingGlobal = true;
 
   // Read team name from the global input; fall back to any previously saved name
   const input  = document.getElementById('global-team-name-input');
@@ -331,6 +335,8 @@ async function doSubmitGlobal() {
   } catch (err) {
     S.globalSubmitError = err.message || 'Submission failed — check your connection.';
     render();
+  } finally {
+    _submittingGlobal = false;
   }
 }
 
@@ -379,13 +385,13 @@ function doShare() {
 
   if (navigator.share) {
     navigator.share({ title: '82-0', text }).catch(() => {});
-  } else {
+  } else if (navigator.clipboard) {
     navigator.clipboard.writeText(text)
       .then(()  => showToast('Copied to clipboard! 🏀'))
       .catch(() => showToast('Failed to copy to clipboard'));
+  } else {
+    showToast('Failed to copy to clipboard');
   }
-
-  render(); // ensure click handlers remain active after share dialog dismissal
 }
 
 // ── Playoffs ──────────────────────────────────────────────────────────────────

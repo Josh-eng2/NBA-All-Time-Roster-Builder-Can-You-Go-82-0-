@@ -44,7 +44,11 @@ export function saveLeaderboard() {
     return (b.avgPopularity ?? 50) - (a.avgPopularity ?? 50);
   });
   if (lb.length > 20) lb = lb.slice(0, 20);
-  try { localStorage.setItem('nba820_lb', JSON.stringify(lb)); } catch (e) {}
+  try {
+    localStorage.setItem('nba820_lb', JSON.stringify(lb));
+  } catch (e) {
+    if (e.name === 'QuotaExceededError') console.warn('[storage] localStorage full — leaderboard not saved');
+  }
 }
 
 // ── Save trophy room entry ────────────────────────────────────────────────────
@@ -66,7 +70,11 @@ export function saveToTrophyRoom() {
   try { trophies = JSON.parse(localStorage.getItem('nba820_trophies') || '[]'); } catch (e) {}
   trophies.unshift(entry);
   if (trophies.length > 12) trophies = trophies.slice(0, 12);
-  try { localStorage.setItem('nba820_trophies', JSON.stringify(trophies)); } catch (e) {}
+  try {
+    localStorage.setItem('nba820_trophies', JSON.stringify(trophies));
+  } catch (e) {
+    if (e.name === 'QuotaExceededError') console.warn('[storage] localStorage full — trophy room not saved');
+  }
 }
 
 // ── Leaderboard modal ─────────────────────────────────────────────────────────
@@ -133,6 +141,16 @@ export function showLeaderboardModal() {
   const onKey = e => { if (e.key === 'Escape') closeLeaderboardModal(); };
   document.addEventListener('keydown', onKey);
   div._removeKey = () => document.removeEventListener('keydown', onKey);
+  const focusable = div.querySelectorAll('button, [tabindex]:not([tabindex="-1"])');
+  const first = focusable[0], last = focusable[focusable.length - 1];
+  div.addEventListener('keydown', e => {
+    if (e.key !== 'Tab' || !first) return;
+    if (e.shiftKey ? document.activeElement === first : document.activeElement === last) {
+      e.preventDefault();
+      (e.shiftKey ? last : first).focus();
+    }
+  });
+  first?.focus();
 }
 
 export function closeLeaderboardModal() {
@@ -279,6 +297,16 @@ export function showGlobalLeaderboardModal(tab = 'alltime') {
   const onKey = e => { if (e.key === 'Escape') closeGlobalLeaderboardModal(); };
   document.addEventListener('keydown', onKey);
   div._removeKey = () => document.removeEventListener('keydown', onKey);
+  const focusable = div.querySelectorAll('button, [tabindex]:not([tabindex="-1"])');
+  const first = focusable[0], last = focusable[focusable.length - 1];
+  div.addEventListener('keydown', e => {
+    if (e.key !== 'Tab' || !first) return;
+    if (e.shiftKey ? document.activeElement === first : document.activeElement === last) {
+      e.preventDefault();
+      (e.shiftKey ? last : first).focus();
+    }
+  });
+  first?.focus();
   _loadGlobalLb(tab);
 }
 

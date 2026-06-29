@@ -198,6 +198,7 @@ export function startGame(era = 'all') {
     phase:            'drafting',
     coach,
     selectedEra:      era,
+    gameId:           crypto.randomUUID(),
     round:            0,
     usedDecades:      [],
     usedPlayerIds:    [],
