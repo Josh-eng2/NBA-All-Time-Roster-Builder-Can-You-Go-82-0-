@@ -49,7 +49,7 @@
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 96
+      "popularity": 98
     },
     {
       "id": "larusso_67",
@@ -65,7 +65,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 42
     },
     {
       "id": "hairston_68",
@@ -81,7 +81,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 41
     },
     {
       "id": "egan_68",
@@ -97,7 +97,7 @@
         "Elite Playmaker",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 38
     }
   ],
   "Lakers_1970s": [
@@ -132,7 +132,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 66
+      "popularity": 58
     },
     {
       "id": "wilkes_79",
@@ -148,7 +148,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 64
+      "popularity": 56
     },
     {
       "id": "west_71",
@@ -181,7 +181,7 @@
         "Rim Protector",
         "Volume Shooter"
       ],
-      "popularity": 62
+      "popularity": 60
     },
     {
       "id": "rileylak_75",
@@ -197,7 +197,7 @@
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 62
     },
     {
       "id": "mcharter_75",
@@ -213,7 +213,7 @@
         "Glue Guy",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 36
     }
   ],
   "Lakers_1980s": [
@@ -266,7 +266,7 @@
         "Volume Shooter",
         "Lockdown Defender"
       ],
-      "popularity": 80
+      "popularity": 72
     },
     {
       "id": "scott_88",
@@ -282,7 +282,7 @@
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 64
+      "popularity": 58
     },
     {
       "id": "cooper_88",
@@ -298,7 +298,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 60
+      "popularity": 55
     },
     {
       "id": "mcadoo_82",
@@ -314,7 +314,7 @@
         "Volume Shooter",
         "Rim Protector"
       ],
-      "popularity": 74
+      "popularity": 63
     },
     {
       "id": "acgreen_88",
@@ -330,7 +330,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 60
+      "popularity": 52
     },
     {
       "id": "rambis_84",
@@ -346,7 +346,7 @@
         "Glue Guy",
         "Rim Protector"
       ],
-      "popularity": 35
+      "popularity": 42
     }
   ],
   "Lakers_1990s": [
@@ -381,7 +381,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 99
+      "popularity": 96
     },
     {
       "id": "vanexel_97",
@@ -397,7 +397,7 @@
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 64
+      "popularity": 57
     },
     {
       "id": "jones_97",
@@ -413,7 +413,7 @@
         "Lockdown Defender",
         "Floor Spacer"
       ],
-      "popularity": 60
+      "popularity": 55
     },
     {
       "id": "ceballos_95",
@@ -429,7 +429,7 @@
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 58
+      "popularity": 48
     },
     {
       "id": "divac_96",
@@ -445,7 +445,7 @@
         "Elite Playmaker",
         "Glue Guy"
       ],
-      "popularity": 66
+      "popularity": 56
     },
     {
       "id": "fox_99",
@@ -462,7 +462,7 @@
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 60
+      "popularity": 44
     }
   ],
   "Lakers_2000s": [
@@ -481,7 +481,7 @@
         "Volume Shooter",
         "Lockdown Defender"
       ],
-      "popularity": 99
+      "popularity": 97
     },
     {
       "id": "shaq_02",
@@ -515,7 +515,7 @@
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 86
+      "popularity": 74
     },
     {
       "id": "odom_04",
@@ -531,7 +531,7 @@
         "Glue Guy",
         "Floor Spacer"
       ],
-      "popularity": 74
+      "popularity": 60
     },
     {
       "id": "fisher_02",
@@ -548,7 +548,7 @@
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 65
+      "popularity": 55
     },
     {
       "id": "horry_02",
@@ -565,7 +565,7 @@
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 72
+      "popularity": 62
     },
     {
       "id": "fox_02",
@@ -582,7 +582,7 @@
         "Glue Guy",
         "Floor Spacer"
       ],
-      "popularity": 60
+      "popularity": 43
     },
     {
       "id": "grant_02",
@@ -598,7 +598,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 44
     }
   ],
   "Lakers_2010s": [
@@ -617,7 +617,7 @@
         "Volume Shooter",
         "Lockdown Defender"
       ],
-      "popularity": 99
+      "popularity": 97
     },
     {
       "id": "lebron_18",
@@ -634,7 +634,7 @@
         "Elite Playmaker",
         "Lockdown Defender"
       ],
-      "popularity": 100
+      "popularity": 98
     },
     {
       "id": "davis_19",
@@ -651,7 +651,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 85
+      "popularity": 82
     },
     {
       "id": "dwight_13",
@@ -667,7 +667,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 84
+      "popularity": 75
     },
     {
       "id": "gasol_14",
@@ -684,7 +684,7 @@
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 86
+      "popularity": 72
     },
     {
       "id": "nash_13",
@@ -700,7 +700,7 @@
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 85
+      "popularity": 78
     },
     {
       "id": "randle_15",
@@ -716,7 +716,7 @@
         "Rim Protector",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 52
     },
     {
       "id": "ingram_18",
@@ -732,7 +732,7 @@
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 35
+      "popularity": 53
     }
   ],
   "Lakers_2020s": [
@@ -751,7 +751,7 @@
         "Elite Playmaker",
         "Lockdown Defender"
       ],
-      "popularity": 100
+      "popularity": 98
     },
     {
       "id": "davis_23",
@@ -768,7 +768,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 85
+      "popularity": 82
     },
     {
       "id": "russ_22",
@@ -784,7 +784,7 @@
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 89
+      "popularity": 78
     },
     {
       "id": "reaves_24",
@@ -801,7 +801,7 @@
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 41
     },
     {
       "id": "drussell_24",
@@ -817,7 +817,7 @@
         "Volume Shooter",
         "Floor Spacer"
       ],
-      "popularity": 35
+      "popularity": 52
     },
     {
       "id": "hayes_24",
@@ -833,7 +833,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 38
     }
   ],
   "Bulls_1980s": [
@@ -852,7 +852,7 @@
         "Lockdown Defender",
         "Volume Shooter"
       ],
-      "popularity": 100
+      "popularity": 99
     },
     {
       "id": "pippen_88",
@@ -868,7 +868,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 91
+      "popularity": 88
     },
     {
       "id": "grant_89",
@@ -884,7 +884,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 66
+      "popularity": 48
     },
     {
       "id": "cartwright_88",
@@ -900,7 +900,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 42
     },
     {
       "id": "paxson_88",
@@ -916,7 +916,7 @@
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 62
+      "popularity": 43
     },
     {
       "id": "corzine_88",
@@ -932,7 +932,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 36
     }
   ],
   "Bulls_1990s": [
@@ -951,7 +951,7 @@
         "Lockdown Defender",
         "Volume Shooter"
       ],
-      "popularity": 100
+      "popularity": 99
     },
     {
       "id": "pippen_96",
@@ -968,7 +968,7 @@
         "Lockdown Defender",
         "Elite Playmaker"
       ],
-      "popularity": 91
+      "popularity": 88
     },
     {
       "id": "rodman_96",
@@ -985,7 +985,7 @@
         "Glue Guy",
         "Rim Protector"
       ],
-      "popularity": 84
+      "popularity": 82
     },
     {
       "id": "longley_96",
@@ -1001,7 +1001,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 50
+      "popularity": 39
     },
     {
       "id": "kukoc_96",
@@ -1018,7 +1018,7 @@
         "Floor Spacer",
         "Clutch"
       ],
-      "popularity": 72
+      "popularity": 62
     },
     {
       "id": "kerr_96",
@@ -1035,7 +1035,7 @@
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 68
+      "popularity": 58
     },
     {
       "id": "paxson_93",
@@ -1052,7 +1052,7 @@
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 62
+      "popularity": 55
     },
     {
       "id": "armstrong_92",
@@ -1068,7 +1068,7 @@
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 58
+      "popularity": 52
     }
   ],
   "Bulls_2000s": [
@@ -1086,7 +1086,7 @@
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 68
+      "popularity": 58
     },
     {
       "id": "gordon_06",
@@ -1102,7 +1102,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 52
     },
     {
       "id": "hinrich_07",
@@ -1118,7 +1118,7 @@
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 35
+      "popularity": 50
     },
     {
       "id": "nocioni_06",
@@ -1134,7 +1134,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 42
     },
     {
       "id": "brand_02",
@@ -1150,7 +1150,7 @@
         "Rim Protector",
         "Volume Shooter"
       ],
-      "popularity": 44
+      "popularity": 55
     },
     {
       "id": "chandler_02",
@@ -1166,7 +1166,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 60
+      "popularity": 58
     },
     {
       "id": "duhon_07",
@@ -1182,7 +1182,7 @@
         "Elite Playmaker",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 40
     }
   ],
   "Bulls_2010s": [
@@ -1200,7 +1200,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 82
+      "popularity": 72
     },
     {
       "id": "butler_17",
@@ -1216,7 +1216,7 @@
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 82
+      "popularity": 70
     },
     {
       "id": "noah_14",
@@ -1232,7 +1232,7 @@
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 70
+      "popularity": 62
     },
     {
       "id": "boozer_11",
@@ -1248,7 +1248,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 64
+      "popularity": 55
     },
     {
       "id": "deng_13",
@@ -1264,7 +1264,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 68
+      "popularity": 58
     },
     {
       "id": "gibson_14",
@@ -1280,7 +1280,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 45
     },
     {
       "id": "pgasol_15",
@@ -1297,7 +1297,7 @@
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 86
+      "popularity": 72
     },
     {
       "id": "dunleavy_14",
@@ -1313,7 +1313,7 @@
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 50
+      "popularity": 42
     }
   ],
   "Warriors_1990s": [
@@ -1331,7 +1331,7 @@
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 70
+      "popularity": 65
     },
     {
       "id": "mullin_92",
@@ -1347,7 +1347,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 72
+      "popularity": 68
     },
     {
       "id": "sprewell_97",
@@ -1363,7 +1363,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 72
+      "popularity": 63
     },
     {
       "id": "webber_94",
@@ -1379,7 +1379,7 @@
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 76
+      "popularity": 72
     },
     {
       "id": "marciulionis_92",
@@ -1395,7 +1395,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 52
+      "popularity": 45
     },
     {
       "id": "hill_93",
@@ -1411,7 +1411,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 46
+      "popularity": 42
     },
     {
       "id": "owens_93",
@@ -1427,7 +1427,7 @@
         "Lockdown Defender",
         "Floor Spacer"
       ],
-      "popularity": 52
+      "popularity": 41
     }
   ],
   "Warriors_2000s": [
@@ -1445,7 +1445,7 @@
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 43
+      "popularity": 65
     },
     {
       "id": "monta_09",
@@ -1461,7 +1461,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 53
+      "popularity": 55
     },
     {
       "id": "jackson_04",
@@ -1477,7 +1477,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 56
+      "popularity": 50
     },
     {
       "id": "richardson_07",
@@ -1493,7 +1493,7 @@
         "Volume Shooter",
         "Floor Spacer"
       ],
-      "popularity": 36
+      "popularity": 52
     },
     {
       "id": "pietrus_07",
@@ -1509,7 +1509,7 @@
         "Lockdown Defender",
         "Floor Spacer"
       ],
-      "popularity": 48
+      "popularity": 40
     },
     {
       "id": "harrington_07",
@@ -1525,7 +1525,7 @@
         "Volume Shooter",
         "Floor Spacer"
       ],
-      "popularity": 35
+      "popularity": 42
     },
     {
       "id": "foyle_07",
@@ -1541,7 +1541,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 38
     }
   ],
   "Warriors_2010s": [
@@ -1560,7 +1560,7 @@
         "Floor Spacer",
         "Elite Playmaker"
       ],
-      "popularity": 97
+      "popularity": 92
     },
     {
       "id": "durant_18",
@@ -1577,7 +1577,7 @@
         "Volume Shooter",
         "Floor Spacer"
       ],
-      "popularity": 95
+      "popularity": 90
     },
     {
       "id": "thompson_16",
@@ -1594,7 +1594,7 @@
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 86
+      "popularity": 52
     },
     {
       "id": "green_16",
@@ -1611,7 +1611,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 82
+      "popularity": 72
     },
     {
       "id": "iguodala_15",
@@ -1627,7 +1627,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 72
+      "popularity": 62
     },
     {
       "id": "livingston_16",
@@ -1643,7 +1643,7 @@
         "Elite Playmaker",
         "Glue Guy"
       ],
-      "popularity": 56
+      "popularity": 44
     },
     {
       "id": "dwest_16",
@@ -1659,7 +1659,7 @@
         "Glue Guy",
         "Rim Protector"
       ],
-      "popularity": 58
+      "popularity": 43
     },
     {
       "id": "mcgee_17",
@@ -1675,7 +1675,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 56
+      "popularity": 42
     },
     {
       "id": "kcousins_19",
@@ -1691,7 +1691,7 @@
         "Volume Shooter",
         "Rim Protector"
       ],
-      "popularity": 72
+      "popularity": 63
     }
   ],
   "Warriors_2020s": [
@@ -1709,7 +1709,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 97
+      "popularity": 92
     },
     {
       "id": "thompson_22",
@@ -1725,7 +1725,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 86
+      "popularity": 75
     },
     {
       "id": "green_22",
@@ -1741,7 +1741,7 @@
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 82
+      "popularity": 68
     },
     {
       "id": "poole_22",
@@ -1757,7 +1757,7 @@
         "Volume Shooter",
         "Floor Spacer"
       ],
-      "popularity": 39
+      "popularity": 44
     },
     {
       "id": "wiggins_22",
@@ -1773,7 +1773,7 @@
         "Lockdown Defender",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 52
     },
     {
       "id": "looney_22",
@@ -1789,7 +1789,7 @@
         "Glue Guy",
         "Rim Protector"
       ],
-      "popularity": 48
+      "popularity": 38
     }
   ],
   "Celtics_1960s": [
@@ -1808,7 +1808,7 @@
         "Lockdown Defender",
         "Clutch"
       ],
-      "popularity": 95
+      "popularity": 97
     },
     {
       "id": "havlicek_68",
@@ -1825,7 +1825,7 @@
         "Lockdown Defender",
         "Volume Shooter"
       ],
-      "popularity": 80
+      "popularity": 78
     },
     {
       "id": "jones_65",
@@ -1841,7 +1841,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 68
+      "popularity": 55
     },
     {
       "id": "heinsohn_62",
@@ -1857,7 +1857,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 62
+      "popularity": 57
     },
     {
       "id": "cousy_63",
@@ -1890,7 +1890,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 58
     },
     {
       "id": "nelson_66",
@@ -1906,7 +1906,7 @@
         "Glue Guy",
         "Clutch"
       ],
-      "popularity": 60
+      "popularity": 52
     }
   ],
   "Celtics_1970s": [
@@ -1924,7 +1924,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 74
+      "popularity": 70
     },
     {
       "id": "havlicek_74",
@@ -1940,7 +1940,7 @@
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 80
+      "popularity": 78
     },
     {
       "id": "white_74",
@@ -1956,7 +1956,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 62
+      "popularity": 52
     },
     {
       "id": "silas_74",
@@ -1972,7 +1972,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 58
+      "popularity": 48
     },
     {
       "id": "nelson_73",
@@ -1988,7 +1988,7 @@
         "Glue Guy",
         "Clutch"
       ],
-      "popularity": 60
+      "popularity": 52
     },
     {
       "id": "westphal_73",
@@ -2004,7 +2004,7 @@
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 64
+      "popularity": 58
     }
   ],
   "Celtics_1980s": [
@@ -2023,7 +2023,7 @@
         "Floor Spacer",
         "Elite Playmaker"
       ],
-      "popularity": 97
+      "popularity": 96
     },
     {
       "id": "mchale_87",
@@ -2040,7 +2040,7 @@
         "Rim Protector",
         "Clutch"
       ],
-      "popularity": 80
+      "popularity": 78
     },
     {
       "id": "parish_86",
@@ -2056,7 +2056,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 78
+      "popularity": 72
     },
     {
       "id": "ainge_87",
@@ -2072,7 +2072,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 65
+      "popularity": 58
     },
     {
       "id": "johnson_86",
@@ -2088,7 +2088,7 @@
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 68
+      "popularity": 62
     },
     {
       "id": "walton_86",
@@ -2104,7 +2104,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 79
+      "popularity": 80
     },
     {
       "id": "wedman_86",
@@ -2120,7 +2120,7 @@
         "Floor Spacer",
         "Clutch"
       ],
-      "popularity": 52
+      "popularity": 41
     },
     {
       "id": "carr_84",
@@ -2136,7 +2136,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 50
+      "popularity": 40
     }
   ],
   "Celtics_1990s": [
@@ -2154,7 +2154,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 55
     },
     {
       "id": "pierce_99",
@@ -2170,7 +2170,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 85
+      "popularity": 75
     },
     {
       "id": "walker_99",
@@ -2186,7 +2186,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 50
+      "popularity": 62
     },
     {
       "id": "douglas_92",
@@ -2202,7 +2202,7 @@
         "Elite Playmaker",
         "Glue Guy"
       ],
-      "popularity": 50
+      "popularity": 43
     },
     {
       "id": "brown_99",
@@ -2218,7 +2218,7 @@
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 35
+      "popularity": 44
     }
   ],
   "Celtics_2000s": [
@@ -2236,7 +2236,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 85
+      "popularity": 75
     },
     {
       "id": "garnett_08",
@@ -2252,7 +2252,7 @@
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 89
+      "popularity": 88
     },
     {
       "id": "allen_08",
@@ -2268,7 +2268,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 85
+      "popularity": 82
     },
     {
       "id": "rondo_09",
@@ -2284,7 +2284,7 @@
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 35
+      "popularity": 68
     },
     {
       "id": "perkins_08",
@@ -2301,7 +2301,7 @@
         "Glue Guy",
         "Lockdown Defender"
       ],
-      "popularity": 35
+      "popularity": 45
     },
     {
       "id": "powe_08",
@@ -2317,7 +2317,7 @@
         "Glue Guy",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 37
     },
     {
       "id": "house_08",
@@ -2333,7 +2333,7 @@
         "Floor Spacer",
         "Clutch"
       ],
-      "popularity": 35
+      "popularity": 40
     }
   ],
   "Celtics_2010s": [
@@ -2351,7 +2351,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 88
+      "popularity": 85
     },
     {
       "id": "tatum_19",
@@ -2367,7 +2367,7 @@
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 84
+      "popularity": 78
     },
     {
       "id": "brown_19",
@@ -2383,7 +2383,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 78
+      "popularity": 70
     },
     {
       "id": "horford_17",
@@ -2399,7 +2399,7 @@
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 35
+      "popularity": 62
     },
     {
       "id": "smart_19",
@@ -2416,7 +2416,7 @@
         "Clutch",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 55
     },
     {
       "id": "morris_19",
@@ -2432,7 +2432,7 @@
         "Floor Spacer",
         "Clutch"
       ],
-      "popularity": 35
+      "popularity": 42
     },
     {
       "id": "rozier_19",
@@ -2448,7 +2448,7 @@
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 35
+      "popularity": 45
     }
   ],
   "Celtics_2020s": [
@@ -2466,7 +2466,7 @@
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 84
+      "popularity": 82
     },
     {
       "id": "brown_24",
@@ -2482,7 +2482,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 78
+      "popularity": 74
     },
     {
       "id": "white_24",
@@ -2498,7 +2498,7 @@
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 35
+      "popularity": 55
     },
     {
       "id": "porzingis_24",
@@ -2514,7 +2514,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 38
+      "popularity": 60
     },
     {
       "id": "holiday_24",
@@ -2531,7 +2531,7 @@
         "Glue Guy",
         "Clutch"
       ],
-      "popularity": 35
+      "popularity": 63
     },
     {
       "id": "horford_24",
@@ -2548,7 +2548,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 62
     },
     {
       "id": "pritchard_24",
@@ -2564,7 +2564,7 @@
         "Floor Spacer",
         "Clutch"
       ],
-      "popularity": 35
+      "popularity": 40
     }
   ],
   "Heat_1990s": [
@@ -2582,7 +2582,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 78
+      "popularity": 72
     },
     {
       "id": "hardaway_97",
@@ -2598,7 +2598,7 @@
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 70
+      "popularity": 68
     },
     {
       "id": "mashburn_99",
@@ -2614,7 +2614,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 60
+      "popularity": 52
     },
     {
       "id": "rice_96",
@@ -2630,7 +2630,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 69
+      "popularity": 55
     },
     {
       "id": "zo_95",
@@ -2646,7 +2646,7 @@
         "Lockdown Defender",
         "Floor Spacer"
       ],
-      "popularity": 62
+      "popularity": 58
     },
     {
       "id": "willis_97",
@@ -2662,7 +2662,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 50
+      "popularity": 42
     },
     {
       "id": "owens_98",
@@ -2678,7 +2678,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 44
+      "popularity": 40
     }
   ],
   "Heat_2000s": [
@@ -2696,7 +2696,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 92
+      "popularity": 88
     },
     {
       "id": "shaq_05",
@@ -2728,7 +2728,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 58
+      "popularity": 44
     },
     {
       "id": "mourning_06",
@@ -2745,7 +2745,7 @@
         "Lockdown Defender",
         "Clutch"
       ],
-      "popularity": 78
+      "popularity": 72
     },
     {
       "id": "posey_06",
@@ -2762,7 +2762,7 @@
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 41
     },
     {
       "id": "payton_06",
@@ -2778,7 +2778,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 88
+      "popularity": 78
     }
   ],
   "Heat_2010s": [
@@ -2797,7 +2797,7 @@
         "Elite Playmaker",
         "Lockdown Defender"
       ],
-      "popularity": 100
+      "popularity": 98
     },
     {
       "id": "wade_13",
@@ -2813,7 +2813,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 92
+      "popularity": 88
     },
     {
       "id": "bosh_13",
@@ -2829,7 +2829,7 @@
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 78
+      "popularity": 72
     },
     {
       "id": "chalmers_12",
@@ -2845,7 +2845,7 @@
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 56
+      "popularity": 43
     },
     {
       "id": "miller_13",
@@ -2862,7 +2862,7 @@
         "Clutch",
         "Glue Guy"
       ],
-      "popularity": 56
+      "popularity": 41
     },
     {
       "id": "cole_13",
@@ -2878,7 +2878,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 44
+      "popularity": 36
     },
     {
       "id": "haslem_13",
@@ -2894,7 +2894,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 58
+      "popularity": 44
     },
     {
       "id": "andersen_14",
@@ -2910,7 +2910,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 42
     }
   ],
   "Heat_2020s": [
@@ -2928,7 +2928,7 @@
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 82
+      "popularity": 75
     },
     {
       "id": "adebayo_23",
@@ -2944,7 +2944,7 @@
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 39
+      "popularity": 65
     },
     {
       "id": "herro_23",
@@ -2960,7 +2960,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 58
     },
     {
       "id": "lowry_22",
@@ -2976,7 +2976,7 @@
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 35
+      "popularity": 63
     },
     {
       "id": "strus_23",
@@ -2992,7 +2992,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 42
     },
     {
       "id": "vincent_23",
@@ -3008,7 +3008,7 @@
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 40
     },
     {
       "id": "robinson_23",
@@ -3024,7 +3024,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 48
     }
   ],
   "Spurs_1980s": [
@@ -3058,7 +3058,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 46
+      "popularity": 48
     },
     {
       "id": "robertson_85",
@@ -3074,7 +3074,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 55
     },
     {
       "id": "gilmore_83",
@@ -3090,7 +3090,7 @@
         "Rim Protector",
         "Volume Shooter"
       ],
-      "popularity": 72
+      "popularity": 68
     },
     {
       "id": "johnson_85",
@@ -3106,7 +3106,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 38
     }
   ],
   "Spurs_1990s": [
@@ -3124,7 +3124,7 @@
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 87
+      "popularity": 88
     },
     {
       "id": "elliott_95",
@@ -3140,7 +3140,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 55
     },
     {
       "id": "duncan_99",
@@ -3156,7 +3156,7 @@
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 95
+      "popularity": 92
     },
     {
       "id": "avery_96",
@@ -3172,7 +3172,7 @@
         "Elite Playmaker",
         "Clutch"
       ],
-      "popularity": 58
+      "popularity": 52
     },
     {
       "id": "person_97",
@@ -3188,7 +3188,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 48
     },
     {
       "id": "vinnie_97",
@@ -3204,7 +3204,7 @@
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 42
     }
   ],
   "Spurs_2000s": [
@@ -3223,7 +3223,7 @@
         "Rim Protector",
         "Lockdown Defender"
       ],
-      "popularity": 95
+      "popularity": 92
     },
     {
       "id": "parker_07",
@@ -3239,7 +3239,7 @@
         "Clutch",
         "Elite Playmaker"
       ],
-      "popularity": 83
+      "popularity": 78
     },
     {
       "id": "ginobili_05",
@@ -3255,7 +3255,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 84
+      "popularity": 80
     },
     {
       "id": "bowen_03",
@@ -3271,7 +3271,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 60
+      "popularity": 52
     },
     {
       "id": "horry_05",
@@ -3288,7 +3288,7 @@
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 72
+      "popularity": 62
     },
     {
       "id": "popovich_03",
@@ -3304,7 +3304,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 56
+      "popularity": 40
     },
     {
       "id": "nesterovic_04",
@@ -3320,7 +3320,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 48
+      "popularity": 40
     }
   ],
   "Spurs_2010s": [
@@ -3339,7 +3339,7 @@
         "Lockdown Defender",
         "Volume Shooter"
       ],
-      "popularity": 85
+      "popularity": 82
     },
     {
       "id": "aldridge_16",
@@ -3355,7 +3355,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 72
+      "popularity": 63
     },
     {
       "id": "parker_12",
@@ -3371,7 +3371,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 83
+      "popularity": 78
     },
     {
       "id": "duncan_14",
@@ -3387,7 +3387,7 @@
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 95
+      "popularity": 88
     },
     {
       "id": "mills_14",
@@ -3404,7 +3404,7 @@
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 56
+      "popularity": 44
     },
     {
       "id": "diaw_14",
@@ -3421,7 +3421,7 @@
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 62
+      "popularity": 46
     },
     {
       "id": "splitter_14",
@@ -3437,7 +3437,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 50
+      "popularity": 41
     },
     {
       "id": "green_14",
@@ -3454,7 +3454,7 @@
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 58
+      "popularity": 47
     },
     {
       "id": "mginobili_16",
@@ -3471,7 +3471,7 @@
         "Volume Shooter",
         "Elite Playmaker"
       ],
-      "popularity": 84
+      "popularity": 82
     }
   ],
   "Knicks_1970s": [
@@ -3489,7 +3489,7 @@
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 80
+      "popularity": 78
     },
     {
       "id": "reed_70",
@@ -3505,7 +3505,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 78
+      "popularity": 72
     },
     {
       "id": "bradley_72",
@@ -3521,7 +3521,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 64
+      "popularity": 58
     },
     {
       "id": "monroe_71",
@@ -3537,7 +3537,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 42
+      "popularity": 65
     },
     {
       "id": "debusschere_72",
@@ -3553,7 +3553,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 72
+      "popularity": 62
     },
     {
       "id": "lucas_72",
@@ -3569,7 +3569,7 @@
         "Rim Protector",
         "Floor Spacer"
       ],
-      "popularity": 66
+      "popularity": 60
     },
     {
       "id": "barnett_72",
@@ -3585,7 +3585,7 @@
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 52
+      "popularity": 42
     }
   ],
   "Knicks_1990s": [
@@ -3603,7 +3603,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 90
+      "popularity": 80
     },
     {
       "id": "starks_94",
@@ -3619,7 +3619,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 64
+      "popularity": 58
     },
     {
       "id": "oakley_94",
@@ -3635,7 +3635,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 60
+      "popularity": 52
     },
     {
       "id": "houston_99",
@@ -3651,7 +3651,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 62
+      "popularity": 58
     },
     {
       "id": "ewing_jr94",
@@ -3667,7 +3667,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 60
+      "popularity": 42
     },
     {
       "id": "doc_94",
@@ -3683,7 +3683,7 @@
         "Elite Playmaker",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 55
     },
     {
       "id": "ward_99",
@@ -3699,7 +3699,7 @@
         "Elite Playmaker",
         "Glue Guy"
       ],
-      "popularity": 46
+      "popularity": 38
     }
   ],
   "Knicks_2000s": [
@@ -3717,7 +3717,7 @@
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 74
+      "popularity": 62
     },
     {
       "id": "crawford_06",
@@ -3733,7 +3733,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 62
+      "popularity": 55
     },
     {
       "id": "lee_09",
@@ -3749,7 +3749,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 56
+      "popularity": 45
     },
     {
       "id": "thomas_05",
@@ -3765,7 +3765,7 @@
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 62
+      "popularity": 55
     },
     {
       "id": "curry_07",
@@ -3781,7 +3781,7 @@
         "Rim Protector",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 40
     },
     {
       "id": "james_07",
@@ -3797,7 +3797,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 48
     }
   ],
   "Knicks_2010s": [
@@ -3815,7 +3815,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 86
+      "popularity": 88
     },
     {
       "id": "amare_11",
@@ -3831,7 +3831,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 76
+      "popularity": 70
     },
     {
       "id": "chandler_12",
@@ -3847,7 +3847,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 60
+      "popularity": 55
     },
     {
       "id": "kidd_13",
@@ -3863,7 +3863,7 @@
         "Elite Playmaker",
         "Glue Guy"
       ],
-      "popularity": 84
+      "popularity": 78
     },
     {
       "id": "jrsmith_13",
@@ -3880,7 +3880,7 @@
         "Floor Spacer",
         "Clutch"
       ],
-      "popularity": 62
+      "popularity": 50
     },
     {
       "id": "felton_13",
@@ -3896,7 +3896,7 @@
         "Elite Playmaker",
         "Glue Guy"
       ],
-      "popularity": 52
+      "popularity": 44
     }
   ],
   "Jazz_1980s": [
@@ -3914,7 +3914,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 88
+      "popularity": 78
     },
     {
       "id": "stockton_88",
@@ -3930,7 +3930,7 @@
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 87
+      "popularity": 78
     },
     {
       "id": "griffith_85",
@@ -3946,7 +3946,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 54
+      "popularity": 48
     },
     {
       "id": "thurl_88",
@@ -3962,7 +3962,7 @@
         "Volume Shooter",
         "Floor Spacer"
       ],
-      "popularity": 46
+      "popularity": 40
     },
     {
       "id": "eaton_88",
@@ -3979,7 +3979,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 56
+      "popularity": 52
     },
     {
       "id": "bailey_87",
@@ -3995,7 +3995,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 72
+      "popularity": 62
     }
   ],
   "Jazz_1990s": [
@@ -4013,7 +4013,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 88
+      "popularity": 82
     },
     {
       "id": "stockton_97",
@@ -4029,7 +4029,7 @@
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 87
+      "popularity": 78
     },
     {
       "id": "hornacek_96",
@@ -4045,7 +4045,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 64
+      "popularity": 57
     },
     {
       "id": "ostertag_97",
@@ -4061,7 +4061,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 41
     },
     {
       "id": "eaton_97",
@@ -4078,7 +4078,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 56
+      "popularity": 52
     },
     {
       "id": "benoit_96",
@@ -4094,7 +4094,7 @@
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 38
     },
     {
       "id": "brown_97",
@@ -4110,7 +4110,7 @@
         "Glue Guy",
         "Rim Protector"
       ],
-      "popularity": 35
+      "popularity": 40
     }
   ],
   "Jazz_2000s": [
@@ -4128,7 +4128,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 64
+      "popularity": 56
     },
     {
       "id": "deron_08",
@@ -4144,7 +4144,7 @@
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 36
+      "popularity": 68
     },
     {
       "id": "okur_07",
@@ -4160,7 +4160,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 48
     },
     {
       "id": "kirilenko_07",
@@ -4177,7 +4177,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 37
+      "popularity": 63
     },
     {
       "id": "harpring_07",
@@ -4193,7 +4193,7 @@
         "Glue Guy",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 44
     },
     {
       "id": "maynor_09",
@@ -4209,7 +4209,7 @@
         "Elite Playmaker",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 39
     }
   ],
   "Jazz_2010s": [
@@ -4227,7 +4227,7 @@
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 36
+      "popularity": 60
     },
     {
       "id": "gobert_17",
@@ -4243,7 +4243,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 72
+      "popularity": 68
     },
     {
       "id": "mitchell_19",
@@ -4259,7 +4259,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 78
+      "popularity": 72
     },
     {
       "id": "ingles_18",
@@ -4275,7 +4275,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 50
     },
     {
       "id": "favors_16",
@@ -4291,7 +4291,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 46
     },
     {
       "id": "crowder_18",
@@ -4308,7 +4308,7 @@
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 44
     },
     {
       "id": "exum_16",
@@ -4324,7 +4324,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 40
     }
   ],
   "Pistons_1980s": [
@@ -4342,7 +4342,7 @@
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 87
+      "popularity": 88
     },
     {
       "id": "dumars_89",
@@ -4358,7 +4358,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 76
+      "popularity": 72
     },
     {
       "id": "laimbeer_89",
@@ -4374,7 +4374,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 72
+      "popularity": 68
     },
     {
       "id": "rodman_89",
@@ -4390,7 +4390,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 84
+      "popularity": 85
     },
     {
       "id": "dantley_87",
@@ -4406,7 +4406,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 72
+      "popularity": 62
     },
     {
       "id": "johnson_89",
@@ -4422,7 +4422,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 62
+      "popularity": 52
     },
     {
       "id": "salley_89",
@@ -4438,7 +4438,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 58
+      "popularity": 45
     },
     {
       "id": "mahorn_89",
@@ -4454,7 +4454,7 @@
         "Rim Protector",
         "Lockdown Defender"
       ],
-      "popularity": 35
+      "popularity": 46
     }
   ],
   "Pistons_1990s": [
@@ -4472,7 +4472,7 @@
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 80
+      "popularity": 78
     },
     {
       "id": "stackhouse_97",
@@ -4488,7 +4488,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 39
+      "popularity": 57
     },
     {
       "id": "dumars_93",
@@ -4504,7 +4504,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 76
+      "popularity": 72
     },
     {
       "id": "thomas_95",
@@ -4520,7 +4520,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 55
     },
     {
       "id": "long_95",
@@ -4536,7 +4536,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 38
     }
   ],
   "Pistons_2000s": [
@@ -4554,7 +4554,7 @@
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 76
+      "popularity": 70
     },
     {
       "id": "rasheed_04",
@@ -4570,7 +4570,7 @@
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 70
+      "popularity": 67
     },
     {
       "id": "hamilton_04",
@@ -4586,7 +4586,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 66
+      "popularity": 63
     },
     {
       "id": "prince_04",
@@ -4602,7 +4602,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 64
+      "popularity": 57
     },
     {
       "id": "ben_04",
@@ -4618,7 +4618,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 72
+      "popularity": 68
     },
     {
       "id": "hunter_04",
@@ -4634,7 +4634,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 52
+      "popularity": 41
     },
     {
       "id": "mcdyess_06",
@@ -4650,7 +4650,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 52
     }
   ],
   "Magic_1990s": [
@@ -4685,7 +4685,7 @@
         "Elite Playmaker",
         "Clutch"
       ],
-      "popularity": 82
+      "popularity": 72
     },
     {
       "id": "anderson_95",
@@ -4701,7 +4701,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 56
+      "popularity": 44
     },
     {
       "id": "horace_95",
@@ -4717,7 +4717,7 @@
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 66
+      "popularity": 56
     },
     {
       "id": "shaw_95",
@@ -4733,7 +4733,7 @@
         "Elite Playmaker",
         "Glue Guy"
       ],
-      "popularity": 55
+      "popularity": 41
     },
     {
       "id": "scott_95",
@@ -4749,7 +4749,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 54
+      "popularity": 43
     },
     {
       "id": "gabriel_95",
@@ -4783,7 +4783,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 86
+      "popularity": 84
     },
     {
       "id": "dwight_09",
@@ -4799,7 +4799,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 84
+      "popularity": 82
     },
     {
       "id": "turkoglu_08",
@@ -4815,7 +4815,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 60
+      "popularity": 48
     },
     {
       "id": "lewis_09",
@@ -4831,7 +4831,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 60
+      "popularity": 51
     },
     {
       "id": "arenas_04",
@@ -4847,7 +4847,7 @@
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 80
+      "popularity": 62
     },
     {
       "id": "bogans_09",
@@ -4863,7 +4863,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 38
     },
     {
       "id": "pietrus_09",
@@ -4879,7 +4879,7 @@
         "Lockdown Defender",
         "Floor Spacer"
       ],
-      "popularity": 48
+      "popularity": 40
     }
   ],
   "Magic_2010s": [
@@ -4897,7 +4897,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 84
+      "popularity": 82
     },
     {
       "id": "vucevic_14",
@@ -4913,7 +4913,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 55
     },
     {
       "id": "gordon_18",
@@ -4929,7 +4929,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 58
     },
     {
       "id": "anderson_13",
@@ -4945,7 +4945,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 46
     },
     {
       "id": "afflalo_14",
@@ -4961,7 +4961,7 @@
         "Volume Shooter",
         "Floor Spacer"
       ],
-      "popularity": 35
+      "popularity": 42
     }
   ],
   "Suns_1970s": [
@@ -4979,7 +4979,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 64
+      "popularity": 62
     },
     {
       "id": "adams_76",
@@ -5011,7 +5011,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 56
+      "popularity": 55
     },
     {
       "id": "silas_76",
@@ -5027,7 +5027,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 58
+      "popularity": 53
     },
     {
       "id": "hawkins_76",
@@ -5043,7 +5043,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 63
     }
   ],
   "Suns_1990s": [
@@ -5061,7 +5061,7 @@
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 94
+      "popularity": 91
     },
     {
       "id": "kj_93",
@@ -5077,7 +5077,7 @@
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 70
+      "popularity": 68
     },
     {
       "id": "majerle_93",
@@ -5093,7 +5093,7 @@
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 62
+      "popularity": 60
     },
     {
       "id": "manning_93",
@@ -5109,7 +5109,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 39
+      "popularity": 58
     },
     {
       "id": "chambers_93",
@@ -5125,7 +5125,7 @@
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 64
+      "popularity": 57
     },
     {
       "id": "ceballos_93",
@@ -5141,7 +5141,7 @@
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 58
+      "popularity": 48
     },
     {
       "id": "johnson_93",
@@ -5157,7 +5157,7 @@
         "Elite Playmaker",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 38
     }
   ],
   "Suns_2000s": [
@@ -5175,7 +5175,7 @@
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 85
+      "popularity": 82
     },
     {
       "id": "amare_06",
@@ -5191,7 +5191,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 76
+      "popularity": 72
     },
     {
       "id": "marion_06",
@@ -5207,7 +5207,7 @@
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 70
+      "popularity": 68
     },
     {
       "id": "barbosa_07",
@@ -5223,7 +5223,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 58
+      "popularity": 52
     },
     {
       "id": "richardson_06",
@@ -5239,7 +5239,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 47
     },
     {
       "id": "jones_06",
@@ -5255,7 +5255,7 @@
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 40
     },
     {
       "id": "tmac_suns",
@@ -5272,7 +5272,7 @@
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 62
+      "popularity": 55
     }
   ],
   "Suns_2020s": [
@@ -5290,7 +5290,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 83
+      "popularity": 72
     },
     {
       "id": "durant_23",
@@ -5306,7 +5306,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 95
+      "popularity": 91
     },
     {
       "id": "beal_23",
@@ -5322,7 +5322,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 38
+      "popularity": 62
     },
     {
       "id": "bridges_22",
@@ -5338,7 +5338,7 @@
         "Lockdown Defender",
         "Floor Spacer"
       ],
-      "popularity": 35
+      "popularity": 52
     },
     {
       "id": "ayton_22",
@@ -5354,7 +5354,7 @@
         "Rim Protector",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 55
     },
     {
       "id": "cp3_22",
@@ -5371,7 +5371,7 @@
         "Clutch",
         "Floor Spacer"
       ],
-      "popularity": 90
+      "popularity": 78
     }
   ],
   "Nuggets_1980s": [
@@ -5389,7 +5389,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 72
+      "popularity": 62
     },
     {
       "id": "lever_88",
@@ -5405,7 +5405,7 @@
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 46
+      "popularity": 45
     },
     {
       "id": "rasmussen_88",
@@ -5437,7 +5437,7 @@
         "Volume Shooter",
         "Floor Spacer"
       ],
-      "popularity": 57
+      "popularity": 52
     },
     {
       "id": "issel_85",
@@ -5453,7 +5453,7 @@
         "Rim Protector",
         "Volume Shooter"
       ],
-      "popularity": 70
+      "popularity": 62
     },
     {
       "id": "dunn_87",
@@ -5487,7 +5487,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 86
+      "popularity": 82
     },
     {
       "id": "iverson_07",
@@ -5503,7 +5503,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 92
+      "popularity": 88
     },
     {
       "id": "camby_07",
@@ -5519,7 +5519,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 62
+      "popularity": 58
     },
     {
       "id": "martin_07",
@@ -5535,7 +5535,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 60
+      "popularity": 52
     },
     {
       "id": "nene_06",
@@ -5551,7 +5551,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 52
+      "popularity": 42
     },
     {
       "id": "boykins_04",
@@ -5567,7 +5567,7 @@
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 35
+      "popularity": 44
     },
     {
       "id": "anthony_09",
@@ -5583,7 +5583,7 @@
         "Volume Shooter",
         "Floor Spacer"
       ],
-      "popularity": 62
+      "popularity": 55
     }
   ],
   "Nuggets_2010s": [
@@ -5601,7 +5601,7 @@
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 88
+      "popularity": 82
     },
     {
       "id": "murray_19",
@@ -5617,7 +5617,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 36
+      "popularity": 62
     },
     {
       "id": "melo_11",
@@ -5633,7 +5633,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 86
+      "popularity": 87
     },
     {
       "id": "faried_14",
@@ -5649,7 +5649,7 @@
         "Rim Protector",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 44
     },
     {
       "id": "lawson_14",
@@ -5665,7 +5665,7 @@
         "Elite Playmaker",
         "Clutch"
       ],
-      "popularity": 37
+      "popularity": 48
     },
     {
       "id": "gallinari_13",
@@ -5681,7 +5681,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 46
     }
   ],
   "Nuggets_2020s": [
@@ -5716,7 +5716,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 39
+      "popularity": 65
     },
     {
       "id": "porter_23",
@@ -5732,7 +5732,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 36
+      "popularity": 52
     },
     {
       "id": "gordon_23",
@@ -5749,7 +5749,7 @@
         "Glue Guy",
         "Lockdown Defender"
       ],
-      "popularity": 35
+      "popularity": 50
     },
     {
       "id": "braun_24",
@@ -5765,7 +5765,7 @@
         "Clutch",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 38
     }
   ],
   "Sixers_1960s": [
@@ -5783,7 +5783,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 96
+      "popularity": 97
     },
     {
       "id": "greer_67",
@@ -5799,7 +5799,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 64
+      "popularity": 58
     },
     {
       "id": "walker_67",
@@ -5815,7 +5815,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 60
+      "popularity": 52
     },
     {
       "id": "jones_67",
@@ -5831,7 +5831,7 @@
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 44
+      "popularity": 38
     },
     {
       "id": "cunningham_68",
@@ -5863,7 +5863,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 48
+      "popularity": 36
     }
   ],
   "Sixers_1980s": [
@@ -5881,7 +5881,7 @@
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 93
+      "popularity": 91
     },
     {
       "id": "malone_83",
@@ -5897,7 +5897,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 80
+      "popularity": 85
     },
     {
       "id": "cheeks_87",
@@ -5913,7 +5913,7 @@
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 64
+      "popularity": 57
     },
     {
       "id": "toney_83",
@@ -5945,7 +5945,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 56
+      "popularity": 52
     },
     {
       "id": "edwards_83",
@@ -5961,7 +5961,7 @@
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 38
     },
     {
       "id": "richardson_82",
@@ -5977,7 +5977,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 39
     }
   ],
   "Sixers_1990s": [
@@ -5995,7 +5995,7 @@
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 94
+      "popularity": 90
     },
     {
       "id": "iverson_99",
@@ -6011,7 +6011,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 92
+      "popularity": 88
     },
     {
       "id": "coleman_93",
@@ -6027,7 +6027,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 46
+      "popularity": 55
     },
     {
       "id": "weatherspoon_95",
@@ -6043,7 +6043,7 @@
         "Lockdown Defender",
         "Volume Shooter"
       ],
-      "popularity": 46
+      "popularity": 42
     },
     {
       "id": "mashburn_98",
@@ -6059,7 +6059,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 42
     }
   ],
   "Sixers_2000s": [
@@ -6077,7 +6077,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 92
+      "popularity": 88
     },
     {
       "id": "webber_05",
@@ -6093,7 +6093,7 @@
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 76
+      "popularity": 72
     },
     {
       "id": "iguodala_09",
@@ -6109,7 +6109,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 72
+      "popularity": 68
     },
     {
       "id": "mckinley_03",
@@ -6126,7 +6126,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 40
     },
     {
       "id": "dalembrt_04",
@@ -6142,7 +6142,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 41
     }
   ],
   "Sixers_2010s": [
@@ -6160,7 +6160,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 85
+      "popularity": 82
     },
     {
       "id": "simmons_19",
@@ -6176,7 +6176,7 @@
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 42
+      "popularity": 68
     },
     {
       "id": "harris_19",
@@ -6192,7 +6192,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 38
+      "popularity": 55
     },
     {
       "id": "saric_18",
@@ -6208,7 +6208,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 44
     },
     {
       "id": "covington_18",
@@ -6224,7 +6224,7 @@
         "Lockdown Defender",
         "Floor Spacer"
       ],
-      "popularity": 35
+      "popularity": 48
     },
     {
       "id": "redick_18",
@@ -6240,7 +6240,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 56
     }
   ],
   "Rockets_1990s": [
@@ -6259,7 +6259,7 @@
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 93
+      "popularity": 88
     },
     {
       "id": "clyde_95",
@@ -6275,7 +6275,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 87
+      "popularity": 78
     },
     {
       "id": "horry_95",
@@ -6292,7 +6292,7 @@
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 72
+      "popularity": 62
     },
     {
       "id": "cassell_95",
@@ -6308,7 +6308,7 @@
         "Elite Playmaker",
         "Clutch"
       ],
-      "popularity": 35
+      "popularity": 58
     },
     {
       "id": "otis_95",
@@ -6324,7 +6324,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 52
     }
   ],
   "Rockets_2000s": [
@@ -6358,7 +6358,7 @@
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 86
+      "popularity": 80
     },
     {
       "id": "scola_07",
@@ -6374,7 +6374,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 48
     },
     {
       "id": "alston_07",
@@ -6390,7 +6390,7 @@
         "Elite Playmaker",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 42
     },
     {
       "id": "hayes_07",
@@ -6407,7 +6407,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 38
     }
   ],
   "Rockets_2010s": [
@@ -6425,7 +6425,7 @@
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 89
+      "popularity": 88
     },
     {
       "id": "cp3_18",
@@ -6441,7 +6441,7 @@
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 90
+      "popularity": 78
     },
     {
       "id": "tucker_18",
@@ -6458,7 +6458,7 @@
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 48
     },
     {
       "id": "gordon_18b",
@@ -6474,7 +6474,7 @@
         "Volume Shooter",
         "Floor Spacer"
       ],
-      "popularity": 35
+      "popularity": 50
     },
     {
       "id": "capela_18",
@@ -6490,7 +6490,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 52
     }
   ],
   "Thunder_1970s": [
@@ -6508,7 +6508,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 58
+      "popularity": 55
     },
     {
       "id": "djohnson_79",
@@ -6524,7 +6524,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 68
+      "popularity": 62
     },
     {
       "id": "brown_79",
@@ -6540,7 +6540,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 52
+      "popularity": 50
     },
     {
       "id": "silas_79",
@@ -6556,7 +6556,7 @@
         "Rim Protector",
         "Floor Spacer"
       ],
-      "popularity": 62
+      "popularity": 60
     },
     {
       "id": "green_79",
@@ -6572,7 +6572,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 40
     }
   ],
   "Thunder_1990s": [
@@ -6590,7 +6590,7 @@
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 88
+      "popularity": 78
     },
     {
       "id": "kemp_96",
@@ -6606,7 +6606,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 78
+      "popularity": 72
     },
     {
       "id": "schrempf_96",
@@ -6622,7 +6622,7 @@
         "Floor Spacer",
         "Elite Playmaker"
       ],
-      "popularity": 65
+      "popularity": 57
     },
     {
       "id": "mcmillan_96",
@@ -6639,7 +6639,7 @@
         "Elite Playmaker",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 42
     },
     {
       "id": "gill_96",
@@ -6655,7 +6655,7 @@
         "Lockdown Defender",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 48
     }
   ],
   "Thunder_2010s": [
@@ -6674,7 +6674,7 @@
         "Volume Shooter",
         "Floor Spacer"
       ],
-      "popularity": 95
+      "popularity": 91
     },
     {
       "id": "russ_17",
@@ -6691,7 +6691,7 @@
         "Volume Shooter",
         "Elite Playmaker"
       ],
-      "popularity": 89
+      "popularity": 82
     },
     {
       "id": "harden_12",
@@ -6708,7 +6708,7 @@
         "Volume Shooter",
         "Floor Spacer"
       ],
-      "popularity": 89
+      "popularity": 83
     },
     {
       "id": "ibaka_12",
@@ -6724,7 +6724,7 @@
         "Rim Protector",
         "Floor Spacer"
       ],
-      "popularity": 35
+      "popularity": 58
     },
     {
       "id": "perkins_12",
@@ -6741,7 +6741,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 44
     }
   ],
   "Thunder_2020s": [
@@ -6759,7 +6759,7 @@
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 59
+      "popularity": 68
     },
     {
       "id": "williams_24",
@@ -6776,7 +6776,7 @@
         "Volume Shooter",
         "Elite Playmaker"
       ],
-      "popularity": 44
+      "popularity": 52
     },
     {
       "id": "dort_24",
@@ -6793,7 +6793,7 @@
         "Glue Guy",
         "Clutch"
       ],
-      "popularity": 35
+      "popularity": 42
     },
     {
       "id": "holmgren_24",
@@ -6809,7 +6809,7 @@
         "Rim Protector",
         "Floor Spacer"
       ],
-      "popularity": 35
+      "popularity": 55
     }
   ],
   "Bucks_1970s": [
@@ -6843,7 +6843,7 @@
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 93
+      "popularity": 90
     },
     {
       "id": "dandridge_71",
@@ -6859,7 +6859,7 @@
         "Lockdown Defender",
         "Clutch"
       ],
-      "popularity": 60
+      "popularity": 58
     },
     {
       "id": "mcghee_71",
@@ -6875,7 +6875,7 @@
         "Elite Playmaker",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 36
     },
     {
       "id": "allen_71",
@@ -6891,7 +6891,7 @@
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 50
+      "popularity": 37
     }
   ],
   "Bucks_1980s": [
@@ -6909,7 +6909,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 66
+      "popularity": 62
     },
     {
       "id": "mjohnson_79",
@@ -6925,7 +6925,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 60
+      "popularity": 59
     },
     {
       "id": "pressey_82",
@@ -6941,7 +6941,7 @@
         "Elite Playmaker",
         "Lockdown Defender"
       ],
-      "popularity": 52
+      "popularity": 42
     },
     {
       "id": "pierce_82",
@@ -6957,7 +6957,7 @@
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 60
+      "popularity": 58
     },
     {
       "id": "lanier_82",
@@ -6991,7 +6991,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 85
+      "popularity": 82
     },
     {
       "id": "redd_06",
@@ -7007,7 +7007,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 44
+      "popularity": 57
     },
     {
       "id": "cassell_01",
@@ -7023,7 +7023,7 @@
         "Elite Playmaker",
         "Clutch"
       ],
-      "popularity": 36
+      "popularity": 62
     },
     {
       "id": "mason_01",
@@ -7039,7 +7039,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 60
+      "popularity": 58
     },
     {
       "id": "mobley_06",
@@ -7055,7 +7055,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 45
     }
   ],
   "Bucks_2020s": [
@@ -7074,7 +7074,7 @@
         "Rim Protector",
         "Volume Shooter"
       ],
-      "popularity": 93
+      "popularity": 92
     },
     {
       "id": "dame_23",
@@ -7090,7 +7090,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 84
+      "popularity": 82
     },
     {
       "id": "middleton_22",
@@ -7107,7 +7107,7 @@
         "Floor Spacer",
         "Lockdown Defender"
       ],
-      "popularity": 40
+      "popularity": 60
     },
     {
       "id": "portis_22",
@@ -7124,7 +7124,7 @@
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 35
+      "popularity": 48
     },
     {
       "id": "brook_22",
@@ -7140,7 +7140,7 @@
         "Rim Protector",
         "Floor Spacer"
       ],
-      "popularity": 35
+      "popularity": 55
     }
   ],
   "Mavericks_1980s": [
@@ -7174,7 +7174,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 40
+      "popularity": 57
     },
     {
       "id": "harper_89",
@@ -7190,7 +7190,7 @@
         "Lockdown Defender",
         "Elite Playmaker"
       ],
-      "popularity": 56
+      "popularity": 58
     },
     {
       "id": "perkins_88",
@@ -7206,7 +7206,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 42
     }
   ],
   "Mavericks_2000s": [
@@ -7224,7 +7224,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 93
+      "popularity": 90
     },
     {
       "id": "nash_02",
@@ -7240,7 +7240,7 @@
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 85
+      "popularity": 78
     },
     {
       "id": "finley_02",
@@ -7256,7 +7256,7 @@
         "Volume Shooter",
         "Floor Spacer"
       ],
-      "popularity": 41
+      "popularity": 56
     },
     {
       "id": "walker_02",
@@ -7272,7 +7272,7 @@
         "Volume Shooter",
         "Floor Spacer"
       ],
-      "popularity": 40
+      "popularity": 52
     },
     {
       "id": "terry_07",
@@ -7289,7 +7289,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 62
+      "popularity": 57
     }
   ],
   "Mavericks_2010s": [
@@ -7307,7 +7307,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 93
+      "popularity": 89
     },
     {
       "id": "kidd_12",
@@ -7323,7 +7323,7 @@
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 84
+      "popularity": 78
     },
     {
       "id": "terry_11",
@@ -7340,7 +7340,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 62
+      "popularity": 57
     },
     {
       "id": "marion_11",
@@ -7356,7 +7356,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 70
+      "popularity": 56
     },
     {
       "id": "chandler_11",
@@ -7373,7 +7373,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 60
+      "popularity": 52
     }
   ],
   "Mavericks_2020s": [
@@ -7408,7 +7408,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 88
+      "popularity": 82
     },
     {
       "id": "washington_24",
@@ -7424,7 +7424,7 @@
         "Floor Spacer",
         "Lockdown Defender"
       ],
-      "popularity": 35
+      "popularity": 41
     },
     {
       "id": "dinwiddie_24",
@@ -7440,7 +7440,7 @@
         "Elite Playmaker",
         "Clutch"
       ],
-      "popularity": 35
+      "popularity": 43
     }
   ],
   "Cavaliers_1980s": [
@@ -7458,7 +7458,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 70
+      "popularity": 62
     },
     {
       "id": "daugherty_89",
@@ -7474,7 +7474,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 40
+      "popularity": 55
     },
     {
       "id": "free_88",
@@ -7490,7 +7490,7 @@
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 56
+      "popularity": 53
     },
     {
       "id": "ehlo_89",
@@ -7506,7 +7506,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 40
     },
     {
       "id": "nance_88",
@@ -7522,7 +7522,7 @@
         "Rim Protector",
         "Lockdown Defender"
       ],
-      "popularity": 56
+      "popularity": 47
     }
   ],
   "Cavaliers_1990s": [
@@ -7540,7 +7540,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 70
+      "popularity": 62
     },
     {
       "id": "nance_90",
@@ -7556,7 +7556,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 56
+      "popularity": 47
     },
     {
       "id": "ferry_94",
@@ -7572,7 +7572,7 @@
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 38
     },
     {
       "id": "kemp_97",
@@ -7588,7 +7588,7 @@
         "Rim Protector",
         "Volume Shooter"
       ],
-      "popularity": 78
+      "popularity": 70
     },
     {
       "id": "ilgauskas_99",
@@ -7604,7 +7604,7 @@
         "Rim Protector",
         "Floor Spacer"
       ],
-      "popularity": 35
+      "popularity": 48
     }
   ],
   "Cavaliers_2000s": [
@@ -7622,7 +7622,7 @@
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 100
+      "popularity": 97
     },
     {
       "id": "ilg_06",
@@ -7638,7 +7638,7 @@
         "Rim Protector",
         "Floor Spacer"
       ],
-      "popularity": 38
+      "popularity": 48
     },
     {
       "id": "hughes_07",
@@ -7654,7 +7654,7 @@
         "Lockdown Defender",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 42
     },
     {
       "id": "gooden_07",
@@ -7670,7 +7670,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 41
     }
   ],
   "Cavaliers_2010s": [
@@ -7689,7 +7689,7 @@
         "Elite Playmaker",
         "Lockdown Defender"
       ],
-      "popularity": 100
+      "popularity": 97
     },
     {
       "id": "kyrie_16",
@@ -7705,7 +7705,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 88
+      "popularity": 82
     },
     {
       "id": "love_16",
@@ -7722,7 +7722,7 @@
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 76
+      "popularity": 68
     },
     {
       "id": "thompson_16",
@@ -7738,7 +7738,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 60
+      "popularity": 52
     },
     {
       "id": "shumpert_16",
@@ -7754,7 +7754,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 54
+      "popularity": 43
     },
     {
       "id": "jrsmith_16",
@@ -7771,7 +7771,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 62
+      "popularity": 55
     }
   ],
   "Cavaliers_2020s": [
@@ -7789,7 +7789,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 78
+      "popularity": 70
     },
     {
       "id": "garland_24",
@@ -7805,7 +7805,7 @@
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 43
+      "popularity": 58
     },
     {
       "id": "mobley_24",
@@ -7821,7 +7821,7 @@
         "Rim Protector",
         "Floor Spacer"
       ],
-      "popularity": 35
+      "popularity": 57
     },
     {
       "id": "allen_24",
@@ -7837,7 +7837,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 52
     }
   ],
   "Blazers_1970s": [
@@ -7855,7 +7855,7 @@
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 79
+      "popularity": 78
     },
     {
       "id": "lucas_77",
@@ -7871,7 +7871,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 43
+      "popularity": 52
     },
     {
       "id": "hollins_77",
@@ -7887,7 +7887,7 @@
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 52
+      "popularity": 48
     },
     {
       "id": "gross_77",
@@ -7903,7 +7903,7 @@
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 35
+      "popularity": 40
     },
     {
       "id": "twarren_77",
@@ -7919,7 +7919,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 56
+      "popularity": 51
     },
     {
       "id": "steele_77",
@@ -7935,7 +7935,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 40
     },
     {
       "id": "twarren_77b",
@@ -7951,7 +7951,7 @@
         "Elite Playmaker",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 40
     }
   ],
   "Warriors_1970s": [
@@ -7969,7 +7969,7 @@
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 80
+      "popularity": 82
     },
     {
       "id": "jwilkes_75",
@@ -7985,7 +7985,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 64
+      "popularity": 55
     },
     {
       "id": "psmith_75",
@@ -8001,7 +8001,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 46
+      "popularity": 42
     },
     {
       "id": "cray_75",
@@ -8017,7 +8017,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 41
     },
     {
       "id": "bbutts_75",
@@ -8033,7 +8033,7 @@
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 35
+      "popularity": 40
     },
     {
       "id": "cassell_75",
@@ -8049,7 +8049,7 @@
         "Elite Playmaker",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 38
     },
     {
       "id": "dickey_75",
@@ -8065,7 +8065,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 38
     },
     {
       "id": "ray_75b",
@@ -8081,7 +8081,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 38
     }
   ],
   "Raptors_2010s": [
@@ -8099,7 +8099,7 @@
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 85
+      "popularity": 86
     },
     {
       "id": "siakam_19",
@@ -8115,7 +8115,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 63
     },
     {
       "id": "lowry_19",
@@ -8131,7 +8131,7 @@
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 36
+      "popularity": 65
     },
     {
       "id": "mgasol_19",
@@ -8147,7 +8147,7 @@
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 36
+      "popularity": 68
     },
     {
       "id": "dgreen_19",
@@ -8163,7 +8163,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 58
+      "popularity": 52
     },
     {
       "id": "derozan_16",
@@ -8179,7 +8179,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 78
+      "popularity": 65
     },
     {
       "id": "ibaka_19",
@@ -8195,7 +8195,7 @@
         "Rim Protector",
         "Floor Spacer"
       ],
-      "popularity": 35
+      "popularity": 58
     },
     {
       "id": "vvanvleet_19",
@@ -8212,7 +8212,7 @@
         "Floor Spacer",
         "Clutch"
       ],
-      "popularity": 35
+      "popularity": 55
     }
   ],
   "Nets_2000s": [
@@ -8230,7 +8230,7 @@
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 84
+      "popularity": 78
     },
     {
       "id": "kmartin_02",
@@ -8246,7 +8246,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 60
+      "popularity": 54
     },
     {
       "id": "rjeff_02",
@@ -8262,7 +8262,7 @@
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 54
+      "popularity": 55
     },
     {
       "id": "kittles_02",
@@ -8278,7 +8278,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 47
     },
     {
       "id": "jcollins_02",
@@ -8294,7 +8294,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 42
     },
     {
       "id": "mutombo_03",
@@ -8327,7 +8327,7 @@
         "Rim Protector",
         "Lockdown Defender"
       ],
-      "popularity": 78
+      "popularity": 75
     },
     {
       "id": "van_03",
@@ -8343,7 +8343,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 38
     }
   ],
   "Kings_2000s": [
@@ -8377,7 +8377,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 66
+      "popularity": 65
     },
     {
       "id": "bibby_02",
@@ -8393,7 +8393,7 @@
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 60
+      "popularity": 58
     },
     {
       "id": "divac_02",
@@ -8409,7 +8409,7 @@
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 66
+      "popularity": 62
     },
     {
       "id": "christie_02",
@@ -8425,7 +8425,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 52
     },
     {
       "id": "pollard_02",
@@ -8441,7 +8441,7 @@
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 40
     },
     {
       "id": "turkoglu_02",
@@ -8457,7 +8457,7 @@
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 60
+      "popularity": 52
     },
     {
       "id": "jackson_02",
@@ -8473,7 +8473,7 @@
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 52
+      "popularity": 48
     }
   ],
   "Knicks_1960s": [
@@ -8492,7 +8492,7 @@
         "Clutch",
         "Rebounding Machine"
       ],
-      "popularity": 78
+      "popularity": 72
     },
     {
       "id": "frazier_69",
@@ -8509,7 +8509,7 @@
         "Clutch Assassin",
         "Lockdown Defender"
       ],
-      "popularity": 80
+      "popularity": 74
     },
     {
       "id": "debusschere_knk_69",
@@ -8528,7 +8528,7 @@
         "Glue Guy",
         "Hustle Player"
       ],
-      "popularity": 72
+      "popularity": 65
     }
   ],
   "Pistons_1960s": [
@@ -8550,7 +8550,7 @@
         "Elite Playmaker",
         "Clutch"
       ],
-      "popularity": 68
+      "popularity": 63
     },
     {
       "id": "debusschere_pis_65",
@@ -8569,7 +8569,7 @@
         "Glue Guy",
         "Hustle Player"
       ],
-      "popularity": 72
+      "popularity": 65
     },
     {
       "id": "howell_64",
@@ -8585,7 +8585,7 @@
         "Rebounding Machine",
         "Volume Shooter"
       ],
-      "popularity": 40
+      "popularity": 48
     }
   ],
   "Warriors_1960s": [
@@ -8604,7 +8604,7 @@
         "Rim Protector",
         "Rebounding Machine"
       ],
-      "popularity": 96
+      "popularity": 97
     },
     {
       "id": "thurmond_67",
@@ -8623,7 +8623,7 @@
         "Rim Protector",
         "Rebounding Machine"
       ],
-      "popularity": 44
+      "popularity": 68
     },
     {
       "id": "rbarry_67",
@@ -8643,7 +8643,7 @@
         "Floor Spacer",
         "Elite Playmaker"
       ],
-      "popularity": 80
+      "popularity": 78
     }
   ],
   "Bulls_1960s": [
@@ -8665,7 +8665,7 @@
         "Hustle Player",
         "Glue Guy"
       ],
-      "popularity": 64
+      "popularity": 62
     },
     {
       "id": "rodgers_67",
@@ -8681,7 +8681,7 @@
         "Elite Playmaker",
         "Floor General"
       ],
-      "popularity": 56
+      "popularity": 48
     },
     {
       "id": "boozer_67",
@@ -8697,7 +8697,7 @@
         "Rebounding Machine",
         "Volume Shooter"
       ],
-      "popularity": 52
+      "popularity": 44
     }
   ],
   "Rockets_1960s": [
@@ -8719,7 +8719,7 @@
         "Rebounding Machine",
         "Rim Protector"
       ],
-      "popularity": 76
+      "popularity": 75
     },
     {
       "id": "kojis_68",
@@ -8738,7 +8738,7 @@
         "Hustle Player",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 40
     },
     {
       "id": "awilliams_69",
@@ -8754,7 +8754,7 @@
         "Elite Playmaker",
         "Floor General"
       ],
-      "popularity": 35
+      "popularity": 37
     }
   ],
   "Thunder_1960s": [
@@ -8775,7 +8775,7 @@
         "Volume Shooter",
         "Rebounding Machine"
       ],
-      "popularity": 50
+      "popularity": 41
     },
     {
       "id": "hazzard_68",
@@ -8791,7 +8791,7 @@
         "Elite Playmaker",
         "Floor General"
       ],
-      "popularity": 36
+      "popularity": 46
     },
     {
       "id": "meschery_68",
@@ -8810,7 +8810,7 @@
         "Glue Guy",
         "Hustle Player"
       ],
-      "popularity": 35
+      "popularity": 43
     }
   ],
   "Suns_1960s": [
@@ -8832,7 +8832,7 @@
         "Clutch",
         "Hustle Player"
       ],
-      "popularity": 54
+      "popularity": 50
     },
     {
       "id": "goodrich_69",
@@ -8849,7 +8849,7 @@
         "Volume Shooter",
         "Clutch Assassin"
       ],
-      "popularity": 66
+      "popularity": 65
     },
     {
       "id": "silas_69",
@@ -8888,7 +8888,7 @@
         "Volume Shooter",
         "Glue Guy"
       ],
-      "popularity": 50
+      "popularity": 42
     },
     {
       "id": "chappell_69",
@@ -8904,7 +8904,7 @@
         "Rebounding Machine",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 39
     },
     {
       "id": "embry_69",
@@ -8920,7 +8920,7 @@
         "Glue Guy",
         "Rim Protector"
       ],
-      "popularity": 35
+      "popularity": 44
     }
   ],
   "Bulls_1970s": [
@@ -8939,7 +8939,7 @@
         "Floor Spacer",
         "Clutch"
       ],
-      "popularity": 62
+      "popularity": 57
     },
     {
       "id": "vanlier_74",
@@ -8959,7 +8959,7 @@
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 58
+      "popularity": 55
     },
     {
       "id": "gilmore_77",
@@ -8997,7 +8997,7 @@
         "Clutch Assassin",
         "Floor Spacer"
       ],
-      "popularity": 82
+      "popularity": 85
     },
     {
       "id": "silas_jm_77",
@@ -9013,7 +9013,7 @@
         "Elite Playmaker",
         "Clutch Assassin"
       ],
-      "popularity": 51
+      "popularity": 42
     },
     {
       "id": "kenon_78",
@@ -9032,7 +9032,7 @@
         "Hustle Player",
         "Volume Shooter"
       ],
-      "popularity": 43
+      "popularity": 45
     }
   ],
   "Jazz_1970s": [
@@ -9054,7 +9054,7 @@
         "Volume Shooter",
         "Clutch Assassin"
       ],
-      "popularity": 51
+      "popularity": 82
     },
     {
       "id": "trobinson_78",
@@ -9073,7 +9073,7 @@
         "Rebounding Machine",
         "Volume Shooter"
       ],
-      "popularity": 52
+      "popularity": 44
     },
     {
       "id": "goodrich_jaz_77",
@@ -9090,7 +9090,7 @@
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 66
+      "popularity": 62
     }
   ],
   "Pistons_1970s": [
@@ -9129,7 +9129,7 @@
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 68
+      "popularity": 65
     },
     {
       "id": "kporter_79",
@@ -9145,7 +9145,7 @@
         "Elite Playmaker",
         "Floor General"
       ],
-      "popularity": 37
+      "popularity": 43
     }
   ],
   "Sixers_1970s": [
@@ -9167,7 +9167,7 @@
         "Volume Shooter",
         "Slasher"
       ],
-      "popularity": 93
+      "popularity": 92
     },
     {
       "id": "dcollins_77",
@@ -9184,7 +9184,7 @@
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 58
+      "popularity": 55
     },
     {
       "id": "mcginnis_77",
@@ -9225,7 +9225,7 @@
         "Clutch Assassin",
         "Floor Spacer"
       ],
-      "popularity": 44
+      "popularity": 60
     },
     {
       "id": "rtomjanovich_77",
@@ -9245,7 +9245,7 @@
         "Rebounding Machine",
         "Clutch"
       ],
-      "popularity": 50
+      "popularity": 58
     },
     {
       "id": "mmalone_79",
@@ -9261,7 +9261,7 @@
         "Rebounding Machine",
         "Rim Protector"
       ],
-      "popularity": 80
+      "popularity": 85
     }
   ],
   "Nuggets_1970s": [
@@ -9283,7 +9283,7 @@
         "Clutch Assassin",
         "Slasher"
       ],
-      "popularity": 79
+      "popularity": 75
     },
     {
       "id": "issel_78",
@@ -9302,7 +9302,7 @@
         "Volume Shooter",
         "Rebounding Machine"
       ],
-      "popularity": 70
+      "popularity": 68
     },
     {
       "id": "bjones_nug_78",
@@ -9322,7 +9322,7 @@
         "Hustle Player",
         "Rim Protector"
       ],
-      "popularity": 56
+      "popularity": 52
     }
   ],
   "Cavaliers_1970s": [
@@ -9341,7 +9341,7 @@
         "Floor Spacer",
         "Clutch"
       ],
-      "popularity": 43
+      "popularity": 48
     },
     {
       "id": "crussell_77",
@@ -9357,7 +9357,7 @@
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 37
+      "popularity": 42
     },
     {
       "id": "chones_77",
@@ -9373,7 +9373,7 @@
         "Rebounding Machine",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 40
     }
   ],
   "Warriors_1980s": [
@@ -9394,7 +9394,7 @@
         "Volume Shooter",
         "Clutch Assassin"
       ],
-      "popularity": 56
+      "popularity": 52
     },
     {
       "id": "pshort_84",
@@ -9414,7 +9414,7 @@
         "Floor Spacer",
         "Clutch"
       ],
-      "popularity": 52
+      "popularity": 44
     },
     {
       "id": "jbcarroll_83",
@@ -9430,7 +9430,7 @@
         "Rebounding Machine",
         "Volume Shooter"
       ],
-      "popularity": 52
+      "popularity": 47
     }
   ],
   "Knicks_1980s": [
@@ -9449,7 +9449,7 @@
         "Clutch Assassin",
         "Floor Spacer"
       ],
-      "popularity": 70
+      "popularity": 62
     },
     {
       "id": "ewing_89",
@@ -9466,7 +9466,7 @@
         "Rebounding Machine",
         "Volume Shooter"
       ],
-      "popularity": 90
+      "popularity": 78
     },
     {
       "id": "mjackson_88",
@@ -9482,7 +9482,7 @@
         "Elite Playmaker",
         "Floor General"
       ],
-      "popularity": 39
+      "popularity": 55
     }
   ],
   "Suns_1980s": [
@@ -9501,7 +9501,7 @@
         "Floor Spacer",
         "Clutch Assassin"
       ],
-      "popularity": 58
+      "popularity": 53
     },
     {
       "id": "lnance_86",
@@ -9520,7 +9520,7 @@
         "Rim Protector",
         "Hustle Player"
       ],
-      "popularity": 56
+      "popularity": 48
     },
     {
       "id": "kjohnson_89",
@@ -9537,7 +9537,7 @@
         "Elite Playmaker",
         "Clutch"
       ],
-      "popularity": 70
+      "popularity": 65
     }
   ],
   "Rockets_1980s": [
@@ -9556,7 +9556,7 @@
         "Rebounding Machine",
         "Clutch Assassin"
       ],
-      "popularity": 93
+      "popularity": 88
     },
     {
       "id": "rsampson_86",
@@ -9576,7 +9576,7 @@
         "Rebounding Machine",
         "Volume Shooter"
       ],
-      "popularity": 37
+      "popularity": 58
     },
     {
       "id": "rreid_84",
@@ -9595,7 +9595,7 @@
         "Glue Guy",
         "Lockdown Defender"
       ],
-      "popularity": 35
+      "popularity": 41
     }
   ],
   "Thunder_1980s": [
@@ -9614,7 +9614,7 @@
         "Lockdown Defender",
         "Clutch"
       ],
-      "popularity": 58
+      "popularity": 50
     },
     {
       "id": "jsikma_85",
@@ -9630,7 +9630,7 @@
         "Rebounding Machine",
         "Volume Shooter"
       ],
-      "popularity": 62
+      "popularity": 55
     },
     {
       "id": "dellis_88",
@@ -9647,7 +9647,7 @@
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 41
+      "popularity": 48
     }
   ],
   "Nuggets_1990s": [
@@ -9666,7 +9666,7 @@
         "Rebounding Machine",
         "Glue Guy"
       ],
-      "popularity": 78
+      "popularity": 72
     },
     {
       "id": "abdrauf_95",
@@ -9686,7 +9686,7 @@
         "Floor Spacer",
         "Clutch Assassin"
       ],
-      "popularity": 35
+      "popularity": 52
     },
     {
       "id": "lellis_96",
@@ -9705,7 +9705,7 @@
         "Volume Shooter",
         "Hustle Player"
       ],
-      "popularity": 35
+      "popularity": 41
     }
   ],
   "Bucks_1990s": [
@@ -9724,7 +9724,7 @@
         "Floor Spacer",
         "Clutch"
       ],
-      "popularity": 35
+      "popularity": 62
     },
     {
       "id": "rallen_99",
@@ -9741,7 +9741,7 @@
         "Volume Shooter",
         "Clutch Assassin"
       ],
-      "popularity": 85
+      "popularity": 78
     },
     {
       "id": "vbaker_96",
@@ -9757,7 +9757,7 @@
         "Rebounding Machine",
         "Volume Shooter"
       ],
-      "popularity": 41
+      "popularity": 52
     }
   ],
   "Mavericks_1990s": [
@@ -9776,7 +9776,7 @@
         "Elite Playmaker",
         "Clutch Assassin"
       ],
-      "popularity": 84
+      "popularity": 78
     },
     {
       "id": "mashburn_96",
@@ -9795,7 +9795,7 @@
         "Volume Shooter",
         "Slasher"
       ],
-      "popularity": 60
+      "popularity": 55
     },
     {
       "id": "jjackson_95",
@@ -9814,7 +9814,7 @@
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 45
+      "popularity": 42
     }
   ],
   "Thunder_2000s": [
@@ -9833,7 +9833,7 @@
         "Volume Shooter",
         "Clutch Assassin"
       ],
-      "popularity": 85
+      "popularity": 78
     },
     {
       "id": "rlewis_06",
@@ -9852,7 +9852,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 60
+      "popularity": 50
     },
     {
       "id": "gpayton_02",
@@ -9869,7 +9869,7 @@
         "Lockdown Defender",
         "Clutch Assassin"
       ],
-      "popularity": 88
+      "popularity": 78
     }
   ],
   "Pistons_2010s": [
@@ -9887,7 +9887,7 @@
         "Rebounding Machine",
         "Rim Protector"
       ],
-      "popularity": 35
+      "popularity": 55
     },
     {
       "id": "bgriffin_pis_18",
@@ -9907,7 +9907,7 @@
         "Volume Shooter",
         "Slasher"
       ],
-      "popularity": 83
+      "popularity": 68
     },
     {
       "id": "rjackson_17",
@@ -9923,7 +9923,7 @@
         "Elite Playmaker",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 44
     }
   ],
   "Suns_2010s": [
@@ -9942,7 +9942,7 @@
         "Clutch Assassin",
         "Floor Spacer"
       ],
-      "popularity": 83
+      "popularity": 72
     },
     {
       "id": "gdragic_14",
@@ -9959,7 +9959,7 @@
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 44
+      "popularity": 55
     },
     {
       "id": "ebledsoe_15",
@@ -9978,7 +9978,7 @@
         "Lockdown Defender",
         "Elite Playmaker"
       ],
-      "popularity": 39
+      "popularity": 50
     }
   ],
   "Bucks_2010s": [
@@ -10000,7 +10000,7 @@
         "Clutch Assassin",
         "Lob Threat"
       ],
-      "popularity": 93
+      "popularity": 90
     },
     {
       "id": "middleton_19",
@@ -10020,7 +10020,7 @@
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 40
+      "popularity": 62
     },
     {
       "id": "brogdon_18",
@@ -10040,7 +10040,7 @@
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 52
     }
   ],
   "Bulls_2020s": [
@@ -10059,7 +10059,7 @@
         "Floor Spacer",
         "Clutch Assassin"
       ],
-      "popularity": 49
+      "popularity": 65
     },
     {
       "id": "derozan_bulls_22",
@@ -10079,7 +10079,7 @@
         "Volume Shooter",
         "Mid-Range Maestro"
       ],
-      "popularity": 78
+      "popularity": 65
     },
     {
       "id": "vucevic_21",
@@ -10099,7 +10099,7 @@
         "Floor Spacer",
         "Post Scorer"
       ],
-      "popularity": 35
+      "popularity": 52
     }
   ],
   "Spurs_2020s": [
@@ -10121,7 +10121,7 @@
         "Floor Spacer",
         "Franchise Player"
       ],
-      "popularity": 49
+      "popularity": 78
     },
     {
       "id": "dmurray_22",
@@ -10141,7 +10141,7 @@
         "Elite Playmaker",
         "Hustle Player"
       ],
-      "popularity": 45
+      "popularity": 57
     },
     {
       "id": "derozan_spurs_21",
@@ -10161,7 +10161,7 @@
         "Mid-Range Maestro",
         "Volume Shooter"
       ],
-      "popularity": 78
+      "popularity": 63
     }
   ],
   "Knicks_2020s": [
@@ -10180,7 +10180,7 @@
         "Clutch Assassin",
         "Volume Shooter"
       ],
-      "popularity": 57
+      "popularity": 66
     },
     {
       "id": "randle_21",
@@ -10200,7 +10200,7 @@
         "Post Scorer",
         "Volume Shooter"
       ],
-      "popularity": 48
+      "popularity": 57
     },
     {
       "id": "rjbarrett_23",
@@ -10220,7 +10220,7 @@
         "Slasher",
         "Defensive Stopper"
       ],
-      "popularity": 37
+      "popularity": 53
     }
   ],
   "Jazz_2020s": [
@@ -10239,7 +10239,7 @@
         "Volume Shooter",
         "Floor Spacer"
       ],
-      "popularity": 78
+      "popularity": 68
     },
     {
       "id": "rgobert_21",
@@ -10256,7 +10256,7 @@
         "Rebounding Machine",
         "Lob Threat"
       ],
-      "popularity": 72
+      "popularity": 62
     },
     {
       "id": "markkanen_23",
@@ -10276,7 +10276,7 @@
         "Volume Shooter",
         "Stretch Big"
       ],
-      "popularity": 48
+      "popularity": 55
     }
   ],
   "Pistons_2020s": [
@@ -10298,7 +10298,7 @@
         "Volume Shooter",
         "Floor Spacer"
       ],
-      "popularity": 42
+      "popularity": 58
     },
     {
       "id": "duren_23",
@@ -10315,7 +10315,7 @@
         "Rim Protector",
         "Lob Threat"
       ],
-      "popularity": 35
+      "popularity": 44
     },
     {
       "id": "sbey_22",
@@ -10335,7 +10335,7 @@
         "3-and-D",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 40
     }
   ],
   "Magic_2020s": [
@@ -10357,7 +10357,7 @@
         "Clutch Assassin",
         "Volume Shooter"
       ],
-      "popularity": 43
+      "popularity": 60
     },
     {
       "id": "fwagner_23",
@@ -10377,7 +10377,7 @@
         "Volume Shooter",
         "Slasher"
       ],
-      "popularity": 38
+      "popularity": 50
     },
     {
       "id": "canthony_22",
@@ -10394,7 +10394,7 @@
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 35
+      "popularity": 44
     }
   ],
   "Sixers_2020s": [
@@ -10413,7 +10413,7 @@
         "Rim Protector",
         "Clutch Assassin"
       ],
-      "popularity": 85
+      "popularity": 80
     },
     {
       "id": "maxey_24",
@@ -10430,7 +10430,7 @@
         "Volume Shooter",
         "Clutch Assassin"
       ],
-      "popularity": 50
+      "popularity": 62
     },
     {
       "id": "tharris_21",
@@ -10450,7 +10450,7 @@
         "Defensive Stopper",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 48
     }
   ],
   "Rockets_2020s": [
@@ -10469,7 +10469,7 @@
         "Floor Spacer",
         "Clutch Assassin"
       ],
-      "popularity": 45
+      "popularity": 56
     },
     {
       "id": "sengun_24",
@@ -10489,7 +10489,7 @@
         "Elite Playmaker",
         "Rim Protector"
       ],
-      "popularity": 47
+      "popularity": 42
     },
     {
       "id": "jsmith_23",
@@ -10509,7 +10509,7 @@
         "Floor Spacer",
         "3-and-D"
       ],
-      "popularity": 35
+      "popularity": 40
     }
   ]
 }
