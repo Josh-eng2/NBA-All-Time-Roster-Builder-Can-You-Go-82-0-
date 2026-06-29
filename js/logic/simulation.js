@@ -23,12 +23,15 @@ const SIM_K      = 7;
 const SIM_CENTER = 1.45;
 const WIN_CAP    = 1.0;
 
+let _baselinesCache = null;
+
 /**
  * Derives dynamic STARTER_BASE / BENCH_BASE from the live DB.
  * Treats the top ~71.4 % of players (by composite score) as the starter tier.
- * Auto-adjusts whenever players are added or stats change.
+ * Memoized — DB never changes after startup so the sort runs at most once.
  */
 function computeSimBaselines() {
+  if (_baselinesCache) return _baselinesCache;
   const all    = Object.values(DB).flat();
   const score  = p => p.ppg * 0.35 + p.rpg * 0.20 + p.apg * 0.20 + p.spg * 0.15 + p.bpg * 0.10;
   const sorted = [...all].sort((a, b) => score(b) - score(a));
@@ -37,10 +40,11 @@ function computeSimBaselines() {
   const bTier  = sorted.slice(cut);
   const avg    = (arr, stat) => arr.reduce((s, p) => s + p[stat], 0) / arr.length;
   const STATS  = ['ppg', 'rpg', 'apg', 'spg', 'bpg'];
-  return {
+  _baselinesCache = {
     STARTER_BASE: Object.fromEntries(STATS.map(k => [k, avg(sTier, k) * 5])),
     BENCH_BASE:   Object.fromEntries(STATS.map(k => [k, avg(bTier, k) * 2])),
   };
+  return _baselinesCache;
 }
 
 /**

@@ -21,6 +21,10 @@ import { bindEvents }                                     from '../ui/events.js'
 // ── Mount point ───────────────────────────────────────────────────────────────
 export const $app = document.getElementById('app');
 
+// ── Chemistry dashboard cache ─────────────────────────────────────────────────
+// Keyed by sorted roster player IDs — recalculates only when the roster changes.
+let _chemCache = { key: null, result: null };
+
 // ── SVG icons ─────────────────────────────────────────────────────────────────
 function iconBall(cls = '') {
   return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -430,7 +434,12 @@ function renderRosterSlot(pos, canPlace, isBench) {
 function renderChemDashboard() {
   const starters = POSITIONS.map(p => S.roster[p]).filter(Boolean);
   const bench    = BENCH_POSITIONS.map(p => S.roster[p]).filter(Boolean);
-  const { chemScore, chemReport } = calculateChemistry(starters, bench);
+  const rosterKey = [...starters, ...bench].map(p => p.id).join(',');
+  if (_chemCache.key !== rosterKey) {
+    _chemCache.key    = rosterKey;
+    _chemCache.result = calculateChemistry(starters, bench);
+  }
+  const { chemScore, chemReport } = _chemCache.result;
   const scoreColor = chemScore >= 60 ? '#16a34a' : chemScore >= 40 ? '#d97706' : '#dc2626';
   const scoreBg    = chemScore >= 60 ? '#f0fdf4'  : chemScore >= 40 ? '#fffbeb'  : '#fef2f2';
   const scoreLabel = chemScore >= 60 ? 'Strong'   : chemScore >= 40 ? 'Neutral'  : 'Weak';

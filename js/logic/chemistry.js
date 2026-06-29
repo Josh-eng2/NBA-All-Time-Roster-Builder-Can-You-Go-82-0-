@@ -76,7 +76,7 @@ function optimizeLineup(starters) {
   // Build human-readable report
   const posReport = [];
   if (allPrimary) {
-    posReport.push('🟢 Flawless Construction: All 5 starters playing natural positions (+3%)');
+    posReport.push('🟢 Flawless Construction: All 5 starters playing natural positions (+7%)');
     for (const { slot, player } of assignment) {
       posReport.push(`🟢 Perfect Fit: ${player.name} plays natural ${slot} (+3%)`);
     }
