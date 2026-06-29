@@ -23,7 +23,7 @@ import {
   showLeaderboardModal, closeLeaderboardModal,
   showGlobalLeaderboardModal, closeGlobalLeaderboardModal,
 } from '../utils/storage.js';
-import { submitGlobalScore } from '../utils/firebase.js';
+import { submitGlobalScore, logAnalyticsEvent } from '../utils/firebase.js';
 import {
   render, $app, fmtPlayerLine, fmtDecadeShort, showToast,
 } from '../ui/render.js'; // circular — safe (used only inside function bodies)
@@ -121,6 +121,7 @@ function dispatch(action) {
 
 function doStartGame(era = 'all') {
   startGame(era); // resets S in state.js
+  logAnalyticsEvent('game_started', { era, coach: S.coach ?? 'none' });
   render();
 }
 
@@ -262,6 +263,7 @@ function placePlayer(pos) {
   S.usedPlayerIds.push(player.id);
   S.draftedPlayerNames?.add(player.name);
   if (!oldPlayer) S.round++;  // swaps don't consume an additional round
+  logAnalyticsEvent('player_drafted', { player: player.name, pos, round: S.round });
   S.spinState        = 'idle';
   S.currentSpin      = null;
   S.availablePlayers = [];
@@ -278,6 +280,7 @@ function doSimulate() {
   S.result  = simulateSeason(starters, bench, S.coach);
   S.phase   = 'results';
   S.runSaved = false;
+  logAnalyticsEvent('season_simulated', { wins: S.result.wins, losses: S.result.losses, coach: S.coach ?? 'none', era: S.selectedEra ?? 'all' });
   render();
 }
 
@@ -457,6 +460,7 @@ function doSimNextRound() {
           if (po.currentRound === 3) {
             po.champion = true;
             saveToTrophyRoom();
+            logAnalyticsEvent('championship_won', { team: S.teamName, wins: S.result?.wins ?? 0, coach: S.coach ?? 'none', era: S.selectedEra ?? 'all' });
             setTimeout(() => {
               if (typeof confetti !== 'undefined') {
                 confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#f97316', '#eab308', '#ffffff'] });

@@ -37,6 +37,7 @@ import {
   getFirestore, collection, addDoc, getDocs,
   query, orderBy, limit, where, serverTimestamp,
 } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js';
+import { getAnalytics, logEvent } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-analytics.js';
 
 // ── Firebase project config ────────────────────────────────────────────────────
 const FIREBASE_CONFIG = {
@@ -57,16 +58,39 @@ export function isFirebaseConfigured() {
       && FIREBASE_CONFIG.projectId !== 'YOUR_PROJECT_ID';
 }
 
-// ── Singleton Firestore instance ──────────────────────────────────────────────
+// ── Singleton app / Firestore / Analytics instances ───────────────────────────
 
-let _db = null;
+let _db        = null;
+let _analytics = null;
+
+function getApp() {
+  const existing = getApps();
+  return existing.length ? existing[0] : initializeApp(FIREBASE_CONFIG);
+}
 
 function getDb() {
   if (_db) return _db;
-  const existing = getApps();
-  const app = existing.length ? existing[0] : initializeApp(FIREBASE_CONFIG);
-  _db = getFirestore(app);
+  _db = getFirestore(getApp());
   return _db;
+}
+
+function getAnalyticsInstance() {
+  if (_analytics) return _analytics;
+  try { _analytics = getAnalytics(getApp()); } catch (_) { /* blocked by adblocker */ }
+  return _analytics;
+}
+
+/**
+ * Logs a Firebase Analytics event. Silently no-ops if Analytics is blocked.
+ * @param {string} eventName
+ * @param {object} [params]
+ */
+export function logAnalyticsEvent(eventName, params = {}) {
+  if (!isFirebaseConfigured()) return;
+  try {
+    const a = getAnalyticsInstance();
+    if (a) logEvent(a, eventName, params);
+  } catch (_) { /* silently ignore */ }
 }
 
 // ── Public API ────────────────────────────────────────────────────────────────
