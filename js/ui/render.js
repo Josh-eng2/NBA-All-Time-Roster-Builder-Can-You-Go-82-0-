@@ -265,6 +265,7 @@ function renderSlotMachine() {
       <div class="ml-auto flex gap-1.5">
         ${isDone && S.teamSkips > 0 ? `<button data-action="skip-team" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">Skip Team (${S.teamSkips})</button>` : ''}
         ${isDone && S.decadeSkips > 0 && !eraLocked ? `<button data-action="skip-decade" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">Skip Era (${S.decadeSkips})</button>` : ''}
+        <button data-action="mulligan" class="text-[11px] px-2.5 py-1 rounded-full border border-orange-300 bg-orange-50 text-orange-600 hover:bg-orange-100 transition-all cursor-pointer" title="Reset draft — keep era &amp; coach">Mulligan</button>
       </div>
     </div>
     <div class="grid grid-cols-2 gap-3 mb-4 ${isSpin ? 'slot-spinning' : ''}">
