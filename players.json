@@ -13177,5 +13177,262 @@
       ],
       "popularity": 35
     }
+  ],
+  "Pelicans_2000s": [
+    {
+      "id": "paul_c_08",
+      "name": "Chris Paul",
+      "pos": "PG",
+      "ppg": 20.4,
+      "rpg": 4.4,
+      "apg": 10.8,
+      "spg": 2.6,
+      "bpg": 0.2,
+      "archetype": "Playmaker",
+      "traits": [
+        "Point God",
+        "Floor General",
+        "Defensive Stopper"
+      ],
+      "popularity": 78
+    },
+    {
+      "id": "davis_b_03",
+      "name": "Baron Davis",
+      "pos": "PG",
+      "ppg": 20.2,
+      "rpg": 5.2,
+      "apg": 7.8,
+      "spg": 2.1,
+      "bpg": 0.6,
+      "archetype": "Playmaker",
+      "traits": [
+        "Floor General",
+        "Slasher",
+        "Elite Playmaker"
+      ],
+      "popularity": 65
+    },
+    {
+      "id": "stojakovic_p_07",
+      "name": "Peja Stojakovic",
+      "pos": "SF",
+      "ppg": 18.8,
+      "rpg": 4.6,
+      "apg": 2.2,
+      "spg": 0.8,
+      "bpg": 0.2,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Floor Spacer",
+        "3-and-D",
+        "Volume Shooter"
+      ],
+      "popularity": 65
+    },
+    {
+      "id": "mashburn_03",
+      "name": "Jamal Mashburn",
+      "pos": "SF",
+      "ppg": 19.6,
+      "rpg": 6.8,
+      "apg": 3.8,
+      "spg": 1,
+      "bpg": 0.4,
+      "archetype": "Slasher",
+      "traits": [
+        "Mid-Range Maestro",
+        "Volume Shooter"
+      ],
+      "popularity": 55
+    },
+    {
+      "id": "west_d_07",
+      "name": "David West",
+      "pos": "PF",
+      "ppg": 16.4,
+      "rpg": 7.6,
+      "apg": 2.8,
+      "spg": 0.8,
+      "bpg": 0.6,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Post Scorer",
+        "Mid-Range Maestro"
+      ],
+      "popularity": 43
+    }
+  ],
+  "Pelicans_2010s": [
+    {
+      "id": "davis_ad_16",
+      "name": "Anthony Davis",
+      "pos": "C",
+      "ppg": 24.4,
+      "rpg": 10.8,
+      "apg": 2.4,
+      "spg": 1.4,
+      "bpg": 2.8,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Rim Protector",
+        "Rebounding Machine",
+        "Volume Shooter"
+      ],
+      "popularity": 80
+    },
+    {
+      "id": "cousins_dm_17",
+      "name": "DeMarcus Cousins",
+      "pos": "C",
+      "ppg": 25.2,
+      "rpg": 12.9,
+      "apg": 5.4,
+      "spg": 1.5,
+      "bpg": 1.6,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Volume Shooter",
+        "Post Scorer",
+        "Rebounding Machine"
+      ],
+      "popularity": 63
+    },
+    {
+      "id": "holiday_j_16",
+      "name": "Jrue Holiday",
+      "pos": "PG",
+      "ppg": 19.2,
+      "rpg": 5,
+      "apg": 6.8,
+      "spg": 1.6,
+      "bpg": 0.4,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Defensive Stopper",
+        "Floor General",
+        "Elite Playmaker"
+      ],
+      "popularity": 63
+    },
+    {
+      "id": "gordon_e_15",
+      "name": "Eric Gordon",
+      "pos": "SG",
+      "ppg": 20.4,
+      "rpg": 3.4,
+      "apg": 3.2,
+      "spg": 0.8,
+      "bpg": 0.2,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Volume Shooter",
+        "Floor Spacer",
+        "3-and-D"
+      ],
+      "popularity": 50
+    },
+    {
+      "id": "anderson_r_14",
+      "name": "Ryan Anderson",
+      "pos": "PF",
+      "ppg": 17.2,
+      "rpg": 7.8,
+      "apg": 1.8,
+      "spg": 0.4,
+      "bpg": 0.4,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Floor Spacer",
+        "3-and-D"
+      ],
+      "popularity": 46
+    }
+  ],
+  "Pelicans_2020s": [
+    {
+      "id": "williamson_z_22",
+      "name": "Zion Williamson",
+      "pos": "PF",
+      "ppg": 26,
+      "rpg": 7,
+      "apg": 4.6,
+      "spg": 0.8,
+      "bpg": 0.6,
+      "archetype": "Slasher",
+      "traits": [
+        "Slasher",
+        "Volume Shooter",
+        "Clutch Assassin"
+      ],
+      "popularity": 48
+    },
+    {
+      "id": "ingram_b_22",
+      "name": "Brandon Ingram",
+      "pos": "SF",
+      "ppg": 24.3,
+      "rpg": 5.8,
+      "apg": 5.2,
+      "spg": 0.8,
+      "bpg": 0.6,
+      "archetype": "Slasher",
+      "traits": [
+        "Slasher",
+        "Volume Shooter",
+        "Mid-Range Maestro"
+      ],
+      "popularity": 53
+    },
+    {
+      "id": "mccollum_cj_22",
+      "name": "CJ McCollum",
+      "pos": "SG",
+      "ppg": 20.4,
+      "rpg": 4.4,
+      "apg": 4.8,
+      "spg": 0.8,
+      "bpg": 0.2,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Mid-Range Maestro",
+        "Clutch Assassin",
+        "Volume Shooter"
+      ],
+      "popularity": 39
+    },
+    {
+      "id": "jones_h_23",
+      "name": "Herb Jones",
+      "pos": "SF",
+      "ppg": 13.4,
+      "rpg": 4.6,
+      "apg": 2.8,
+      "spg": 1.6,
+      "bpg": 0.8,
+      "archetype": "Lockdown Defender",
+      "traits": [
+        "Defensive Stopper",
+        "3-and-D",
+        "Lockdown Defender"
+      ],
+      "popularity": 35
+    },
+    {
+      "id": "valanciunas_22",
+      "name": "Jonas Valanciunas",
+      "pos": "C",
+      "ppg": 14.8,
+      "rpg": 11.6,
+      "apg": 2.4,
+      "spg": 0.4,
+      "bpg": 0.8,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Rebounding Machine",
+        "Post Scorer"
+      ],
+      "popularity": 35
+    }
   ]
 }
