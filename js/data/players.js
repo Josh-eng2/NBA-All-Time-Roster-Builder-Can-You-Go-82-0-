@@ -1,7 +1,7 @@
 /**
  * js/data/players.js — Inlined Player Database (auto-generated)
  *
- * 153 team-era buckets · 794 players total
+ * 158 team-era buckets · 819 players total
  *
  * DO NOT EDIT BY HAND.
  * Re-generate with:  node scripts/inline_players.js
@@ -13462,6 +13462,430 @@ const PLAYER_DB = {
       "traits": [
         "Rebounding Machine",
         "Post Scorer"
+      ],
+      "popularity": 35
+    }
+  ],
+  "Blazers_1980s": [
+    {
+      "id": "drexler_87",
+      "name": "Clyde Drexler",
+      "pos": "SG",
+      "ppg": 23.8,
+      "rpg": 6.2,
+      "apg": 5.8,
+      "spg": 2.4,
+      "bpg": 0.8,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Slasher",
+        "Defensive Stopper",
+        "Volume Shooter"
+      ],
+      "popularity": 78
+    },
+    {
+      "id": "vandeweghe_84",
+      "name": "Kiki Vandeweghe",
+      "pos": "SF",
+      "ppg": 24.8,
+      "rpg": 5.8,
+      "apg": 2.8,
+      "spg": 0.6,
+      "bpg": 0.4,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Volume Shooter",
+        "Mid-Range Maestro"
+      ],
+      "popularity": 52
+    },
+    {
+      "id": "porter_t_87",
+      "name": "Terry Porter",
+      "pos": "PG",
+      "ppg": 14.8,
+      "rpg": 3.8,
+      "apg": 7.8,
+      "spg": 1.6,
+      "bpg": 0.2,
+      "archetype": "Playmaker",
+      "traits": [
+        "Floor General",
+        "Floor Spacer"
+      ],
+      "popularity": 51
+    },
+    {
+      "id": "kersey_86",
+      "name": "Jerome Kersey",
+      "pos": "SF",
+      "ppg": 14.2,
+      "rpg": 7.8,
+      "apg": 2.4,
+      "spg": 1.4,
+      "bpg": 0.8,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Defensive Stopper",
+        "Hustle Player",
+        "Slasher"
+      ],
+      "popularity": 35
+    },
+    {
+      "id": "duckworth_88",
+      "name": "Kevin Duckworth",
+      "pos": "C",
+      "ppg": 15.8,
+      "rpg": 7.4,
+      "apg": 1.4,
+      "spg": 0.4,
+      "bpg": 0.8,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Post Scorer",
+        "Rebounding Machine"
+      ],
+      "popularity": 35
+    }
+  ],
+  "Blazers_1990s": [
+    {
+      "id": "drexler_92",
+      "name": "Clyde Drexler",
+      "pos": "SG",
+      "ppg": 22.8,
+      "rpg": 6.8,
+      "apg": 5.4,
+      "spg": 2.2,
+      "bpg": 0.6,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Slasher",
+        "Defensive Stopper",
+        "Clutch Assassin"
+      ],
+      "popularity": 78
+    },
+    {
+      "id": "sabonis_97",
+      "name": "Arvydas Sabonis",
+      "pos": "C",
+      "ppg": 14.6,
+      "rpg": 9.8,
+      "apg": 3.6,
+      "spg": 0.8,
+      "bpg": 2.1,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Floor General",
+        "Post Scorer",
+        "Rim Protector"
+      ],
+      "popularity": 35
+    },
+    {
+      "id": "wallace_r_98",
+      "name": "Rasheed Wallace",
+      "pos": "PF",
+      "ppg": 17.4,
+      "rpg": 7.8,
+      "apg": 2.2,
+      "spg": 0.8,
+      "bpg": 1.8,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Rim Protector",
+        "Volume Shooter",
+        "Defensive Stopper"
+      ],
+      "popularity": 67
+    },
+    {
+      "id": "robinson_c_95",
+      "name": "Cliff Robinson",
+      "pos": "SF",
+      "ppg": 18.2,
+      "rpg": 5.8,
+      "apg": 2.8,
+      "spg": 1.2,
+      "bpg": 1.2,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Volume Shooter",
+        "Defensive Stopper"
+      ],
+      "popularity": 38
+    },
+    {
+      "id": "stoudamire_99",
+      "name": "Damon Stoudamire",
+      "pos": "PG",
+      "ppg": 16.8,
+      "rpg": 3.6,
+      "apg": 7.8,
+      "spg": 1.4,
+      "bpg": 0.2,
+      "archetype": "Playmaker",
+      "traits": [
+        "Floor General",
+        "Volume Shooter"
+      ],
+      "popularity": 37
+    }
+  ],
+  "Blazers_2000s": [
+    {
+      "id": "roy_b_08",
+      "name": "Brandon Roy",
+      "pos": "SG",
+      "ppg": 21.2,
+      "rpg": 4.8,
+      "apg": 5.2,
+      "spg": 1,
+      "bpg": 0.3,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Mid-Range Maestro",
+        "Clutch Assassin",
+        "Volume Shooter"
+      ],
+      "popularity": 45
+    },
+    {
+      "id": "aldridge_la_09",
+      "name": "LaMarcus Aldridge",
+      "pos": "PF",
+      "ppg": 18,
+      "rpg": 8.4,
+      "apg": 1.8,
+      "spg": 0.6,
+      "bpg": 1.2,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Post Scorer",
+        "Mid-Range Maestro"
+      ],
+      "popularity": 63
+    },
+    {
+      "id": "pippen_s_01",
+      "name": "Scottie Pippen",
+      "pos": "SF",
+      "ppg": 14.6,
+      "rpg": 7.2,
+      "apg": 5.6,
+      "spg": 2,
+      "bpg": 0.8,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Defensive Stopper",
+        "Floor General",
+        "Elite Playmaker"
+      ],
+      "popularity": 92
+    },
+    {
+      "id": "randolph_z_04",
+      "name": "Zach Randolph",
+      "pos": "PF",
+      "ppg": 18.4,
+      "rpg": 11.2,
+      "apg": 2.4,
+      "spg": 0.6,
+      "bpg": 0.4,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Post Scorer",
+        "Rebounding Machine"
+      ],
+      "popularity": 36
+    },
+    {
+      "id": "stoudamire_d_02",
+      "name": "Damon Stoudamire",
+      "pos": "PG",
+      "ppg": 14.8,
+      "rpg": 3.4,
+      "apg": 7.2,
+      "spg": 1.2,
+      "bpg": 0.2,
+      "archetype": "Playmaker",
+      "traits": [
+        "Floor General",
+        "Volume Shooter"
+      ],
+      "popularity": 35
+    }
+  ],
+  "Blazers_2010s": [
+    {
+      "id": "lillard_d_15",
+      "name": "Damian Lillard",
+      "pos": "PG",
+      "ppg": 24.5,
+      "rpg": 4.2,
+      "apg": 6.8,
+      "spg": 0.9,
+      "bpg": 0.3,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Clutch Assassin",
+        "Volume Shooter",
+        "Point God"
+      ],
+      "popularity": 89
+    },
+    {
+      "id": "aldridge_la_14",
+      "name": "LaMarcus Aldridge",
+      "pos": "PF",
+      "ppg": 22.4,
+      "rpg": 10.8,
+      "apg": 2.4,
+      "spg": 0.6,
+      "bpg": 1.8,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Post Scorer",
+        "Mid-Range Maestro",
+        "Rebounding Machine"
+      ],
+      "popularity": 63
+    },
+    {
+      "id": "mccollum_cj_16",
+      "name": "CJ McCollum",
+      "pos": "SG",
+      "ppg": 21.8,
+      "rpg": 4.2,
+      "apg": 3.4,
+      "spg": 0.8,
+      "bpg": 0.4,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Mid-Range Maestro",
+        "Volume Shooter"
+      ],
+      "popularity": 36
+    },
+    {
+      "id": "nurkic_j_18",
+      "name": "Jusuf Nurkic",
+      "pos": "C",
+      "ppg": 14.4,
+      "rpg": 10.8,
+      "apg": 3.2,
+      "spg": 0.6,
+      "bpg": 1.2,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Post Scorer",
+        "Rebounding Machine"
+      ],
+      "popularity": 35
+    },
+    {
+      "id": "batum_n_14",
+      "name": "Nicolas Batum",
+      "pos": "SF",
+      "ppg": 12.8,
+      "rpg": 6.2,
+      "apg": 4.8,
+      "spg": 1.4,
+      "bpg": 0.8,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "3-and-D",
+        "Floor General",
+        "Defensive Stopper"
+      ],
+      "popularity": 35
+    }
+  ],
+  "Blazers_2020s": [
+    {
+      "id": "lillard_d_22",
+      "name": "Damian Lillard",
+      "pos": "PG",
+      "ppg": 28.2,
+      "rpg": 4.4,
+      "apg": 7.4,
+      "spg": 0.8,
+      "bpg": 0.4,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Clutch Assassin",
+        "Volume Shooter",
+        "Point God"
+      ],
+      "popularity": 89
+    },
+    {
+      "id": "simons_a_23",
+      "name": "Anfernee Simons",
+      "pos": "SG",
+      "ppg": 21.8,
+      "rpg": 3.8,
+      "apg": 4.6,
+      "spg": 0.8,
+      "bpg": 0.2,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Floor Spacer",
+        "Volume Shooter",
+        "3-and-D"
+      ],
+      "popularity": 40
+    },
+    {
+      "id": "grant_j_23",
+      "name": "Jerami Grant",
+      "pos": "PF",
+      "ppg": 20.8,
+      "rpg": 4.8,
+      "apg": 2.4,
+      "spg": 1,
+      "bpg": 1,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Defensive Stopper",
+        "Volume Shooter",
+        "Slasher"
+      ],
+      "popularity": 35
+    },
+    {
+      "id": "nurkic_j_22",
+      "name": "Jusuf Nurkic",
+      "pos": "C",
+      "ppg": 15.2,
+      "rpg": 11.8,
+      "apg": 3.4,
+      "spg": 0.6,
+      "bpg": 1.1,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Post Scorer",
+        "Rebounding Machine"
+      ],
+      "popularity": 36
+    },
+    {
+      "id": "henderson_s_24",
+      "name": "Scoot Henderson",
+      "pos": "PG",
+      "ppg": 14.6,
+      "rpg": 4.2,
+      "apg": 6.2,
+      "spg": 1,
+      "bpg": 0.4,
+      "archetype": "Playmaker",
+      "traits": [
+        "Floor General",
+        "Slasher",
+        "Elite Playmaker"
       ],
       "popularity": 35
     }
