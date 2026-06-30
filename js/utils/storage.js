@@ -22,6 +22,8 @@
 import { S, COACHES, POSITIONS, BENCH_POSITIONS } from '../logic/state.js';
 import { fetchLeaderboard }                        from '../utils/firebase.js';
 
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+
 // ── Save leaderboard entry ────────────────────────────────────────────────────
 
 export function saveLeaderboard() {
@@ -94,7 +96,7 @@ function renderLeaderboardModal() {
         const medals    = ['🥇','🥈','🥉','4️⃣','5️⃣'];
         const rankColor = i === 0 ? '#2563eb' : '#94a3b8';
         const winsColor = isPerfect ? '#b45309' : '#0f172a';
-        const name      = e.teamName || 'Untitled Team';
+        const name      = esc(e.teamName || 'Untitled Team');
         return `
         <div style="border-radius:12px;border:1.5px solid;padding:12px;display:flex;align-items:center;gap:12px;${rowBg}">
           <span style="font-size:20px;width:28px;text-align:center;flex-shrink:0">${medals[i]}</span>
@@ -107,7 +109,7 @@ function renderLeaderboardModal() {
               <span style="font-weight:900;font-size:16px;color:${winsColor}">${e.wins}–${e.losses}</span>
               <span style="font-size:11px;color:#64748b">${e.date}</span>
             </div>
-            <p style="font-size:11px;color:#94a3b8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:3px 0 0">${e.starters}</p>
+            <p style="font-size:11px;color:#94a3b8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:3px 0 0">${esc(e.starters || '')}</p>
           </div>
         </div>`;
       }).join('');
@@ -188,7 +190,7 @@ function _globalLbRowsHtml(entries) {
     const medal      = i < 3
       ? `<span style="font-size:18px">${medals[i]}</span>`
       : `<span style="font-size:12px;font-weight:800;color:#94a3b8">#${i + 1}</span>`;
-    const name       = (e.teamName || 'Untitled Team').slice(0, 30);
+    const name       = esc((e.teamName || 'Untitled Team').slice(0, 30));
     const winsColor  = isPerfect ? '#b45309' : e.wins >= 70 ? '#16a34a' : e.wins >= 50 ? '#2563eb' : '#0f172a';
     const champBadge = e.champion
       ? `<span style="font-size:10px;font-weight:900;padding:2px 7px;border-radius:999px;background:#fef3c7;color:#92400e;border:1px solid #fcd34d;white-space:nowrap">🏆 CHAMP</span>`
@@ -206,10 +208,10 @@ function _globalLbRowsHtml(entries) {
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
           <span style="font-weight:900;font-size:15px;color:${winsColor};font-family:Fira Sans,sans-serif">${e.wins}–${e.losses}</span>
-          ${e.coachName ? `<span style="font-size:11px;color:#64748b;font-family:Fira Sans,sans-serif">${e.coachName}</span>` : ''}
-          ${e.era && e.era !== 'all' ? `<span style="font-size:11px;color:#94a3b8;font-family:Fira Sans,sans-serif">${e.era}</span>` : ''}
+          ${e.coachName ? `<span style="font-size:11px;color:#64748b;font-family:Fira Sans,sans-serif">${esc(e.coachName)}</span>` : ''}
+          ${e.era && e.era !== 'all' ? `<span style="font-size:11px;color:#94a3b8;font-family:Fira Sans,sans-serif">${esc(e.era)}</span>` : ''}
         </div>
-        ${e.starters ? `<p style="font-size:10px;color:#94a3b8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:2px 0 0;font-family:Fira Sans,sans-serif">${e.starters}</p>` : ''}
+        ${e.starters ? `<p style="font-size:10px;color:#94a3b8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:2px 0 0;font-family:Fira Sans,sans-serif">${esc(e.starters)}</p>` : ''}
       </div>
       <div style="text-align:right;flex-shrink:0">
         <p style="font-size:10px;color:#94a3b8;margin:0 0 2px;font-family:Fira Sans,sans-serif">CHEM</p>

@@ -161,6 +161,7 @@ export function confirmLeave(fn) {
 
 function moveRosterPlayer(fromPos, toPos) {
   S.movingPos = null;
+  if (!ALL_POSITIONS.includes(fromPos) || !ALL_POSITIONS.includes(toPos)) { render(); return; }
   if (fromPos === toPos) { render(); return; }
   const a = S.roster[fromPos];
   const b = S.roster[toPos] || null;
@@ -170,6 +171,7 @@ function moveRosterPlayer(fromPos, toPos) {
 }
 
 function doSpin() {
+  if (S.spinState !== 'idle') return;
   S.spinState      = 'spinning';
   S.selectedPlayer = null;
   S.movingPos      = null;
@@ -210,7 +212,7 @@ function doSpin() {
 }
 
 function doSkipTeam() {
-  if (S.teamSkips <= 0 || !S.currentSpin) { render(); return; }
+  if (S.teamSkips <= 0 || !S.currentSpin || S.spinState !== 'done') { render(); return; }
   const spin = spinResult(null, S.currentSpin.decade);
   if (!spin) { render(); return; }
   S.teamSkips--;
@@ -274,6 +276,7 @@ function placePlayer(pos) {
 // ── Season simulation ─────────────────────────────────────────────────────────
 
 function doSimulate() {
+  if (S.phase !== 'drafting') return;
   const starters = POSITIONS.map(p => S.roster[p]).filter(Boolean);
   const bench    = BENCH_POSITIONS.map(p => S.roster[p]).filter(Boolean);
   S.result  = simulateSeason(starters, bench, S.coach);

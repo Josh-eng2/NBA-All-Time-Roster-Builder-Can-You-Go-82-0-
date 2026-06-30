@@ -16,7 +16,15 @@
  *                          && request.resource.data.wins >= 0
  *                          && request.resource.data.wins <= 82
  *                          && request.resource.data.teamName is string
- *                          && request.resource.data.teamName.size() <= 30;
+ *                          && request.resource.data.teamName.size() <= 30
+ *                          && request.resource.data.starters is string
+ *                          && request.resource.data.starters.size() <= 100
+ *                          && request.resource.data.chemScore is number
+ *                          && request.resource.data.chemScore >= 0
+ *                          && request.resource.data.chemScore <= 100
+ *                          && request.resource.data.champion is bool
+ *                          && request.resource.data.timestampMs is number
+ *                          && request.resource.data.timestampMs <= request.time.toMillis() + 60000;
  *            allow update, delete: if false;
  *          }
  *        }

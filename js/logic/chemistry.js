@@ -201,7 +201,8 @@ export function calculateChemistry(starters, bench) {
   }
 
   const sixthMan = bench.find(p => p.ppg > 18.0);
-  if (sixthMan) {
+  const _hasEliteUnit = sixthMan && bench.find(p => p.archetype === 'Playmaker' && p !== sixthMan);
+  if (sixthMan && !_hasEliteUnit) {
     const bonus = coach === 'popovich' ? 0.07 : 0.05;
     chemBonus += bonus;
     chemReport.push(`🟢 Sixth Man Spark${coach === 'popovich' ? ' ⭐ Pop' : ''}: ${sixthMan.name.split(' ').pop()} provides elite scoring off the bench (+${Math.round(bonus * 100)}%)`);
