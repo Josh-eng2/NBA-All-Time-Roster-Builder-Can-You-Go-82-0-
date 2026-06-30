@@ -1,7 +1,7 @@
 /**
  * js/data/players.js — Inlined Player Database (auto-generated)
  *
- * 118 team-era buckets · 622 players total
+ * 125 team-era buckets · 657 players total
  *
  * DO NOT EDIT BY HAND.
  * Re-generate with:  node scripts/inline_players.js
@@ -80,7 +80,7 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 98
+      "popularity": 92
     },
     {
       "id": "larusso_67",
@@ -147,7 +147,7 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 97
+      "popularity": 90
     },
     {
       "id": "goodrich_74",
@@ -280,7 +280,7 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 97
+      "popularity": 90
     },
     {
       "id": "worthy_88",
@@ -412,7 +412,7 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 97
+      "popularity": 98
     },
     {
       "id": "vanexel_97",
@@ -512,7 +512,7 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Lockdown Defender"
       ],
-      "popularity": 97
+      "popularity": 98
     },
     {
       "id": "shaq_02",
@@ -648,7 +648,7 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Lockdown Defender"
       ],
-      "popularity": 97
+      "popularity": 98
     },
     {
       "id": "lebron_18",
@@ -665,7 +665,7 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Lockdown Defender"
       ],
-      "popularity": 98
+      "popularity": 99
     },
     {
       "id": "davis_19",
@@ -682,7 +682,7 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 82
+      "popularity": 80
     },
     {
       "id": "dwight_13",
@@ -698,7 +698,7 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 82
+      "popularity": 75
     },
     {
       "id": "gasol_14",
@@ -782,7 +782,7 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Lockdown Defender"
       ],
-      "popularity": 98
+      "popularity": 99
     },
     {
       "id": "davis_23",
@@ -799,7 +799,7 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 82
+      "popularity": 80
     },
     {
       "id": "russ_22",
@@ -815,7 +815,7 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 82
+      "popularity": 93
     },
     {
       "id": "reaves_24",
@@ -899,7 +899,7 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 88
+      "popularity": 92
     },
     {
       "id": "grant_89",
@@ -999,7 +999,7 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Elite Playmaker"
       ],
-      "popularity": 88
+      "popularity": 92
     },
     {
       "id": "rodman_96",
@@ -1016,7 +1016,7 @@ const PLAYER_DB = {
         "Glue Guy",
         "Rim Protector"
       ],
-      "popularity": 85
+      "popularity": 96
     },
     {
       "id": "longley_96",
@@ -1231,7 +1231,7 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 72
+      "popularity": 95
     },
     {
       "id": "butler_17",
@@ -1591,7 +1591,7 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Elite Playmaker"
       ],
-      "popularity": 92
+      "popularity": 98
     },
     {
       "id": "durant_18",
@@ -1740,7 +1740,7 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 92
+      "popularity": 98
     },
     {
       "id": "thompson_22",
@@ -1788,7 +1788,7 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Floor Spacer"
       ],
-      "popularity": 44
+      "popularity": 60
     },
     {
       "id": "wiggins_22",
@@ -1839,7 +1839,7 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Clutch"
       ],
-      "popularity": 97
+      "popularity": 87
     },
     {
       "id": "havlicek_68",
@@ -2201,7 +2201,7 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 75
+      "popularity": 85
     },
     {
       "id": "walker_99",
@@ -2267,7 +2267,7 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 75
+      "popularity": 85
     },
     {
       "id": "garnett_08",
@@ -2332,7 +2332,7 @@ const PLAYER_DB = {
         "Glue Guy",
         "Lockdown Defender"
       ],
-      "popularity": 45
+      "popularity": 55
     },
     {
       "id": "powe_08",
@@ -2398,7 +2398,7 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 82
+      "popularity": 75
     },
     {
       "id": "brown_19",
@@ -2497,7 +2497,7 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 82
+      "popularity": 75
     },
     {
       "id": "brown_24",
@@ -2545,7 +2545,7 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 60
+      "popularity": 65
     },
     {
       "id": "holiday_24",
@@ -2727,7 +2727,7 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 88
+      "popularity": 95
     },
     {
       "id": "shaq_05",
@@ -2828,7 +2828,7 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Lockdown Defender"
       ],
-      "popularity": 98
+      "popularity": 99
     },
     {
       "id": "wade_13",
@@ -2844,7 +2844,7 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 88
+      "popularity": 95
     },
     {
       "id": "bosh_13",
@@ -3370,7 +3370,7 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Volume Shooter"
       ],
-      "popularity": 86
+      "popularity": 80
     },
     {
       "id": "aldridge_16",
@@ -3435,7 +3435,7 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 44
+      "popularity": 65
     },
     {
       "id": "diaw_14",
@@ -3945,7 +3945,7 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 82
+      "popularity": 70
     },
     {
       "id": "stockton_88",
@@ -4044,7 +4044,7 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 82
+      "popularity": 70
     },
     {
       "id": "stockton_97",
@@ -4373,7 +4373,7 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 88
+      "popularity": 94
     },
     {
       "id": "dumars_89",
@@ -4421,7 +4421,7 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 85
+      "popularity": 96
     },
     {
       "id": "dantley_87",
@@ -4830,7 +4830,7 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 82
+      "popularity": 75
     },
     {
       "id": "turkoglu_08",
@@ -4928,7 +4928,7 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 82
+      "popularity": 75
     },
     {
       "id": "vucevic_14",
@@ -5534,7 +5534,7 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 88
+      "popularity": 98
     },
     {
       "id": "camby_07",
@@ -5632,7 +5632,7 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 88
+      "popularity": 80
     },
     {
       "id": "murray_19",
@@ -5731,7 +5731,7 @@ const PLAYER_DB = {
         "Clutch",
         "Floor Spacer"
       ],
-      "popularity": 88
+      "popularity": 80
     },
     {
       "id": "murray_23",
@@ -5814,7 +5814,7 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 98
+      "popularity": 92
     },
     {
       "id": "greer_67",
@@ -6042,7 +6042,7 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 88
+      "popularity": 98
     },
     {
       "id": "coleman_93",
@@ -6108,7 +6108,7 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 88
+      "popularity": 98
     },
     {
       "id": "webber_05",
@@ -6191,7 +6191,7 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 82
+      "popularity": 65
     },
     {
       "id": "simmons_19",
@@ -6271,7 +6271,7 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 56
+      "popularity": 78
     }
   ],
   "Rockets_1990s": [
@@ -6373,7 +6373,7 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 82
+      "popularity": 90
     },
     {
       "id": "tmac_04",
@@ -6456,7 +6456,7 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 88
+      "popularity": 65
     },
     {
       "id": "cp3_18",
@@ -6722,7 +6722,7 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Elite Playmaker"
       ],
-      "popularity": 82
+      "popularity": 93
     },
     {
       "id": "harden_12",
@@ -6739,7 +6739,7 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Floor Spacer"
       ],
-      "popularity": 88
+      "popularity": 65
     },
     {
       "id": "ibaka_12",
@@ -6772,7 +6772,7 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 45
+      "popularity": 55
     }
   ],
   "Thunder_2020s": [
@@ -6858,7 +6858,7 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 97
+      "popularity": 90
     },
     {
       "id": "oscar_71",
@@ -7121,7 +7121,7 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 82
+      "popularity": 89
     },
     {
       "id": "middleton_22",
@@ -7255,7 +7255,7 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 90
+      "popularity": 94
     },
     {
       "id": "nash_02",
@@ -7338,7 +7338,7 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 90
+      "popularity": 94
     },
     {
       "id": "kidd_12",
@@ -7423,7 +7423,7 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Volume Shooter"
       ],
-      "popularity": 88
+      "popularity": 92
     },
     {
       "id": "kyrie_23",
@@ -7653,7 +7653,7 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 98
+      "popularity": 99
     },
     {
       "id": "ilg_06",
@@ -7720,7 +7720,7 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Lockdown Defender"
       ],
-      "popularity": 98
+      "popularity": 99
     },
     {
       "id": "kyrie_16",
@@ -8130,7 +8130,7 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 86
+      "popularity": 80
     },
     {
       "id": "siakam_19",
@@ -8635,7 +8635,7 @@ const PLAYER_DB = {
         "Rim Protector",
         "Rebounding Machine"
       ],
-      "popularity": 98
+      "popularity": 92
     },
     {
       "id": "thurmond_67",
@@ -10152,7 +10152,7 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Franchise Player"
       ],
-      "popularity": 78
+      "popularity": 88
     },
     {
       "id": "dmurray_22",
@@ -10211,7 +10211,7 @@ const PLAYER_DB = {
         "Clutch Assassin",
         "Volume Shooter"
       ],
-      "popularity": 66
+      "popularity": 90
     },
     {
       "id": "randle_21",
@@ -10444,7 +10444,7 @@ const PLAYER_DB = {
         "Rim Protector",
         "Clutch Assassin"
       ],
-      "popularity": 82
+      "popularity": 65
     },
     {
       "id": "maxey_24",
@@ -10541,6 +10541,597 @@ const PLAYER_DB = {
         "3-and-D"
       ],
       "popularity": 40
+    }
+  ],
+  "Hawks_1960s": [
+    {
+      "id": "pettit_63",
+      "name": "Bob Pettit",
+      "pos": "PF",
+      "ppg": 26.4,
+      "rpg": 16.2,
+      "apg": 3,
+      "spg": 0.8,
+      "bpg": 1,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Rebounding Machine",
+        "Volume Scorer",
+        "Clutch"
+      ],
+      "popularity": 52
+    },
+    {
+      "id": "hagan_63",
+      "name": "Cliff Hagan",
+      "pos": "SF",
+      "ppg": 21.4,
+      "rpg": 7.5,
+      "apg": 3.8,
+      "spg": 0.7,
+      "bpg": 0.4,
+      "archetype": "Slasher",
+      "traits": [
+        "Mid-Range Maestro",
+        "Clutch"
+      ],
+      "popularity": 44
+    },
+    {
+      "id": "wilkens_63",
+      "name": "Lenny Wilkens",
+      "pos": "PG",
+      "ppg": 16.2,
+      "rpg": 4.6,
+      "apg": 6.7,
+      "spg": 1.2,
+      "bpg": 0.2,
+      "archetype": "Playmaker",
+      "traits": [
+        "Floor General",
+        "Elite Playmaker"
+      ],
+      "popularity": 35
+    },
+    {
+      "id": "caldwell_68",
+      "name": "Joe Caldwell",
+      "pos": "SG",
+      "ppg": 18.8,
+      "rpg": 6.2,
+      "apg": 3.5,
+      "spg": 1.5,
+      "bpg": 0.3,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Defensive Stopper",
+        "Slasher"
+      ],
+      "popularity": 37
+    },
+    {
+      "id": "beaty_68",
+      "name": "Zelmo Beaty",
+      "pos": "C",
+      "ppg": 17.4,
+      "rpg": 12.3,
+      "apg": 1.8,
+      "spg": 0.6,
+      "bpg": 1.5,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Rebounding Machine",
+        "Post Scorer"
+      ],
+      "popularity": 37
+    }
+  ],
+  "Hawks_1970s": [
+    {
+      "id": "maravich_73",
+      "name": "Pete Maravich",
+      "pos": "PG",
+      "ppg": 24.8,
+      "rpg": 4.2,
+      "apg": 5.8,
+      "spg": 1.3,
+      "bpg": 0.2,
+      "archetype": "Playmaker",
+      "traits": [
+        "Volume Shooter",
+        "Point God",
+        "Clutch Assassin"
+      ],
+      "popularity": 82
+    },
+    {
+      "id": "hudson_73",
+      "name": "Lou Hudson",
+      "pos": "SG",
+      "ppg": 22.4,
+      "rpg": 4.8,
+      "apg": 3.2,
+      "spg": 1,
+      "bpg": 0.3,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Mid-Range Maestro",
+        "Volume Shooter"
+      ],
+      "popularity": 43
+    },
+    {
+      "id": "drew_78",
+      "name": "John Drew",
+      "pos": "SF",
+      "ppg": 20.7,
+      "rpg": 6.2,
+      "apg": 2,
+      "spg": 1.1,
+      "bpg": 0.4,
+      "archetype": "Slasher",
+      "traits": [
+        "Volume Shooter",
+        "Slasher"
+      ],
+      "popularity": 39
+    },
+    {
+      "id": "roundfield_78",
+      "name": "Dan Roundfield",
+      "pos": "PF",
+      "ppg": 12.8,
+      "rpg": 9.2,
+      "apg": 2.1,
+      "spg": 1.4,
+      "bpg": 1.6,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Rebounding Machine",
+        "Defensive Stopper"
+      ],
+      "popularity": 35
+    },
+    {
+      "id": "bellamy_71",
+      "name": "Walt Bellamy",
+      "pos": "C",
+      "ppg": 14.6,
+      "rpg": 12.4,
+      "apg": 2.8,
+      "spg": 0.7,
+      "bpg": 1.2,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Rebounding Machine",
+        "Post Scorer"
+      ],
+      "popularity": 35
+    }
+  ],
+  "Hawks_1980s": [
+    {
+      "id": "wilkins_85",
+      "name": "Dominique Wilkins",
+      "pos": "SF",
+      "ppg": 27.4,
+      "rpg": 7.9,
+      "apg": 2.5,
+      "spg": 1.1,
+      "bpg": 0.7,
+      "archetype": "Slasher",
+      "traits": [
+        "Volume Shooter",
+        "Clutch Assassin",
+        "Slasher"
+      ],
+      "popularity": 53
+    },
+    {
+      "id": "rivers_85",
+      "name": "Doc Rivers",
+      "pos": "PG",
+      "ppg": 11.9,
+      "rpg": 3.8,
+      "apg": 5.8,
+      "spg": 1.8,
+      "bpg": 0.2,
+      "archetype": "Playmaker",
+      "traits": [
+        "Floor General",
+        "Defensive Stopper"
+      ],
+      "popularity": 55
+    },
+    {
+      "id": "willis_85",
+      "name": "Kevin Willis",
+      "pos": "PF",
+      "ppg": 12.8,
+      "rpg": 9.8,
+      "apg": 1.2,
+      "spg": 0.8,
+      "bpg": 0.9,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Rebounding Machine",
+        "Post Scorer"
+      ],
+      "popularity": 35
+    },
+    {
+      "id": "webb_85",
+      "name": "Spud Webb",
+      "pos": "PG",
+      "ppg": 11.4,
+      "rpg": 2.4,
+      "apg": 5.2,
+      "spg": 1.4,
+      "bpg": 0.1,
+      "archetype": "Playmaker",
+      "traits": [
+        "Floor General",
+        "Glue Guy"
+      ],
+      "popularity": 35
+    },
+    {
+      "id": "rollins_83",
+      "name": "Tree Rollins",
+      "pos": "C",
+      "ppg": 7.8,
+      "rpg": 8.9,
+      "apg": 0.9,
+      "spg": 0.9,
+      "bpg": 2.7,
+      "archetype": "Lockdown Defender",
+      "traits": [
+        "Rim Protector",
+        "Defensive Stopper",
+        "Hustle Player"
+      ],
+      "popularity": 35
+    }
+  ],
+  "Hawks_1990s": [
+    {
+      "id": "wilkins_92",
+      "name": "Dominique Wilkins",
+      "pos": "SF",
+      "ppg": 24.8,
+      "rpg": 7.2,
+      "apg": 2.8,
+      "spg": 1,
+      "bpg": 0.6,
+      "archetype": "Slasher",
+      "traits": [
+        "Volume Shooter",
+        "Clutch",
+        "Slasher"
+      ],
+      "popularity": 44
+    },
+    {
+      "id": "blaylock_95",
+      "name": "Mookie Blaylock",
+      "pos": "PG",
+      "ppg": 13.8,
+      "rpg": 4.2,
+      "apg": 7.1,
+      "spg": 2.5,
+      "bpg": 0.2,
+      "archetype": "Lockdown Defender",
+      "traits": [
+        "Defensive Stopper",
+        "Floor General",
+        "Lockdown Defender"
+      ],
+      "popularity": 37
+    },
+    {
+      "id": "mutombo_97",
+      "name": "Dikembe Mutombo",
+      "pos": "C",
+      "ppg": 12.8,
+      "rpg": 12.1,
+      "apg": 1.2,
+      "spg": 0.5,
+      "bpg": 3.3,
+      "archetype": "Lockdown Defender",
+      "traits": [
+        "Rim Protector",
+        "Rebounding Machine",
+        "Defensive Stopper"
+      ],
+      "popularity": 78
+    },
+    {
+      "id": "smith_s_96",
+      "name": "Steve Smith",
+      "pos": "SG",
+      "ppg": 17.2,
+      "rpg": 4.2,
+      "apg": 4.1,
+      "spg": 1.2,
+      "bpg": 0.3,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Floor Spacer",
+        "Mid-Range Maestro"
+      ],
+      "popularity": 39
+    },
+    {
+      "id": "augmon_92",
+      "name": "Stacey Augmon",
+      "pos": "SF",
+      "ppg": 12,
+      "rpg": 4.9,
+      "apg": 2.8,
+      "spg": 1.7,
+      "bpg": 0.5,
+      "archetype": "Lockdown Defender",
+      "traits": [
+        "Defensive Stopper",
+        "Glue Guy"
+      ],
+      "popularity": 35
+    }
+  ],
+  "Hawks_2000s": [
+    {
+      "id": "johnson_j_06",
+      "name": "Joe Johnson",
+      "pos": "SG",
+      "ppg": 21.2,
+      "rpg": 4.6,
+      "apg": 5,
+      "spg": 0.9,
+      "bpg": 0.3,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Mid-Range Maestro",
+        "Clutch",
+        "Volume Shooter"
+      ],
+      "popularity": 44
+    },
+    {
+      "id": "smith_j_05",
+      "name": "Josh Smith",
+      "pos": "PF",
+      "ppg": 14.8,
+      "rpg": 8.4,
+      "apg": 2.8,
+      "spg": 1.5,
+      "bpg": 2.1,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Rim Protector",
+        "Slasher",
+        "Defensive Stopper"
+      ],
+      "popularity": 35
+    },
+    {
+      "id": "horford_08",
+      "name": "Al Horford",
+      "pos": "C",
+      "ppg": 13.2,
+      "rpg": 9.8,
+      "apg": 2.4,
+      "spg": 0.8,
+      "bpg": 1.4,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Rebounding Machine",
+        "Post Scorer"
+      ],
+      "popularity": 62
+    },
+    {
+      "id": "bibby_08",
+      "name": "Mike Bibby",
+      "pos": "PG",
+      "ppg": 15,
+      "rpg": 3.1,
+      "apg": 5.5,
+      "spg": 1,
+      "bpg": 0.1,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Floor General",
+        "Floor Spacer"
+      ],
+      "popularity": 58
+    },
+    {
+      "id": "terry_02",
+      "name": "Jason Terry",
+      "pos": "SG",
+      "ppg": 17.8,
+      "rpg": 2.8,
+      "apg": 5.4,
+      "spg": 1.2,
+      "bpg": 0.2,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Clutch",
+        "Floor Spacer",
+        "Volume Shooter"
+      ],
+      "popularity": 57
+    }
+  ],
+  "Hawks_2010s": [
+    {
+      "id": "horford_13",
+      "name": "Al Horford",
+      "pos": "C",
+      "ppg": 15.4,
+      "rpg": 7.8,
+      "apg": 3.4,
+      "spg": 0.8,
+      "bpg": 1.2,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Floor General",
+        "Post Scorer",
+        "Rim Protector"
+      ],
+      "popularity": 62
+    },
+    {
+      "id": "millsap_14",
+      "name": "Paul Millsap",
+      "pos": "PF",
+      "ppg": 17.6,
+      "rpg": 8.4,
+      "apg": 3.2,
+      "spg": 1.4,
+      "bpg": 1.2,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Defensive Stopper",
+        "Clutch",
+        "Hustle Player"
+      ],
+      "popularity": 37
+    },
+    {
+      "id": "korver_14",
+      "name": "Kyle Korver",
+      "pos": "SG",
+      "ppg": 11.5,
+      "rpg": 3.2,
+      "apg": 1.8,
+      "spg": 0.7,
+      "bpg": 0.2,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Floor Spacer",
+        "3-and-D"
+      ],
+      "popularity": 35
+    },
+    {
+      "id": "teague_13",
+      "name": "Jeff Teague",
+      "pos": "PG",
+      "ppg": 15.8,
+      "rpg": 2.9,
+      "apg": 7.2,
+      "spg": 1.4,
+      "bpg": 0.3,
+      "archetype": "Playmaker",
+      "traits": [
+        "Floor General",
+        "Elite Playmaker"
+      ],
+      "popularity": 35
+    },
+    {
+      "id": "schroeder_16",
+      "name": "Dennis Schröder",
+      "pos": "PG",
+      "ppg": 16.5,
+      "rpg": 3.2,
+      "apg": 6.4,
+      "spg": 1.2,
+      "bpg": 0.3,
+      "archetype": "Playmaker",
+      "traits": [
+        "Floor General",
+        "Elite Playmaker",
+        "Slasher"
+      ],
+      "popularity": 35
+    }
+  ],
+  "Hawks_2020s": [
+    {
+      "id": "young_t_22",
+      "name": "Trae Young",
+      "pos": "PG",
+      "ppg": 27.8,
+      "rpg": 3.9,
+      "apg": 9.4,
+      "spg": 1,
+      "bpg": 0.1,
+      "archetype": "Playmaker",
+      "traits": [
+        "Point God",
+        "Floor General",
+        "Clutch Assassin"
+      ],
+      "popularity": 54
+    },
+    {
+      "id": "murray_d_23",
+      "name": "Dejounte Murray",
+      "pos": "SG",
+      "ppg": 21.2,
+      "rpg": 5.4,
+      "apg": 6.1,
+      "spg": 1.5,
+      "bpg": 0.4,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Defensive Stopper",
+        "Elite Playmaker",
+        "Slasher"
+      ],
+      "popularity": 57
+    },
+    {
+      "id": "capela_22",
+      "name": "Clint Capela",
+      "pos": "C",
+      "ppg": 13.4,
+      "rpg": 13.1,
+      "apg": 1.2,
+      "spg": 0.6,
+      "bpg": 1.5,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Rim Protector",
+        "Rebounding Machine",
+        "Hustle Player"
+      ],
+      "popularity": 52
+    },
+    {
+      "id": "collins_j_22",
+      "name": "John Collins",
+      "pos": "PF",
+      "ppg": 17.2,
+      "rpg": 7.4,
+      "apg": 1.5,
+      "spg": 0.7,
+      "bpg": 0.7,
+      "archetype": "Slasher",
+      "traits": [
+        "Slasher",
+        "Floor Spacer",
+        "Clutch"
+      ],
+      "popularity": 35
+    },
+    {
+      "id": "hunter_d_22",
+      "name": "De Andre Hunter",
+      "pos": "SF",
+      "ppg": 13,
+      "rpg": 3.8,
+      "apg": 2.2,
+      "spg": 1.1,
+      "bpg": 0.5,
+      "archetype": "Lockdown Defender",
+      "traits": [
+        "3-and-D",
+        "Defensive Stopper"
+      ],
+      "popularity": 35
     }
   ]
 };
