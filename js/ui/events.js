@@ -89,15 +89,13 @@ function dispatch(action) {
   }
   if (action.startsWith('place-')) {
     const pos = action.slice(6);
-    if (S.movingPos) moveRosterPlayer(S.movingPos, pos);
-    else placePlayer(pos);
+    placePlayer(pos);
     return;
   }
   if (action.startsWith('swap-')) {
     const pos = action.slice(5);
-    if (S.selectedPlayer)    placePlayer(pos);
-    else if (S.movingPos)    moveRosterPlayer(S.movingPos, pos);
-    else                     { S.movingPos = pos; render(); }
+    if (S.selectedPlayer) placePlayer(pos);
+    else render();
     return;
   }
 

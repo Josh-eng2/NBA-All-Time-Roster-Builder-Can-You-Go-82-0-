@@ -119,21 +119,21 @@ export const COACHES = [
 // ── Playoff CPU opponents ─────────────────────────────────────────────────────
 
 export const CPU_TEAMS = [
-  { name: '96 Bulls',       strength: 2.2 },
-  { name: '17 Warriors',    strength: 2.2 },
-  { name: '86 Celtics',     strength: 2.05 },
-  { name: '87 Lakers',      strength: 2.04 },
-  { name: '01 Lakers',      strength: 2.00 },
-  { name: '13 Heat',        strength: 1.95 },
-  { name: '14 Spurs',       strength: 1.90 },
-  { name: '04 Pistons',     strength: 1.88 },
-  { name: '16 Cavaliers',   strength: 1.87 },
-  { name: '94 Rockets',     strength: 1.86 },
-  { name: '11 Mavericks',   strength: 1.85 },
-  { name: '08 Celtics',     strength: 1.84 },
-  { name: '05 Spurs',       strength: 1.82 },
-  { name: '03 Spurs',       strength: 1.81 },
-  { name: '89 Pistons',     strength: 1.80 },
+  { name: '96 Bulls',       strength: 2.35 },
+  { name: '17 Warriors',    strength: 2.35 },
+  { name: '86 Celtics',     strength: 2.2 },
+  { name: '87 Lakers',      strength: 2.15 },
+  { name: '01 Lakers',      strength: 2.10 },
+  { name: '13 Heat',        strength: 2.00 },
+  { name: '14 Spurs',       strength: 1.96 },
+  { name: '04 Pistons',     strength: 1.94 },
+  { name: '16 Cavaliers',   strength: 1.93 },
+  { name: '94 Rockets',     strength: 1.92 },
+  { name: '11 Mavericks',   strength: 1.91 },
+  { name: '08 Celtics',     strength: 1.90 },
+  { name: '05 Spurs',       strength: 1.89 },
+  { name: '03 Spurs',       strength: 1.88 },
+  { name: '89 Pistons',     strength: 1.87 },
 ];
 
 // ── Utility ───────────────────────────────────────────────────────────────────
