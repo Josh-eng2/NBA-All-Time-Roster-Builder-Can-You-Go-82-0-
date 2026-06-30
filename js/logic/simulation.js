@@ -19,7 +19,7 @@ import { calculateChemistry } from '../logic/chemistry.js';
 // SIM_CENTER: adjustedStrength that maps to exactly 50 % win rate
 //             (raise to make 82-0 rarer, lower to make it easier)
 // WIN_CAP:    1.0 — 82-0 is possible only for genuinely elite rosters
-const SIM_K      = 7;
+const SIM_K      = 5;
 const SIM_CENTER = 1.85;
 const WIN_CAP    = 1.0;
 
