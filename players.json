@@ -12328,5 +12328,512 @@
       ],
       "popularity": 35
     }
+  ],
+  "Clippers_1970s": [
+    {
+      "id": "mcadoo_74",
+      "name": "Bob McAdoo",
+      "pos": "PF",
+      "ppg": 30.6,
+      "rpg": 13.2,
+      "apg": 2.8,
+      "spg": 0.8,
+      "bpg": 2,
+      "archetype": "Slasher",
+      "traits": [
+        "Volume Shooter",
+        "Clutch Assassin",
+        "Rebounding Machine"
+      ],
+      "popularity": 63
+    },
+    {
+      "id": "smith_r_75",
+      "name": "Randy Smith",
+      "pos": "SG",
+      "ppg": 19.8,
+      "rpg": 4.6,
+      "apg": 5.4,
+      "spg": 1.6,
+      "bpg": 0.2,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Volume Shooter",
+        "Defensive Stopper"
+      ],
+      "popularity": 44
+    },
+    {
+      "id": "smith_el_73",
+      "name": "Elmore Smith",
+      "pos": "C",
+      "ppg": 14.8,
+      "rpg": 12.4,
+      "apg": 1.8,
+      "spg": 0.6,
+      "bpg": 3,
+      "archetype": "Lockdown Defender",
+      "traits": [
+        "Rim Protector",
+        "Rebounding Machine"
+      ],
+      "popularity": 35
+    },
+    {
+      "id": "mcmillian_74",
+      "name": "Jim McMillian",
+      "pos": "SG",
+      "ppg": 16.4,
+      "rpg": 5.2,
+      "apg": 2.8,
+      "spg": 0.8,
+      "bpg": 0.2,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Mid-Range Maestro",
+        "Floor Spacer"
+      ],
+      "popularity": 36
+    },
+    {
+      "id": "heard_75",
+      "name": "Garfield Heard",
+      "pos": "SF",
+      "ppg": 11.8,
+      "rpg": 7.4,
+      "apg": 2.4,
+      "spg": 1.2,
+      "bpg": 0.6,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Defensive Stopper",
+        "Hustle Player"
+      ],
+      "popularity": 35
+    }
+  ],
+  "Clippers_1980s": [
+    {
+      "id": "free_82",
+      "name": "World B. Free",
+      "pos": "SG",
+      "ppg": 23.6,
+      "rpg": 3.8,
+      "apg": 5,
+      "spg": 1.2,
+      "bpg": 0.2,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Volume Shooter",
+        "Mid-Range Maestro",
+        "Clutch"
+      ],
+      "popularity": 53
+    },
+    {
+      "id": "cummings_83",
+      "name": "Terry Cummings",
+      "pos": "PF",
+      "ppg": 22.4,
+      "rpg": 9.8,
+      "apg": 2.2,
+      "spg": 0.8,
+      "bpg": 0.6,
+      "archetype": "Slasher",
+      "traits": [
+        "Volume Shooter",
+        "Slasher",
+        "Post Scorer"
+      ],
+      "popularity": 58
+    },
+    {
+      "id": "nixon_83",
+      "name": "Norm Nixon",
+      "pos": "PG",
+      "ppg": 16.8,
+      "rpg": 3.2,
+      "apg": 8.4,
+      "spg": 1.4,
+      "bpg": 0.2,
+      "archetype": "Playmaker",
+      "traits": [
+        "Floor General",
+        "Elite Playmaker"
+      ],
+      "popularity": 41
+    },
+    {
+      "id": "johnson_mq_84",
+      "name": "Marques Johnson",
+      "pos": "SF",
+      "ppg": 18.2,
+      "rpg": 6.8,
+      "apg": 3.6,
+      "spg": 1.2,
+      "bpg": 0.6,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Slasher",
+        "Mid-Range Maestro"
+      ],
+      "popularity": 59
+    },
+    {
+      "id": "smith_dk_85",
+      "name": "Derek Smith",
+      "pos": "SG",
+      "ppg": 16.8,
+      "rpg": 4.6,
+      "apg": 3.8,
+      "spg": 1.4,
+      "bpg": 0.4,
+      "archetype": "Slasher",
+      "traits": [
+        "Volume Shooter",
+        "Slasher"
+      ],
+      "popularity": 38
+    }
+  ],
+  "Clippers_1990s": [
+    {
+      "id": "manning_d_93",
+      "name": "Danny Manning",
+      "pos": "PF",
+      "ppg": 20.8,
+      "rpg": 7.8,
+      "apg": 2.8,
+      "spg": 1.2,
+      "bpg": 1.2,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Post Scorer",
+        "Mid-Range Maestro",
+        "Slasher"
+      ],
+      "popularity": 58
+    },
+    {
+      "id": "harper_r_92",
+      "name": "Ron Harper",
+      "pos": "PG",
+      "ppg": 18.4,
+      "rpg": 5.4,
+      "apg": 5.2,
+      "spg": 2.2,
+      "bpg": 0.8,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Defensive Stopper",
+        "Slasher",
+        "Floor General"
+      ],
+      "popularity": 39
+    },
+    {
+      "id": "vaught_94",
+      "name": "Loy Vaught",
+      "pos": "PF",
+      "ppg": 14.8,
+      "rpg": 10.2,
+      "apg": 1.4,
+      "spg": 0.6,
+      "bpg": 0.8,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Rebounding Machine",
+        "Post Scorer"
+      ],
+      "popularity": 35
+    },
+    {
+      "id": "murray_lm_96",
+      "name": "Lamond Murray",
+      "pos": "SF",
+      "ppg": 14.6,
+      "rpg": 5.6,
+      "apg": 2.2,
+      "spg": 0.8,
+      "bpg": 0.4,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Volume Shooter",
+        "Floor Spacer"
+      ],
+      "popularity": 35
+    },
+    {
+      "id": "piatkowski_96",
+      "name": "Eric Piatkowski",
+      "pos": "SG",
+      "ppg": 10.8,
+      "rpg": 3.2,
+      "apg": 1.8,
+      "spg": 0.6,
+      "bpg": 0.2,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Floor Spacer",
+        "3-and-D"
+      ],
+      "popularity": 35
+    }
+  ],
+  "Clippers_2000s": [
+    {
+      "id": "brand_e_03",
+      "name": "Elton Brand",
+      "pos": "PF",
+      "ppg": 20.4,
+      "rpg": 10,
+      "apg": 2.8,
+      "spg": 0.8,
+      "bpg": 2,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Post Scorer",
+        "Rebounding Machine",
+        "Rim Protector"
+      ],
+      "popularity": 55
+    },
+    {
+      "id": "maggette_04",
+      "name": "Corey Maggette",
+      "pos": "SF",
+      "ppg": 20.2,
+      "rpg": 5.8,
+      "apg": 2.4,
+      "spg": 1.2,
+      "bpg": 0.4,
+      "archetype": "Slasher",
+      "traits": [
+        "Volume Shooter",
+        "Slasher"
+      ],
+      "popularity": 43
+    },
+    {
+      "id": "cassell_s_04",
+      "name": "Sam Cassell",
+      "pos": "PG",
+      "ppg": 17.8,
+      "rpg": 3.6,
+      "apg": 7.2,
+      "spg": 1.2,
+      "bpg": 0.2,
+      "archetype": "Playmaker",
+      "traits": [
+        "Clutch Assassin",
+        "Floor General",
+        "Mid-Range Maestro"
+      ],
+      "popularity": 62
+    },
+    {
+      "id": "kaman_06",
+      "name": "Chris Kaman",
+      "pos": "C",
+      "ppg": 14.8,
+      "rpg": 9.8,
+      "apg": 1.4,
+      "spg": 0.6,
+      "bpg": 1.8,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Post Scorer",
+        "Rebounding Machine"
+      ],
+      "popularity": 35
+    },
+    {
+      "id": "livingston_s_06",
+      "name": "Shaun Livingston",
+      "pos": "PG",
+      "ppg": 11.2,
+      "rpg": 4.8,
+      "apg": 5.8,
+      "spg": 1.2,
+      "bpg": 0.4,
+      "archetype": "Playmaker",
+      "traits": [
+        "Floor General",
+        "Mid-Range Maestro"
+      ],
+      "popularity": 44
+    }
+  ],
+  "Clippers_2010s": [
+    {
+      "id": "paul_c_13",
+      "name": "Chris Paul",
+      "pos": "PG",
+      "ppg": 19.2,
+      "rpg": 4.4,
+      "apg": 9.8,
+      "spg": 2.4,
+      "bpg": 0.2,
+      "archetype": "Playmaker",
+      "traits": [
+        "Point God",
+        "Floor General",
+        "Defensive Stopper"
+      ],
+      "popularity": 78
+    },
+    {
+      "id": "griffin_b_14",
+      "name": "Blake Griffin",
+      "pos": "PF",
+      "ppg": 22.6,
+      "rpg": 8.8,
+      "apg": 4.4,
+      "spg": 0.8,
+      "bpg": 0.6,
+      "archetype": "Slasher",
+      "traits": [
+        "Slasher",
+        "Volume Shooter",
+        "Clutch Assassin"
+      ],
+      "popularity": 68
+    },
+    {
+      "id": "jordan_da_14",
+      "name": "DeAndre Jordan",
+      "pos": "C",
+      "ppg": 12.4,
+      "rpg": 14.5,
+      "apg": 1.2,
+      "spg": 0.6,
+      "bpg": 2.2,
+      "archetype": "Lockdown Defender",
+      "traits": [
+        "Rim Protector",
+        "Rebounding Machine",
+        "Hustle Player"
+      ],
+      "popularity": 35
+    },
+    {
+      "id": "redick_14",
+      "name": "J.J. Redick",
+      "pos": "SG",
+      "ppg": 15.8,
+      "rpg": 2.8,
+      "apg": 2.4,
+      "spg": 0.8,
+      "bpg": 0.2,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Floor Spacer",
+        "3-and-D"
+      ],
+      "popularity": 78
+    },
+    {
+      "id": "crawford_j_14",
+      "name": "Jamal Crawford",
+      "pos": "SG",
+      "ppg": 18.4,
+      "rpg": 2.8,
+      "apg": 3.8,
+      "spg": 1,
+      "bpg": 0.2,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Mid-Range Maestro",
+        "Volume Shooter",
+        "Clutch Assassin"
+      ],
+      "popularity": 55
+    }
+  ],
+  "Clippers_2020s": [
+    {
+      "id": "leonard_k_21",
+      "name": "Kawhi Leonard",
+      "pos": "SF",
+      "ppg": 24.8,
+      "rpg": 6.4,
+      "apg": 3.8,
+      "spg": 1.8,
+      "bpg": 0.8,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Defensive Stopper",
+        "Clutch Assassin",
+        "Lockdown Defender"
+      ],
+      "popularity": 80
+    },
+    {
+      "id": "george_p_21",
+      "name": "Paul George",
+      "pos": "SF",
+      "ppg": 20.4,
+      "rpg": 6.4,
+      "apg": 4,
+      "spg": 1.8,
+      "bpg": 0.4,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Defensive Stopper",
+        "Volume Shooter",
+        "Clutch"
+      ],
+      "popularity": 44
+    },
+    {
+      "id": "powell_n_22",
+      "name": "Norman Powell",
+      "pos": "SG",
+      "ppg": 18.2,
+      "rpg": 3.8,
+      "apg": 2.4,
+      "spg": 1,
+      "bpg": 0.3,
+      "archetype": "Slasher",
+      "traits": [
+        "Volume Shooter",
+        "Clutch",
+        "3-and-D"
+      ],
+      "popularity": 36
+    },
+    {
+      "id": "zubac_21",
+      "name": "Ivica Zubac",
+      "pos": "C",
+      "ppg": 11.4,
+      "rpg": 9.8,
+      "apg": 2.2,
+      "spg": 0.4,
+      "bpg": 1.4,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Rebounding Machine",
+        "Rim Protector"
+      ],
+      "popularity": 35
+    },
+    {
+      "id": "jackson_rg_22",
+      "name": "Reggie Jackson",
+      "pos": "PG",
+      "ppg": 16.8,
+      "rpg": 3.4,
+      "apg": 5.8,
+      "spg": 0.8,
+      "bpg": 0.2,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Clutch",
+        "Volume Shooter",
+        "Floor General"
+      ],
+      "popularity": 44
+    }
   ]
 }

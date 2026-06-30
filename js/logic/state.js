@@ -15,7 +15,7 @@ export const TEAMS = [
   'Lakers','Bulls','Warriors','Celtics','Heat','Spurs','Knicks',
   'Jazz','Pistons','Magic','Suns','Nuggets','Sixers',
   'Rockets','Thunder','Bucks','Mavericks','Cavaliers',
-  'Blazers','Nets','Kings','Raptors','Hawks','Hornets','Pacers',
+  'Blazers','Nets','Kings','Raptors','Hawks','Hornets','Pacers','Clippers',
 ];
 
 export const DECADES = ['1960s','1970s','1980s','1990s','2000s','2010s','2020s'];
@@ -61,6 +61,7 @@ export const TEAM_COLORS = {
   Hawks:      { bg: '#E03A3E', accent: '#C1D32F' },
   Hornets:    { bg: '#1D1160', accent: '#00788C' },
   Pacers:     { bg: '#002D62', accent: '#FDBB30' },
+  Clippers:   { bg: '#C8102E', accent: '#1D428A' },
 };
 
 export const ARCHETYPE_STYLE = {
