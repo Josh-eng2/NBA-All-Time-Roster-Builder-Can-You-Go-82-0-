@@ -66,9 +66,7 @@ function dispatch(action) {
   if (action === 'restart') {
     confirmLeave(() => { S.phase = 'coach-select'; S.coach = null; render(); }); return;
   }
-  if (action === 'draft-new-roster') { S.phase = 'coach-select'; S.coach = null; render(); return; }
-  if (action === 'mulligan')         { doStartGame(S.selectedEra ?? 'all'); return; }
-  if (action === 'view-trophies')    { S.phase = 'trophy-room'; render(); return; }
+  if (action === 'draft-new-roster') { S.phase = 'coach-select'; S.coach = null; render(); return; }  if (action === 'view-trophies')    { S.phase = 'trophy-room'; render(); return; }
   if (action === 'back-to-menu')     { S.phase = 'coach-select'; render(); return; }
 
   // ── Draft actions ──────────────────────────────────────────────────────────
