@@ -80,8 +80,33 @@ export const ARCHETYPE_STYLE = {
 
 export const COACHES = [
   {
+    id:     'auerbach',
+    name:   'Red Auerbach',
+    era:    '1960s',
+    system: 'Celtic Pride',
+    desc:   'Defense-first — Twin Towers, Defensive Anchor, and All-Defensive Team bonuses amplified; interior defense penalties negated.',
+    accent: '#4ade80',
+  },
+  {
+    id:     'holzman',
+    name:   'Red Holzman',
+    era:    '1970s',
+    system: 'Hit the Open Man',
+    desc:   'Unselfish ball-movement — Floor General and Perimeter Lockdown bonuses amplified ×1.5; Barren Bench penalty negated.',
+    accent: '#0369a1',
+  },
+  {
+    id:     'riley',
+    name:   'Pat Riley',
+    era:    '1980s',
+    system: 'Grit & Grind / Showtime',
+    desc:   'Defense and transition driven — Showtime Transition and All-Defensive Team amplified ×1.5; Defensive Liability penalty negated.',
+    accent: '#f87171',
+  },
+  {
     id:     'jackson',
     name:   'Phil Jackson',
+    era:    '1990s',
     system: 'Triangle Offense',
     desc:   'Star-driven — Dynamic Duo and Heliocentric Engine bonuses amplified ×1.5; Clashing Egos penalty softened to −2%.',
     accent: '#c084fc',
@@ -89,30 +114,26 @@ export const COACHES = [
   {
     id:     'popovich',
     name:   'Gregg Popovich',
+    era:    '2000s',
     system: 'The Beautiful Game',
     desc:   'Bench and ball-movement driven — Second Unit General and Floor General amplified ×1.5; Barren Bench penalty negated.',
     accent: '#60a5fa',
   },
   {
-    id:     'auerbach',
-    name:   'Red Auerbach',
-    system: 'Celtic Pride',
-    desc:   'Defense-first — Twin Towers, Defensive Anchor, and All-Defensive Team bonuses amplified; interior defense penalties negated.',
-    accent: '#4ade80',
-  },
-  {
-    id:     'riley',
-    name:   'Pat Riley',
-    system: 'Grit & Grind / Showtime',
-    desc:   'Defense and transition driven — Showtime Transition and All-Defensive Team amplified ×1.5; Defensive Liability penalty negated.',
-    accent: '#f87171',
-  },
-  {
     id:     'kerr',
     name:   'Steve Kerr',
+    era:    '2010s',
     system: 'Motion Offense',
     desc:   'Spacing and ball-movement driven — Small Ball Heat, Three-and-D Paradigm, and Floor General bonuses amplified; Defensive Sieve penalty heightened.',
     accent: '#fbbf24',
+  },
+  {
+    id:     'rivers',
+    name:   'Doc Rivers',
+    era:    '2020s',
+    system: 'Ubuntu',
+    desc:   'Cohesion-first — Dynamic Duo and All-Defensive Team bonuses amplified ×1.5; Clashing Egos penalty fully negated.',
+    accent: '#34d399',
   },
 ];
 

@@ -128,6 +128,7 @@ function renderCoachSelect() {
                   <div class="flex flex-wrap items-center gap-2 mb-1">
                     <p class="font-black text-base text-foreground">${c.name}</p>
                     <span class="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border" style="background:${c.accent}12;color:${c.accent};border-color:${c.accent}30">${c.system}</span>
+                    ${c.era ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 border border-slate-200">${c.era}</span>` : ''}
                   </div>
                   <p class="text-sm text-muted-fg leading-relaxed">${c.desc}</p>
                 </div>

@@ -165,9 +165,9 @@ export function calculateChemistry(starters, bench) {
   }
 
   if (sHasPlaymaker && aSharpCount >= 2) {
-    const bonus = coach === 'popovich' ? 0.09 : coach === 'kerr' ? 0.09 : 0.07;
+    const bonus = coach === 'popovich' ? 0.09 : coach === 'kerr' ? 0.09 : coach === 'holzman' ? 0.09 : 0.07;
     chemBonus += bonus;
-    chemReport.push(`🟢 Floor General${coach === 'popovich' ? ' ⭐ Pop' : coach === 'kerr' ? ' ⭐ Kerr' : ''}: Starter Playmaker unlocks multiple shooters (+${Math.round(bonus * 100)}%)`);
+    chemReport.push(`🟢 Floor General${coach === 'popovich' ? ' ⭐ Pop' : coach === 'kerr' ? ' ⭐ Kerr' : coach === 'holzman' ? ' ⭐ Holzman' : ''}: Starter Playmaker unlocks multiple shooters (+${Math.round(bonus * 100)}%)`);
   }
 
   const defAnchor = starters.find(
@@ -182,9 +182,9 @@ export function calculateChemistry(starters, bench) {
 
   const sLockdownCount = sA.filter(a => a === 'Lockdown Defender').length;
   if (sLockdownCount >= 2) {
-    const bonus = coach === 'auerbach' ? 0.09 : 0.07;
+    const bonus = coach === 'auerbach' ? 0.09 : coach === 'holzman' ? 0.09 : 0.07;
     chemBonus += bonus;
-    chemReport.push(`🟢 Perimeter Lockdown${coach === 'auerbach' ? ' ⭐ Auerbach' : ''}: Multiple locking wings in the Starting 5 (+${Math.round(bonus * 100)}%)`);
+    chemReport.push(`🟢 Perimeter Lockdown${coach === 'auerbach' ? ' ⭐ Auerbach' : coach === 'holzman' ? ' ⭐ Holzman' : ''}: Multiple locking wings in the Starting 5 (+${Math.round(bonus * 100)}%)`);
   }
 
   const aSlasherCount = aA.filter(a => a === 'Slasher').length;
@@ -236,9 +236,9 @@ export function calculateChemistry(starters, bench) {
 
   const aLockdownCount = aA.filter(a => a === 'Lockdown Defender').length;
   if (aLockdownCount >= 3) {
-    const bonus = (coach === 'riley' || coach === 'auerbach') ? 0.10 : 0.07;
+    const bonus = (coach === 'riley' || coach === 'auerbach' || coach === 'rivers') ? 0.10 : 0.07;
     chemBonus += bonus;
-    chemReport.push(`🟢 All-Defensive Team${coach === 'riley' ? ' ⭐ Riley' : coach === 'auerbach' ? ' ⭐ Auerbach' : ''}: High baseline lock pressure across roster (+${Math.round(bonus * 100)}%)`);
+    chemReport.push(`🟢 All-Defensive Team${coach === 'riley' ? ' ⭐ Riley' : coach === 'auerbach' ? ' ⭐ Auerbach' : coach === 'rivers' ? ' ⭐ Rivers' : ''}: High baseline lock pressure across roster (+${Math.round(bonus * 100)}%)`);
   }
 
   const helioPG = starters.find(p => p.archetype === 'Playmaker' && p.apg > 9.0);
@@ -265,9 +265,9 @@ export function calculateChemistry(starters, bench) {
 
   const eliteScorers = starters.filter(p => p.ppg > 26.0);
   if (eliteScorers.length >= 2) {
-    const bonus = coach === 'jackson' ? 0.09 : 0.07;
+    const bonus = coach === 'jackson' ? 0.09 : coach === 'rivers' ? 0.09 : 0.07;
     chemBonus += bonus;
-    chemReport.push(`🟢 Dynamic Duo${coach === 'jackson' ? ' ⭐ Triangle' : ''}: Explosive baseline tandem active (+${Math.round(bonus * 100)}%)`);
+    chemReport.push(`🟢 Dynamic Duo${coach === 'jackson' ? ' ⭐ Triangle' : coach === 'rivers' ? ' ⭐ Ubuntu' : ''}: Explosive baseline tandem active (+${Math.round(bonus * 100)}%)`);
   }
 
   const pfcBlocks = starters
@@ -483,11 +483,13 @@ export function calculateChemistry(starters, bench) {
 
   if (sDemandCount >= 3) {
     const glueGuys = sT.filter(t => t === 'Glue Guy').length;
-    let penalty    = coach === 'jackson' ? 0.03 : 0.07;
-    penalty        = Math.max(0, penalty - glueGuys * 0.015);
-    if (penalty > 0) {
-      chemBonus -= penalty;
-      chemReport.push(`🔴 Clashing Egos${coach === 'jackson' ? ' (softened by Phil)' : ''}: Too many ball-dominant players in the Starting 5 (-${Math.round(penalty * 100)}%)`);
+    if (coach !== 'rivers') {
+      let penalty = coach === 'jackson' ? 0.03 : 0.07;
+      penalty     = Math.max(0, penalty - glueGuys * 0.015);
+      if (penalty > 0) {
+        chemBonus -= penalty;
+        chemReport.push(`🔴 Clashing Egos${coach === 'jackson' ? ' (softened by Phil)' : ''}: Too many ball-dominant players in the Starting 5 (-${Math.round(penalty * 100)}%)`);
+      }
     }
   }
 
@@ -549,7 +551,7 @@ export function calculateChemistry(starters, bench) {
     }
   }
 
-  if (coach !== 'popovich' && (starters.length + bench.length) === 7) {
+  if (coach !== 'popovich' && coach !== 'holzman' && (starters.length + bench.length) === 7) {
     const benchTotalPpg = bench.reduce((sum, p) => sum + p.ppg, 0);
     const ironManActive = aT.includes('Iron Man');
     if (benchTotalPpg < 15.0 && !ironManActive) {
