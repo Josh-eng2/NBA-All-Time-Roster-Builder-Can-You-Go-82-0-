@@ -8217,133 +8217,88 @@
   ],
   "Nets_2000s": [
     {
-      "id": "kidd_02",
+      "id": "kidd_j_03",
       "name": "Jason Kidd",
       "pos": "PG",
-      "ppg": 15.5,
-      "rpg": 7.3,
-      "apg": 9.9,
-      "spg": 2.2,
+      "ppg": 14.8,
+      "rpg": 6.8,
+      "apg": 9.2,
+      "spg": 2,
       "bpg": 0.3,
       "archetype": "Playmaker",
       "traits": [
-        "Elite Playmaker",
-        "Floor Spacer"
+        "Point God",
+        "Floor General",
+        "Defensive Stopper"
       ],
       "popularity": 78
     },
     {
-      "id": "kmartin_02",
-      "name": "Kenyon Martin",
-      "pos": "PF",
-      "ppg": 16.7,
-      "rpg": 9,
-      "apg": 2.1,
+      "id": "carter_v_05",
+      "name": "Vince Carter",
+      "pos": "SG",
+      "ppg": 21.2,
+      "rpg": 5.2,
+      "apg": 4.2,
       "spg": 1,
-      "bpg": 2.1,
-      "archetype": "Paint Beast",
-      "traits": [
-        "Rim Protector",
-        "Glue Guy"
-      ],
-      "popularity": 54
-    },
-    {
-      "id": "rjeff_02",
-      "name": "Richard Jefferson",
-      "pos": "SF",
-      "ppg": 18.5,
-      "rpg": 5.7,
-      "apg": 2.2,
-      "spg": 1,
-      "bpg": 0.4,
+      "bpg": 0.6,
       "archetype": "Slasher",
       "traits": [
-        "Clutch",
-        "Volume Shooter"
+        "Clutch Assassin",
+        "Volume Shooter",
+        "Slasher"
+      ],
+      "popularity": 35
+    },
+    {
+      "id": "jefferson_r_04",
+      "name": "Richard Jefferson",
+      "pos": "SF",
+      "ppg": 18,
+      "rpg": 5.4,
+      "apg": 2.8,
+      "spg": 0.8,
+      "bpg": 0.6,
+      "archetype": "Slasher",
+      "traits": [
+        "Slasher",
+        "3-and-D"
       ],
       "popularity": 55
     },
     {
-      "id": "kittles_02",
-      "name": "Kerry Kittles",
-      "pos": "SG",
-      "ppg": 14.5,
-      "rpg": 4,
-      "apg": 2.5,
-      "spg": 1.8,
-      "bpg": 0.3,
-      "archetype": "Lockdown Defender",
-      "traits": [
-        "Lockdown Defender",
-        "Glue Guy"
-      ],
-      "popularity": 47
-    },
-    {
-      "id": "jcollins_02",
-      "name": "Jason Collins",
-      "pos": "C",
-      "ppg": 5.8,
-      "rpg": 5.5,
-      "apg": 0.8,
-      "spg": 0.4,
-      "bpg": 1.4,
-      "archetype": "Lockdown Defender",
-      "traits": [
-        "Lockdown Defender",
-        "Glue Guy"
-      ],
-      "popularity": 42
-    },
-    {
-      "id": "mutombo_03",
-      "name": "Dikembe Mutombo",
-      "pos": "C",
-      "ppg": 8,
-      "rpg": 9.3,
-      "apg": 1,
-      "spg": 0.5,
-      "bpg": 3,
-      "archetype": "Lockdown Defender",
-      "traits": [
-        "Rim Protector",
-        "Lockdown Defender",
-        "Glue Guy"
-      ],
-      "popularity": 78
-    },
-    {
-      "id": "mcginnis_03",
-      "name": "Alonzo Mourning",
-      "pos": "C",
-      "ppg": 8.8,
-      "rpg": 7.1,
-      "apg": 0.6,
-      "spg": 0.5,
-      "bpg": 2.5,
-      "archetype": "Lockdown Defender",
-      "traits": [
-        "Rim Protector",
-        "Lockdown Defender"
-      ],
-      "popularity": 75
-    },
-    {
-      "id": "van_03",
-      "name": "Aaron Williams",
+      "id": "martin_k_03",
+      "name": "Kenyon Martin",
       "pos": "PF",
-      "ppg": 7.3,
-      "rpg": 7,
-      "apg": 0.7,
-      "spg": 0.8,
-      "bpg": 1.2,
+      "ppg": 14.8,
+      "rpg": 7.8,
+      "apg": 1.8,
+      "spg": 1.1,
+      "bpg": 1.4,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Defensive Stopper",
+        "Rim Protector",
+        "Hustle Player"
+      ],
+      "popularity": 54
+    },
+    {
+      "id": "lopez_br_09",
+      "name": "Brook Lopez",
+      "pos": "C",
+      "ppg": 18,
+      "rpg": 7.8,
+      "apg": 1.8,
+      "spg": 0.5,
+      "bpg": 1.8,
       "archetype": "Paint Beast",
       "traits": [
+        "Post Scorer",
         "Rim Protector",
-        "Glue Guy"
+        "Volume Shooter"
       ],
-      "popularity": 38
+      "popularity": 55
     }
   ],
   "Kings_2000s": [
@@ -11099,6 +11054,430 @@
       "traits": [
         "3-and-D",
         "Defensive Stopper"
+      ],
+      "popularity": 35
+    }
+  ],
+  "Nets_1970s": [
+    {
+      "id": "erving_75",
+      "name": "Julius Erving",
+      "pos": "SF",
+      "ppg": 28.7,
+      "rpg": 12.1,
+      "apg": 4.8,
+      "spg": 1.8,
+      "bpg": 1.8,
+      "archetype": "Slasher",
+      "traits": [
+        "Slasher",
+        "Clutch Assassin",
+        "Volume Shooter"
+      ],
+      "popularity": 92
+    },
+    {
+      "id": "paultz_75",
+      "name": "Billy Paultz",
+      "pos": "C",
+      "ppg": 16.2,
+      "rpg": 10.8,
+      "apg": 2.4,
+      "spg": 0.8,
+      "bpg": 1.2,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Post Scorer",
+        "Rebounding Machine"
+      ],
+      "popularity": 35
+    },
+    {
+      "id": "williamson_j_75",
+      "name": "John Williamson",
+      "pos": "SG",
+      "ppg": 18.8,
+      "rpg": 3.2,
+      "apg": 3.2,
+      "spg": 1.2,
+      "bpg": 0.2,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Volume Shooter",
+        "Clutch"
+      ],
+      "popularity": 35
+    },
+    {
+      "id": "taylor_b_75",
+      "name": "Brian Taylor",
+      "pos": "PG",
+      "ppg": 13.4,
+      "rpg": 3.8,
+      "apg": 5.8,
+      "spg": 2,
+      "bpg": 0.2,
+      "archetype": "Lockdown Defender",
+      "traits": [
+        "Defensive Stopper",
+        "Floor General"
+      ],
+      "popularity": 35
+    },
+    {
+      "id": "kenon_75",
+      "name": "Larry Kenon",
+      "pos": "SF",
+      "ppg": 15.8,
+      "rpg": 8.2,
+      "apg": 2.8,
+      "spg": 1.4,
+      "bpg": 0.6,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Rebounding Machine",
+        "Slasher"
+      ],
+      "popularity": 45
+    }
+  ],
+  "Nets_1980s": [
+    {
+      "id": "williams_bu_84",
+      "name": "Buck Williams",
+      "pos": "PF",
+      "ppg": 16.4,
+      "rpg": 12.5,
+      "apg": 1.8,
+      "spg": 0.8,
+      "bpg": 0.8,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Rebounding Machine",
+        "Hustle Player",
+        "Post Scorer"
+      ],
+      "popularity": 38
+    },
+    {
+      "id": "richardson_mr_83",
+      "name": "Micheal Ray Richardson",
+      "pos": "PG",
+      "ppg": 17.8,
+      "rpg": 6.2,
+      "apg": 7.8,
+      "spg": 2.8,
+      "bpg": 0.4,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Floor General",
+        "Defensive Stopper",
+        "Elite Playmaker"
+      ],
+      "popularity": 44
+    },
+    {
+      "id": "dawkins_d_84",
+      "name": "Darryl Dawkins",
+      "pos": "C",
+      "ppg": 14.2,
+      "rpg": 8.8,
+      "apg": 1.4,
+      "spg": 0.6,
+      "bpg": 1.4,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Post Scorer",
+        "Rim Protector"
+      ],
+      "popularity": 35
+    },
+    {
+      "id": "gminski_85",
+      "name": "Mike Gminski",
+      "pos": "C",
+      "ppg": 13.2,
+      "rpg": 8.4,
+      "apg": 1.2,
+      "spg": 0.5,
+      "bpg": 1.2,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Rebounding Machine",
+        "Post Scorer"
+      ],
+      "popularity": 35
+    },
+    {
+      "id": "cook_d_83",
+      "name": "Darwin Cook",
+      "pos": "SG",
+      "ppg": 12.4,
+      "rpg": 3.8,
+      "apg": 4.8,
+      "spg": 1.6,
+      "bpg": 0.3,
+      "archetype": "Lockdown Defender",
+      "traits": [
+        "Defensive Stopper",
+        "3-and-D"
+      ],
+      "popularity": 35
+    }
+  ],
+  "Nets_1990s": [
+    {
+      "id": "petrovic_93",
+      "name": "Drazen Petrovic",
+      "pos": "SG",
+      "ppg": 22.3,
+      "rpg": 3.4,
+      "apg": 3.2,
+      "spg": 0.9,
+      "bpg": 0.2,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Floor Spacer",
+        "Mid-Range Maestro",
+        "Clutch Assassin"
+      ],
+      "popularity": 45
+    },
+    {
+      "id": "coleman_d_93",
+      "name": "Derrick Coleman",
+      "pos": "PF",
+      "ppg": 20.2,
+      "rpg": 10.3,
+      "apg": 3,
+      "spg": 0.9,
+      "bpg": 1.2,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Rebounding Machine",
+        "Volume Shooter",
+        "Post Scorer"
+      ],
+      "popularity": 55
+    },
+    {
+      "id": "anderson_k_95",
+      "name": "Kenny Anderson",
+      "pos": "PG",
+      "ppg": 16.2,
+      "rpg": 3.8,
+      "apg": 8.2,
+      "spg": 1.5,
+      "bpg": 0.2,
+      "archetype": "Playmaker",
+      "traits": [
+        "Floor General",
+        "Elite Playmaker"
+      ],
+      "popularity": 39
+    },
+    {
+      "id": "vanhorn_98",
+      "name": "Keith Van Horn",
+      "pos": "PF",
+      "ppg": 19.8,
+      "rpg": 8.2,
+      "apg": 2.4,
+      "spg": 0.8,
+      "bpg": 0.8,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Floor Spacer",
+        "Volume Shooter"
+      ],
+      "popularity": 43
+    },
+    {
+      "id": "kittles_97",
+      "name": "Kerry Kittles",
+      "pos": "SG",
+      "ppg": 14.6,
+      "rpg": 4.2,
+      "apg": 2.4,
+      "spg": 1.8,
+      "bpg": 0.4,
+      "archetype": "Lockdown Defender",
+      "traits": [
+        "Defensive Stopper",
+        "3-and-D"
+      ],
+      "popularity": 47
+    }
+  ],
+  "Nets_2010s": [
+    {
+      "id": "williams_de_13",
+      "name": "Deron Williams",
+      "pos": "PG",
+      "ppg": 19.4,
+      "rpg": 3.8,
+      "apg": 8.7,
+      "spg": 0.9,
+      "bpg": 0.3,
+      "archetype": "Playmaker",
+      "traits": [
+        "Point God",
+        "Floor General",
+        "Volume Shooter"
+      ],
+      "popularity": 68
+    },
+    {
+      "id": "lopez_br_14",
+      "name": "Brook Lopez",
+      "pos": "C",
+      "ppg": 20.4,
+      "rpg": 7.4,
+      "apg": 2.2,
+      "spg": 0.6,
+      "bpg": 2.1,
+      "archetype": "Paint Beast",
+      "traits": [
+        "Post Scorer",
+        "Rim Protector",
+        "Volume Shooter"
+      ],
+      "popularity": 55
+    },
+    {
+      "id": "pierce_p_14",
+      "name": "Paul Pierce",
+      "pos": "SF",
+      "ppg": 15.8,
+      "rpg": 5.6,
+      "apg": 3.4,
+      "spg": 0.9,
+      "bpg": 0.5,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Clutch Assassin",
+        "Mid-Range Maestro",
+        "Post Scorer"
+      ],
+      "popularity": 85
+    },
+    {
+      "id": "garnett_k_14",
+      "name": "Kevin Garnett",
+      "pos": "PF",
+      "ppg": 13.8,
+      "rpg": 8.2,
+      "apg": 3.2,
+      "spg": 1,
+      "bpg": 1.4,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "Defensive Stopper",
+        "Rim Protector",
+        "Hustle Player"
+      ],
+      "popularity": 88
+    },
+    {
+      "id": "johnson_jo_14",
+      "name": "Joe Johnson",
+      "pos": "SG",
+      "ppg": 16.4,
+      "rpg": 4.2,
+      "apg": 4.4,
+      "spg": 0.8,
+      "bpg": 0.2,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Mid-Range Maestro",
+        "Clutch"
+      ],
+      "popularity": 35
+    }
+  ],
+  "Nets_2020s": [
+    {
+      "id": "durant_bk_22",
+      "name": "Kevin Durant",
+      "pos": "SF",
+      "ppg": 29.1,
+      "rpg": 7.2,
+      "apg": 5.4,
+      "spg": 0.8,
+      "bpg": 1.4,
+      "archetype": "Slasher",
+      "traits": [
+        "Volume Shooter",
+        "Clutch Assassin",
+        "Elite Playmaker"
+      ],
+      "popularity": 91
+    },
+    {
+      "id": "irving_bk_22",
+      "name": "Kyrie Irving",
+      "pos": "PG",
+      "ppg": 26.8,
+      "rpg": 4.4,
+      "apg": 5.8,
+      "spg": 1.4,
+      "bpg": 0.4,
+      "archetype": "Sharpshooter",
+      "traits": [
+        "Clutch Assassin",
+        "Mid-Range Maestro",
+        "Floor Spacer"
+      ],
+      "popularity": 85
+    },
+    {
+      "id": "harden_bk_21",
+      "name": "James Harden",
+      "pos": "PG",
+      "ppg": 24.6,
+      "rpg": 7.8,
+      "apg": 10.4,
+      "spg": 1.2,
+      "bpg": 0.6,
+      "archetype": "Playmaker",
+      "traits": [
+        "Point God",
+        "Volume Shooter",
+        "Floor General"
+      ],
+      "popularity": 65
+    },
+    {
+      "id": "bridges_mi_23",
+      "name": "Mikal Bridges",
+      "pos": "SF",
+      "ppg": 20.2,
+      "rpg": 4.4,
+      "apg": 3.4,
+      "spg": 1.2,
+      "bpg": 0.5,
+      "archetype": "Two-Way Star",
+      "traits": [
+        "3-and-D",
+        "Defensive Stopper",
+        "Clutch"
+      ],
+      "popularity": 52
+    },
+    {
+      "id": "claxton_n_23",
+      "name": "Nic Claxton",
+      "pos": "C",
+      "ppg": 12.4,
+      "rpg": 8.8,
+      "apg": 2.4,
+      "spg": 1.2,
+      "bpg": 2.2,
+      "archetype": "Lockdown Defender",
+      "traits": [
+        "Rim Protector",
+        "Defensive Stopper",
+        "Hustle Player"
       ],
       "popularity": 35
     }
