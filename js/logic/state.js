@@ -15,6 +15,8 @@ export const TEAMS = [
   'Lakers','Bulls','Warriors','Celtics','Heat','Spurs','Knicks',
   'Jazz','Pistons','Magic','Suns','Nuggets','Sixers',
   'Rockets','Thunder','Bucks','Mavericks','Cavaliers',
+  'Blazers','Nets','Kings','Raptors','Hawks','Hornets','Pacers','Clippers','Timberwolves','Pelicans',
+  'Grizzlies','Wizards',
 ];
 
 export const DECADES = ['1960s','1970s','1980s','1990s','2000s','2010s','2020s'];
@@ -53,6 +55,18 @@ export const TEAM_COLORS = {
   Bucks:      { bg: '#00471B', accent: '#EEE1C6' },
   Mavericks:  { bg: '#00538C', accent: '#B8C4CA' },
   Cavaliers:  { bg: '#860038', accent: '#FDBB30' },
+  Blazers:    { bg: '#E03A3E', accent: '#000000' },
+  Nets:       { bg: '#000000', accent: '#ffffff' },
+  Kings:      { bg: '#5A2D81', accent: '#63727A' },
+  Raptors:    { bg: '#CE1141', accent: '#000000' },
+  Hawks:      { bg: '#E03A3E', accent: '#C1D32F' },
+  Hornets:    { bg: '#1D1160', accent: '#00788C' },
+  Pacers:     { bg: '#002D62', accent: '#FDBB30' },
+  Clippers:      { bg: '#C8102E', accent: '#1D428A' },
+  Timberwolves:  { bg: '#0C2340', accent: '#78BE20' },
+  Pelicans:      { bg: '#002B5C', accent: '#B4975A' },
+  Grizzlies:     { bg: '#5D76A9', accent: '#12173F' },
+  Wizards:       { bg: '#002B5C', accent: '#E31837' },
 };
 
 export const ARCHETYPE_STYLE = {
