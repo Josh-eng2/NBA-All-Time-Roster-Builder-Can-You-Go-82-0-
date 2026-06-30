@@ -402,9 +402,9 @@ function renderRosterSlot(pos, canPlace, isBench) {
     const fitClass  = fitType ? 'fit-' + fitType : '';
     const fitColors = { primary: '#16a34a', flex: '#d97706', place: '#dc2626' };
 
-    const borderColor = isMoveSrc ? '#f97316' : (isBench ? '#cbd5e1' : '#fca5a5');
-    const borderTop   = isMoveSrc ? '3px solid #f97316' : (isBench ? '3px solid #94a3b8' : '3px solid #dc2626');
-    const labelColor  = isMoveSrc ? '#f97316' : (isBench ? '#64748b' : (fitType ? fitColors[fitType] : '#dc2626'));
+    const borderColor = isMoveSrc ? '#f97316' : (isBench ? '#93c5fd' : '#fca5a5');
+    const borderTop   = isMoveSrc ? '3px solid #f97316' : (isBench ? '3px solid #2563eb' : '3px solid #dc2626');
+    const labelColor  = isMoveSrc ? '#f97316' : (isBench ? '#2563eb' : (fitType ? fitColors[fitType] : '#dc2626'));
 
     return `
     <div data-action="swap-${pos}"
@@ -425,9 +425,9 @@ function renderRosterSlot(pos, canPlace, isBench) {
     (sp.secondaryPos || []).includes(pos);
   const action       = canDrop ? (hasMoveActive ? `swap-${pos}` : `place-${pos}`) : '';
 
-  const slotBg     = !canDrop ? '#f8fafc' : '#fff1f2';
-  const slotBorder = !canDrop ? '#cbd5e1' : (primaryMatch ? '#86efac' : flexMatch ? '#fde68a' : '#fca5a5');
-  const slotColor  = !canDrop ? '#94a3b8' : (primaryMatch ? '#16a34a' : flexMatch ? '#d97706' : '#dc2626');
+  const slotBg     = isBench ? '#eff6ff' : (!canDrop ? '#f8fafc' : '#fff1f2');
+  const slotBorder = isBench ? '#93c5fd' : (!canDrop ? '#cbd5e1' : (primaryMatch ? '#86efac' : flexMatch ? '#fde68a' : '#fca5a5'));
+  const slotColor  = isBench ? '#2563eb' : (!canDrop ? '#94a3b8' : (primaryMatch ? '#16a34a' : flexMatch ? '#d97706' : '#dc2626'));
   const slotText   = !canDrop ? 'Empty' : (hasMoveActive ? 'Move Here' : primaryMatch ? 'Primary' : flexMatch ? 'Flex' : 'Place');
 
   return `
