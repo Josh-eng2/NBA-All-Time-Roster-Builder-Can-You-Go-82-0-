@@ -25,7 +25,8 @@ export function getPlayers(team, decade) {
 export function getAvailablePlayers(team, decade) {
   return getPlayers(team, decade).filter(p =>
     !S.usedPlayerIds.includes(p.id) &&
-    !(S.draftedPlayerNames?.has(p.name))
+    !(S.draftedPlayerNames?.has(p.name)) &&
+    !(S.takenPlayerIds?.has(p.id))
   );
 }
 

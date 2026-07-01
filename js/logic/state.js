@@ -216,9 +216,14 @@ export function buildBracket(playerSeed, playerStrength) {
 
 /** @type {object} */
 export let S = {
-  phase:       'coach-select', // 'coach-select' | 'era-select' | 'drafting' | 'results' | 'playoffs' | 'trophy-room'
-  coach:       null,
-  selectedEra: null,
+  phase:          'mode-select', // 'mode-select' | 'coach-select' | 'era-select' | 'drafting' | 'results' | 'playoffs' | 'trophy-room' | 'series-result'
+  mode:           null,          // 'solo' | '1v1'
+  currentPlayer:  1,             // 1 or 2 (1v1 only)
+  p1:             null,          // snapshot of P1 after draft (1v1 only)
+  takenPlayerIds: new Set(),     // player IDs drafted by P1 — blocked for P2
+  seriesResult:   null,          // best-of-7 outcome (1v1 only)
+  coach:          null,
+  selectedEra:    null,
 };
 
 /**
@@ -228,10 +233,19 @@ export let S = {
  * @param {string} era  e.g. '1990s' or 'all'
  */
 export function startGame(era = 'all') {
-  const coach = S.coach; // preserve the coach selected in the previous phase
+  const coach         = S.coach;         // preserve the coach selected in the previous phase
+  const mode          = S.mode;
+  const currentPlayer = S.currentPlayer;
+  const p1            = S.p1;
+  const takenPlayerIds = S.takenPlayerIds;
   S = {
     phase:            'drafting',
     coach,
+    mode,
+    currentPlayer,
+    p1,
+    takenPlayerIds,
+    seriesResult:     null,
     selectedEra:      era,
     gameId:           crypto.randomUUID(),
     round:            0,
