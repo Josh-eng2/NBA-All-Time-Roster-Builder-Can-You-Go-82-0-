@@ -1366,6 +1366,197 @@ function renderSeriesResult() {
   </div>`;
 }
 
+// ── 1v1 Series Preview screen ─────────────────────────────────────────────────
+function renderSeriesPreview() {
+  const sr   = S.seriesResult;
+  const p1s  = sr.p1Season;
+  const p2s  = sr.p2Season;
+  const p1CoachObj = COACHES.find(c => c.id === S.p1Coach);
+  const p2CoachObj = COACHES.find(c => c.id === S.p2Coach);
+  const maxStr  = Math.max(p1s.strength, p2s.strength, 0.01);
+  const p1pct   = Math.round((p1s.strength / maxStr) * 100);
+  const p2pct   = Math.round((p2s.strength / maxStr) * 100);
+
+  const rosterMini = (roster, color) => ALL_POSITIONS.map(pos => {
+    const p = roster[pos];
+    const isBench = BENCH_POSITIONS.includes(pos);
+    return `<div class="flex items-center gap-1.5 py-1 border-b border-border last:border-0">
+      <span class="text-[10px] font-black w-5 flex-shrink-0" style="color:${p ? color : '#cbd5e1'}">${isBench ? 'BN' : pos}</span>
+      <span class="text-xs font-semibold flex-1 truncate ${p ? 'text-foreground' : 'text-muted-fg/40'}">${p ? p.name : '—'}</span>
+      ${p ? `<span class="text-[10px] text-muted-fg">${p.ppg}pt</span>` : ''}
+    </div>`;
+  }).join('');
+
+  return `
+  <div class="flex flex-col min-h-screen main-gradient">
+    ${renderHeader(false)}
+    <main class="flex-1 flex flex-col items-center px-4 py-6">
+      <div class="w-full max-w-2xl flex flex-col gap-4 animate-fade-up">
+
+        <div class="text-center">
+          <p class="text-[10px] font-bold uppercase tracking-widest text-primary mb-1">Best-of-7 Series</p>
+          <h1 class="text-2xl font-black text-foreground">The Matchup</h1>
+          <p class="text-sm text-muted-fg mt-1">Rosters are set. Time to see who wins.</p>
+        </div>
+
+        <!-- Strength comparison -->
+        <div class="rounded-2xl border border-border bg-white p-4 card-shadow">
+          <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg mb-3">Team Strength</p>
+          <div class="flex flex-col gap-2">
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="font-bold" style="color:#2563eb">Player 1${p1CoachObj ? ` · ${p1CoachObj.name}` : ''}</span>
+                <span class="font-semibold text-foreground">${p1s.strength.toFixed(3)}</span>
+              </div>
+              <div class="h-2.5 rounded-full bg-border overflow-hidden">
+                <div class="h-full rounded-full stat-bar-fill" style="width:${p1pct}%;background:#2563eb"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="font-bold" style="color:#d97706">Player 2${p2CoachObj ? ` · ${p2CoachObj.name}` : ''}</span>
+                <span class="font-semibold text-foreground">${p2s.strength.toFixed(3)}</span>
+              </div>
+              <div class="h-2.5 rounded-full bg-border overflow-hidden">
+                <div class="h-full rounded-full stat-bar-fill" style="width:${p2pct}%;background:#d97706"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Side-by-side rosters -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="rounded-2xl border-2 bg-white p-3 card-shadow" style="border-color:#bfdbfe">
+            <p class="text-xs font-black uppercase tracking-wider mb-2" style="color:#2563eb">Player 1</p>
+            ${rosterMini(S.p1Roster, '#2563eb')}
+          </div>
+          <div class="rounded-2xl border-2 bg-white p-3 card-shadow" style="border-color:#fde68a">
+            <p class="text-xs font-black uppercase tracking-wider mb-2" style="color:#d97706">Player 2</p>
+            ${rosterMini(S.p2Roster, '#d97706')}
+          </div>
+        </div>
+
+        <button data-action="begin-series"
+          class="w-full py-4 rounded-xl font-black text-base uppercase tracking-widest bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer animate-pulse-glow card-shadow">
+          🏀 Begin The Series →
+        </button>
+
+      </div>
+    </main>
+    ${renderFooter()}
+  </div>`;
+}
+
+// ── 1v1 Series Simulation screen ──────────────────────────────────────────────
+function renderSeriesSim() {
+  const sr       = S.seriesResult;
+  const revealed = S.seriesRevealedCount ?? 0;
+  const games    = sr.games; // array of { gameNum, p1Score, p2Score, p1Won, p1WinsAfter, p2WinsAfter }
+  const lastGame = revealed > 0 ? games[revealed - 1] : null;
+  const p1Wins   = lastGame ? lastGame.p1WinsAfter : 0;
+  const p2Wins   = lastGame ? lastGame.p2WinsAfter : 0;
+  const seriesOver = p1Wins === 4 || p2Wins === 4;
+  const nextGameNum = revealed + 1;
+
+  let statusText, statusColor, statusBg, statusBdr;
+  if (!revealed) {
+    statusText  = 'Series Not Started';
+    statusColor = '#64748b'; statusBg = '#f8fafc'; statusBdr = '#e2e8f0';
+  } else if (seriesOver) {
+    const w = p1Wins === 4 ? 'Player 1' : 'Player 2';
+    const wc = p1Wins === 4 ? '#2563eb' : '#d97706';
+    statusText  = `🏆 ${w} wins the series ${p1Wins}–${p2Wins}!`;
+    statusColor = wc; statusBg = p1Wins === 4 ? '#eff6ff' : '#fffbeb'; statusBdr = wc + '40';
+  } else if (p1Wins === p2Wins) {
+    statusText  = `Series tied ${p1Wins}–${p2Wins}`;
+    statusColor = '#64748b'; statusBg = '#f8fafc'; statusBdr = '#e2e8f0';
+  } else {
+    const leader = p1Wins > p2Wins ? 'Player 1' : 'Player 2';
+    const lc     = p1Wins > p2Wins ? '#2563eb' : '#d97706';
+    const lw = Math.max(p1Wins, p2Wins), ll = Math.min(p1Wins, p2Wins);
+    statusText  = `${leader} leads ${lw}–${ll}`;
+    statusColor = lc; statusBg = p1Wins > p2Wins ? '#eff6ff' : '#fffbeb'; statusBdr = lc + '40';
+  }
+
+  const gameRows = games.map((g, i) => {
+    if (i >= revealed) {
+      return `<div class="flex items-center gap-3 py-2.5 border-b border-border last:border-0 opacity-40">
+        <span class="text-[10px] font-bold text-muted-fg w-12 flex-shrink-0">Game ${g.gameNum}</span>
+        <span class="flex-1 text-xs text-muted-fg font-medium">TBD</span>
+      </div>`;
+    }
+    const p1Won = g.p1Won;
+    const wc    = p1Won ? '#2563eb' : '#d97706';
+    const wlbl  = p1Won ? 'P1 W' : 'P2 W';
+    const wbg   = p1Won ? '#eff6ff' : '#fffbeb';
+    return `<div class="flex items-center gap-3 py-2.5 border-b border-border last:border-0">
+      <span class="text-[10px] font-bold text-muted-fg w-12 flex-shrink-0">Game ${g.gameNum}</span>
+      <span class="flex-1 text-sm font-black text-foreground">
+        <span style="color:#2563eb">${g.p1Score}</span>
+        <span class="text-muted-fg font-normal mx-1">–</span>
+        <span style="color:#d97706">${g.p2Score}</span>
+      </span>
+      <span class="text-[10px] font-black px-2 py-0.5 rounded-full flex-shrink-0" style="background:${wbg};color:${wc}">${wlbl}</span>
+      <span class="text-[10px] text-muted-fg flex-shrink-0">${g.p1WinsAfter}–${g.p2WinsAfter}</span>
+    </div>`;
+  }).join('');
+
+  return `
+  <div class="flex flex-col min-h-screen main-gradient">
+    ${renderHeader(false)}
+    <main class="flex-1 flex flex-col items-center px-4 py-6">
+      <div class="w-full max-w-xl flex flex-col gap-4 animate-fade-up">
+
+        <!-- Series status banner -->
+        <div class="rounded-xl px-4 py-3 text-center font-black text-sm border-2 transition-all"
+          style="background:${statusBg};color:${statusColor};border-color:${statusBdr}">
+          ${statusText}
+        </div>
+
+        <!-- Win counters -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="rounded-2xl border-2 p-4 text-center card-shadow" style="border-color:${p1Wins > p2Wins ? '#2563eb' : '#bfdbfe'};background:${p1Wins > p2Wins ? '#eff6ff' : '#f8fbff'}">
+            <p class="text-[10px] font-bold uppercase tracking-widest mb-1" style="color:#2563eb">Player 1</p>
+            <p class="text-5xl font-black" style="color:#2563eb">${p1Wins}</p>
+            <p class="text-[10px] text-muted-fg mt-1">${p1Wins === 1 ? 'win' : 'wins'}</p>
+          </div>
+          <div class="rounded-2xl border-2 p-4 text-center card-shadow" style="border-color:${p2Wins > p1Wins ? '#d97706' : '#fde68a'};background:${p2Wins > p1Wins ? '#fffbeb' : '#fffef8'}">
+            <p class="text-[10px] font-bold uppercase tracking-widest mb-1" style="color:#d97706">Player 2</p>
+            <p class="text-5xl font-black" style="color:#d97706">${p2Wins}</p>
+            <p class="text-[10px] text-muted-fg mt-1">${p2Wins === 1 ? 'win' : 'wins'}</p>
+          </div>
+        </div>
+
+        <!-- Scoreboard -->
+        <div class="rounded-2xl border border-border bg-white p-4 card-shadow">
+          <div class="flex items-center justify-between mb-3">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg">Scoreboard</p>
+            <div class="flex gap-3 text-[10px] font-bold text-muted-fg">
+              <span style="color:#2563eb">P1</span>
+              <span style="color:#d97706">P2</span>
+            </div>
+          </div>
+          <div class="flex flex-col">${gameRows}</div>
+        </div>
+
+        <!-- CTA button -->
+        ${seriesOver
+          ? `<button data-action="series-to-recap"
+              class="w-full py-4 rounded-xl font-black text-base uppercase tracking-widest bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer card-shadow animate-pulse-glow">
+              View Full Recap →
+            </button>`
+          : `<button data-action="sim-next-game"
+              class="w-full py-4 rounded-xl font-black text-base uppercase tracking-widest bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer card-shadow">
+              ▶ Simulate Game ${nextGameNum}
+            </button>`
+        }
+
+      </div>
+    </main>
+    ${renderFooter()}
+  </div>`;
+}
+
 // ── Main render dispatcher ────────────────────────────────────────────────────
 export function render() {
   if      (S.phase === 'mode-select')   $app.innerHTML = renderModeSelect();
@@ -1375,6 +1566,8 @@ export function render() {
   else if (S.phase === 'results')       $app.innerHTML = renderResults();
   else if (S.phase === 'playoffs')      $app.innerHTML = renderPlayoffs();
   else if (S.phase === 'trophy-room')   $app.innerHTML = renderTrophyRoom();
+  else if (S.phase === 'series-preview') $app.innerHTML = renderSeriesPreview();
+  else if (S.phase === 'series-sim')    $app.innerHTML = renderSeriesSim();
   else if (S.phase === 'series-result') $app.innerHTML = renderSeriesResult();
   bindEvents();
 
