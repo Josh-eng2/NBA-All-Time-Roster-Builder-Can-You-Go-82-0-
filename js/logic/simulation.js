@@ -176,6 +176,21 @@ export function simulateSeason(starters, bench, coach = null) {
 }
 
 /**
+ * Simulates a head-to-head best-of-7 series between two drafted rosters.
+ * Returns season stats for both teams + the series outcome.
+ *
+ * @param {object[]} p1Starters  @param {object[]} p1Bench  @param {string|null} p1Coach
+ * @param {object[]} p2Starters  @param {object[]} p2Bench  @param {string|null} p2Coach
+ * @returns {{ p1Season, p2Season, series, winner: 'p1'|'p2' }}
+ */
+export function simulateHeadToHeadSeries(p1Starters, p1Bench, p1Coach, p2Starters, p2Bench, p2Coach) {
+  const p1Season = simulateSeason(p1Starters, p1Bench, p1Coach);
+  const p2Season = simulateSeason(p2Starters, p2Bench, p2Coach);
+  const series   = simulateSeries(p1Season.strength, p2Season.strength);
+  return { p1Season, p2Season, series, winner: series.won ? 'p1' : 'p2' };
+}
+
+/**
  * Simulates a best-of-7 playoff series.
  *
  * @param {number} playerStrength

@@ -17,7 +17,7 @@ import {
 import {
   spinResult, getAvailablePlayers, availableDecades,
 } from '../logic/draft.js';
-import { simulateSeason, simulateSeries }            from '../logic/simulation.js';
+import { simulateSeason, simulateSeries, simulateHeadToHeadSeries } from '../logic/simulation.js';
 import {
   saveLeaderboard, saveToTrophyRoom,
   showLeaderboardModal, closeLeaderboardModal,
@@ -54,6 +54,18 @@ function handleClick(e) {
 // ── Action dispatcher ─────────────────────────────────────────────────────────
 
 function dispatch(action) {
+  // ── Mode selection ─────────────────────────────────────────────────────────
+  if (action === 'mode-solo') {
+    S.mode = 'solo'; S.currentPlayer = 1; S.p1 = null;
+    S.takenPlayerIds = new Set(); S.phase = 'coach-select';
+    render(); return;
+  }
+  if (action === 'mode-1v1') {
+    S.mode = '1v1'; S.currentPlayer = 1; S.p1 = null;
+    S.takenPlayerIds = new Set(); S.phase = 'coach-select';
+    render(); return;
+  }
+
   // ── Coach & Era selection ──────────────────────────────────────────────────
   if (action.startsWith('coach-pick-')) {
     S.coach = action.slice(11);
@@ -64,10 +76,12 @@ function dispatch(action) {
 
   // ── Navigation ─────────────────────────────────────────────────────────────
   if (action === 'restart') {
-    confirmLeave(() => { S.phase = 'coach-select'; S.coach = null; render(); }); return;
+    confirmLeave(() => { S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; S.takenPlayerIds = new Set(); render(); }); return;
   }
-  if (action === 'draft-new-roster') { S.phase = 'coach-select'; S.coach = null; render(); return; }  if (action === 'view-trophies')    { S.phase = 'trophy-room'; render(); return; }
-  if (action === 'back-to-menu')     { S.phase = 'coach-select'; render(); return; }
+  if (action === 'draft-new-roster') { S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; S.takenPlayerIds = new Set(); render(); return; }
+  if (action === 'view-trophies')    { S.phase = 'trophy-room'; render(); return; }
+  if (action === 'back-to-menu')     { S.mode = null; S.phase = 'mode-select'; S.p1 = null; S.takenPlayerIds = new Set(); render(); return; }
+  if (action === 'series-play-again') { S.mode = null; S.phase = 'mode-select'; S.p1 = null; S.takenPlayerIds = new Set(); S.seriesResult = null; render(); return; }
 
   // ── Draft actions ──────────────────────────────────────────────────────────
   if (action === 'spin')         { doSpin();       return; }
@@ -277,6 +291,40 @@ function doSimulate() {
   if (S.phase !== 'drafting') return;
   const starters = POSITIONS.map(p => S.roster[p]).filter(Boolean);
   const bench    = BENCH_POSITIONS.map(p => S.roster[p]).filter(Boolean);
+
+  // ── 1v1 mode: P1 locks in, transition to P2 draft ─────────────────────────
+  if (S.mode === '1v1' && S.currentPlayer === 1) {
+    S.p1 = {
+      roster: { ...S.roster },
+      coach:  S.coach,
+      selectedEra: S.selectedEra,
+      starters, bench,
+    };
+    // Mark all of P1's players as taken
+    starters.concat(bench).forEach(p => S.takenPlayerIds.add(p.id));
+
+    // Reset draft state for P2, preserving 1v1 context
+    S.currentPlayer = 2;
+    S.phase         = 'coach-select';
+    S.coach         = null;
+    S.selectedEra   = null;
+    showToast('Player 1 locked in! Now Player 2 — pick your coach.');
+    render(); return;
+  }
+
+  // ── 1v1 mode: P2 done → run best-of-7 series ──────────────────────────────
+  if (S.mode === '1v1' && S.currentPlayer === 2) {
+    const p1 = S.p1;
+    S.seriesResult = simulateHeadToHeadSeries(
+      p1.starters, p1.bench, p1.coach,
+      starters, bench, S.coach
+    );
+    S.phase = 'series-result';
+    logAnalyticsEvent('1v1_series_simulated', { winner: S.seriesResult.winner });
+    render(); return;
+  }
+
+  // ── Solo mode ──────────────────────────────────────────────────────────────
   S.result  = simulateSeason(starters, bench, S.coach);
   S.phase   = 'results';
   S.runSaved = false;

@@ -101,6 +101,60 @@ function renderFooter() {
   </footer>`;
 }
 
+// ── Mode selection ────────────────────────────────────────────────────────────
+function renderModeSelect() {
+  let trophies = [];
+  try { trophies = JSON.parse(localStorage.getItem('nba820_trophies') || '[]'); } catch (e) {}
+  return `
+  <div class="flex flex-col min-h-screen main-gradient">
+    ${renderHeader(false)}
+    <main class="flex-1 flex flex-col items-center px-4 pt-6 pb-8">
+      <div class="w-full max-w-2xl flex flex-col gap-4 animate-fade-up">
+        <div class="text-center pb-2">
+          <h1 class="text-2xl font-black text-foreground mb-1.5">Choose Game Mode</h1>
+          <p class="text-sm text-muted-fg">Go solo or challenge a friend on the same device.</p>
+        </div>
+
+        <button data-action="mode-solo"
+          class="w-full rounded-2xl border-2 border-primary bg-primary/5 p-6 text-left cursor-pointer card-shadow hover:shadow-md transition-all">
+          <div class="flex items-start gap-4">
+            <div class="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center bg-primary/10 text-2xl">🏀</div>
+            <div class="flex-1 min-w-0">
+              <div class="flex flex-wrap items-center gap-2 mb-1">
+                <p class="font-black text-lg text-foreground">Single Player</p>
+                <span class="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-primary text-white">Classic</span>
+              </div>
+              <p class="text-sm text-muted-fg leading-relaxed">Build your all-time roster and try to go 82-0. Draft, simulate, and win the championship solo.</p>
+            </div>
+          </div>
+        </button>
+
+        <button data-action="mode-1v1"
+          class="w-full rounded-2xl border-2 border-amber-400 bg-amber-50 p-6 text-left cursor-pointer card-shadow hover:shadow-md transition-all">
+          <div class="flex items-start gap-4">
+            <div class="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center bg-amber-100 text-2xl">⚔️</div>
+            <div class="flex-1 min-w-0">
+              <div class="flex flex-wrap items-center gap-2 mb-1">
+                <p class="font-black text-lg text-foreground">1v1 Local</p>
+                <span class="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-amber-400 text-white">vs Friend</span>
+              </div>
+              <p class="text-sm text-muted-fg leading-relaxed">Two players draft rosters from a shared pool, then face off in a best-of-7 series. Pass the device between turns.</p>
+              <p class="text-xs font-bold text-amber-600 mt-2">⚡ If P1 drafts LeBron, P2 can't have him.</p>
+            </div>
+          </div>
+        </button>
+
+        ${trophies.length > 0 ? `
+          <button data-action="view-trophies"
+            class="w-full py-3.5 rounded-xl font-bold text-sm border border-amber-200 bg-amber-50 text-amber-700 cursor-pointer transition-all hover:bg-amber-100 hover:border-amber-300 card-shadow">
+            🏆 View Trophy Room · ${trophies.length} Championship${trophies.length === 1 ? '' : 's'}
+          </button>` : ''}
+      </div>
+    </main>
+    ${renderFooter()}
+  </div>`;
+}
+
 // ── Coach selection ───────────────────────────────────────────────────────────
 function renderCoachSelect() {
   const coachIcon = `<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`;
@@ -112,6 +166,7 @@ function renderCoachSelect() {
     <main class="flex-1 flex flex-col items-center px-4 pt-6 pb-8">
       <div class="w-full max-w-2xl flex flex-col gap-4 animate-fade-up">
         <div class="text-center pb-2">
+          ${S.mode === '1v1' ? `<div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-3 font-bold text-sm" style="background:${S.currentPlayer === 1 ? '#eff6ff' : '#fffbeb'};color:${S.currentPlayer === 1 ? '#2563eb' : '#d97706'};border:1.5px solid ${S.currentPlayer === 1 ? '#bfdbfe' : '#fde68a'}">⚔️ Player ${S.currentPlayer} — Build Your Roster</div>` : ''}
           <p class="text-xs font-bold uppercase tracking-widest text-primary mb-2">Step 1 of 2</p>
           <h1 class="text-2xl font-black text-foreground mb-1.5">Choose Your Coach</h1>
           <p class="text-sm text-muted-fg">Your coach reshapes the chemistry engine — pick a system that fits your philosophy.</p>
@@ -155,6 +210,7 @@ function renderEraSelect() {
     <main class="flex-1 flex flex-col items-center px-4 pt-6 pb-8">
       <div class="w-full max-w-2xl flex flex-col gap-4 animate-fade-up">
         <div class="text-center pb-2">
+          ${S.mode === '1v1' ? `<div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-3 font-bold text-sm" style="background:${S.currentPlayer === 1 ? '#eff6ff' : '#fffbeb'};color:${S.currentPlayer === 1 ? '#2563eb' : '#d97706'};border:1.5px solid ${S.currentPlayer === 1 ? '#bfdbfe' : '#fde68a'}">⚔️ Player ${S.currentPlayer} — Build Your Roster</div>` : ''}
           <p class="text-xs font-bold uppercase tracking-widest text-primary mb-2">Step 2 of 2</p>
           <h1 class="text-2xl font-black text-foreground mb-1.5">Choose Your Era</h1>
           <p class="text-sm text-muted-fg">Lock into a decade or let the draft board decide every round.</p>
@@ -186,11 +242,17 @@ function renderEraSelect() {
 // ── Drafting screen ───────────────────────────────────────────────────────────
 function renderDrafting() {
   const full = rosterFull();
+  const playerBanner = S.mode === '1v1' ? `
+    <div class="flex items-center justify-center gap-2 py-2 px-4 rounded-xl font-bold text-sm mb-1"
+      style="background:${S.currentPlayer === 1 ? '#eff6ff' : '#fffbeb'};color:${S.currentPlayer === 1 ? '#2563eb' : '#d97706'};border:1.5px solid ${S.currentPlayer === 1 ? '#bfdbfe' : '#fde68a'}">
+      ⚔️ Player ${S.currentPlayer} — Build Your Roster
+    </div>` : '';
   return `
   <div class="min-h-screen main-gradient">
     ${renderHeader(true)}
     <main class="flex flex-col items-center px-4 pt-2 pb-8">
       <div class="w-full max-w-2xl flex flex-col gap-2">
+        ${playerBanner}
         ${full ? renderSimulateCard() : ''}
         ${renderRoundBar()}
         ${!full ? renderSlotMachine() : ''}
@@ -320,13 +382,15 @@ function renderDraftBoard() {
 }
 
 function renderDraftCard(p, index) {
-  const pop           = p.popularity ?? 50;
-  const popCol        = pop >= 80 ? '#2563eb' : pop >= 60 ? '#d97706' : '#94a3b8';
+  const pop             = p.popularity ?? 50;
+  const popCol          = pop >= 80 ? '#2563eb' : pop >= 60 ? '#d97706' : '#94a3b8';
   const alreadyOnRoster = S.draftedPlayerNames?.has(p.name) ?? false;
-  const isSelected    = !alreadyOnRoster && S.selectedPlayer?.id === p.id;
-  const cardBorder    = alreadyOnRoster ? '#e2e8f0' : isSelected ? '#2563eb' : '#e2e8f0';
-  const cardBg        = alreadyOnRoster ? '#f8fafc' : isSelected ? '#eff6ff' : '#ffffff';
-  const cardOpacity   = alreadyOnRoster ? 'opacity:0.55;' : '';
+  const takenByP1       = !alreadyOnRoster && (S.takenPlayerIds?.has(p.id) ?? false);
+  const unavailable     = alreadyOnRoster || takenByP1;
+  const isSelected      = !unavailable && S.selectedPlayer?.id === p.id;
+  const cardBorder      = unavailable ? '#e2e8f0' : isSelected ? '#2563eb' : '#e2e8f0';
+  const cardBg          = unavailable ? '#f8fafc' : isSelected ? '#eff6ff' : '#ffffff';
+  const cardOpacity     = unavailable ? 'opacity:0.5;' : '';
   return `
   <div class="rounded-xl border-2 flex flex-col overflow-hidden transition-all card-shadow"
     style="border-color:${cardBorder};background:${cardBg};${cardOpacity}">
@@ -350,6 +414,8 @@ function renderDraftCard(p, index) {
     <div class="px-3 pb-3">
       ${alreadyOnRoster
         ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs" style="background:#f1f5f9;color:#94a3b8;border:1.5px solid #e2e8f0;cursor:not-allowed">Already on Roster</button>`
+        : takenByP1
+        ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs" style="background:#fef2f2;color:#dc2626;border:1.5px solid #fecaca;cursor:not-allowed">Taken by Player 1</button>`
         : `<button data-action="draft-pick-${index}"
             class="w-full py-2 rounded-lg font-bold text-xs transition-all cursor-pointer"
             style="background:${isSelected ? '#2563eb' : '#eff6ff'};color:${isSelected ? '#fff' : '#2563eb'};border:1.5px solid ${isSelected ? '#2563eb' : '#bfdbfe'}">
@@ -476,13 +542,29 @@ function renderChemDashboard() {
 
 // ── Simulate card ─────────────────────────────────────────────────────────────
 function renderSimulateCard() {
+  const is1v1   = S.mode === '1v1';
+  const isP1    = S.currentPlayer === 1;
+  const btnText = is1v1 && isP1
+    ? 'Lock In Roster — Pass to Player 2 →'
+    : is1v1
+    ? 'Simulate Best-of-7 Series →'
+    : 'Simulate 82 Games →';
+  const btnColor = is1v1 && isP1 ? '#d97706' : '#2563eb';
+  const btnHover = is1v1 && isP1 ? '#b45309' : '#1d4ed8';
+  const subtitle = is1v1 && isP1
+    ? 'All 7 spots locked in. Hand the device to Player 2.'
+    : is1v1
+    ? 'Both rosters set. Time to settle it on the court.'
+    : 'All 7 spots locked in. Ready to run the season.';
   return `
-  <div class="rounded-2xl border-2 border-primary bg-white p-5 text-center animate-scale-in card-shadow">
+  <div class="rounded-2xl border-2 border-primary bg-white p-5 text-center animate-scale-in card-shadow" style="border-color:${btnColor}20">
     <div class="flex justify-center mb-3">${iconBall('h-10 w-10 text-primary')}</div>
+    ${is1v1 ? `<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-2 text-xs font-bold" style="background:${isP1 ? '#eff6ff' : '#fffbeb'};color:${isP1 ? '#2563eb' : '#d97706'}">⚔️ Player ${S.currentPlayer}</div>` : ''}
     <p class="font-black text-lg text-foreground mb-1">Roster Complete</p>
-    <p class="text-sm text-muted-fg mb-4">All 7 spots locked in. Ready to run the season.</p>
-    <button data-action="simulate" class="w-full py-3.5 rounded-xl font-black text-sm uppercase tracking-widest bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer animate-pulse-glow">
-      Simulate 82 Games →
+    <p class="text-sm text-muted-fg mb-4">${subtitle}</p>
+    <button data-action="simulate" class="w-full py-3.5 rounded-xl font-black text-sm uppercase tracking-widest text-white transition-all cursor-pointer animate-pulse-glow"
+      style="background:${btnColor}" onmouseover="this.style.background='${btnHover}'" onmouseout="this.style.background='${btnColor}'">
+      ${btnText}
     </button>
   </div>`;
 }
@@ -1069,14 +1151,149 @@ function renderTrophyRoom() {
   </div>`;
 }
 
+// ── 1v1 Series Result screen ──────────────────────────────────────────────────
+function renderSeriesResult() {
+  const sr     = S.seriesResult;
+  const winner = sr.winner; // 'p1' | 'p2'
+  const p1s    = sr.p1Season;
+  const p2s    = sr.p2Season;
+  const series = sr.series;  // { playerWins, oppWins, games, won }
+  const p1Wins = series.playerWins;
+  const p2Wins = series.oppWins;
+  const p1Win  = winner === 'p1';
+
+  const winnerColor = p1Win ? '#2563eb' : '#d97706';
+  const winnerBg    = p1Win ? '#eff6ff'  : '#fffbeb';
+  const loserLabel  = p1Win ? 'Player 2' : 'Player 1';
+  const winnerLabel = p1Win ? 'Player 1' : 'Player 2';
+
+  const gameChips = series.games.map((g, i) => {
+    const p1Won = g === 'W';
+    return `<div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-black border-2"
+      style="background:${p1Won ? '#eff6ff' : '#fffbeb'};color:${p1Won ? '#2563eb' : '#d97706'};border-color:${p1Won ? '#bfdbfe' : '#fde68a'}">
+      ${p1Won ? 'P1' : 'P2'}</div>`;
+  }).join('');
+
+  const p1Coach = COACHES.find(c => c.id === S.p1.coach);
+  const p2Coach = COACHES.find(c => c.id === S.coach);
+
+  const rosterMini = (roster, positions) => positions.map(pos => {
+    const p = roster[pos];
+    if (!p) return '';
+    return `<div class="flex items-center gap-2 py-1.5 border-b border-border last:border-0">
+      <span class="text-[10px] font-black text-muted-fg w-6 flex-shrink-0">${pos}</span>
+      <span class="text-xs font-semibold text-foreground flex-1 truncate">${p.name}</span>
+      <span class="text-[10px] text-muted-fg">${p.ppg}pt</span>
+    </div>`;
+  }).join('');
+
+  const chemBadge = (chemScore) => {
+    const sc = Math.round(chemScore ?? 0);
+    const c  = sc >= 60 ? '#16a34a' : sc >= 40 ? '#d97706' : '#dc2626';
+    const bg = sc >= 60 ? '#f0fdf4' : sc >= 40 ? '#fffbeb' : '#fef2f2';
+    return `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full border" style="color:${c};background:${bg};border-color:${c}30">Chem ${sc}%</span>`;
+  };
+
+  // fire confetti for the winner
+  setTimeout(() => {
+    if (typeof confetti !== 'undefined') {
+      confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 }, colors: p1Win ? ['#2563eb','#93c5fd','#ffffff'] : ['#d97706','#fde68a','#ffffff'] });
+    }
+  }, 150);
+
+  return `
+  <div class="flex flex-col min-h-screen main-gradient">
+    ${renderHeader(false)}
+    <main class="flex-1 flex flex-col items-center px-4 py-6">
+      <div class="w-full max-w-2xl flex flex-col gap-4 animate-fade-up">
+
+        <!-- Winner banner -->
+        <div class="rounded-2xl border-2 p-6 text-center card-shadow" style="border-color:${winnerColor}40;background:${winnerBg}">
+          <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg mb-2">Series Result</p>
+          <p class="text-5xl font-black mb-2" style="color:${winnerColor}">${p1Wins}–${p2Wins}</p>
+          <p class="text-lg font-black text-foreground mb-1">🏆 ${winnerLabel} Wins the Series!</p>
+          <p class="text-sm text-muted-fg">${loserLabel} put up a fight — ${p1Win ? p2Wins : p1Wins} ${(p1Win ? p2Wins : p1Wins) === 1 ? 'game' : 'games'} won.</p>
+        </div>
+
+        <!-- Game-by-game log -->
+        <div class="rounded-2xl border border-border bg-white p-4 card-shadow">
+          <p class="text-xs font-bold uppercase tracking-widest text-muted-fg mb-3">Game-by-Game</p>
+          <div class="flex gap-2 flex-wrap">${gameChips}</div>
+          <div class="flex gap-4 mt-3 text-xs text-muted-fg">
+            <span><span class="font-bold" style="color:#2563eb">P1</span> = Player 1 won that game</span>
+            <span><span class="font-bold" style="color:#d97706">P2</span> = Player 2 won that game</span>
+          </div>
+        </div>
+
+        <!-- Roster comparison -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="rounded-2xl border p-4 card-shadow" style="border-color:#bfdbfe;background:#f8fbff">
+            <div class="flex items-center justify-between mb-3">
+              <p class="text-xs font-bold uppercase tracking-widest" style="color:#2563eb">Player 1</p>
+              ${chemBadge(p1s.chemScore)}
+            </div>
+            ${p1Coach ? `<p class="text-[10px] text-muted-fg mb-2 font-medium">Coach: ${p1Coach.name}</p>` : ''}
+            <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg/60 mb-1">Starters</p>
+            ${rosterMini(S.p1.roster, ['PG','SG','SF','PF','C'])}
+            <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg/60 mb-1 mt-2">Bench</p>
+            ${rosterMini(S.p1.roster, ['B1','B2'])}
+          </div>
+          <div class="rounded-2xl border p-4 card-shadow" style="border-color:#fde68a;background:#fffef8">
+            <div class="flex items-center justify-between mb-3">
+              <p class="text-xs font-bold uppercase tracking-widest" style="color:#d97706">Player 2</p>
+              ${chemBadge(p2s.chemScore)}
+            </div>
+            ${p2Coach ? `<p class="text-[10px] text-muted-fg mb-2 font-medium">Coach: ${p2Coach.name}</p>` : ''}
+            <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg/60 mb-1">Starters</p>
+            ${rosterMini(S.roster, ['PG','SG','SF','PF','C'])}
+            <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg/60 mb-1 mt-2">Bench</p>
+            ${rosterMini(S.roster, ['B1','B2'])}
+          </div>
+        </div>
+
+        <!-- Strength comparison -->
+        <div class="rounded-2xl border border-border bg-white p-4 card-shadow">
+          <p class="text-xs font-bold uppercase tracking-widest text-muted-fg mb-3">Team Strength</p>
+          <div class="flex flex-col gap-2">
+            ${(() => {
+              const maxStr = Math.max(p1s.strength, p2s.strength, 0.01);
+              const p1pct  = Math.round((p1s.strength / maxStr) * 100);
+              const p2pct  = Math.round((p2s.strength / maxStr) * 100);
+              return `
+              <div>
+                <div class="flex justify-between text-xs mb-1"><span class="font-bold" style="color:#2563eb">Player 1</span><span class="font-semibold text-foreground">${p1s.strength.toFixed(3)}</span></div>
+                <div class="h-2.5 rounded-full bg-border overflow-hidden"><div class="h-full rounded-full" style="width:${p1pct}%;background:#2563eb"></div></div>
+              </div>
+              <div>
+                <div class="flex justify-between text-xs mb-1"><span class="font-bold" style="color:#d97706">Player 2</span><span class="font-semibold text-foreground">${p2s.strength.toFixed(3)}</span></div>
+                <div class="h-2.5 rounded-full bg-border overflow-hidden"><div class="h-full rounded-full" style="width:${p2pct}%;background:#d97706"></div></div>
+              </div>`;
+            })()}
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <button data-action="series-play-again"
+          class="w-full py-3.5 rounded-xl font-black text-sm uppercase tracking-widest bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer">
+          Play Again →
+        </button>
+
+      </div>
+    </main>
+    ${renderFooter()}
+  </div>`;
+}
+
 // ── Main render dispatcher ────────────────────────────────────────────────────
 export function render() {
-  if      (S.phase === 'coach-select') $app.innerHTML = renderCoachSelect();
-  else if (S.phase === 'era-select')   $app.innerHTML = renderEraSelect();
-  else if (S.phase === 'drafting')     $app.innerHTML = renderDrafting();
-  else if (S.phase === 'results')      $app.innerHTML = renderResults();
-  else if (S.phase === 'playoffs')     $app.innerHTML = renderPlayoffs();
-  else if (S.phase === 'trophy-room')  $app.innerHTML = renderTrophyRoom();
+  if      (S.phase === 'mode-select')   $app.innerHTML = renderModeSelect();
+  else if (S.phase === 'coach-select')  $app.innerHTML = renderCoachSelect();
+  else if (S.phase === 'era-select')    $app.innerHTML = renderEraSelect();
+  else if (S.phase === 'drafting')      $app.innerHTML = renderDrafting();
+  else if (S.phase === 'results')       $app.innerHTML = renderResults();
+  else if (S.phase === 'playoffs')      $app.innerHTML = renderPlayoffs();
+  else if (S.phase === 'trophy-room')   $app.innerHTML = renderTrophyRoom();
+  else if (S.phase === 'series-result') $app.innerHTML = renderSeriesResult();
   bindEvents();
 
   // Wire up character counter for the local save input (results screen)
