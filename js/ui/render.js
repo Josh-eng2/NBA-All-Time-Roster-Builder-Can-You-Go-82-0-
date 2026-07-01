@@ -144,6 +144,22 @@ function renderModeSelect() {
           </div>
         </button>
 
+        <button data-action="mode-blind"
+          class="w-full rounded-2xl border-2 p-6 text-left cursor-pointer card-shadow hover:shadow-md transition-all"
+          style="border-color:#334155;background:#0f172a">
+          <div class="flex items-start gap-4">
+            <div class="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style="background:#1e293b">🎲</div>
+            <div class="flex-1 min-w-0">
+              <div class="flex flex-wrap items-center gap-2 mb-1">
+                <p class="font-black text-lg" style="color:#f1f5f9">Blind Draft</p>
+                <span class="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full" style="background:#334155;color:#94a3b8">Knowledge Test</span>
+              </div>
+              <p class="text-sm leading-relaxed" style="color:#64748b">No names. No stats. Only positions are shown — draft by era, team, and instinct alone.</p>
+              <p class="text-xs font-bold mt-2" style="color:#475569">❓ Pick reveals on selection — trust your basketball knowledge.</p>
+            </div>
+          </div>
+        </button>
+
         ${trophies.length > 0 ? `
           <button data-action="view-trophies"
             class="w-full py-3.5 rounded-xl font-bold text-sm border border-amber-200 bg-amber-50 text-amber-700 cursor-pointer transition-all hover:bg-amber-100 hover:border-amber-300 card-shadow">
@@ -452,7 +468,7 @@ function renderSlotMachine() {
         SPINNING...
       </button>
     ` : `
-      <p class="text-center text-xs text-muted-fg py-1">Select a player below, then tap a roster slot to place them</p>
+      <p class="text-center text-xs text-muted-fg py-1">${S.mode === 'blind' ? '❓ Tap a mystery card to reveal — then tap a roster slot to place' : 'Select a player below, then tap a roster slot to place them'}</p>
     `}
   </div>`;
 }
@@ -484,12 +500,36 @@ function renderDraftCard(p, index) {
   const takenByP1       = !alreadyOnRoster && (S.takenPlayerIds?.has(p.id) ?? false);
   const unavailable     = alreadyOnRoster || takenByP1;
   const isSelected      = !unavailable && S.selectedPlayer?.id === p.id;
-  const cardBorder      = unavailable ? '#e2e8f0' : isSelected ? '#2563eb' : '#e2e8f0';
-  const cardBg          = unavailable ? '#f8fafc' : isSelected ? '#eff6ff' : '#ffffff';
-  const cardOpacity     = unavailable ? 'opacity:0.5;' : '';
+
+  // Blind mode — unselected cards shown face-down; flips to full card on selection
+  if (S.mode === 'blind' && !isSelected) {
+    const posLabel = p.secondaryPos?.length ? `${p.pos} / ${p.secondaryPos[0]}` : p.pos;
+    return `
+    <div class="rounded-xl border-2 flex flex-col overflow-hidden card-shadow${unavailable ? ' opacity-40' : ''}"
+      style="border-color:${unavailable ? '#e2e8f0' : '#475569'};background:${unavailable ? '#f8fafc' : '#1e293b'}">
+      <div class="p-3 flex-1 flex flex-col items-center justify-center gap-2 text-center" style="min-height:120px">
+        <span class="text-[10px] font-black px-2 py-0.5 rounded-full"
+          style="background:${unavailable ? '#f1f5f9' : '#334155'};color:${unavailable ? '#94a3b8' : '#64748b'}">${posLabel}</span>
+        <span class="text-3xl">${unavailable ? '🚫' : '❓'}</span>
+        <p class="text-[11px] font-bold" style="color:${unavailable ? '#94a3b8' : '#475569'}">${unavailable ? 'Already Taken' : 'Mystery Player'}</p>
+      </div>
+      <div class="px-3 pb-3">
+        ${unavailable
+          ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs cursor-not-allowed" style="background:#f1f5f9;color:#94a3b8;border:1.5px solid #e2e8f0">Taken</button>`
+          : `<button data-action="draft-pick-${index}" class="w-full py-2 rounded-lg font-bold text-xs cursor-pointer transition-all" style="background:#334155;color:#94a3b8;border:1.5px solid #475569">🎲 Mystery Pick</button>`
+        }
+      </div>
+    </div>`;
+  }
+
+  // Full-reveal card — all modes, plus selected card in blind mode
+  const cardBorder  = unavailable ? '#e2e8f0' : isSelected ? '#2563eb' : '#e2e8f0';
+  const cardBg      = unavailable ? '#f8fafc' : isSelected ? '#eff6ff' : '#ffffff';
+  const cardOpacity = unavailable ? 'opacity:0.5;' : '';
   return `
   <div class="rounded-xl border-2 flex flex-col overflow-hidden transition-all card-shadow"
     style="border-color:${cardBorder};background:${cardBg};${cardOpacity}">
+    ${S.mode === 'blind' && isSelected ? `<div class="pt-2 px-3"><span class="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full" style="background:#fef9c3;color:#a16207">🔍 Revealed</span></div>` : ''}
     <div class="p-3 flex-1">
       <div class="flex items-center gap-1.5 mb-2">
         <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full border border-border bg-card2 text-muted-fg">${p.secondaryPos?.length ? `${p.pos} / ${p.secondaryPos[0]}` : p.pos}</span>
@@ -515,7 +555,7 @@ function renderDraftCard(p, index) {
         : `<button data-action="draft-pick-${index}"
             class="w-full py-2 rounded-lg font-bold text-xs transition-all cursor-pointer"
             style="background:${isSelected ? '#2563eb' : '#eff6ff'};color:${isSelected ? '#fff' : '#2563eb'};border:1.5px solid ${isSelected ? '#2563eb' : '#bfdbfe'}">
-            ${isSelected ? '✓ Selected — Tap a Roster Slot' : 'Draft Player'}
+            ${isSelected ? (S.mode === 'blind' ? '✓ Revealed — Tap a Roster Slot' : '✓ Selected — Tap a Roster Slot') : 'Draft Player'}
           </button>`
       }
     </div>
