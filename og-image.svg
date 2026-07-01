@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <radialGradient id="bg" cx="65%" cy="50%" r="80%">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0a1120"/>
+    </radialGradient>
+    <clipPath id="clip">
+      <rect width="1200" height="630"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Basketball watermark (right side) -->
+  <g clip-path="url(#clip)" opacity="0.18">
+    <circle cx="970" cy="315" r="300" fill="#f97316"/>
+    <circle cx="970" cy="315" r="300" fill="none" stroke="#7c2d12" stroke-width="6"/>
+    <!-- vertical seam -->
+    <line x1="970" y1="15" x2="970" y2="615" stroke="#7c2d12" stroke-width="5"/>
+    <!-- horizontal seam curves -->
+    <path d="M670 315 Q970 200 1270 315" fill="none" stroke="#7c2d12" stroke-width="5"/>
+    <path d="M670 315 Q970 430 1270 315" fill="none" stroke="#7c2d12" stroke-width="5"/>
+  </g>
+
+  <!-- Subtle grid lines for depth -->
+  <line x1="0" y1="628" x2="1200" y2="628" stroke="#f97316" stroke-width="3" opacity="0.6"/>
+  <line x1="0" y1="2" x2="1200" y2="2" stroke="#f97316" stroke-width="2" opacity="0.15"/>
+
+  <!-- Left accent bar -->
+  <rect x="100" y="178" width="72" height="5" fill="#f97316" rx="2.5"/>
+
+  <!-- "CAN YOU GO" label -->
+  <text x="100" y="163"
+    font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif"
+    font-size="30" font-weight="900" fill="#f97316"
+    letter-spacing="10">CAN YOU GO</text>
+
+  <!-- "82-0" hero text -->
+  <text x="80" y="415"
+    font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif"
+    font-size="248" font-weight="900" fill="#ffffff"
+    letter-spacing="-12">82-0</text>
+
+  <!-- Subtitle -->
+  <text x="104" y="476"
+    font-family="'Helvetica Neue', Arial, sans-serif"
+    font-size="21" font-weight="400" fill="#64748b"
+    letter-spacing="7">THE ALL-TIME NBA ROSTER BUILDER</text>
+
+  <!-- Domain -->
+  <text x="104" y="522"
+    font-family="'Helvetica Neue', Arial, sans-serif"
+    font-size="15" font-weight="400" fill="#334155"
+    letter-spacing="3">canyougo820.com</text>
+
+  <!-- Orange dot accent beside subtitle -->
+  <circle cx="91" cy="470" r="5" fill="#f97316"/>
+</svg>
