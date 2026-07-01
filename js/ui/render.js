@@ -105,65 +105,54 @@ function renderFooter() {
 function renderModeSelect() {
   let trophies = [];
   try { trophies = JSON.parse(localStorage.getItem('nba820_trophies') || '[]'); } catch (e) {}
+  const modes = [
+    { action: 'mode-solo',  icon: '🏀', accent: '#2563eb', iconBg: '#eff6ff',
+      name: 'Single Player', tag: 'Classic',        tagBg: '#2563eb', tagColor: '#fff',
+      desc: 'Build your all-time roster and try to go 82-0.',
+      sub:  'Draft · Simulate · Win the championship' },
+    { action: 'mode-1v1',   icon: '⚔️', accent: '#d97706', iconBg: '#fffbeb',
+      name: '1v1 Local',     tag: 'vs Friend',      tagBg: '#d97706', tagColor: '#fff',
+      desc: 'Two players draft from a shared pool and face off.',
+      sub:  'Best-of-7 series · Pass the device between turns' },
+    { action: 'mode-blind', icon: '🎲', accent: '#7c3aed', iconBg: '#f5f3ff',
+      name: 'Blind Draft',   tag: 'Knowledge Test', tagBg: '#7c3aed', tagColor: '#fff',
+      desc: 'No names. No stats. Draft by position and instinct alone.',
+      sub:  'Picks reveal on selection · Trust your basketball knowledge' },
+  ];
   return `
   <div class="flex flex-col min-h-screen main-gradient">
     ${renderHeader(false)}
-    <main class="flex-1 flex flex-col items-center px-4 pt-6 pb-8">
-      <div class="w-full max-w-2xl flex flex-col gap-4 animate-fade-up">
-        <div class="text-center pb-2">
-          <h1 class="text-2xl font-black text-foreground mb-1.5">Choose Game Mode</h1>
-          <p class="text-sm text-muted-fg">Go solo or challenge a friend on the same device.</p>
+    <main class="flex-1 flex flex-col items-center px-4 pt-8 pb-8">
+      <div class="w-full max-w-md flex flex-col gap-3 animate-fade-up">
+
+        <div class="text-center mb-1">
+          <h1 class="text-2xl font-black text-foreground mb-1">Choose Your Mode</h1>
+          <p class="text-sm text-muted-fg">Solo, local multiplayer, or test your knowledge.</p>
         </div>
 
-        <button data-action="mode-solo"
-          class="w-full rounded-2xl border-2 border-primary bg-primary/5 p-6 text-left cursor-pointer card-shadow hover:shadow-md transition-all">
-          <div class="flex items-start gap-4">
-            <div class="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center bg-primary/10 text-2xl">🏀</div>
+        ${modes.map(m => `
+        <button data-action="${m.action}"
+          class="w-full rounded-2xl bg-white p-4 text-left cursor-pointer card-shadow hover:shadow-md transition-all"
+          style="border-left:4px solid ${m.accent};border:1px solid ${m.accent}20;border-left-width:4px;border-left-color:${m.accent}">
+          <div class="flex items-center gap-3">
+            <div class="flex-shrink-0 w-11 h-11 rounded-xl flex items-center justify-center text-xl" style="background:${m.iconBg}">${m.icon}</div>
             <div class="flex-1 min-w-0">
-              <div class="flex flex-wrap items-center gap-2 mb-1">
-                <p class="font-black text-lg text-foreground">Single Player</p>
-                <span class="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-primary text-white">Classic</span>
+              <div class="flex items-center gap-2 mb-0.5">
+                <p class="font-black text-sm text-foreground">${m.name}</p>
+                <span class="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full flex-shrink-0"
+                  style="background:${m.tagBg};color:${m.tagColor}">${m.tag}</span>
               </div>
-              <p class="text-sm text-muted-fg leading-relaxed">Build your all-time roster and try to go 82-0. Draft, simulate, and win the championship solo.</p>
+              <p class="text-xs text-muted-fg leading-snug">${m.desc}</p>
+              <p class="text-[10px] font-semibold mt-0.5" style="color:${m.accent}aa">${m.sub}</p>
             </div>
+            <span class="flex-shrink-0 text-lg font-light" style="color:${m.accent}50">›</span>
           </div>
-        </button>
-
-        <button data-action="mode-1v1"
-          class="w-full rounded-2xl border-2 border-amber-400 bg-amber-50 p-6 text-left cursor-pointer card-shadow hover:shadow-md transition-all">
-          <div class="flex items-start gap-4">
-            <div class="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center bg-amber-100 text-2xl">⚔️</div>
-            <div class="flex-1 min-w-0">
-              <div class="flex flex-wrap items-center gap-2 mb-1">
-                <p class="font-black text-lg text-foreground">1v1 Local</p>
-                <span class="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-amber-400 text-white">vs Friend</span>
-              </div>
-              <p class="text-sm text-muted-fg leading-relaxed">Two players draft rosters from a shared pool, then face off in a best-of-7 series. Pass the device between turns.</p>
-              <p class="text-xs font-bold text-amber-600 mt-2">⚡ If P1 drafts LeBron, P2 can't have him.</p>
-            </div>
-          </div>
-        </button>
-
-        <button data-action="mode-blind"
-          class="w-full rounded-2xl border-2 p-6 text-left cursor-pointer card-shadow hover:shadow-md transition-all"
-          style="border-color:#334155;background:#0f172a">
-          <div class="flex items-start gap-4">
-            <div class="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style="background:#1e293b">🎲</div>
-            <div class="flex-1 min-w-0">
-              <div class="flex flex-wrap items-center gap-2 mb-1">
-                <p class="font-black text-lg" style="color:#f1f5f9">Blind Draft</p>
-                <span class="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full" style="background:#334155;color:#94a3b8">Knowledge Test</span>
-              </div>
-              <p class="text-sm leading-relaxed" style="color:#64748b">No names. No stats. Only positions are shown — draft by era, team, and instinct alone.</p>
-              <p class="text-xs font-bold mt-2" style="color:#475569">❓ Pick reveals on selection — trust your basketball knowledge.</p>
-            </div>
-          </div>
-        </button>
+        </button>`).join('')}
 
         ${trophies.length > 0 ? `
           <button data-action="view-trophies"
-            class="w-full py-3.5 rounded-xl font-bold text-sm border border-amber-200 bg-amber-50 text-amber-700 cursor-pointer transition-all hover:bg-amber-100 hover:border-amber-300 card-shadow">
-            🏆 View Trophy Room · ${trophies.length} Championship${trophies.length === 1 ? '' : 's'}
+            class="w-full py-3 rounded-xl font-bold text-sm border border-amber-200 bg-amber-50 text-amber-700 cursor-pointer transition-all hover:bg-amber-100 card-shadow">
+            🏆 Trophy Room · ${trophies.length} Championship${trophies.length === 1 ? '' : 's'}
           </button>` : ''}
       </div>
     </main>
