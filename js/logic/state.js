@@ -219,11 +219,16 @@ export let S = {
   phase:          'mode-select', // 'mode-select' | 'coach-select' | 'era-select' | 'drafting' | 'results' | 'playoffs' | 'trophy-room' | 'series-result'
   mode:           null,          // 'solo' | '1v1'
   currentPlayer:  1,             // 1 or 2 (1v1 only)
-  p1:             null,          // snapshot of P1 after draft (1v1 only)
-  takenPlayerIds: new Set(),     // player IDs drafted by P1 — blocked for P2
-  seriesResult:   null,          // best-of-7 outcome (1v1 only)
+  p1:             null,          // snapshot of P1 after sequential draft (old 1v1 flow — kept for compat)
+  takenPlayerIds: new Set(),
+  seriesResult:   null,
   coach:          null,
   selectedEra:    null,
+  // 1v1 alternating draft state (set by startGame1v1)
+  p1Coach: null, p1Era: null, p2Coach: null, p2Era: null,
+  p1Roster: null, p2Roster: null,
+  p1Round: 0, p2Round: 0,
+  draftLog: [],
 };
 
 /**
@@ -271,5 +276,53 @@ export function startGame(era = 'all') {
     runSaved: false,
     globalScoreSubmitted: false,
     globalSubmitError:    null,
+  };
+}
+
+/**
+ * Initialises S for a 1v1 alternating draft.
+ * Called after both players have selected their coach + era.
+ */
+export function startGame1v1() {
+  const { p1Coach, p1Era, p2Coach, p2Era } = S;
+  S = {
+    phase:    'drafting',
+    mode:     '1v1',
+    currentPlayer: 1,
+    p1Coach, p1Era, p2Coach, p2Era,
+    p1Roster: { PG: null, SG: null, SF: null, PF: null, C: null, B1: null, B2: null },
+    p2Roster: { PG: null, SG: null, SF: null, PF: null, C: null, B1: null, B2: null },
+    p1Round:  0,
+    p2Round:  0,
+    draftLog: [],
+
+    // Shared draft-pool tracking
+    gameId:    crypto.randomUUID(),
+    usedDecades: [],
+    usedPlayerIds: [],
+    draftedPlayerNames: new Set(),
+    teamSkips:  1,
+    decadeSkips: 1,
+    spinState:  'idle',
+    currentSpin: null,
+    availablePlayers: [],
+    draftBoard: [],
+    selectedPlayer: null,
+    movingPos: null,
+
+    // Solo-mode fields kept to avoid undefined refs
+    roster: { PG: null, SG: null, SF: null, PF: null, C: null, B1: null, B2: null },
+    round: 0,
+    result: null,
+    playoffs: null,
+    teamName: '',
+    runSaved: false,
+    globalScoreSubmitted: false,
+    globalSubmitError: null,
+    takenPlayerIds: new Set(),
+    seriesResult: null,
+    p1: null,
+    selectedEra: null,
+    coach: null,
   };
 }
