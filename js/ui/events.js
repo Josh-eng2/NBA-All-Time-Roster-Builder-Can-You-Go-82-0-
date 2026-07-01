@@ -11,7 +11,7 @@
  */
 
 import {
-  S, startGame, ALL_POSITIONS, POSITIONS, BENCH_POSITIONS,
+  S, startGame, startGame1v1, ALL_POSITIONS, POSITIONS, BENCH_POSITIONS,
   TEAMS, DECADES, COACHES, pick, buildBracket, getPlayerSeed,
 } from '../logic/state.js';
 import {
@@ -131,7 +131,26 @@ function dispatch(action) {
 // ── Game lifecycle ────────────────────────────────────────────────────────────
 
 function doStartGame(era = 'all') {
-  startGame(era); // resets S in state.js
+  if (S.mode === '1v1' && S.currentPlayer === 1) {
+    // P1 locked — save their choice and hand off to P2
+    S.p1Coach = S.coach;
+    S.p1Era   = era;
+    S.currentPlayer = 2;
+    S.coach   = null;
+    S.selectedEra = null;
+    S.phase   = 'coach-select';
+    showToast('Player 1 locked in! Player 2 — choose your coach.');
+    render(); return;
+  }
+  if (S.mode === '1v1' && S.currentPlayer === 2) {
+    // Both players set — launch alternating draft
+    S.p2Coach = S.coach;
+    S.p2Era   = era;
+    startGame1v1();
+    logAnalyticsEvent('1v1_draft_started', { p1Coach: S.p1Coach, p2Coach: S.p2Coach });
+    render(); return;
+  }
+  startGame(era);
   logAnalyticsEvent('game_started', { era, coach: S.coach ?? 'none' });
   render();
 }
@@ -189,7 +208,10 @@ function doSpin() {
   S.movingPos      = null;
   render();
 
-  const eraLocked  = S.selectedEra && S.selectedEra !== 'all';
+  const activeEra  = S.mode === '1v1'
+    ? (S.currentPlayer === 1 ? (S.p1Era || 'all') : (S.p2Era || 'all'))
+    : (S.selectedEra || 'all');
+  const eraLocked  = activeEra !== 'all';
   const spinGameId = S.gameId; // capture so a mid-spin restart can't mutate the new game
   let ticks = 0;
   const total    = 14;
@@ -201,7 +223,7 @@ function doSpin() {
     const decPool  = availableDecades();
     if (teamEl)   teamEl.textContent   = pick(TEAMS);
     if (decadeEl) decadeEl.textContent = eraLocked
-      ? S.selectedEra
+      ? activeEra
       : pick(decPool.length ? decPool : DECADES);
 
     if (ticks >= total) {
@@ -236,7 +258,10 @@ function doSkipTeam() {
 }
 
 function doSkipDecade() {
-  if (S.selectedEra !== 'all')               { render(); return; }
+  const activeEra = S.mode === '1v1'
+    ? (S.currentPlayer === 1 ? (S.p1Era || 'all') : (S.p2Era || 'all'))
+    : (S.selectedEra || 'all');
+  if (activeEra !== 'all')                   { render(); return; }
   if (S.decadeSkips <= 0 || !S.currentSpin)  { render(); return; }
   const pool = availableDecades().filter(d => d !== S.currentSpin.decade);
   if (!pool.length) { render(); return; }
@@ -252,17 +277,67 @@ function doSkipDecade() {
 
 function placePlayer(pos) {
   if (!S.selectedPlayer) { render(); return; }
-  const spin      = S.currentSpin;
-  const player    = { ...S.selectedPlayer, team: spin?.team, decade: spin?.decade };
+  const spin   = S.currentSpin;
+  const player = { ...S.selectedPlayer, team: spin?.team, decade: spin?.decade };
+
+  // ── 1v1 alternating draft ──────────────────────────────────────────────────
+  if (S.mode === '1v1') {
+    const activeRoster = S.currentPlayer === 1 ? S.p1Roster : S.p2Roster;
+    const oldPlayer    = activeRoster[pos];
+
+    if (S.draftedPlayerNames?.has(player.name) && oldPlayer?.name !== player.name) {
+      showToast('Player already drafted!');
+      return;
+    }
+
+    if (oldPlayer) {
+      const idIdx  = S.usedPlayerIds.indexOf(oldPlayer.id);
+      if (idIdx  !== -1) S.usedPlayerIds.splice(idIdx, 1);
+      const decIdx = S.usedDecades.indexOf(oldPlayer.decade);
+      if (decIdx !== -1) S.usedDecades.splice(decIdx, 1);
+      S.draftedPlayerNames?.delete(oldPlayer.name);
+    }
+
+    activeRoster[pos] = player;
+    if (spin?.decade) S.usedDecades.push(spin.decade);
+    S.usedPlayerIds.push(player.id);
+    S.draftedPlayerNames?.add(player.name);
+
+    if (!oldPlayer) {
+      if (S.currentPlayer === 1) S.p1Round++;
+      else S.p2Round++;
+      const pick = S.p1Round + S.p2Round;
+      S.draftLog.push({ name: player.name, playerNum: S.currentPlayer, pick });
+    }
+
+    logAnalyticsEvent('player_drafted', { player: player.name, pos, playerNum: S.currentPlayer });
+    S.spinState = 'idle'; S.currentSpin = null; S.availablePlayers = []; S.draftBoard = []; S.selectedPlayer = null;
+
+    // Both rosters complete — auto-simulate series
+    if (S.p1Round >= 7 && S.p2Round >= 7) {
+      const p1s = POSITIONS.map(p => S.p1Roster[p]).filter(Boolean);
+      const p1b = BENCH_POSITIONS.map(p => S.p1Roster[p]).filter(Boolean);
+      const p2s = POSITIONS.map(p => S.p2Roster[p]).filter(Boolean);
+      const p2b = BENCH_POSITIONS.map(p => S.p2Roster[p]).filter(Boolean);
+      S.seriesResult = simulateHeadToHeadSeries(p1s, p1b, S.p1Coach, p2s, p2b, S.p2Coach);
+      S.phase = 'series-result';
+      logAnalyticsEvent('1v1_series_simulated', { winner: S.seriesResult.winner });
+      render(); return;
+    }
+
+    // Alternate turn
+    S.currentPlayer = S.currentPlayer === 1 ? 2 : 1;
+    render(); return;
+  }
+
+  // ── Solo draft ─────────────────────────────────────────────────────────────
   const oldPlayer = S.roster[pos];
 
-  // Block if a different era version of this player is already on the roster
   if (S.draftedPlayerNames?.has(player.name) && oldPlayer?.name !== player.name) {
     showToast('Player already on roster!');
     return;
   }
 
-  // Remove the displaced player from tracking before placing the new one
   if (oldPlayer) {
     const idIdx = S.usedPlayerIds.indexOf(oldPlayer.id);
     if (idIdx !== -1) S.usedPlayerIds.splice(idIdx, 1);
@@ -275,7 +350,7 @@ function placePlayer(pos) {
   if (spin?.decade) S.usedDecades.push(spin.decade);
   S.usedPlayerIds.push(player.id);
   S.draftedPlayerNames?.add(player.name);
-  if (!oldPlayer) S.round++;  // swaps don't consume an additional round
+  if (!oldPlayer) S.round++;
   logAnalyticsEvent('player_drafted', { player: player.name, pos, round: S.round });
   S.spinState        = 'idle';
   S.currentSpin      = null;
@@ -288,43 +363,9 @@ function placePlayer(pos) {
 // ── Season simulation ─────────────────────────────────────────────────────────
 
 function doSimulate() {
-  if (S.phase !== 'drafting') return;
+  if (S.phase !== 'drafting' || S.mode === '1v1') return;
   const starters = POSITIONS.map(p => S.roster[p]).filter(Boolean);
   const bench    = BENCH_POSITIONS.map(p => S.roster[p]).filter(Boolean);
-
-  // ── 1v1 mode: P1 locks in, transition to P2 draft ─────────────────────────
-  if (S.mode === '1v1' && S.currentPlayer === 1) {
-    S.p1 = {
-      roster: { ...S.roster },
-      coach:  S.coach,
-      selectedEra: S.selectedEra,
-      starters, bench,
-    };
-    // Mark all of P1's players as taken
-    starters.concat(bench).forEach(p => S.takenPlayerIds.add(p.id));
-
-    // Reset draft state for P2, preserving 1v1 context
-    S.currentPlayer = 2;
-    S.phase         = 'coach-select';
-    S.coach         = null;
-    S.selectedEra   = null;
-    showToast('Player 1 locked in! Now Player 2 — pick your coach.');
-    render(); return;
-  }
-
-  // ── 1v1 mode: P2 done → run best-of-7 series ──────────────────────────────
-  if (S.mode === '1v1' && S.currentPlayer === 2) {
-    const p1 = S.p1;
-    S.seriesResult = simulateHeadToHeadSeries(
-      p1.starters, p1.bench, p1.coach,
-      starters, bench, S.coach
-    );
-    S.phase = 'series-result';
-    logAnalyticsEvent('1v1_series_simulated', { winner: S.seriesResult.winner });
-    render(); return;
-  }
-
-  // ── Solo mode ──────────────────────────────────────────────────────────────
   S.result  = simulateSeason(starters, bench, S.coach);
   S.phase   = 'results';
   S.runSaved = false;

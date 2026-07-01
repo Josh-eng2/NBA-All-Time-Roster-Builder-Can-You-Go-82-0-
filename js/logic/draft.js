@@ -4,14 +4,18 @@
 import { S, ALL_POSITIONS, TEAMS, DECADES, pick } from '../logic/state.js';
 import { DB }                                     from '../data/players.js';
 
-/** True once all 8 roster slots are filled. */
+/** True once all slots are filled for the active context. */
 export function rosterFull() {
+  if (S.mode === '1v1') return false; // 1v1 auto-triggers on last pick — never show simulate card
   return ALL_POSITIONS.every(p => S.roster[p] !== null);
 }
 
 /** Decades still eligible for drafting in the current game. */
 export function availableDecades() {
-  if (S.selectedEra && S.selectedEra !== 'all') return [S.selectedEra];
+  const era = S.mode === '1v1'
+    ? (S.currentPlayer === 1 ? (S.p1Era || 'all') : (S.p2Era || 'all'))
+    : (S.selectedEra || 'all');
+  if (era !== 'all') return [era];
   const remaining = DECADES.filter(d => !S.usedDecades.includes(d));
   return remaining.length > 0 ? remaining : DECADES.slice();
 }

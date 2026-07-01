@@ -241,18 +241,13 @@ function renderEraSelect() {
 
 // ── Drafting screen ───────────────────────────────────────────────────────────
 function renderDrafting() {
+  if (S.mode === '1v1') return renderDrafting1v1();
   const full = rosterFull();
-  const playerBanner = S.mode === '1v1' ? `
-    <div class="flex items-center justify-center gap-2 py-2 px-4 rounded-xl font-bold text-sm mb-1"
-      style="background:${S.currentPlayer === 1 ? '#eff6ff' : '#fffbeb'};color:${S.currentPlayer === 1 ? '#2563eb' : '#d97706'};border:1.5px solid ${S.currentPlayer === 1 ? '#bfdbfe' : '#fde68a'}">
-      ⚔️ Player ${S.currentPlayer} — Build Your Roster
-    </div>` : '';
   return `
   <div class="min-h-screen main-gradient">
     ${renderHeader(true)}
     <main class="flex flex-col items-center px-4 pt-2 pb-8">
       <div class="w-full max-w-2xl flex flex-col gap-2">
-        ${playerBanner}
         ${full ? renderSimulateCard() : ''}
         ${renderRoundBar()}
         ${!full ? renderSlotMachine() : ''}
@@ -260,6 +255,88 @@ function renderDrafting() {
         ${renderPopularityBar()}
         ${renderChemDashboard()}
         ${renderRoster()}
+      </div>
+    </main>
+  </div>`;
+}
+
+// ── 1v1 Alternating Draft screen ──────────────────────────────────────────────
+function render1v1RosterPanel(roster, playerNum, isActive) {
+  const color  = playerNum === 1 ? '#2563eb' : '#d97706';
+  const bg     = playerNum === 1 ? '#eff6ff'  : '#fffbeb';
+  const bdrCol = isActive ? color : '#e2e8f0';
+  const coachId = playerNum === 1 ? S.p1Coach : S.p2Coach;
+  const coachObj = coachId ? COACHES.find(c => c.id === coachId) : null;
+
+  const slots = ALL_POSITIONS.map(pos => {
+    const p       = roster ? roster[pos] : null;
+    const isBench = BENCH_POSITIONS.includes(pos);
+    const label   = isBench ? 'BN' : pos;
+    return `<div class="flex items-center gap-1.5 py-1 border-b border-border last:border-0">
+      <span class="text-[10px] font-black w-5 flex-shrink-0" style="color:${p ? color : '#cbd5e1'}">${label}</span>
+      <span class="text-[11px] font-semibold flex-1 truncate ${p ? 'text-foreground' : 'text-muted-fg/40'}">${p ? p.name.split(' ').slice(-1)[0] : '—'}</span>
+      ${p ? `<span class="text-[10px] text-muted-fg flex-shrink-0">${p.ppg}pt</span>` : ''}
+    </div>`;
+  }).join('');
+
+  return `
+  <div class="rounded-2xl border-2 bg-white p-3 card-shadow transition-all" style="border-color:${bdrCol}${isActive ? '' : ''}">
+    <div class="flex items-center justify-between mb-1.5">
+      <p class="text-xs font-black uppercase tracking-wider" style="color:${color}">P${playerNum}</p>
+      ${isActive ? `<span class="text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse-glow" style="background:${bg};color:${color}">🎯 ON CLOCK</span>` : `<span class="text-[10px] text-muted-fg font-medium">${(playerNum === 1 ? S.p1Round : S.p2Round)}/7</span>`}
+    </div>
+    ${coachObj ? `<p class="text-[10px] text-muted-fg mb-1.5 truncate">${coachObj.name}</p>` : ''}
+    ${slots}
+  </div>`;
+}
+
+function renderDrafting1v1() {
+  const totalPick  = S.p1Round + S.p2Round + 1;
+  const isP1Turn   = S.currentPlayer === 1;
+  const clockColor = isP1Turn ? '#2563eb' : '#d97706';
+  const clockBg    = isP1Turn ? '#eff6ff'  : '#fffbeb';
+  const clockBdr   = isP1Turn ? '#bfdbfe'  : '#fde68a';
+
+  // Recent picks log (last 5)
+  const recentPicks = S.draftLog.slice(-5).reverse().map(entry => {
+    const c = entry.playerNum === 1 ? '#2563eb' : '#d97706';
+    return `<div class="flex items-center gap-2 py-1 border-b border-border last:border-0">
+      <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full" style="background:${entry.playerNum === 1 ? '#eff6ff' : '#fffbeb'};color:${c}">P${entry.playerNum}</span>
+      <span class="text-xs text-foreground font-semibold truncate">${entry.name}</span>
+      <span class="text-[10px] text-muted-fg ml-auto flex-shrink-0">Pick ${entry.pick}</span>
+    </div>`;
+  }).join('');
+
+  return `
+  <div class="min-h-screen main-gradient">
+    ${renderHeader(true)}
+    <main class="flex flex-col items-center px-4 pt-2 pb-8">
+      <div class="w-full max-w-3xl flex flex-col gap-3">
+
+        <!-- ON THE CLOCK banner -->
+        <div class="flex items-center justify-between px-4 py-2.5 rounded-xl font-black text-sm uppercase tracking-widest"
+          style="background:${clockBg};color:${clockColor};border:2px solid ${clockBdr}">
+          <span>⚡ Player ${S.currentPlayer} On The Clock</span>
+          <span class="text-xs font-bold opacity-70">Pick ${totalPick} of 14</span>
+        </div>
+
+        <!-- Side-by-side rosters -->
+        <div class="grid grid-cols-2 gap-3">
+          ${render1v1RosterPanel(S.p1Roster, 1, isP1Turn)}
+          ${render1v1RosterPanel(S.p2Roster, 2, !isP1Turn)}
+        </div>
+
+        <!-- Shared draft board -->
+        ${renderSlotMachine()}
+        ${S.spinState === 'done' ? renderDraftBoard() : ''}
+
+        <!-- Recent picks -->
+        ${S.draftLog.length > 0 ? `
+        <div class="rounded-xl border border-border bg-white p-3 card-shadow">
+          <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg mb-2">Recent Picks</p>
+          ${recentPicks}
+        </div>` : ''}
+
       </div>
     </main>
   </div>`;
@@ -319,7 +396,10 @@ function renderSlotMachine() {
   const isDone    = S.spinState === 'done';
   const isSpin    = S.spinState === 'spinning';
   const tc        = isDone ? TEAM_COLORS[S.currentSpin.team] : null;
-  const eraLocked = S.selectedEra && S.selectedEra !== 'all';
+  const activeEra = S.mode === '1v1'
+    ? (S.currentPlayer === 1 ? (S.p1Era || 'all') : (S.p2Era || 'all'))
+    : (S.selectedEra || 'all');
+  const eraLocked = activeEra !== 'all';
   const decPool   = availableDecades();
   return `
   <div class="rounded-2xl border border-border bg-card p-4 animate-scale-in card-shadow">
@@ -342,7 +422,7 @@ function renderSlotMachine() {
         style="background:${isDone ? '#eff6ff' : '#f1f5f9'};border-color:${isDone ? '#93c5fd' : '#e2e8f0'}">
         <span class="text-[10px] font-bold uppercase tracking-widest mb-2 text-muted-fg">ERA</span>
         <span class="slot-badge text-xl font-black text-foreground" id="slot-decade">
-          ${isDone ? S.currentSpin.decade : isSpin ? (eraLocked ? S.selectedEra : pick(decPool.length ? decPool : DECADES)) : '—'}
+          ${isDone ? S.currentSpin.decade : isSpin ? (eraLocked ? activeEra : pick(decPool.length ? decPool : DECADES)) : '—'}
         </span>
         ${isDone ? `<span class="mt-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary text-white uppercase tracking-wider">LOCKED</span>` : ''}
       </div>
@@ -1174,8 +1254,10 @@ function renderSeriesResult() {
       ${p1Won ? 'P1' : 'P2'}</div>`;
   }).join('');
 
-  const p1Coach = COACHES.find(c => c.id === S.p1.coach);
-  const p2Coach = COACHES.find(c => c.id === S.coach);
+  const p1CoachId = S.p1Coach || S.p1?.coach;
+  const p2CoachId = S.p2Coach || S.coach;
+  const p1Coach   = COACHES.find(c => c.id === p1CoachId);
+  const p2Coach   = COACHES.find(c => c.id === p2CoachId);
 
   const rosterMini = (roster, positions) => positions.map(pos => {
     const p = roster[pos];
@@ -1234,9 +1316,9 @@ function renderSeriesResult() {
             </div>
             ${p1Coach ? `<p class="text-[10px] text-muted-fg mb-2 font-medium">Coach: ${p1Coach.name}</p>` : ''}
             <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg/60 mb-1">Starters</p>
-            ${rosterMini(S.p1.roster, ['PG','SG','SF','PF','C'])}
+            ${rosterMini(S.p1Roster || S.p1?.roster || {}, ['PG','SG','SF','PF','C'])}
             <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg/60 mb-1 mt-2">Bench</p>
-            ${rosterMini(S.p1.roster, ['B1','B2'])}
+            ${rosterMini(S.p1Roster || S.p1?.roster || {}, ['B1','B2'])}
           </div>
           <div class="rounded-2xl border p-4 card-shadow" style="border-color:#fde68a;background:#fffef8">
             <div class="flex items-center justify-between mb-3">
@@ -1245,9 +1327,9 @@ function renderSeriesResult() {
             </div>
             ${p2Coach ? `<p class="text-[10px] text-muted-fg mb-2 font-medium">Coach: ${p2Coach.name}</p>` : ''}
             <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg/60 mb-1">Starters</p>
-            ${rosterMini(S.roster, ['PG','SG','SF','PF','C'])}
+            ${rosterMini(S.p2Roster || S.roster, ['PG','SG','SF','PF','C'])}
             <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg/60 mb-1 mt-2">Bench</p>
-            ${rosterMini(S.roster, ['B1','B2'])}
+            ${rosterMini(S.p2Roster || S.roster, ['B1','B2'])}
           </div>
         </div>
 
