@@ -81,7 +81,10 @@ function dispatch(action) {
   if (action === 'draft-new-roster') { S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; S.takenPlayerIds = new Set(); render(); return; }
   if (action === 'view-trophies')    { S.phase = 'trophy-room'; render(); return; }
   if (action === 'back-to-menu')     { S.mode = null; S.phase = 'mode-select'; S.p1 = null; S.takenPlayerIds = new Set(); render(); return; }
-  if (action === 'series-play-again') { S.mode = null; S.phase = 'mode-select'; S.p1 = null; S.takenPlayerIds = new Set(); S.seriesResult = null; render(); return; }
+  if (action === 'series-play-again') { S.mode = null; S.phase = 'mode-select'; S.p1 = null; S.takenPlayerIds = new Set(); S.seriesResult = null; S.seriesRevealedCount = 0; render(); return; }
+  if (action === 'begin-series') { S.phase = 'series-sim'; S.seriesRevealedCount = 0; render(); return; }
+  if (action === 'sim-next-game') { S.seriesRevealedCount = Math.min((S.seriesRevealedCount || 0) + 1, S.seriesResult.games.length); render(); return; }
+  if (action === 'series-to-recap') { S.phase = 'series-result'; render(); return; }
 
   // ── Draft actions ──────────────────────────────────────────────────────────
   if (action === 'spin')         { doSpin();       return; }
@@ -319,8 +322,9 @@ function placePlayer(pos) {
       const p1b = BENCH_POSITIONS.map(p => S.p1Roster[p]).filter(Boolean);
       const p2s = POSITIONS.map(p => S.p2Roster[p]).filter(Boolean);
       const p2b = BENCH_POSITIONS.map(p => S.p2Roster[p]).filter(Boolean);
-      S.seriesResult = simulateHeadToHeadSeries(p1s, p1b, S.p1Coach, p2s, p2b, S.p2Coach);
-      S.phase = 'series-result';
+      S.seriesResult       = simulateHeadToHeadSeries(p1s, p1b, S.p1Coach, p2s, p2b, S.p2Coach);
+      S.seriesRevealedCount = 0;
+      S.phase = 'series-preview';
       logAnalyticsEvent('1v1_series_simulated', { winner: S.seriesResult.winner });
       render(); return;
     }
