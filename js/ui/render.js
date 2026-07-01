@@ -264,16 +264,36 @@ function renderDrafting() {
 
 // ── 1v1 Alternating Draft screen ──────────────────────────────────────────────
 function render1v1RosterPanel(roster, playerNum, isActive) {
-  const color  = playerNum === 1 ? '#2563eb' : '#d97706';
-  const bg     = playerNum === 1 ? '#eff6ff'  : '#fffbeb';
-  const bdrCol = isActive ? color : '#e2e8f0';
-  const coachId = playerNum === 1 ? S.p1Coach : S.p2Coach;
+  const color    = playerNum === 1 ? '#2563eb' : '#d97706';
+  const bg       = playerNum === 1 ? '#eff6ff'  : '#fffbeb';
+  const bdrCol   = isActive ? color : '#e2e8f0';
+  const coachId  = playerNum === 1 ? S.p1Coach : S.p2Coach;
   const coachObj = coachId ? COACHES.find(c => c.id === coachId) : null;
+  // Active player with a player selected — slots become tappable placement targets
+  const canPlace = isActive && !!S.selectedPlayer;
 
   const slots = ALL_POSITIONS.map(pos => {
     const p       = roster ? roster[pos] : null;
     const isBench = BENCH_POSITIONS.includes(pos);
     const label   = isBench ? 'BN' : pos;
+
+    if (canPlace && !p) {
+      return `<div data-action="place-${pos}"
+        class="flex items-center gap-1.5 py-1.5 border-b border-border last:border-0 rounded cursor-pointer transition-all"
+        style="background:${bg}">
+        <span class="text-[10px] font-black w-5 flex-shrink-0" style="color:${color}">${label}</span>
+        <span class="text-[11px] font-bold flex-1" style="color:${color}">Tap to place</span>
+        <span class="text-[10px] font-black" style="color:${color}">+</span>
+      </div>`;
+    }
+    if (canPlace && p) {
+      return `<div data-action="swap-${pos}"
+        class="flex items-center gap-1.5 py-1 border-b border-border last:border-0 cursor-pointer opacity-60">
+        <span class="text-[10px] font-black w-5 flex-shrink-0" style="color:${color}">${label}</span>
+        <span class="text-[11px] font-semibold flex-1 truncate text-foreground">${p.name.split(' ').slice(-1)[0]}</span>
+        <span class="text-[10px] text-muted-fg flex-shrink-0">${p.ppg}pt</span>
+      </div>`;
+    }
     return `<div class="flex items-center gap-1.5 py-1 border-b border-border last:border-0">
       <span class="text-[10px] font-black w-5 flex-shrink-0" style="color:${p ? color : '#cbd5e1'}">${label}</span>
       <span class="text-[11px] font-semibold flex-1 truncate ${p ? 'text-foreground' : 'text-muted-fg/40'}">${p ? p.name.split(' ').slice(-1)[0] : '—'}</span>
@@ -282,10 +302,12 @@ function render1v1RosterPanel(roster, playerNum, isActive) {
   }).join('');
 
   return `
-  <div class="rounded-2xl border-2 bg-white p-3 card-shadow transition-all" style="border-color:${bdrCol}${isActive ? '' : ''}">
+  <div class="rounded-2xl border-2 bg-white p-3 card-shadow transition-all" style="border-color:${bdrCol}">
     <div class="flex items-center justify-between mb-1.5">
       <p class="text-xs font-black uppercase tracking-wider" style="color:${color}">P${playerNum}</p>
-      ${isActive ? `<span class="text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse-glow" style="background:${bg};color:${color}">🎯 ON CLOCK</span>` : `<span class="text-[10px] text-muted-fg font-medium">${(playerNum === 1 ? S.p1Round : S.p2Round)}/7</span>`}
+      ${isActive
+        ? `<span class="text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse-glow" style="background:${bg};color:${color}">${canPlace ? '👆 Pick a slot' : '🎯 ON CLOCK'}</span>`
+        : `<span class="text-[10px] text-muted-fg font-medium">${(playerNum === 1 ? S.p1Round : S.p2Round)}/7</span>`}
     </div>
     ${coachObj ? `<p class="text-[10px] text-muted-fg mb-1.5 truncate">${coachObj.name}</p>` : ''}
     ${slots}
