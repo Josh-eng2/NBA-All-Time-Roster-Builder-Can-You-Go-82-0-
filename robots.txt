@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://josh-eng2.github.io/NBA-All-Time-Roster-Builder-Can-You-Go-82-0-/sitemap.xml
+Sitemap: https://canyougo820.com/sitemap.xml
