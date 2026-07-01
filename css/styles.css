@@ -89,6 +89,12 @@ body {
   }
 }
 
+/* ── Locked draft slot ───────────────────────────────────────────────────── */
+.locked {
+  cursor: default !important;
+  pointer-events: none;
+}
+
 /* ── Keyframes (must mirror the Tailwind config in index.html) */
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(8px); }

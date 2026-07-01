@@ -277,19 +277,15 @@ function placePlayer(pos) {
   // ── 1v1 alternating draft ──────────────────────────────────────────────────
   if (S.mode === '1v1') {
     const activeRoster = S.currentPlayer === 1 ? S.p1Roster : S.p2Roster;
-    const oldPlayer    = activeRoster[pos];
 
-    if (S.draftedPlayerNames?.has(player.name) && oldPlayer?.name !== player.name) {
-      showToast('Player already drafted!');
+    if (activeRoster[pos]) {
+      showToast('Slot already filled — picks are permanent!');
       return;
     }
 
-    if (oldPlayer) {
-      const idIdx  = S.usedPlayerIds.indexOf(oldPlayer.id);
-      if (idIdx  !== -1) S.usedPlayerIds.splice(idIdx, 1);
-      const decIdx = S.usedDecades.indexOf(oldPlayer.decade);
-      if (decIdx !== -1) S.usedDecades.splice(decIdx, 1);
-      S.draftedPlayerNames?.delete(oldPlayer.name);
+    if (S.draftedPlayerNames?.has(player.name)) {
+      showToast('Player already drafted!');
+      return;
     }
 
     activeRoster[pos] = player;
@@ -297,12 +293,10 @@ function placePlayer(pos) {
     S.usedPlayerIds.push(player.id);
     S.draftedPlayerNames?.add(player.name);
 
-    if (!oldPlayer) {
-      if (S.currentPlayer === 1) S.p1Round++;
-      else S.p2Round++;
-      const pick = S.p1Round + S.p2Round;
-      S.draftLog.push({ name: player.name, playerNum: S.currentPlayer, pick });
-    }
+    if (S.currentPlayer === 1) S.p1Round++;
+    else S.p2Round++;
+    const pick = S.p1Round + S.p2Round;
+    S.draftLog.push({ name: player.name, playerNum: S.currentPlayer, pick });
 
     logAnalyticsEvent('player_drafted', { player: player.name, pos, playerNum: S.currentPlayer });
     S.spinState = 'idle'; S.currentSpin = null; S.availablePlayers = []; S.draftBoard = []; S.selectedPlayer = null;
@@ -326,26 +320,21 @@ function placePlayer(pos) {
   }
 
   // ── Solo draft ─────────────────────────────────────────────────────────────
-  const oldPlayer = S.roster[pos];
-
-  if (S.draftedPlayerNames?.has(player.name) && oldPlayer?.name !== player.name) {
-    showToast('Player already on roster!');
+  if (S.roster[pos]) {
+    showToast('Slot already filled — picks are permanent!');
     return;
   }
 
-  if (oldPlayer) {
-    const idIdx = S.usedPlayerIds.indexOf(oldPlayer.id);
-    if (idIdx !== -1) S.usedPlayerIds.splice(idIdx, 1);
-    const decIdx = S.usedDecades.indexOf(oldPlayer.decade);
-    if (decIdx !== -1) S.usedDecades.splice(decIdx, 1);
-    S.draftedPlayerNames?.delete(oldPlayer.name);
+  if (S.draftedPlayerNames?.has(player.name)) {
+    showToast('Player already on roster!');
+    return;
   }
 
   S.roster[pos]      = player;
   if (spin?.decade) S.usedDecades.push(spin.decade);
   S.usedPlayerIds.push(player.id);
   S.draftedPlayerNames?.add(player.name);
-  if (!oldPlayer) S.round++;
+  S.round++;
   logAnalyticsEvent('player_drafted', { player: player.name, pos, round: S.round });
   S.spinState        = 'idle';
   S.currentSpin      = null;

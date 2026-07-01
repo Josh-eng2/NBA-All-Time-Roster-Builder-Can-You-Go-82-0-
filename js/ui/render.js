@@ -286,15 +286,7 @@ function render1v1RosterPanel(roster, playerNum, isActive) {
         <span class="text-[10px] font-black" style="color:${color}">+</span>
       </div>`;
     }
-    if (canPlace && p) {
-      return `<div data-action="swap-${pos}"
-        class="flex items-center gap-1.5 py-1 border-b border-border last:border-0 cursor-pointer opacity-60">
-        <span class="text-[10px] font-black w-5 flex-shrink-0" style="color:${color}">${label}</span>
-        <span class="text-[11px] font-semibold flex-1 truncate text-foreground">${p.name.split(' ').slice(-1)[0]}</span>
-        <span class="text-[10px] text-muted-fg flex-shrink-0">${p.ppg}pt</span>
-      </div>`;
-    }
-    return `<div class="flex items-center gap-1.5 py-1 border-b border-border last:border-0">
+    return `<div class="flex items-center gap-1.5 py-1 border-b border-border last:border-0 ${p ? 'locked' : ''}">
       <span class="text-[10px] font-black w-5 flex-shrink-0" style="color:${p ? color : '#cbd5e1'}">${label}</span>
       <span class="text-[11px] font-semibold flex-1 truncate ${p ? 'text-foreground' : 'text-muted-fg/40'}">${p ? p.name.split(' ').slice(-1)[0] : '—'}</span>
       ${p ? `<span class="text-[10px] text-muted-fg flex-shrink-0">${p.ppg}pt</span>` : ''}
@@ -533,16 +525,12 @@ function renderDraftCard(p, index) {
 // ── Roster ────────────────────────────────────────────────────────────────────
 function renderRoster() {
   const hasSelected = !!S.selectedPlayer;
-  const hasMoving   = !!S.movingPos;
   const filledCount = ALL_POSITIONS.filter(p => S.roster[p]).length;
-  const movingName  = hasMoving ? (S.roster[S.movingPos]?.name?.split(' ').pop() ?? '') : '';
   return `
   <div>
     <div class="flex items-center justify-between mb-2">
       <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Your Roster <span class="text-primary">${filledCount}/${ALL_POSITIONS.length}</span></p>
-      ${hasSelected ? `<p class="text-xs text-primary animate-fade-up font-medium">Tap a slot to place ${S.selectedPlayer.name}</p>`
-        : hasMoving ? `<p class="text-xs font-medium animate-fade-up" style="color:#f97316">Moving ${movingName} — tap a slot</p>`
-        : filledCount > 0 ? `<p class="text-[10px] text-muted-fg font-medium">Tap a player to rearrange</p>` : ''}
+      ${hasSelected ? `<p class="text-xs text-primary animate-fade-up font-medium">Tap an empty slot to place ${S.selectedPlayer.name}</p>` : ''}
     </div>
     <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg/50 mb-1.5">Starters</p>
     <div class="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-3">
@@ -562,28 +550,22 @@ function renderRosterSlot(pos, canPlace, isBench) {
   const label         = isBench ? 'BN' : pos;
 
   if (p) {
-    const isTarget    = hasMoveActive && !isMoveSrc;
-    const interactive = isMoveSrc || isTarget || (canPlace && !hasMoveActive);
-
-    // Positional fit — only for starter slots while not mid-move
-    const fitType  = (!isMoveSrc && !isBench)
+    const fitType  = !isBench
       ? (p.pos === pos ? 'primary' : (p.secondaryPos || []).includes(pos) ? 'flex' : 'place')
       : null;
     const fitClass  = fitType ? 'fit-' + fitType : '';
     const fitColors = { primary: '#16a34a', flex: '#d97706', place: '#dc2626' };
-
-    const borderColor = isMoveSrc ? '#f97316' : (isBench ? '#93c5fd' : '#fca5a5');
-    const borderTop   = isMoveSrc ? '3px solid #f97316' : (isBench ? '3px solid #2563eb' : '3px solid #dc2626');
-    const labelColor  = isMoveSrc ? '#f97316' : (isBench ? '#2563eb' : (fitType ? fitColors[fitType] : '#dc2626'));
+    const borderColor = isBench ? '#93c5fd' : '#fca5a5';
+    const borderTop   = isBench ? '3px solid #2563eb' : '3px solid #dc2626';
+    const labelColor  = isBench ? '#2563eb' : (fitType ? fitColors[fitType] : '#dc2626');
 
     return `
-    <div data-action="swap-${pos}"
-      class="rounded-xl border bg-white p-2 flex flex-col items-center gap-0.5 text-center overflow-hidden transition-all card-shadow ${interactive ? 'cursor-pointer hover:border-amber-400' : ''} ${fitClass}"
+    <div class="rounded-xl border bg-white p-2 flex flex-col items-center gap-0.5 text-center overflow-hidden card-shadow locked ${fitClass}"
       style="border-color:${borderColor};border-top:${borderTop}"
-      title="${isMoveSrc ? 'Moving — tap another slot' : isTarget ? 'Swap here' : canPlace ? 'Tap to replace' : p.name}">
+      title="${p.name} · pick locked">
       <span class="text-[10px] font-black uppercase leading-none" style="color:${labelColor}">${label}</span>
       <span class="text-[11px] font-bold text-foreground leading-tight w-full text-center truncate px-0.5">${p.name.split(' ').pop()}</span>
-      <span class="text-[10px] text-muted-fg leading-none">${isMoveSrc ? 'Moving…' : p.ppg + 'pt'}</span>
+      <span class="text-[10px] text-muted-fg leading-none">${p.ppg}pt</span>
     </div>`;
   }
 
