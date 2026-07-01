@@ -512,11 +512,10 @@ export function calculateChemistry(starters, bench) {
     chemReport.push(`🔴 Rebounding Crisis: Frontcourt combines for only ${totalFcRPG.toFixed(1)} RPG with no Paint Beast in sight (-7%)`);
   }
 
-  const sFrontcourt    = starters.filter(p => p.pos === 'SF' || p.pos === 'PF' || p.pos === 'C');
-  const hasFrontDefend = sFrontcourt.some(
+  const hasFrontDefend = frontcourt.some(
     p => p.archetype === 'Lockdown Defender' || p.archetype === 'Paint Beast'
   );
-  if (sFrontcourt.length === 3 && !hasFrontDefend) {
+  if (frontcourt.length === 3 && !hasFrontDefend) {
     const penalty = coach === 'kerr' ? 0.10 : coach === 'auerbach' ? 0.11 : 0.07;
     chemBonus -= penalty;
     chemReport.push(`🔴 Defensive Sieve${coach === 'kerr' ? ' (heightened by Kerr)' : coach === 'auerbach' ? ' (critical for Auerbach)' : ''}: Starting frontcourt offers zero rim/wing protection (-${Math.round(penalty * 100)}%)`);
@@ -618,7 +617,7 @@ export function calculateChemistry(starters, bench) {
   // ── FINAL SCORE (scaled so 0.80 chemBonus = 100) ─────────────────────────────
   // Positional-only teams land ~"Neutral"; stacking synergies across archetypes and
   // traits reaches "Strong"; a complete elite build approaches 100%.
-  const chemScore = Math.round(Math.max(0, Math.min(100, (chemBonus / 0.90) * 100)));
+  const chemScore = Math.round(Math.max(0, Math.min(100, (chemBonus / 1.10) * 100)));
   return { chemBonus, chemScore, chemReport, lineupAssignment: assignment };
 }
 
