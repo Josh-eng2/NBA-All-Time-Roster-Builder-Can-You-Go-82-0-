@@ -183,11 +183,57 @@ export function simulateSeason(starters, bench, coach = null) {
  * @param {object[]} p2Starters  @param {object[]} p2Bench  @param {string|null} p2Coach
  * @returns {{ p1Season, p2Season, series, winner: 'p1'|'p2' }}
  */
+/**
+ * Generates a realistic NBA-style score for one head-to-head game.
+ * Scores fall in the 88–128 range; margin typically 2–22 pts.
+ */
+function generateGameScore(p1Strength, p2Strength) {
+  const totalStr  = p1Strength + p2Strength;
+  const p1WinProb = 1 / (1 + Math.exp(-6 * (p1Strength - p2Strength)));
+  const p1Wins    = Math.random() < p1WinProb;
+
+  // Tempo: faster teams score more
+  const base   = 95 + Math.floor(Math.random() * 28);   // 95–122
+  // Margin: skewed toward close games (square the random to weight lower values)
+  const r      = Math.random();
+  const margin = 2 + Math.floor(r * r * 26);             // 2–27, skewed low
+
+  const winnerScore = base + Math.floor(margin / 2);
+  const loserScore  = base - Math.ceil(margin / 2);
+
+  return {
+    p1Score: p1Wins ? winnerScore : loserScore,
+    p2Score: p1Wins ? loserScore  : winnerScore,
+    p1Won:   p1Wins,
+  };
+}
+
 export function simulateHeadToHeadSeries(p1Starters, p1Bench, p1Coach, p2Starters, p2Bench, p2Coach) {
   const p1Season = simulateSeason(p1Starters, p1Bench, p1Coach);
   const p2Season = simulateSeason(p2Starters, p2Bench, p2Coach);
-  const series   = simulateSeries(p1Season.strength, p2Season.strength);
-  return { p1Season, p2Season, series, winner: series.won ? 'p1' : 'p2' };
+
+  const p1Str = p1Season.strength;
+  const p2Str = p2Season.strength;
+
+  // Pre-compute all games with realistic scores
+  const games = [];
+  let p1Wins = 0, p2Wins = 0;
+  while (p1Wins < 4 && p2Wins < 4) {
+    const g = generateGameScore(p1Str, p2Str);
+    if (g.p1Won) p1Wins++; else p2Wins++;
+    games.push({ gameNum: games.length + 1, ...g, p1WinsAfter: p1Wins, p2WinsAfter: p2Wins });
+  }
+
+  const winner = p1Wins === 4 ? 'p1' : 'p2';
+  // backwards-compat shape used by renderSeriesResult
+  const series = {
+    playerWins: p1Wins,
+    oppWins:    p2Wins,
+    games:      games.map(g => g.p1Won ? 'W' : 'L'),
+    won:        winner === 'p1',
+  };
+
+  return { p1Season, p2Season, games, p1Wins, p2Wins, winner, series };
 }
 
 /**
