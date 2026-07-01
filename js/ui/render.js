@@ -105,55 +105,62 @@ function renderFooter() {
 function renderModeSelect() {
   let trophies = [];
   try { trophies = JSON.parse(localStorage.getItem('nba820_trophies') || '[]'); } catch (e) {}
-  const modes = [
-    { action: 'mode-solo',  icon: '🏀', accent: '#2563eb', iconBg: '#eff6ff',
-      name: 'Single Player', tag: 'Classic',        tagBg: '#2563eb', tagColor: '#fff',
-      desc: 'Build your all-time roster and try to go 82-0.',
-      sub:  'Draft · Simulate · Win the championship' },
-    { action: 'mode-1v1',   icon: '⚔️', accent: '#d97706', iconBg: '#fffbeb',
-      name: '1v1 Local',     tag: 'vs Friend',      tagBg: '#d97706', tagColor: '#fff',
-      desc: 'Two players draft from a shared pool and face off.',
-      sub:  'Best-of-7 series · Pass the device between turns' },
-    { action: 'mode-blind', icon: '🎲', accent: '#7c3aed', iconBg: '#f5f3ff',
-      name: 'Blind Draft',   tag: 'Knowledge Test', tagBg: '#7c3aed', tagColor: '#fff',
-      desc: 'No names. No stats. Draft by position and instinct alone.',
-      sub:  'Picks reveal on selection · Trust your basketball knowledge' },
-  ];
   return `
   <div class="flex flex-col min-h-screen main-gradient">
-    ${renderHeader(false)}
-    <main class="flex-1 flex flex-col items-center px-4 pt-8 pb-8">
-      <div class="w-full max-w-md flex flex-col gap-3 animate-fade-up">
+    <header class="sticky top-0 z-50 w-full bg-white border-b border-border" style="box-shadow:0 1px 3px rgba(0,0,0,0.05)">
+      <div class="mx-auto flex h-14 max-w-2xl items-center justify-between px-4">
+        <div class="w-20"></div>
+        <img src="logo-badge.svg" alt="82-0" style="height:52px;width:auto;margin-top:2px"/>
+        <div class="flex items-center gap-1.5 w-20 justify-end">
+          <button data-action="open-leaderboard" class="text-[11px] px-2 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Personal Best">🏅</button>
+          <button data-action="open-global-leaderboard" class="text-[11px] px-2 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Global Leaderboard">🌍</button>
+        </div>
+      </div>
+    </header>
 
-        <div class="text-center mb-1">
+    <main class="flex-1 flex flex-col items-center px-4 pt-6 pb-8">
+      <div class="w-full max-w-md animate-fade-up">
+
+        <div class="text-center mb-5">
+          <p class="text-sm font-semibold text-muted-fg mb-0.5">Can you go 82-0?</p>
           <h1 class="text-2xl font-black text-foreground mb-1">Choose Your Mode</h1>
-          <p class="text-sm text-muted-fg">Solo, local multiplayer, or test your knowledge.</p>
+          <p class="text-sm text-muted-fg">How do you want to build your all-time team?</p>
         </div>
 
-        ${modes.map(m => `
-        <button data-action="${m.action}"
-          class="w-full rounded-2xl bg-white p-4 text-left cursor-pointer card-shadow hover:shadow-md transition-all"
-          style="border-left:4px solid ${m.accent};border:1px solid ${m.accent}20;border-left-width:4px;border-left-color:${m.accent}">
-          <div class="flex items-center gap-3">
-            <div class="flex-shrink-0 w-11 h-11 rounded-xl flex items-center justify-center text-xl" style="background:${m.iconBg}">${m.icon}</div>
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-2 mb-0.5">
-                <p class="font-black text-sm text-foreground">${m.name}</p>
-                <span class="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full flex-shrink-0"
-                  style="background:${m.tagBg};color:${m.tagColor}">${m.tag}</span>
-              </div>
-              <p class="text-xs text-muted-fg leading-snug">${m.desc}</p>
-              <p class="text-[10px] font-semibold mt-0.5" style="color:${m.accent}aa">${m.sub}</p>
-            </div>
-            <span class="flex-shrink-0 text-lg font-light" style="color:${m.accent}50">›</span>
-          </div>
-        </button>`).join('')}
+        <!-- Classic + HoopIQ side by side -->
+        <div class="grid grid-cols-2 gap-3 mb-3">
+          <button data-action="mode-solo"
+            class="rounded-2xl bg-white p-4 flex flex-col items-center gap-2 cursor-pointer card-shadow hover:shadow-md transition-all border border-slate-100">
+            <span class="text-3xl" style="pointer-events:none">💯</span>
+            <p class="font-black text-base" style="color:#f97316;pointer-events:none">Classic</p>
+            <p class="text-xs text-muted-fg text-center leading-snug flex-1" style="pointer-events:none">Draft with full player stats visible — make informed picks.</p>
+            <div class="w-full py-2 rounded-xl font-bold text-sm text-white text-center mt-1" style="background:#f97316;pointer-events:none">Play Classic</div>
+          </button>
+
+          <button data-action="mode-blind"
+            class="rounded-2xl bg-white p-4 flex flex-col items-center gap-2 cursor-pointer card-shadow hover:shadow-md transition-all border border-slate-100">
+            <span class="text-3xl" style="pointer-events:none">🧠</span>
+            <p class="font-black text-base" style="color:#f97316;pointer-events:none">HoopIQ</p>
+            <p class="text-xs text-muted-fg text-center leading-snug flex-1" style="pointer-events:none">Stats hidden — draft by memory and test your ball knowledge.</p>
+            <div class="w-full py-2 rounded-xl font-bold text-sm text-white text-center mt-1" style="background:#f97316;pointer-events:none">Play HoopIQ</div>
+          </button>
+        </div>
+
+        <!-- 1v1 full width -->
+        <button data-action="mode-1v1"
+          class="w-full rounded-2xl bg-white px-5 py-4 flex flex-col items-center gap-2 cursor-pointer card-shadow hover:shadow-md transition-all border border-slate-100 mb-3">
+          <span class="text-3xl" style="pointer-events:none">⚔️</span>
+          <p class="font-black text-base" style="color:#f97316;pointer-events:none">1v1</p>
+          <p class="text-sm text-muted-fg text-center" style="pointer-events:none">Draft your team, then go head-to-head against a rival lineup.</p>
+          <div class="w-full py-2.5 rounded-xl font-bold text-sm text-white text-center mt-1" style="background:#f97316;pointer-events:none">Play</div>
+        </button>
 
         ${trophies.length > 0 ? `
-          <button data-action="view-trophies"
-            class="w-full py-3 rounded-xl font-bold text-sm border border-amber-200 bg-amber-50 text-amber-700 cursor-pointer transition-all hover:bg-amber-100 card-shadow">
-            🏆 Trophy Room · ${trophies.length} Championship${trophies.length === 1 ? '' : 's'}
-          </button>` : ''}
+        <button data-action="view-trophies"
+          class="w-full py-3 rounded-xl font-bold text-sm border border-amber-200 bg-amber-50 text-amber-700 cursor-pointer transition-all hover:bg-amber-100 card-shadow">
+          🏆 Trophy Room · ${trophies.length} Championship${trophies.length === 1 ? '' : 's'}
+        </button>` : ''}
+
       </div>
     </main>
     ${renderFooter()}
