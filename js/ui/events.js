@@ -62,7 +62,7 @@ function dispatch(action) {
   }
   if (action === 'mode-1v1') {
     S.mode = '1v1'; S.currentPlayer = 1; S.p1 = null;
-    S.takenPlayerIds = new Set(); S.phase = 'coach-select';
+    S.takenPlayerIds = new Set(); S.phase = 'era-select';
     render(); return;
   }
 
@@ -134,23 +134,14 @@ function dispatch(action) {
 // ── Game lifecycle ────────────────────────────────────────────────────────────
 
 function doStartGame(era = 'all') {
-  if (S.mode === '1v1' && S.currentPlayer === 1) {
-    // P1 locked — save their choice and hand off to P2
-    S.p1Coach = S.coach;
+  if (S.mode === '1v1') {
+    // Single shared era — no per-player coach selection, launch draft immediately
+    S.p1Coach = null;
+    S.p2Coach = null;
     S.p1Era   = era;
-    S.currentPlayer = 2;
-    S.coach   = null;
-    S.selectedEra = null;
-    S.phase   = 'coach-select';
-    showToast('Player 1 locked in! Player 2 — choose your coach.');
-    render(); return;
-  }
-  if (S.mode === '1v1' && S.currentPlayer === 2) {
-    // Both players set — launch alternating draft
-    S.p2Coach = S.coach;
     S.p2Era   = era;
     startGame1v1();
-    logAnalyticsEvent('1v1_draft_started', { p1Coach: S.p1Coach, p2Coach: S.p2Coach });
+    logAnalyticsEvent('1v1_draft_started', { era });
     render(); return;
   }
   startGame(era);
