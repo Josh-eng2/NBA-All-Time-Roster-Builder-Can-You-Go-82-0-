@@ -96,8 +96,8 @@ function renderHeader(showRestart = false) {
 
 function renderFooter() {
   return `
-  <footer class="w-full py-4 text-center border-t border-border mt-auto bg-card">
-    <p class="text-xs text-muted">82-0.com is an independent fan project — not affiliated with the NBA.</p>
+  <footer class="w-full mt-auto" style="padding:2px 0">
+    <p style="font-size:6px;color:#f1f5f9;text-align:center;user-select:none;letter-spacing:0.02em;line-height:1">82-0.com is an independent fan project not affiliated with the NBA or its teams.</p>
   </footer>`;
 }
 
