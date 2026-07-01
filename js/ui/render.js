@@ -210,10 +210,12 @@ function renderEraSelect() {
     <main class="flex-1 flex flex-col items-center px-4 pt-6 pb-8">
       <div class="w-full max-w-2xl flex flex-col gap-4 animate-fade-up">
         <div class="text-center pb-2">
-          ${S.mode === '1v1' ? `<div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-3 font-bold text-sm" style="background:${S.currentPlayer === 1 ? '#eff6ff' : '#fffbeb'};color:${S.currentPlayer === 1 ? '#2563eb' : '#d97706'};border:1.5px solid ${S.currentPlayer === 1 ? '#bfdbfe' : '#fde68a'}">⚔️ Player ${S.currentPlayer} — Build Your Roster</div>` : ''}
-          <p class="text-xs font-bold uppercase tracking-widest text-primary mb-2">Step 2 of 2</p>
+          ${S.mode === '1v1'
+            ? `<div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-3 font-bold text-sm" style="background:#f0fdf4;color:#16a34a;border:1.5px solid #bbf7d0">⚔️ Shared Draft Era</div>`
+            : ''}
+          <p class="text-xs font-bold uppercase tracking-widest text-primary mb-2">${S.mode === '1v1' ? 'Step 1 of 1' : 'Step 2 of 2'}</p>
           <h1 class="text-2xl font-black text-foreground mb-1.5">Choose Your Era</h1>
-          <p class="text-sm text-muted-fg">Lock into a decade or let the draft board decide every round.</p>
+          <p class="text-sm text-muted-fg">${S.mode === '1v1' ? 'Pick the era both players will draft from — applies to the entire draft.' : 'Lock into a decade or let the draft board decide every round.'}</p>
         </div>
         <button data-action="era-all" class="era-card w-full rounded-2xl border-2 border-primary bg-primary/5 p-5 text-left cursor-pointer card-shadow">
           <div class="flex items-start justify-between gap-3">
