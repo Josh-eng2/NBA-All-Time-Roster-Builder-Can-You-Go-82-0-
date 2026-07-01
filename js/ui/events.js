@@ -65,6 +65,11 @@ function dispatch(action) {
     S.takenPlayerIds = new Set(); S.phase = 'era-select';
     render(); return;
   }
+  if (action === 'mode-blind') {
+    S.mode = 'blind'; S.currentPlayer = 1; S.p1 = null;
+    S.takenPlayerIds = new Set(); S.phase = 'coach-select';
+    render(); return;
+  }
 
   // ── Coach & Era selection ──────────────────────────────────────────────────
   if (action.startsWith('coach-pick-')) {
