@@ -20,7 +20,7 @@ import {
 } from '../logic/draft.js';
 import { simulateSeason, simulateSeries, simulateHeadToHeadSeries } from '../logic/simulation.js';
 import {
-  saveLeaderboard, saveToTrophyRoom,
+  saveLeaderboard, saveToTrophyRoom, markReturning,
   showLeaderboardModal, closeLeaderboardModal,
   showGlobalLeaderboardModal, closeGlobalLeaderboardModal,
 } from '../utils/storage.js';
@@ -398,6 +398,9 @@ function doSimulate() {
   S.result  = simulateSeason(starters, bench, S.coach);
   S.runSaved = false;
   logAnalyticsEvent('season_simulated', { wins: S.result.wins, losses: S.result.losses, coach: S.coach ?? 'none', era: S.selectedEra ?? 'all' });
+
+  // First-visit hook payoff delivered — from here on they're a veteran.
+  if (S.coldOpen) markReturning();
 
   // Auto-persist personal best + last-run tip — feeds the mode-select
   // greeting without requiring a manual "Save Run".
