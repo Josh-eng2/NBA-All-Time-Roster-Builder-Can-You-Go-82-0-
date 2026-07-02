@@ -59,7 +59,7 @@ function dispatch(action) {
   // ── Mode selection ─────────────────────────────────────────────────────────
   if (action === 'mode-solo') {
     S.mode = 'solo'; S.currentPlayer = 1; S.p1 = null;
-    S.takenPlayerIds = new Set(); S.phase = 'coach-select';
+    S.takenPlayerIds = new Set(); S.phase = 'era-select';
     render(); return;
   }
   if (action === 'mode-1v1') {
@@ -69,14 +69,21 @@ function dispatch(action) {
   }
   if (action === 'mode-blind') {
     S.mode = 'blind'; S.currentPlayer = 1; S.p1 = null;
-    S.takenPlayerIds = new Set(); S.phase = 'coach-select';
+    S.takenPlayerIds = new Set(); S.phase = 'era-select';
     render(); return;
   }
 
-  // ── Coach & Era selection ──────────────────────────────────────────────────
+  // ── Coach (in-draft chip) & Era selection ──────────────────────────────────
+  // Coach lives on the drafting screen and locks on the first spin.
   if (action.startsWith('coach-pick-')) {
-    S.coach = action.slice(11);
-    S.phase = 'era-select';
+    if (!S.coachLocked) {
+      S.coach = action.slice(11);
+      S.coachPickerOpen = false;
+    }
+    render(); return;
+  }
+  if (action === 'coach-picker-toggle') {
+    if (!S.coachLocked) S.coachPickerOpen = !S.coachPickerOpen;
     render(); return;
   }
   if (action.startsWith('era-')) { doStartGame(action.slice(4)); return; }
@@ -170,6 +177,13 @@ function doStartGame(era = 'all') {
     logAnalyticsEvent('1v1_draft_started', { era });
     render(); return;
   }
+  // Default coach: last one used, else the recommended starter system.
+  // Changeable from the drafting screen until the first spin locks it.
+  if (!S.coach) {
+    let remembered = null;
+    try { remembered = localStorage.getItem('nba820_coach'); } catch (e) {}
+    S.coach = COACHES.some(c => c.id === remembered) ? remembered : 'jackson';
+  }
   startGame(era);
   logAnalyticsEvent('game_started', { era, coach: S.coach ?? 'none' });
   render();
@@ -180,7 +194,7 @@ function doStartGame(era = 'all') {
  * Calls fn() immediately if there is nothing to lose.
  */
 export function confirmLeave(fn) {
-  const safe = ['coach-select', 'era-select', 'results', 'playoffs', 'trophy-room'];
+  const safe = ['era-select', 'results', 'playoffs', 'trophy-room'];
   if (safe.includes(S.phase)) { fn(); return; }
   const overlay = document.createElement('div');
   overlay.style.cssText =
@@ -223,6 +237,15 @@ function moveRosterPlayer(fromPos, toPos) {
 
 export function doSpin() {
   if (S.spinState !== 'idle') return;
+
+  // First spin commits the coach — the system is chosen with zero players
+  // seen, so the system meter is an objective rather than a post-hoc score.
+  if (S.mode !== '1v1' && !S.coachLocked) {
+    S.coachLocked     = true;
+    S.coachPickerOpen = false;
+    try { if (S.coach) localStorage.setItem('nba820_coach', S.coach); } catch (e) {}
+  }
+
   S.spinState      = 'spinning';
   S.selectedPlayer = null;
   S.movingPos      = null;

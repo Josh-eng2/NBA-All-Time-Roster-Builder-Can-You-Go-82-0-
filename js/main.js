@@ -9,7 +9,7 @@
 import { loadDatabase }               from './data/players.js';
 import { applySecondaryPositions }    from './logic/positions.js';
 import { render }                     from './ui/render.js';
-import { S, startGame, COACHES, pick } from './logic/state.js';
+import { S, startGame } from './logic/state.js';
 import { logAnalyticsEvent }          from './utils/firebase.js';
 import { isReturningPlayer }          from './utils/storage.js';
 // events.js is imported for its side-effect: attaching window helpers
@@ -36,7 +36,10 @@ async function init() {
       S.currentPlayer  = 1;
       S.p1             = null;
       S.takenPlayerIds = new Set();
-      S.coach          = pick(COACHES).id;
+      // Always Jackson — the most legible system for a zero-context player,
+      // and the rigged first GOAT immediately lights up his star meter.
+      // No invisible die roll deciding the first impression.
+      S.coach          = 'jackson';
       startGame('all');
       S.coldOpen = true;           // set after startGame — it replaces S
       logAnalyticsEvent('cold_open_start', { coach: S.coach });

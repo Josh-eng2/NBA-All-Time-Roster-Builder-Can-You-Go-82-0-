@@ -48,6 +48,78 @@ function computeSimBaselines() {
   return _baselinesCache;
 }
 
+// ── Coach system progress ─────────────────────────────────────────────────────
+// Every coach earns the same boost envelope: FLOOR guaranteed, FLOOR + RANGE
+// at full system mastery. Progress (0→1) is a steerable drafting objective,
+// keyed to quantities the sim already computes so it self-normalizes to the
+// live player database. Partial-roster-safe: the draft screen calls this
+// every round to drive the live system meter.
+const COACH_BOOST_FLOOR = 0.008;
+const COACH_BOOST_RANGE = 0.032;
+
+const clamp01 = v => Math.max(0, Math.min(1, v));
+
+/** Avg per-stat ratio of the filled starters vs a pro-rated baseline → 0..1. */
+function statRatioProgress(players, stats, base, slotCount) {
+  if (!players.length) return 0;
+  const frac = players.length / slotCount;
+  let sum = 0;
+  for (const k of stats) {
+    const tot = players.reduce((s, p) => s + p[k], 0);
+    sum += tot / (base[k] * frac);
+  }
+  // 1.0 = tier-average roster, 1.3 = elite → full meter
+  return clamp01(((sum / stats.length) - 1.0) / 0.30);
+}
+
+/**
+ * @param {string} coach     coach id
+ * @param {object[]} starters filled starter players (0–5 during draft)
+ * @param {object[]} bench    filled bench players (0–2 during draft)
+ * @returns {{ progress: number, metric: string }}
+ */
+export function coachSystemProgress(coach, starters, bench) {
+  const { STARTER_BASE, BENCH_BASE } = computeSimBaselines();
+  const all = [...starters, ...bench];
+
+  if (coach === 'jackson') {
+    const stars = all.filter(p => (p.popularity ?? 50) >= 85).length;
+    return { progress: clamp01(stars / 4), metric: `${stars}/4 stars` };
+  }
+  if (coach === 'kerr') {
+    const shooters = all.filter(p => p.archetype === 'Sharpshooter').length;
+    return { progress: clamp01(shooters / 3), metric: `${shooters}/3 sharpshooters` };
+  }
+  if (coach === 'popovich') {
+    const p = statRatioProgress(bench, ['ppg', 'rpg', 'apg', 'spg', 'bpg'], BENCH_BASE, 2);
+    return { progress: p, metric: `Bench ${Math.round(p * 100)}%` };
+  }
+  if (coach === 'rivers') {
+    // Cohesion — no weak links: keyed to the worst starter stat ratio,
+    // the same signal the sim's balance penalty punishes.
+    if (!starters.length) return { progress: 0, metric: 'Balance 0%' };
+    const frac = starters.length / 5;
+    let minRatio = Infinity;
+    for (const k of ['ppg', 'rpg', 'apg', 'spg', 'bpg']) {
+      const tot = starters.reduce((s, p) => s + p[k], 0);
+      minRatio = Math.min(minRatio, tot / (STARTER_BASE[k] * frac));
+    }
+    const p = clamp01((minRatio - 0.70) / 0.25);
+    return { progress: p, metric: `Balance ${Math.round(p * 100)}%` };
+  }
+  const starterSystems = {
+    auerbach: { stats: ['rpg', 'bpg'], label: 'Interior D' },
+    riley:    { stats: ['spg'],        label: 'Perimeter D' },
+    holzman:  { stats: ['apg'],        label: 'Ball movement' },
+  };
+  const sys = starterSystems[coach];
+  if (sys) {
+    const p = statRatioProgress(starters, sys.stats, STARTER_BASE, 5);
+    return { progress: p, metric: `${sys.label} ${Math.round(p * 100)}%` };
+  }
+  return { progress: 0, metric: '' };
+}
+
 /**
  * Simulates a full 82-game regular season.
  *
@@ -109,22 +181,11 @@ export function simulateSeason(starters, bench, coach = null) {
 
   const { chemBonus, chemScore, chemReport, lineupAssignment } = calculateChemistry(starters, bench);
 
-  let coachBoost = 0;
-  const allForCoach = [...starters, ...bench];
-  if (coach === 'jackson') {
-    coachBoost = 0.025;
-  } else if (coach === 'popovich') {
-    coachBoost = 0.020;
-  } else if (coach === 'auerbach') {
-    const defCount = allForCoach.filter(p => p.archetype === 'Lockdown Defender' || p.archetype === 'Paint Beast').length;
-    coachBoost = Math.min(0.06, defCount * 0.012);
-  } else if (coach === 'riley') {
-    const avgDef = allForCoach.reduce((s, p) => s + p.spg + p.bpg, 0) / (allForCoach.length || 1);
-    coachBoost = Math.min(0.05, avgDef * 0.012);
-  } else if (coach === 'kerr') {
-    const shooterCount = allForCoach.filter(p => p.archetype === 'Sharpshooter').length;
-    coachBoost = Math.min(0.05, shooterCount * 0.010);
-  }
+  // Unified coach boost — every coach has the same floor and the same
+  // reachable ceiling; only the SYSTEM you must draft toward differs.
+  const coachBoost = coach
+    ? COACH_BOOST_FLOOR + coachSystemProgress(coach, starters, bench).progress * COACH_BOOST_RANGE
+    : 0;
 
   const baseStrength = Math.max(0, strength - balancePenalty + chemBonus + coachBoost);
 
