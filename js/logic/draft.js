@@ -34,6 +34,44 @@ export function getAvailablePlayers(team, decade) {
   );
 }
 
+// ── Player tiers ──────────────────────────────────────────────────────────────
+// Mirrors the popularity brackets already used by salary.js so the whole
+// engine speaks one tier language.
+const TIER_RANK = { starter: 0, star: 1, goat: 2 };
+
+/** Quality tier derived from the engine's popularity scale. */
+export function playerTier(p) {
+  const pop = p.popularity ?? 50;
+  if (pop >= 95) return 'goat';
+  if (pop >= 85) return 'star';
+  return 'starter';
+}
+
+/**
+ * Like spinResult, but only lands on (team, decade) combos whose available
+ * players include at least one of the given tier or better.
+ * Falls back to a normal spinResult when no combo qualifies.
+ * @param {'star'|'goat'} tier
+ */
+export function spinResultAtLeast(tier, fixedTeam = null, fixedDecade = null) {
+  const wantRank   = TIER_RANK[tier] ?? 0;
+  const decadePool = availableDecades();
+  if (!decadePool.length) return null;
+
+  const decades = fixedDecade ? [fixedDecade] : decadePool;
+  const teams   = fixedTeam   ? [fixedTeam]   : TEAMS;
+
+  const valid = [];
+  for (const d of decades) {
+    for (const t of teams) {
+      if (getAvailablePlayers(t, d).some(p => TIER_RANK[playerTier(p)] >= wantRank)) {
+        valid.push({ team: t, decade: d });
+      }
+    }
+  }
+  return valid.length ? pick(valid) : spinResult(fixedTeam, fixedDecade);
+}
+
 /**
  * Pick a random (team, decade) combo that has available players.
  * Supports optional fixedTeam / fixedDecade constraints.
