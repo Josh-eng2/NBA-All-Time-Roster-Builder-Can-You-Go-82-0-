@@ -723,13 +723,24 @@ export function renderSeasonTickerRows() {
   const idx    = S.seasonRevealIdx || 0;
   const recent = (S.seasonGames || []).slice(Math.max(0, idx - 8), idx).reverse();
   return recent.map((g, i) => {
-    const latest = i === 0;
-    const col    = g.won ? '#16a34a' : '#dc2626';
+    const latest   = i === 0;
+    const col      = g.won ? '#16a34a' : '#dc2626';
+    const lateLoss = !g.won && (g.num || 0) > 60;
+    const rowStyle = g.rival
+      ? `background:#fffbeb;border:1px solid #fde68a${latest ? '' : ';opacity:0.75'}`
+      : latest ? '' : 'opacity:0.55';
+    const chip = g.rival
+      ? `<span class="text-[9px] font-black px-1.5 py-0.5 rounded-full flex-shrink-0" style="background:#0f172a;color:#fbbf24">🔥 RIVALRY</span>`
+      : lateLoss
+      ? `<span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0" style="background:#fef2f2;color:#b91c1c">GUT PUNCH</span>`
+      : g.type === 'close'
+      ? `<span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0" style="background:#fef3c7;color:#a16207">CLUTCH</span>`
+      : '';
     return `
-    <div class="flex items-center gap-2 py-1.5 px-3 rounded-lg${latest ? ' bg-white card-shadow' : ''}"${latest ? '' : ' style="opacity:0.55"'}>
+    <div class="flex items-center gap-2 py-1.5 px-3 rounded-lg${latest ? ' bg-white card-shadow' : ''}"${rowStyle ? ` style="${rowStyle}"` : ''}>
       <span class="text-[10px] font-black w-8 flex-shrink-0 text-muted-fg">G${g.num}</span>
       <span class="text-xs font-bold flex-1 truncate text-foreground">vs ${g.opp}</span>
-      ${g.type === 'close' ? `<span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0" style="background:#fef3c7;color:#a16207">CLUTCH</span>` : ''}
+      ${chip}
       <span class="text-xs font-semibold text-muted-fg" style="font-variant-numeric:tabular-nums">${g.ps}–${g.os}</span>
       <span class="text-sm font-black w-5 text-center flex-shrink-0" style="color:${col}">${g.won ? 'W' : 'L'}</span>
     </div>`;
@@ -769,6 +780,16 @@ function renderSeasonSim() {
             class="w-full py-3 rounded-xl font-black text-sm uppercase tracking-widest text-white cursor-pointer animate-pulse-glow"
             style="background:#d97706">Play Game 2 →</button>
         </div>` : ''}
+
+        ${S.rivalTease ? (() => {
+          const rival = (S.seasonGames || []).find(g => g.rival);
+          return `
+          <div class="rounded-2xl p-5 text-center card-shadow animate-scale-in" style="background:#0f172a;border:2px solid #f59e0b">
+            <p class="text-[10px] font-black uppercase mb-1.5" style="color:#fbbf24;letter-spacing:0.25em">🔥 Rivalry Night</p>
+            <p class="text-base font-black text-white">The ${rival ? rival.opp : 'legends'} are in town.</p>
+            <p class="text-[11px] mt-1" style="color:#94a3b8">Statement game. The whole league is watching.</p>
+          </div>`;
+        })() : ''}
 
         <div id="sim-ticker" class="flex flex-col gap-1" style="min-height:120px">${renderSeasonTickerRows()}</div>
 

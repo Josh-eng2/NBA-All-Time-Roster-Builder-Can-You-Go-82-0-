@@ -12,7 +12,7 @@
 
 import {
   S, startGame, startGame1v1, ALL_POSITIONS, POSITIONS, BENCH_POSITIONS,
-  TEAMS, DECADES, COACHES, pick, buildBracket, getPlayerSeed,
+  TEAMS, DECADES, COACHES, CPU_TEAMS, pick, buildBracket, getPlayerSeed,
 } from '../logic/state.js';
 import {
   spinResult, spinResultAtLeast, getAvailablePlayers, availableDecades,
@@ -128,6 +128,7 @@ function dispatch(action) {
   if (action === 'season-skip')         {
     S.seasonRevealIdx = (S.seasonGames || []).length;
     S.seasonPaused = false;
+    S.rivalTease   = false;
     S.phase = 'results';
     render(); return;
   }
@@ -401,6 +402,8 @@ function doSimulate() {
   S.seasonGames     = S.result.games;
   S.seasonRevealIdx = 0;
   S.seasonPaused    = false;
+  S.rivalTease      = false;
+  S.rivalTeased     = false;
 
   // Cold-open cliffhanger: lead the sequence with the season's biggest win
   // so Game 1 is a guaranteed blowout W. Reordering never changes the record.
@@ -412,6 +415,17 @@ function doSimulate() {
     if (best > 0) S.seasonGames.unshift(S.seasonGames.splice(best, 1)[0]);
   }
   S.seasonGames.forEach((g, i) => { g.num = i + 1; });
+
+  // Rivalry Night — one mid-season marquee game against an all-time great.
+  // W/L stays exactly as drawn; only the opponent and score dress up.
+  const rg = S.seasonGames[28 + Math.floor(Math.random() * 31)]; // games 29–59
+  rg.rival  = true;
+  rg.opp    = `'` + pick(CPU_TEAMS).name;                        // "'96 Bulls"
+  rg.margin = 2 + Math.floor(Math.random() * 6);                 // rivalry games are tight
+  const rBase = 95 + Math.floor(Math.random() * 28);
+  rg.ps   = rg.won ? rBase + Math.ceil(rg.margin / 2) : rBase - Math.floor(rg.margin / 2);
+  rg.os   = rg.won ? rBase - Math.floor(rg.margin / 2) : rBase + Math.ceil(rg.margin / 2);
+  rg.type = 'close';
 
   S.phase = 'season-sim';
   render();
@@ -438,14 +452,35 @@ function runSeasonReveal() {
       return;
     }
 
-    // Batch up to 4 consecutive blowouts per tick — but Game 1 always solo.
+    // Rivalry Night — hold the montage on a full-screen tease, then reveal
+    // the marquee game solo with a long linger before the montage resumes.
+    const upcoming = S.seasonGames[S.seasonRevealIdx];
+    if (upcoming?.rival && !S.rivalTeased) {
+      S.rivalTeased = true;
+      S.rivalTease  = true;
+      render();
+      setTimeout(() => {
+        if (S.gameId !== simId || S.phase !== 'season-sim') return;
+        S.rivalTease = false;
+        S.seasonRevealIdx++;
+        render();                 // clears the banner, lands the rival row
+        setTimeout(step, 1200);   // linger on the result
+      }, 1700);
+      return;
+    }
+
+    // Batch up to 4 consecutive blowout WINS per tick — Game 1 always solo,
+    // and never batch into (or past) the rival game or any loss.
     let n = 1;
     if (S.seasonRevealIdx > 0) {
       while (
         n < 4 &&
         S.seasonRevealIdx + n < total &&
         S.seasonGames[S.seasonRevealIdx + n - 1].type === 'blowout' &&
-        S.seasonGames[S.seasonRevealIdx + n].type === 'blowout'
+        S.seasonGames[S.seasonRevealIdx + n - 1].won &&
+        S.seasonGames[S.seasonRevealIdx + n].type === 'blowout' &&
+        S.seasonGames[S.seasonRevealIdx + n].won &&
+        !S.seasonGames[S.seasonRevealIdx + n].rival
       ) n++;
     }
     S.seasonRevealIdx = Math.min(S.seasonRevealIdx + n, total);
@@ -458,8 +493,11 @@ function runSeasonReveal() {
       return;
     }
 
+    // Late-season losses (game 61+) get the slow-motion treatment — early
+    // losses tick by at montage speed to protect a new roster's confidence.
     const next  = S.seasonGames[S.seasonRevealIdx];
     const delay = !next ? 500
+      : (!next.won && (next.num || 0) > 60) ? 950
       : next.type === 'close' ? 550
       : next.type === 'solid' ? 200
       : 95;
