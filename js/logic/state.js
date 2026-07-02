@@ -282,6 +282,8 @@ export function startGame(era = 'all') {
     seasonGames:     [],
     seasonRevealIdx: 0,
     seasonPaused:    false,
+    rivalTease:      false,  // Rivalry Night banner currently showing
+    rivalTeased:     false,  // one-shot guard — tease fires once per season
   };
 }
 
