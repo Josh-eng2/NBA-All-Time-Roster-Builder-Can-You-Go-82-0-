@@ -140,10 +140,10 @@ export const COACHES = [
 // ── Playoff CPU opponents ─────────────────────────────────────────────────────
 
 export const CPU_TEAMS = [
-  { name: '96 Bulls',       strength: 2.35 },
-  { name: '17 Warriors',    strength: 2.35 },
-  { name: '86 Celtics',     strength: 2.2 },
-  { name: '87 Lakers',      strength: 2.15 },
+  { name: '96 Bulls',       strength: 2.45 },
+  { name: '17 Warriors',    strength: 2.44 },
+  { name: '86 Celtics',     strength: 2.35 },
+  { name: '87 Lakers',      strength: 2.2 },
   { name: '01 Lakers',      strength: 2.10 },
   { name: '13 Heat',        strength: 2.00 },
   { name: '14 Spurs',       strength: 1.96 },
