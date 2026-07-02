@@ -26,7 +26,7 @@ import {
 } from '../utils/storage.js';
 import { submitGlobalScore, logAnalyticsEvent } from '../utils/firebase.js';
 import {
-  render, $app, fmtPlayerLine, fmtDecadeShort, showToast,
+  render, $app, fmtPlayerLine, fmtDecadeShort, showToast, renderSeasonTickerRows,
 } from '../ui/render.js'; // circular — safe (used only inside function bodies)
 
 // Expose modal close helpers globally — inline onclicks in modal HTML are outside #app
@@ -124,6 +124,13 @@ function dispatch(action) {
 
   // ── Season & playoffs ──────────────────────────────────────────────────────
   if (action === 'simulate')            { doSimulate();          return; }
+  if (action === 'season-continue')     { S.seasonPaused = false; render(); runSeasonReveal(); return; }
+  if (action === 'season-skip')         {
+    S.seasonRevealIdx = (S.seasonGames || []).length;
+    S.seasonPaused = false;
+    S.phase = 'results';
+    render(); return;
+  }
   if (action === 'save-run')             { doSaveRun();           return; }
   if (action === 'advance-to-playoffs') { doAdvanceToPlayoffs(); return; }
   if (action === 'sim-next-round')      { doSimNextRound();      return; }
@@ -387,10 +394,93 @@ function doSimulate() {
   const starters = POSITIONS.map(p => S.roster[p]).filter(Boolean);
   const bench    = BENCH_POSITIONS.map(p => S.roster[p]).filter(Boolean);
   S.result  = simulateSeason(starters, bench, S.coach);
-  S.phase   = 'results';
   S.runSaved = false;
   logAnalyticsEvent('season_simulated', { wins: S.result.wins, losses: S.result.losses, coach: S.coach ?? 'none', era: S.selectedEra ?? 'all' });
+
+  // Paced reveal — outcome is already decided; this is presentation only.
+  S.seasonGames     = S.result.games;
+  S.seasonRevealIdx = 0;
+  S.seasonPaused    = false;
+
+  // Cold-open cliffhanger: lead the sequence with the season's biggest win
+  // so Game 1 is a guaranteed blowout W. Reordering never changes the record.
+  if (S.coldOpen && S.result.wins > 0) {
+    let best = -1;
+    S.seasonGames.forEach((g, i) => {
+      if (g.won && (best < 0 || g.margin > S.seasonGames[best].margin)) best = i;
+    });
+    if (best > 0) S.seasonGames.unshift(S.seasonGames.splice(best, 1)[0]);
+  }
+  S.seasonGames.forEach((g, i) => { g.num = i + 1; });
+
+  S.phase = 'season-sim';
   render();
+  runSeasonReveal();
+}
+
+/**
+ * Reveals season games on a montage cadence: consecutive blowouts flash by
+ * in batches, solid wins tick steadily, close games get a slow dramatic beat.
+ * Cold-open runs pause after Game 1 for the "TOUGH MATCHUP" cliffhanger.
+ */
+function runSeasonReveal() {
+  const simId = S.gameId;
+  const step = () => {
+    if (S.gameId !== simId || S.phase !== 'season-sim' || S.seasonPaused) return;
+    const total = S.seasonGames.length;
+
+    if (S.seasonRevealIdx >= total) {
+      setTimeout(() => {
+        if (S.gameId !== simId || S.phase !== 'season-sim') return;
+        S.phase = 'results';
+        render();
+      }, 900);
+      return;
+    }
+
+    // Batch up to 4 consecutive blowouts per tick — but Game 1 always solo.
+    let n = 1;
+    if (S.seasonRevealIdx > 0) {
+      while (
+        n < 4 &&
+        S.seasonRevealIdx + n < total &&
+        S.seasonGames[S.seasonRevealIdx + n - 1].type === 'blowout' &&
+        S.seasonGames[S.seasonRevealIdx + n].type === 'blowout'
+      ) n++;
+    }
+    S.seasonRevealIdx = Math.min(S.seasonRevealIdx + n, total);
+    updateSeasonSimDOM();
+
+    // Cliffhanger — first-ever run pauses after a won Game 1
+    if (S.coldOpen && S.seasonRevealIdx === 1 && S.seasonGames[0].won) {
+      S.seasonPaused = true;
+      render();
+      return;
+    }
+
+    const next  = S.seasonGames[S.seasonRevealIdx];
+    const delay = !next ? 500
+      : next.type === 'close' ? 550
+      : next.type === 'solid' ? 200
+      : 95;
+    setTimeout(step, delay);
+  };
+  step();
+}
+
+/** Targeted DOM update per reveal tick — avoids 80 full re-renders. */
+function updateSeasonSimDOM() {
+  const recEl  = document.getElementById('sim-record');
+  const tickEl = document.getElementById('sim-ticker');
+  if (!recEl || !tickEl) { render(); return; } // fallback: full render
+  const played = S.seasonGames.slice(0, S.seasonRevealIdx);
+  const w = played.filter(g => g.won).length;
+  recEl.textContent = `${w}–${played.length - w}`;
+  const gpEl = document.getElementById('sim-gp');
+  if (gpEl) gpEl.textContent = `Game ${played.length} of 82`;
+  const barEl = document.getElementById('sim-progress');
+  if (barEl) barEl.style.width = `${(played.length / 82) * 100}%`;
+  tickEl.innerHTML = renderSeasonTickerRows();
 }
 
 function doSaveRun() {

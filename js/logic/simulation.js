@@ -13,6 +13,7 @@
 
 import { DB }                  from '../data/players.js';
 import { calculateChemistry } from '../logic/chemistry.js';
+import { TEAMS, pick }         from '../logic/state.js';
 
 // ── Sigmoid tuning knobs ──────────────────────────────────────────────────────
 // SIM_K:      steepness — lower = more gradual spread between good/bad teams
@@ -148,9 +149,17 @@ export function simulateSeason(starters, bench, coach = null) {
 
   const winPct = Math.min(WIN_CAP, 1 / (1 + Math.exp(-SIM_K * (adjustedStrength - SIM_CENTER))));
 
+  // Per-game log. The win draw is identical to the old single-loop version —
+  // opponents, scores, and margins are presentational flavor layered on top.
   let wins = 0;
-  for (let i = 0; i < 82; i++) { if (Math.random() < winPct) wins++; }
+  const games = [];
+  for (let i = 0; i < 82; i++) {
+    const won = Math.random() < winPct;
+    if (won) wins++;
+    games.push({ won });
+  }
   wins = Math.max(0, Math.min(82, wins));
+  decorateSeasonGames(games, winPct);
 
   const totals = {
     ppg: sTotals.ppg + bTotals.ppg,
@@ -172,7 +181,33 @@ export function simulateSeason(starters, bench, coach = null) {
     popEloDelta,
     fansM,
     coachBoost: +coachBoost.toFixed(3),
+    games,
   };
+}
+
+/**
+ * Decorates a season's win/loss sequence with opponents, scores, and margins.
+ * Stronger teams (higher winPct) win bigger; losses skew close so they read
+ * as heartbreakers rather than blowouts.
+ */
+function decorateSeasonGames(games, winPct) {
+  let lastOpp = null;
+  for (const g of games) {
+    let opp = pick(TEAMS);
+    if (opp === lastOpp) opp = pick(TEAMS); // one retry is enough de-duping
+    lastOpp = opp;
+
+    const r      = Math.random();
+    const exp    = g.won ? Math.max(0.55, 1.6 - winPct) : 2.2;
+    const margin = 2 + Math.floor(Math.pow(r, exp) * 26);   // 2–28
+    const base   = 95 + Math.floor(Math.random() * 28);      // 95–122
+
+    g.opp    = opp;
+    g.ps     = g.won ? base + Math.ceil(margin / 2) : base - Math.floor(margin / 2);
+    g.os     = g.won ? base - Math.floor(margin / 2) : base + Math.ceil(margin / 2);
+    g.margin = margin;
+    g.type   = margin >= 15 ? 'blowout' : margin >= 8 ? 'solid' : 'close';
+  }
 }
 
 /**

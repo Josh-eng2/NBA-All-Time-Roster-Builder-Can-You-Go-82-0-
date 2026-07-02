@@ -718,6 +718,72 @@ function renderSimulateCard() {
 }
 
 // ── Results screen ────────────────────────────────────────────────────────────
+// ── Paced season reveal ───────────────────────────────────────────────────────
+export function renderSeasonTickerRows() {
+  const idx    = S.seasonRevealIdx || 0;
+  const recent = (S.seasonGames || []).slice(Math.max(0, idx - 8), idx).reverse();
+  return recent.map((g, i) => {
+    const latest = i === 0;
+    const col    = g.won ? '#16a34a' : '#dc2626';
+    return `
+    <div class="flex items-center gap-2 py-1.5 px-3 rounded-lg${latest ? ' bg-white card-shadow' : ''}"${latest ? '' : ' style="opacity:0.55"'}>
+      <span class="text-[10px] font-black w-8 flex-shrink-0 text-muted-fg">G${g.num}</span>
+      <span class="text-xs font-bold flex-1 truncate text-foreground">vs ${g.opp}</span>
+      ${g.type === 'close' ? `<span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0" style="background:#fef3c7;color:#a16207">CLUTCH</span>` : ''}
+      <span class="text-xs font-semibold text-muted-fg" style="font-variant-numeric:tabular-nums">${g.ps}–${g.os}</span>
+      <span class="text-sm font-black w-5 text-center flex-shrink-0" style="color:${col}">${g.won ? 'W' : 'L'}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderSeasonSim() {
+  const idx    = S.seasonRevealIdx || 0;
+  const total  = (S.seasonGames || []).length || 82;
+  const played = (S.seasonGames || []).slice(0, idx);
+  const w      = played.filter(g => g.won).length;
+  const l      = played.length - w;
+  const pct    = (played.length / total) * 100;
+  const done   = idx >= total;
+  const g1     = S.seasonGames?.[0];
+  return `
+  <div class="flex flex-col min-h-screen main-gradient">
+    ${renderHeader(true)}
+    <main class="flex-1 flex flex-col items-center px-4 pt-8 pb-8">
+      <div class="w-full max-w-md flex flex-col gap-4 animate-fade-up">
+
+        <div class="text-center">
+          <p class="text-xs font-bold uppercase tracking-widest text-muted-fg mb-1.5">Season in progress</p>
+          <p id="sim-record" class="text-5xl font-black text-foreground leading-none" style="font-variant-numeric:tabular-nums">${w}–${l}</p>
+          <p id="sim-gp" class="text-xs text-muted-fg mt-2">Game ${played.length} of ${total}</p>
+        </div>
+
+        <div class="h-2 rounded-full overflow-hidden" style="background:#e2e8f0">
+          <div id="sim-progress" class="h-full rounded-full" style="width:${pct}%;background:#2563eb;transition:width 0.15s linear"></div>
+        </div>
+
+        ${S.seasonPaused && g1 ? `
+        <div class="rounded-2xl bg-white p-5 card-shadow text-center animate-scale-in" style="border:2px solid #fbbf24">
+          <p class="text-sm font-black text-foreground mb-1">🏆 Game 1: W ${g1.ps}–${g1.os} over the ${g1.opp}!</p>
+          <p class="text-xs text-muted-fg mb-4">GAME 2 — <b style="color:#b45309">TOUGH MATCHUP</b>. The road only gets harder from here.</p>
+          <button data-action="season-continue"
+            class="w-full py-3 rounded-xl font-black text-sm uppercase tracking-widest text-white cursor-pointer animate-pulse-glow"
+            style="background:#d97706">Play Game 2 →</button>
+        </div>` : ''}
+
+        <div id="sim-ticker" class="flex flex-col gap-1" style="min-height:120px">${renderSeasonTickerRows()}</div>
+
+        ${!done && !S.seasonPaused ? `
+        <button data-action="season-skip"
+          class="w-full py-2.5 rounded-xl font-bold text-xs border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">
+          Skip to Final Record ⏭
+        </button>` : ''}
+
+      </div>
+    </main>
+    ${renderFooter()}
+  </div>`;
+}
+
 function renderResults() {
   const r          = S.result;
   const isPerfect  = r.wins === 82;
@@ -1631,6 +1697,7 @@ export function render() {
   else if (S.phase === 'coach-select')  $app.innerHTML = renderCoachSelect();
   else if (S.phase === 'era-select')    $app.innerHTML = renderEraSelect();
   else if (S.phase === 'drafting')      $app.innerHTML = renderDrafting();
+  else if (S.phase === 'season-sim')    $app.innerHTML = renderSeasonSim();
   else if (S.phase === 'results')       $app.innerHTML = renderResults();
   else if (S.phase === 'playoffs')      $app.innerHTML = renderPlayoffs();
   else if (S.phase === 'trophy-room')   $app.innerHTML = renderTrophyRoom();
