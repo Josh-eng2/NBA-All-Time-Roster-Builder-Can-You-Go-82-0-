@@ -15,7 +15,7 @@ import {
   TEAMS, DECADES, COACHES, pick, buildBracket, getPlayerSeed,
 } from '../logic/state.js';
 import {
-  spinResult, getAvailablePlayers, availableDecades,
+  spinResult, spinResultAtLeast, getAvailablePlayers, availableDecades,
 } from '../logic/draft.js';
 import { simulateSeason, simulateSeries, simulateHeadToHeadSeries } from '../logic/simulation.js';
 import {
@@ -200,7 +200,7 @@ function moveRosterPlayer(fromPos, toPos) {
   render();
 }
 
-function doSpin() {
+export function doSpin() {
   if (S.spinState !== 'idle') return;
   S.spinState      = 'spinning';
   S.selectedPlayer = null;
@@ -227,7 +227,10 @@ function doSpin() {
 
     if (ticks >= total) {
       clearInterval(interval);
-      const spin = spinResult();
+      // Round 1 of every solo/blind run is front-loaded generosity: the spin
+      // always lands somewhere a GOAT-tier legend is on the board.
+      const rigGoat = S.mode !== '1v1' && S.round === 0;
+      const spin = rigGoat ? spinResultAtLeast('goat') : spinResult();
       if (!spin) {
         // All player slots exhausted — reset to idle so the user isn't stuck
         S.spinState = 'idle';

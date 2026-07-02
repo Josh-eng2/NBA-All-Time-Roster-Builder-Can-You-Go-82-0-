@@ -254,6 +254,20 @@ function renderEraSelect() {
 }
 
 // ── Drafting screen ───────────────────────────────────────────────────────────
+function renderColdOpenBanner() {
+  if (!S.coldOpen || S.round > 0) return '';
+  const coach = COACHES.find(c => c.id === S.coach);
+  return `
+  <div class="rounded-2xl p-3.5 flex items-center gap-3 animate-fade-up card-shadow"
+    style="background:#fff7ed;border:1.5px solid #fed7aa">
+    <span class="text-2xl flex-shrink-0">🏀</span>
+    <div class="min-w-0">
+      <p class="text-sm font-black text-foreground leading-tight">Welcome to 82-0 — your first pick is waiting.</p>
+      <p class="text-xs text-muted-fg mt-0.5">You drew Coach <b>${coach ? coach.name : ''}</b>${coach ? ` (${coach.system})` : ''}. Draft 7 legends, then chase the perfect season.</p>
+    </div>
+  </div>`;
+}
+
 function renderDrafting() {
   if (S.mode === '1v1') return renderDrafting1v1();
   const full = rosterFull();
@@ -262,6 +276,7 @@ function renderDrafting() {
     ${renderHeader(true)}
     <main class="flex flex-col items-center px-4 pt-2 pb-8">
       <div class="w-full max-w-2xl flex flex-col gap-2">
+        ${renderColdOpenBanner()}
         ${full ? renderSimulateCard() : ''}
         ${renderRoundBar()}
         ${!full ? renderSlotMachine() : ''}
