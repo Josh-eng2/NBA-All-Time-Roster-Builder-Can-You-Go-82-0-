@@ -385,19 +385,30 @@ function renderDrafting1v1() {
   </div>`;
 }
 
+// Draft phases — stakes escalate as slots run out
+const DRAFT_PHASES = [
+  { max: 2, label: 'Foundation',  color: '#2563eb', hint: 'Build around greatness' },
+  { max: 4, label: 'The Squeeze', color: '#d97706', hint: 'Fits get harder — weigh every tradeoff' },
+  { max: 6, label: 'Bench Call',  color: '#dc2626', hint: 'Your bench decides the close games' },
+];
+
 function renderRoundBar() {
   const filled         = ALL_POSITIONS.filter(p => S.roster[p]).length;
   const startersFilled = POSITIONS.filter(p => S.roster[p]).length;
   const benchFilled    = BENCH_POSITIONS.filter(p => S.roster[p]).length;
   const roleLabel      = S.round < 5 ? `Starters ${startersFilled}/5` : `Bench ${benchFilled}/2`;
   const displayRound   = Math.min(S.round + 1, TOTAL_ROUNDS);
+  const phase          = DRAFT_PHASES.find(ph => S.round <= ph.max) || DRAFT_PHASES[2];
 
   return `
   <div class="flex flex-col gap-1.5 py-1">
     <div class="flex items-center justify-between">
       <div>
-        <p class="text-sm font-bold text-foreground">Round ${displayRound} <span class="text-muted-fg font-normal">of ${TOTAL_ROUNDS}</span></p>
-        <p class="text-xs text-muted-fg mt-0.5">${filled}/${ALL_POSITIONS.length} spots &nbsp;·&nbsp; ${roleLabel}</p>
+        <p class="text-sm font-bold text-foreground">Round ${displayRound} <span class="text-muted-fg font-normal">of ${TOTAL_ROUNDS}</span>
+          <span class="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full ml-1 align-middle"
+            style="background:${phase.color}15;color:${phase.color};border:1px solid ${phase.color}30">${phase.label}</span>
+        </p>
+        <p class="text-xs text-muted-fg mt-0.5">${filled}/${ALL_POSITIONS.length} spots &nbsp;·&nbsp; ${roleLabel} &nbsp;·&nbsp; <span style="color:${phase.color}">${phase.hint}</span></p>
       </div>
       <div class="flex gap-1.5 items-center">
         ${Array.from({ length: TOTAL_ROUNDS }, (_, i) => {

@@ -16,6 +16,7 @@ import {
 } from '../logic/state.js';
 import {
   spinResult, spinResultAtLeast, getAvailablePlayers, availableDecades,
+  playerTier, rosterFull,
 } from '../logic/draft.js';
 import { simulateSeason, simulateSeries, simulateHeadToHeadSeries } from '../logic/simulation.js';
 import {
@@ -227,10 +228,20 @@ export function doSpin() {
 
     if (ticks >= total) {
       clearInterval(interval);
-      // Round 1 of every solo/blind run is front-loaded generosity: the spin
-      // always lands somewhere a GOAT-tier legend is on the board.
-      const rigGoat = S.mode !== '1v1' && S.round === 0;
-      const spin = rigGoat ? spinResultAtLeast('goat') : spinResult();
+      // Escalating rounds for solo/blind runs:
+      //   round 1      — GOAT-tier guarantee (the hook)
+      //   rounds 2–3   — star-or-better guarantee (front-loaded generosity)
+      //   rounds 4+    — pure random, protected by the pity timer:
+      //                  4 consecutive starless boards force a star-tier spin
+      // 1v1 keeps pure random spins for competitive fairness.
+      const solo    = S.mode !== '1v1';
+      const rigGoat = solo && S.round === 0;
+      const rigStar = solo && !rigGoat && S.round <= 2;
+      const pity    = solo && !rigGoat && !rigStar && (S.drySpins ?? 0) >= 4;
+      if (pity) logAnalyticsEvent('pity_spin_triggered', { round: S.round + 1 });
+      const spin = rigGoat ? spinResultAtLeast('goat')
+        : (rigStar || pity) ? spinResultAtLeast('star')
+        : spinResult();
       if (!spin) {
         // All player slots exhausted — reset to idle so the user isn't stuck
         S.spinState = 'idle';
@@ -242,9 +253,20 @@ export function doSpin() {
       S.availablePlayers = getAvailablePlayers(spin.team, spin.decade);
       S.draftBoard       = [...S.availablePlayers].sort((a, b) => (b.popularity ?? 50) - (a.popularity ?? 50));
       S.selectedPlayer   = null;
+      updateDryCounter();
       render();
     }
   }, 90);
+}
+
+/**
+ * Pity-timer bookkeeping — call whenever a new board lands.
+ * A "dry" board has no star-or-better player on it.
+ */
+function updateDryCounter() {
+  if (S.mode === '1v1') return;
+  const hasStar = S.availablePlayers.some(p => playerTier(p) !== 'starter');
+  S.drySpins = hasStar ? 0 : (S.drySpins ?? 0) + 1;
 }
 
 function doSkipTeam() {
@@ -256,6 +278,7 @@ function doSkipTeam() {
   S.availablePlayers = getAvailablePlayers(spin.team, spin.decade);
   S.draftBoard       = [...S.availablePlayers].sort((a, b) => (b.popularity ?? 50) - (a.popularity ?? 50));
   S.selectedPlayer   = null;
+  updateDryCounter();
   render();
 }
 
@@ -274,6 +297,7 @@ function doSkipDecade() {
   S.availablePlayers = getAvailablePlayers(spin.team, spin.decade);
   S.draftBoard       = [...S.availablePlayers].sort((a, b) => (b.popularity ?? 50) - (a.popularity ?? 50));
   S.selectedPlayer   = null;
+  updateDryCounter();
   render();
 }
 
@@ -349,6 +373,10 @@ function placePlayer(pos) {
   S.availablePlayers = [];
   S.draftBoard       = [];
   S.selectedPlayer   = null;
+
+  // No idle state mid-run: the next wheel starts turning the moment a pick
+  // lands, so there is always a pending decision on screen.
+  if (!rosterFull()) { doSpin(); return; }
   render();
 }
 
