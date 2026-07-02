@@ -507,7 +507,7 @@ function renderSlotMachine() {
         SPINNING...
       </button>
     ` : `
-      <p class="text-center text-xs text-muted-fg py-1">${S.mode === 'blind' ? '❓ Tap a mystery card to reveal — then tap a roster slot to place' : 'Select a player below, then tap a roster slot to place them'}</p>
+      <p class="text-center text-xs text-muted-fg py-1">${S.mode === 'blind' ? '❓ One tap reveals AND locks your pick — choose your mystery card wisely' : 'Select a player below, then tap a roster slot to place them'}</p>
     `}
   </div>`;
 }
@@ -540,21 +540,26 @@ function renderDraftCard(p, index) {
   const unavailable     = alreadyOnRoster || takenByP1;
   const isSelected      = !unavailable && S.selectedPlayer?.id === p.id;
 
-  // Blind mode — unselected cards shown face-down; flips to full card on selection
+  // Blind mode — unselected cards shown face-down; the reveal IS the pick,
+  // so once any card is revealed the rest of the board goes inert.
   if (S.mode === 'blind' && !isSelected) {
-    const posLabel = p.secondaryPos?.length ? `${p.pos} / ${p.secondaryPos[0]}` : p.pos;
+    const lockedOut = !unavailable && !!S.selectedPlayer;
+    const inert     = unavailable || lockedOut;
+    const posLabel  = p.secondaryPos?.length ? `${p.pos} / ${p.secondaryPos[0]}` : p.pos;
     return `
-    <div class="rounded-xl border-2 flex flex-col overflow-hidden card-shadow${unavailable ? ' opacity-40' : ''}"
-      style="border-color:${unavailable ? '#e2e8f0' : '#475569'};background:${unavailable ? '#f8fafc' : '#1e293b'}">
+    <div class="rounded-xl border-2 flex flex-col overflow-hidden card-shadow${inert ? ' opacity-40' : ''}"
+      style="border-color:${inert ? '#e2e8f0' : '#475569'};background:${inert ? '#f8fafc' : '#1e293b'}">
       <div class="p-3 flex-1 flex flex-col items-center justify-center gap-2 text-center" style="min-height:120px">
         <span class="text-[10px] font-black px-2 py-0.5 rounded-full"
-          style="background:${unavailable ? '#f1f5f9' : '#334155'};color:${unavailable ? '#94a3b8' : '#64748b'}">${posLabel}</span>
-        <span class="text-3xl">${unavailable ? '🚫' : '❓'}</span>
-        <p class="text-[11px] font-bold" style="color:${unavailable ? '#94a3b8' : '#475569'}">${unavailable ? 'Already Taken' : 'Mystery Player'}</p>
+          style="background:${inert ? '#f1f5f9' : '#334155'};color:${inert ? '#94a3b8' : '#64748b'}">${posLabel}</span>
+        <span class="text-3xl">${unavailable ? '🚫' : lockedOut ? '🔒' : '❓'}</span>
+        <p class="text-[11px] font-bold" style="color:${inert ? '#94a3b8' : '#475569'}">${unavailable ? 'Already Taken' : lockedOut ? 'Locked Out' : 'Mystery Player'}</p>
       </div>
       <div class="px-3 pb-3">
         ${unavailable
           ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs cursor-not-allowed" style="background:#f1f5f9;color:#94a3b8;border:1.5px solid #e2e8f0">Taken</button>`
+          : lockedOut
+          ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs cursor-not-allowed" style="background:#f1f5f9;color:#94a3b8;border:1.5px solid #e2e8f0">🔒 Locked</button>`
           : `<button data-action="draft-pick-${index}" class="w-full py-2 rounded-lg font-bold text-xs cursor-pointer transition-all" style="background:#334155;color:#94a3b8;border:1.5px solid #475569">🎲 Mystery Pick</button>`
         }
       </div>
