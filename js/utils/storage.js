@@ -24,6 +24,24 @@ import { fetchLeaderboard }                        from '../utils/firebase.js';
 
 const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 
+// ── First-visit / returning-player flag ───────────────────────────────────────
+// The flag is EARNED, not granted on page load: it's set when the cold-open
+// hook delivers its payoff (season starts) or when the player deliberately
+// reaches the menus. A first-timer who bounces mid-draft gets the full cold
+// open again on their next visit.
+
+const RETURNING_KEY = 'nba820_returning';
+
+export function isReturningPlayer() {
+  // Storage blocked → treat as returning so the app falls back to the
+  // normal menu flow instead of an inescapable cold-open loop.
+  try { return !!localStorage.getItem(RETURNING_KEY); } catch (e) { return true; }
+}
+
+export function markReturning() {
+  try { localStorage.setItem(RETURNING_KEY, '1'); } catch (e) {}
+}
+
 // ── Save leaderboard entry ────────────────────────────────────────────────────
 
 export function saveLeaderboard() {

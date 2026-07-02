@@ -16,6 +16,7 @@ import {
 } from '../logic/state.js';
 import { calculateChemistry }                             from '../logic/chemistry.js';
 import { rosterFull, availableDecades }                  from '../logic/draft.js';
+import { markReturning }                                  from '../utils/storage.js';
 import { bindEvents }                                     from '../ui/events.js'; // circular — safe (called inside functions only)
 
 // ── Mount point ───────────────────────────────────────────────────────────────
@@ -103,6 +104,9 @@ function renderFooter() {
 
 // ── Mode selection ────────────────────────────────────────────────────────────
 function renderModeSelect() {
+  // Anyone who reaches the menus — by finishing the cold open or escaping
+  // it deliberately — is a returning player from now on. Idempotent.
+  markReturning();
   let trophies = [], best = null, lastRun = null;
   try { trophies = JSON.parse(localStorage.getItem('nba820_trophies') || '[]'); } catch (e) {}
   try { best     = JSON.parse(localStorage.getItem('nba820_best')     || 'null'); } catch (e) {}
