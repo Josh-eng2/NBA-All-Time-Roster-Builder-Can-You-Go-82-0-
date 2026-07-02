@@ -103,8 +103,10 @@ function renderFooter() {
 
 // ── Mode selection ────────────────────────────────────────────────────────────
 function renderModeSelect() {
-  let trophies = [];
+  let trophies = [], best = null, lastRun = null;
   try { trophies = JSON.parse(localStorage.getItem('nba820_trophies') || '[]'); } catch (e) {}
+  try { best     = JSON.parse(localStorage.getItem('nba820_best')     || 'null'); } catch (e) {}
+  try { lastRun  = JSON.parse(localStorage.getItem('nba820_lastRun')  || 'null'); } catch (e) {}
   return `
   <div class="flex flex-col min-h-screen main-gradient">
     <header class="sticky top-0 z-50 w-full bg-white border-b border-border" style="box-shadow:0 1px 3px rgba(0,0,0,0.05)">
@@ -126,6 +128,17 @@ function renderModeSelect() {
           <h1 class="text-2xl font-black text-foreground mb-1">Choose Your Mode</h1>
           <p class="text-sm text-muted-fg">How do you want to build your all-time team?</p>
         </div>
+
+        ${best ? `
+        <div class="rounded-2xl bg-white px-4 py-3 card-shadow border border-slate-100 flex items-center gap-3 mb-3">
+          <span class="text-xl flex-shrink-0">📊</span>
+          <div class="min-w-0">
+            <p class="text-sm font-bold text-foreground">Best season: <span style="color:#f97316">${best.wins}–${best.losses}</span>${best.wins === 82 ? ' 🏆' : ''}</p>
+            ${lastRun && lastRun.tip && best.wins < 82
+              ? `<p class="text-xs text-muted-fg leading-snug mt-0.5">💡 ${lastRun.tip}</p>`
+              : `<p class="text-xs text-muted-fg mt-0.5">${best.wins === 82 ? 'Perfection achieved. Can you do it twice?' : 'The perfect season is still out there.'}</p>`}
+          </div>
+        </div>` : ''}
 
         <!-- Classic + HoopIQ side by side -->
         <div class="grid grid-cols-2 gap-3 mb-3">
@@ -718,6 +731,51 @@ function renderSimulateCard() {
 }
 
 // ── Results screen ────────────────────────────────────────────────────────────
+// ── Loss autopsy ──────────────────────────────────────────────────────────────
+// Attribution derived from real roster data, in priority order: an
+// out-of-position starter, then the first chemistry penalty, then the
+// lowest-popularity starter. Returns null when there's nothing to pin.
+export function computeAutopsy() {
+  if (!S.result || !S.roster) return null;
+
+  for (const pos of POSITIONS) {
+    const p = S.roster[pos];
+    if (p && p.pos !== pos && !(p.secondaryPos || []).includes(pos)) {
+      return {
+        icon:   '🎯',
+        title:  `${p.name} played out of position all season`,
+        detail: `He's a natural ${p.pos} forced to hold down ${pos} every night. That mismatch is where the losses leaked.`,
+        fix:    `Draft a true ${pos} next run — one swap.`,
+      };
+    }
+  }
+
+  const penalty = (S.result.chemReport || []).find(l => l.startsWith('🔴'));
+  if (penalty) {
+    return {
+      icon:   '🧪',
+      title:  'Your chemistry sprung a leak',
+      detail: penalty.replace('🔴', '').trim(),
+      fix:    'One roster change breaks the penalty.',
+    };
+  }
+
+  let weak = null, weakPos = null;
+  for (const pos of POSITIONS) {
+    const p = S.roster[pos];
+    if (p && (!weak || (p.popularity ?? 50) < (weak.popularity ?? 50))) { weak = p; weakPos = pos; }
+  }
+  if (weak) {
+    return {
+      icon:   '🔍',
+      title:  `${weak.name} got hunted every night`,
+      detail: `Opponents attacked your ${weakPos} spot all season — the weakest link in an otherwise dangerous lineup.`,
+      fix:    `One upgrade at ${weakPos} changes the math.`,
+    };
+  }
+  return null;
+}
+
 // ── Paced season reveal ───────────────────────────────────────────────────────
 export function renderSeasonTickerRows() {
   const idx    = S.seasonRevealIdx || 0;
@@ -932,6 +990,29 @@ function renderResults() {
             ${hypeBadge}
           </div>
         </div>
+
+        ${!isPerfect ? (() => {
+          const a = computeAutopsy();
+          if (!a) return '';
+          return `
+          <div class="rounded-2xl bg-white p-4 card-shadow" style="border:1.5px solid #fecaca">
+            <p class="text-xs font-bold uppercase tracking-widest mb-2.5" style="color:#dc2626">
+              Loss Autopsy — where the ${r.losses} ${r.losses === 1 ? 'loss' : 'losses'} came from
+            </p>
+            <div class="flex items-start gap-3">
+              <span class="text-2xl flex-shrink-0">${a.icon}</span>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-black text-foreground mb-0.5">${a.title}</p>
+                <p class="text-xs text-muted-fg leading-relaxed">${a.detail}</p>
+                <p class="text-xs font-bold mt-2" style="color:#2563eb">💡 ${a.fix}</p>
+              </div>
+            </div>
+            <button data-action="draft-new-roster"
+              class="w-full mt-3 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest text-white cursor-pointer transition-all hover:opacity-90"
+              style="background:#dc2626">🔁 Run It Back — Fix It</button>
+          </div>`;
+        })() : ''}
+
         <div class="rounded-2xl border border-border bg-white p-4 card-shadow">
           <div class="flex items-center justify-between mb-3">
             <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Chemistry Report</p>
@@ -1324,11 +1405,35 @@ function renderEliminated() {
 function renderTrophyRoom() {
   let trophies = [];
   try { trophies = JSON.parse(localStorage.getItem('nba820_trophies') || '[]'); } catch (e) {}
-  const emptyState = `
-    <div class="flex flex-col items-center justify-center gap-4 py-16 text-center">
-      <div class="text-5xl">🏀</div>
-      <h2 class="text-xl font-black text-foreground">No Championships Yet</h2>
-      <p class="text-sm text-muted-fg max-w-xs">Draft your first legendary roster and win the NBA Finals to enshrine it here.</p>
+
+  // Twelve pedestals — the empty ones are the hook.
+  const PEDESTALS = 12;
+  const pedestalGrid = `
+    <div class="rounded-2xl bg-white p-4 card-shadow border border-border">
+      <div class="flex items-center justify-between mb-3">
+        <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Banners Raised</p>
+        <span class="text-xs font-black" style="color:#d97706">${trophies.length} / ${PEDESTALS}</span>
+      </div>
+      <div class="grid grid-cols-4 sm:grid-cols-6 gap-2">
+        ${Array.from({ length: PEDESTALS }, (_, i) => {
+          const t = trophies[i];
+          if (!t) return `
+          <div class="rounded-xl flex flex-col items-center justify-center py-3 gap-1" style="border:1.5px dashed #e2e8f0">
+            <span class="text-xl" style="opacity:0.15;filter:grayscale(1)">🏆</span>
+            <span class="text-[8px] font-bold uppercase" style="color:#cbd5e1">Empty</span>
+          </div>`;
+          const perfect = t.wins === 82;
+          return `
+          <div class="rounded-xl flex flex-col items-center justify-center py-3 gap-1 ${perfect ? 'perfect-glow' : 'card-shadow'}"
+            style="background:${perfect ? '#fffbeb' : '#f8fafc'};border:1.5px solid ${perfect ? '#fcd34d' : '#e2e8f0'}">
+            <span class="text-xl">🏆</span>
+            <span class="text-[9px] font-black" style="color:${perfect ? '#b45309' : '#334155'}">${t.wins}–${t.losses}</span>
+          </div>`;
+        }).join('')}
+      </div>
+      ${trophies.length === 0
+        ? `<p class="text-xs text-muted-fg text-center mt-3">Twelve pedestals. Zero banners. Win the Finals to raise your first.</p>`
+        : ''}
     </div>`;
   const trophyCards = trophies.map(t => {
     const isPerfect = t.wins === 82 && t.losses === 0;
@@ -1379,7 +1484,8 @@ function renderTrophyRoom() {
             ← Main Menu
           </button>
         </div>
-        ${trophies.length === 0 ? emptyState : `<div class="flex flex-col gap-4">${trophyCards}</div>`}
+        ${pedestalGrid}
+        ${trophies.length > 0 ? `<div class="flex flex-col gap-4">${trophyCards}</div>` : ''}
       </div>
     </main>
     ${renderFooter()}

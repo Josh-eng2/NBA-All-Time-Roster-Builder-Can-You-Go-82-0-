@@ -27,6 +27,7 @@ import {
 import { submitGlobalScore, logAnalyticsEvent } from '../utils/firebase.js';
 import {
   render, $app, fmtPlayerLine, fmtDecadeShort, showToast, renderSeasonTickerRows,
+  computeAutopsy,
 } from '../ui/render.js'; // circular — safe (used only inside function bodies)
 
 // Expose modal close helpers globally — inline onclicks in modal HTML are outside #app
@@ -397,6 +398,19 @@ function doSimulate() {
   S.result  = simulateSeason(starters, bench, S.coach);
   S.runSaved = false;
   logAnalyticsEvent('season_simulated', { wins: S.result.wins, losses: S.result.losses, coach: S.coach ?? 'none', era: S.selectedEra ?? 'all' });
+
+  // Auto-persist personal best + last-run tip — feeds the mode-select
+  // greeting without requiring a manual "Save Run".
+  try {
+    const prevBest = JSON.parse(localStorage.getItem('nba820_best') || 'null');
+    if (!prevBest || S.result.wins > prevBest.wins) {
+      localStorage.setItem('nba820_best', JSON.stringify({ wins: S.result.wins, losses: S.result.losses }));
+    }
+    localStorage.setItem('nba820_lastRun', JSON.stringify({
+      wins: S.result.wins, losses: S.result.losses,
+      tip: computeAutopsy()?.fix || null,
+    }));
+  } catch (e) {}
 
   // Paced reveal — outcome is already decided; this is presentation only.
   S.seasonGames     = S.result.games;
