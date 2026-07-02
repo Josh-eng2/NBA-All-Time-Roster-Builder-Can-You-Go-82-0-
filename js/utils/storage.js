@@ -19,7 +19,7 @@
  *   onclick handlers in modal HTML can call them.
  */
 
-import { S, COACHES, POSITIONS, BENCH_POSITIONS } from '../logic/state.js';
+import { S, COACHES, POSITIONS } from '../logic/state.js';
 import { fetchLeaderboard }                        from '../utils/firebase.js';
 
 const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
@@ -84,7 +84,6 @@ export function saveToTrophyRoom() {
     losses:      r.losses,
     chemScore:   Math.round(r.chemScore),
     starters:    POSITIONS.map(p => S.roster[p]?.name || '—').join(', '),
-    bench:       BENCH_POSITIONS.map(p => S.roster[p]?.name || '—').join(', '),
   };
   let trophies = [];
   try { trophies = JSON.parse(localStorage.getItem('nba820_trophies') || '[]'); } catch (e) {}
