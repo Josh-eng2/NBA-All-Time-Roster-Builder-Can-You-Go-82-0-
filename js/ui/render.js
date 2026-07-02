@@ -11,7 +11,7 @@
  */
 
 import {
-  S, POSITIONS, BENCH_POSITIONS, ALL_POSITIONS, TOTAL_ROUNDS,
+  S, POSITIONS, ALL_POSITIONS, TOTAL_ROUNDS,
   COACHES, ERA_DESC, TEAM_COLORS, ARCHETYPE_STYLE, DECADES, TEAMS, pick,
 } from '../logic/state.js';
 import { calculateChemistry }                             from '../logic/chemistry.js';
@@ -235,8 +235,7 @@ function renderCoachChip() {
   const coach = COACHES.find(c => c.id === S.coach);
   if (!coach) return '';
   const starters = POSITIONS.map(p => S.roster[p]).filter(Boolean);
-  const bench    = BENCH_POSITIONS.map(p => S.roster[p]).filter(Boolean);
-  const sys      = coachSystemProgress(coach.id, starters, bench);
+  const sys      = coachSystemProgress(coach.id, starters);
   const filled   = Math.round(sys.progress * 4);
   const meter    = Array.from({ length: 4 }, (_, i) =>
     `<span style="color:${i < filled ? coach.accent : '#e2e8f0'}">★</span>`).join('');
@@ -286,7 +285,7 @@ function renderColdOpenBanner() {
     <span class="text-2xl flex-shrink-0">🏀</span>
     <div class="min-w-0">
       <p class="text-sm font-black text-foreground leading-tight">Welcome to 82-0 — your first pick is waiting.</p>
-      <p class="text-xs text-muted-fg mt-0.5">Coach <b>${coach ? coach.name : ''}</b> is running the show${coach ? ` (${coach.system})` : ''}. Draft 7 legends, then chase the perfect season.</p>
+      <p class="text-xs text-muted-fg mt-0.5">Coach <b>${coach ? coach.name : ''}</b> is running the show${coach ? ` (${coach.system})` : ''}. Draft 5 legends, then chase the perfect season.</p>
     </div>
   </div>`;
 }
@@ -325,8 +324,7 @@ function render1v1RosterPanel(roster, playerNum, isActive) {
 
   const slots = ALL_POSITIONS.map(pos => {
     const p       = roster ? roster[pos] : null;
-    const isBench = BENCH_POSITIONS.includes(pos);
-    const label   = isBench ? 'BN' : pos;
+    const label   = pos;
 
     if (canPlace && !p) {
       return `<div data-action="place-${pos}"
@@ -350,7 +348,7 @@ function render1v1RosterPanel(roster, playerNum, isActive) {
       <p class="text-xs font-black uppercase tracking-wider" style="color:${color}">P${playerNum}</p>
       ${isActive
         ? `<span class="text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse-glow" style="background:${bg};color:${color}">${canPlace ? '👆 Pick a slot' : '🎯 ON CLOCK'}</span>`
-        : `<span class="text-[10px] text-muted-fg font-medium">${(playerNum === 1 ? S.p1Round : S.p2Round)}/7</span>`}
+        : `<span class="text-[10px] text-muted-fg font-medium">${(playerNum === 1 ? S.p1Round : S.p2Round)}/5</span>`}
     </div>
     ${coachObj ? `<p class="text-[10px] text-muted-fg mb-1.5 truncate">${coachObj.name}</p>` : ''}
     ${slots}
@@ -411,16 +409,13 @@ function renderDrafting1v1() {
 
 // Draft phases — stakes escalate as slots run out
 const DRAFT_PHASES = [
-  { max: 2, label: 'Foundation',  color: '#2563eb', hint: 'Build around greatness' },
-  { max: 4, label: 'The Squeeze', color: '#d97706', hint: 'Fits get harder — weigh every tradeoff' },
-  { max: 6, label: 'Bench Call',  color: '#dc2626', hint: 'Your bench decides the close games' },
+  { max: 1, label: 'Foundation',  color: '#2563eb', hint: 'Build around greatness' },
+  { max: 3, label: 'The Squeeze', color: '#d97706', hint: 'Fits get harder — weigh every tradeoff' },
+  { max: 4, label: 'Final Piece', color: '#dc2626', hint: 'One slot left — complete your identity' },
 ];
 
 function renderRoundBar() {
   const filled         = ALL_POSITIONS.filter(p => S.roster[p]).length;
-  const startersFilled = POSITIONS.filter(p => S.roster[p]).length;
-  const benchFilled    = BENCH_POSITIONS.filter(p => S.roster[p]).length;
-  const roleLabel      = S.round < 5 ? `Starters ${startersFilled}/5` : `Bench ${benchFilled}/2`;
   const displayRound   = Math.min(S.round + 1, TOTAL_ROUNDS);
   const phase          = DRAFT_PHASES.find(ph => S.round <= ph.max) || DRAFT_PHASES[2];
 
@@ -432,15 +427,14 @@ function renderRoundBar() {
           <span class="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full ml-1 align-middle"
             style="background:${phase.color}15;color:${phase.color};border:1px solid ${phase.color}30">${phase.label}</span>
         </p>
-        <p class="text-xs text-muted-fg mt-0.5">${filled}/${ALL_POSITIONS.length} spots &nbsp;·&nbsp; ${roleLabel} &nbsp;·&nbsp; <span style="color:${phase.color}">${phase.hint}</span></p>
+        <p class="text-xs text-muted-fg mt-0.5">${filled}/${ALL_POSITIONS.length} starters &nbsp;·&nbsp; <span style="color:${phase.color}">${phase.hint}</span></p>
       </div>
       <div class="flex gap-1.5 items-center">
         ${Array.from({ length: TOTAL_ROUNDS }, (_, i) => {
-          const isStarter = i < 5;
           const done   = i < S.round;
           const active = i === S.round;
-          const color  = done || active ? (isStarter ? '#2563eb' : '#64748b') : '#e2e8f0';
-          return `<div class="rounded-full transition-all" style="width:${active ? 9 : 7}px;height:${active ? 9 : 7}px;background:${color};border:${active ? '2px solid ' + (isStarter ? '#2563eb' : '#64748b') : 'none'}"></div>`;
+          const color  = done || active ? '#2563eb' : '#e2e8f0';
+          return `<div class="rounded-full transition-all" style="width:${active ? 9 : 7}px;height:${active ? 9 : 7}px;background:${color};border:${active ? '2px solid #2563eb' : 'none'}"></div>`;
         }).join('')}
       </div>
     </div>
@@ -623,32 +617,25 @@ function renderRoster() {
       <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Your Roster <span class="text-primary">${filledCount}/${ALL_POSITIONS.length}</span></p>
       ${hasSelected ? `<p class="text-xs text-primary animate-fade-up font-medium">Tap an empty slot to place ${S.selectedPlayer.name}</p>` : ''}
     </div>
-    <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg/50 mb-1.5">Starters</p>
-    <div class="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-3">
-      ${POSITIONS.map(pos => renderRosterSlot(pos, hasSelected, false)).join('')}
-    </div>
-    <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg/50 mb-1.5">Bench</p>
-    <div class="grid grid-cols-2 gap-2">
-      ${BENCH_POSITIONS.map(pos => renderRosterSlot(pos, hasSelected, true)).join('')}
+    <div class="grid grid-cols-3 sm:grid-cols-5 gap-2">
+      ${POSITIONS.map(pos => renderRosterSlot(pos, hasSelected)).join('')}
     </div>
   </div>`;
 }
 
-function renderRosterSlot(pos, canPlace, isBench) {
+function renderRosterSlot(pos, canPlace) {
   const p             = S.roster[pos];
   const isMoveSrc     = S.movingPos === pos;
   const hasMoveActive = !!S.movingPos;
-  const label         = isBench ? 'BN' : pos;
+  const label         = pos;
 
   if (p) {
-    const fitType  = !isBench
-      ? (p.pos === pos ? 'primary' : (p.secondaryPos || []).includes(pos) ? 'flex' : 'place')
-      : null;
-    const fitClass  = fitType ? 'fit-' + fitType : '';
+    const fitType  = p.pos === pos ? 'primary' : (p.secondaryPos || []).includes(pos) ? 'flex' : 'place';
+    const fitClass  = 'fit-' + fitType;
     const fitColors = { primary: '#16a34a', flex: '#d97706', place: '#dc2626' };
-    const borderColor = isBench ? '#93c5fd' : '#fca5a5';
-    const borderTop   = isBench ? '3px solid #2563eb' : '3px solid #dc2626';
-    const labelColor  = isBench ? '#2563eb' : (fitType ? fitColors[fitType] : '#dc2626');
+    const borderColor = '#fca5a5';
+    const borderTop   = '3px solid #dc2626';
+    const labelColor  = fitColors[fitType];
 
     return `
     <div class="rounded-xl border bg-white p-2 flex flex-col items-center gap-0.5 text-center overflow-hidden card-shadow locked ${fitClass}"
@@ -663,14 +650,14 @@ function renderRosterSlot(pos, canPlace, isBench) {
   // Empty slot — droppable when placing a draft pick OR moving a roster player
   const canDrop      = canPlace || hasMoveActive;
   const sp           = S.selectedPlayer;
-  const primaryMatch = !hasMoveActive && canDrop && !isBench && sp && sp.pos === pos;
-  const flexMatch    = !hasMoveActive && canDrop && !isBench && sp && !primaryMatch &&
+  const primaryMatch = !hasMoveActive && canDrop && sp && sp.pos === pos;
+  const flexMatch    = !hasMoveActive && canDrop && sp && !primaryMatch &&
     (sp.secondaryPos || []).includes(pos);
   const action       = canDrop ? (hasMoveActive ? `swap-${pos}` : `place-${pos}`) : '';
 
-  const slotBg     = isBench ? '#eff6ff' : (!canDrop ? '#f8fafc' : '#fff1f2');
-  const slotBorder = isBench ? '#93c5fd' : (!canDrop ? '#cbd5e1' : (primaryMatch ? '#86efac' : flexMatch ? '#fde68a' : '#fca5a5'));
-  const slotColor  = isBench ? '#2563eb' : (!canDrop ? '#94a3b8' : (primaryMatch ? '#16a34a' : flexMatch ? '#d97706' : '#dc2626'));
+  const slotBg     = !canDrop ? '#f8fafc' : '#fff1f2';
+  const slotBorder = !canDrop ? '#cbd5e1' : (primaryMatch ? '#86efac' : flexMatch ? '#fde68a' : '#fca5a5');
+  const slotColor  = !canDrop ? '#94a3b8' : (primaryMatch ? '#16a34a' : flexMatch ? '#d97706' : '#dc2626');
   const slotText   = !canDrop ? 'Empty' : (hasMoveActive ? 'Move Here' : primaryMatch ? 'Primary' : flexMatch ? 'Flex' : 'Place');
 
   return `
@@ -685,11 +672,10 @@ function renderRosterSlot(pos, canPlace, isBench) {
 // ── Live Chemistry Dashboard ──────────────────────────────────────────────────
 function renderChemDashboard() {
   const starters = POSITIONS.map(p => S.roster[p]).filter(Boolean);
-  const bench    = BENCH_POSITIONS.map(p => S.roster[p]).filter(Boolean);
-  const rosterKey = [...starters, ...bench].map(p => p.id).join(',');
+  const rosterKey = starters.map(p => p.id).join(',');
   if (_chemCache.key !== rosterKey) {
     _chemCache.key    = rosterKey;
-    _chemCache.result = calculateChemistry(starters, bench);
+    _chemCache.result = calculateChemistry(starters);
   }
   const { chemScore, chemReport } = _chemCache.result;
   const scoreColor = chemScore >= 60 ? '#16a34a' : chemScore >= 40 ? '#d97706' : '#dc2626';
@@ -1121,10 +1107,6 @@ function renderResults() {
               ? r.lineupAssignment.map(({ slot, player, fit }) => rosterRow(player, slot, true, fit)).join('')
               : POSITIONS.map(pos => rosterRow(S.roster[pos], pos, true)).join('')}
           </div>
-          <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg mb-1">Bench</p>
-          <div class="flex flex-col">
-            ${BENCH_POSITIONS.map(pos => rosterRow(S.roster[pos], S.roster[pos]?.pos || 'BN', false)).join('')}
-          </div>
         </div>
         <!-- ── Save to Leaderboard card ─────────────────────────────── -->
         <div id="save-run-card" class="rounded-2xl border bg-white p-4 card-shadow"
@@ -1485,10 +1467,11 @@ function renderTrophyRoom() {
             <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg mb-1">Starting 5</p>
             <p class="text-xs text-foreground leading-relaxed">${t.starters}</p>
           </div>
+          ${t.bench ? `
           <div>
             <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg mb-1">Bench</p>
             <p class="text-xs text-foreground leading-relaxed">${t.bench}</p>
-          </div>
+          </div>` : ''}
         </div>
         <div class="flex items-center justify-between border-t ${isPerfect ? 'border-amber-200' : 'border-border'} pt-2.5">
           <p class="text-xs text-muted-fg">Chemistry</p>
@@ -1603,10 +1586,8 @@ function renderSeriesResult() {
               ${chemBadge(p1s.chemScore)}
             </div>
             ${p1Coach ? `<p class="text-[10px] text-muted-fg mb-2 font-medium">Coach: ${p1Coach.name}</p>` : ''}
-            <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg/60 mb-1">Starters</p>
+            <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg/60 mb-1">Starting 5</p>
             ${rosterMini(S.p1Roster || S.p1?.roster || {}, ['PG','SG','SF','PF','C'])}
-            <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg/60 mb-1 mt-2">Bench</p>
-            ${rosterMini(S.p1Roster || S.p1?.roster || {}, ['B1','B2'])}
           </div>
           <div class="rounded-2xl border p-4 card-shadow" style="border-color:#fde68a;background:#fffef8">
             <div class="flex items-center justify-between mb-3">
@@ -1614,10 +1595,8 @@ function renderSeriesResult() {
               ${chemBadge(p2s.chemScore)}
             </div>
             ${p2Coach ? `<p class="text-[10px] text-muted-fg mb-2 font-medium">Coach: ${p2Coach.name}</p>` : ''}
-            <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg/60 mb-1">Starters</p>
+            <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg/60 mb-1">Starting 5</p>
             ${rosterMini(S.p2Roster || S.roster, ['PG','SG','SF','PF','C'])}
-            <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg/60 mb-1 mt-2">Bench</p>
-            ${rosterMini(S.p2Roster || S.roster, ['B1','B2'])}
           </div>
         </div>
 
@@ -1667,9 +1646,8 @@ function renderSeriesPreview() {
 
   const rosterMini = (roster, color) => ALL_POSITIONS.map(pos => {
     const p = roster[pos];
-    const isBench = BENCH_POSITIONS.includes(pos);
     return `<div class="flex items-center gap-1.5 py-1 border-b border-border last:border-0">
-      <span class="text-[10px] font-black w-5 flex-shrink-0" style="color:${p ? color : '#cbd5e1'}">${isBench ? 'BN' : pos}</span>
+      <span class="text-[10px] font-black w-5 flex-shrink-0" style="color:${p ? color : '#cbd5e1'}">${pos}</span>
       <span class="text-xs font-semibold flex-1 truncate ${p ? 'text-foreground' : 'text-muted-fg/40'}">${p ? p.name : '—'}</span>
       ${p ? `<span class="text-[10px] text-muted-fg">${p.ppg}pt</span>` : ''}
     </div>`;

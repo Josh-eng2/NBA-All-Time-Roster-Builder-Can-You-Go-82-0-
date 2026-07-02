@@ -21,10 +21,9 @@ export const TEAMS = [
 
 export const DECADES = ['1960s','1970s','1980s','1990s','2000s','2010s','2020s'];
 
-export const POSITIONS       = ['PG','SG','SF','PF','C'];
-export const BENCH_POSITIONS = ['B1','B2'];
-export const ALL_POSITIONS   = [...POSITIONS, ...BENCH_POSITIONS];
-export const TOTAL_ROUNDS    = 7;
+export const POSITIONS     = ['PG','SG','SF','PF','C'];
+export const ALL_POSITIONS  = [...POSITIONS]; // starters-only format — no bench
+export const TOTAL_ROUNDS   = 5;
 
 export const ERA_DESC = {
   '1960s': 'Chamberlain · West · Russell',
@@ -92,7 +91,7 @@ export const COACHES = [
     name:   'Red Holzman',
     era:    '1970s',
     system: 'Hit the Open Man',
-    desc:   'Unselfish ball-movement — Floor General and Perimeter Lockdown bonuses amplified ×1.5; Barren Bench penalty negated.',
+    desc:   'Unselfish ball-movement — Floor General and Perimeter Lockdown bonuses amplified ×1.5.',
     accent: '#0369a1',
   },
   {
@@ -116,7 +115,7 @@ export const COACHES = [
     name:   'Gregg Popovich',
     era:    '2000s',
     system: 'The Beautiful Game',
-    desc:   'Bench and ball-movement driven — Second Unit General and Floor General amplified ×1.5; Barren Bench penalty negated.',
+    desc:   'Offense-first — The Beautiful Game rewards efficient team scoring; Floor General bonus amplified ×1.5.',
     accent: '#60a5fa',
   },
   {
@@ -269,10 +268,7 @@ export function startGame(era = 'all') {
     draftBoard:       [],       // 3-player pick array
     selectedPlayer:   null,
     movingPos:        null,
-    roster: {
-      PG: null, SG: null, SF: null, PF: null, C: null,
-      B1: null, B2: null,
-    },
+    roster: { PG: null, SG: null, SF: null, PF: null, C: null },
     result:  null,
     playoffs: null,
     teamName: '',
@@ -300,8 +296,8 @@ export function startGame1v1() {
     mode:     '1v1',
     currentPlayer: 1,
     p1Coach, p1Era, p2Coach, p2Era,
-    p1Roster: { PG: null, SG: null, SF: null, PF: null, C: null, B1: null, B2: null },
-    p2Roster: { PG: null, SG: null, SF: null, PF: null, C: null, B1: null, B2: null },
+    p1Roster: { PG: null, SG: null, SF: null, PF: null, C: null },
+    p2Roster: { PG: null, SG: null, SF: null, PF: null, C: null },
     p1Round:  0,
     p2Round:  0,
     draftLog: [],
@@ -322,7 +318,7 @@ export function startGame1v1() {
     movingPos: null,
 
     // Solo-mode fields kept to avoid undefined refs
-    roster: { PG: null, SG: null, SF: null, PF: null, C: null, B1: null, B2: null },
+    roster: { PG: null, SG: null, SF: null, PF: null, C: null },
     round: 0,
     result: null,
     playoffs: null,

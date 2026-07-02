@@ -11,7 +11,7 @@
  */
 
 import {
-  S, startGame, startGame1v1, ALL_POSITIONS, POSITIONS, BENCH_POSITIONS,
+  S, startGame, startGame1v1, ALL_POSITIONS, POSITIONS,
   TEAMS, DECADES, COACHES, CPU_TEAMS, pick, buildBracket, getPlayerSeed,
 } from '../logic/state.js';
 import {
@@ -394,12 +394,10 @@ function placePlayer(pos) {
     S.spinState = 'idle'; S.currentSpin = null; S.availablePlayers = []; S.draftBoard = []; S.selectedPlayer = null;
 
     // Both rosters complete — auto-simulate series
-    if (S.p1Round >= 7 && S.p2Round >= 7) {
+    if (S.p1Round >= 5 && S.p2Round >= 5) {
       const p1s = POSITIONS.map(p => S.p1Roster[p]).filter(Boolean);
-      const p1b = BENCH_POSITIONS.map(p => S.p1Roster[p]).filter(Boolean);
       const p2s = POSITIONS.map(p => S.p2Roster[p]).filter(Boolean);
-      const p2b = BENCH_POSITIONS.map(p => S.p2Roster[p]).filter(Boolean);
-      S.seriesResult       = simulateHeadToHeadSeries(p1s, p1b, S.p1Coach, p2s, p2b, S.p2Coach);
+      S.seriesResult       = simulateHeadToHeadSeries(p1s, S.p1Coach, p2s, S.p2Coach);
       S.seriesRevealedCount = 0;
       S.phase = 'series-preview';
       logAnalyticsEvent('1v1_series_simulated', { winner: S.seriesResult.winner });
@@ -445,8 +443,7 @@ function placePlayer(pos) {
 function doSimulate() {
   if (S.phase !== 'drafting' || S.mode === '1v1') return;
   const starters = POSITIONS.map(p => S.roster[p]).filter(Boolean);
-  const bench    = BENCH_POSITIONS.map(p => S.roster[p]).filter(Boolean);
-  S.result  = simulateSeason(starters, bench, S.coach);
+  S.result  = simulateSeason(starters, S.coach);
   S.runSaved = false;
   logAnalyticsEvent('season_simulated', { wins: S.result.wins, losses: S.result.losses, coach: S.coach ?? 'none', era: S.selectedEra ?? 'all' });
 
@@ -671,21 +668,13 @@ function doShare() {
     return p ? `🌟 ${fmtPlayerLine(p)}` : '';
   }).filter(Boolean).join('\n');
 
-  const benchLines = BENCH_POSITIONS.map(pos => {
-    const p = S.roster[pos];
-    return p ? `💪 ${fmtPlayerLine(p)}` : '';
-  }).filter(Boolean).join('\n');
-
   const chemLine = r.chemScore !== undefined ? `\nChemistry: ${Math.round(r.chemScore)}%` : '';
 
   const text = [
     `🏀 ${r.wins}-${r.losses} — ${tier}`,
     '',
-    'Starters:',
+    'Starting 5:',
     starterLines,
-    '',
-    'Bench:',
-    benchLines,
     chemLine,
     '',
     'Can you beat it? → 82-0.com',

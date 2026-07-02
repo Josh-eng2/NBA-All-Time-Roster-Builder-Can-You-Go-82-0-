@@ -1,13 +1,13 @@
 /**
  * js/logic/simulation.js — Season & Playoff Simulation Engine
  *
- * Starters count 78 %, bench 22 % of the combined stat ratio.
+ * Starters-only format: team strength comes entirely from the starting 5.
  * A sigmoid maps adjustedStrength → per-game win probability.
  * Chemistry bonuses/penalties (from chemistry.js) are baked into
  * adjustedStrength before the sigmoid is applied.
  *
  * Exports:
- *   simulateSeason(starters, bench)  → full result object
+ *   simulateSeason(starters, coach)  → full result object
  *   simulateSeries(playerStr, oppStr) → series result object
  */
 
@@ -20,14 +20,21 @@ import { TEAMS, pick }         from '../logic/state.js';
 // SIM_CENTER: adjustedStrength that maps to exactly 50 % win rate
 //             (raise to make 82-0 rarer, lower to make it easier)
 // WIN_CAP:    1.0 — 82-0 is possible only for genuinely elite rosters
+//
+// Recalibrated for the starters-only format (bench removal shifted the whole
+// strength distribution down: the old bench ratio was measured against a
+// bench-tier baseline, inflating strength by ~0.3, and roster-wide chem procs
+// lost their bench reach). Empirical anchors from 300-sample sweeps of
+// position-clean builds: elite (pop 85+) median 2.03 → ~73 wins; elite p90
+// 2.40 → ~80 wins; mid-tier (68-84) median 1.73 → ~52 wins.
 const SIM_K      = 5;
-const SIM_CENTER = 1.85;
+const SIM_CENTER = 1.62;
 const WIN_CAP    = 1.0;
 
 let _baselinesCache = null;
 
 /**
- * Derives dynamic STARTER_BASE / BENCH_BASE from the live DB.
+ * Derives the dynamic STARTER_BASE from the live DB.
  * Treats the top ~71.4 % of players (by composite score) as the starter tier.
  * Memoized — DB never changes after startup so the sort runs at most once.
  */
@@ -36,14 +43,12 @@ function computeSimBaselines() {
   const all    = Object.values(DB).flat();
   const score  = p => p.ppg * 0.35 + p.rpg * 0.20 + p.apg * 0.20 + p.spg * 0.15 + p.bpg * 0.10;
   const sorted = [...all].sort((a, b) => score(b) - score(a));
-  const cut    = Math.round(sorted.length * 5 / 7);
+  const cut    = Math.round(sorted.length * 5 / 7); // tier cut unchanged — keeps STARTER_BASE identical
   const sTier  = sorted.slice(0, cut);
-  const bTier  = sorted.slice(cut);
   const avg    = (arr, stat) => arr.reduce((s, p) => s + p[stat], 0) / arr.length;
   const STATS  = ['ppg', 'rpg', 'apg', 'spg', 'bpg'];
   _baselinesCache = {
     STARTER_BASE: Object.fromEntries(STATS.map(k => [k, avg(sTier, k) * 5])),
-    BENCH_BASE:   Object.fromEntries(STATS.map(k => [k, avg(bTier, k) * 2])),
   };
   return _baselinesCache;
 }
@@ -75,24 +80,23 @@ function statRatioProgress(players, stats, base, slotCount) {
 /**
  * @param {string} coach     coach id
  * @param {object[]} starters filled starter players (0–5 during draft)
- * @param {object[]} bench    filled bench players (0–2 during draft)
  * @returns {{ progress: number, metric: string }}
  */
-export function coachSystemProgress(coach, starters, bench) {
-  const { STARTER_BASE, BENCH_BASE } = computeSimBaselines();
-  const all = [...starters, ...bench];
+export function coachSystemProgress(coach, starters) {
+  const { STARTER_BASE } = computeSimBaselines();
 
   if (coach === 'jackson') {
-    const stars = all.filter(p => (p.popularity ?? 50) >= 85).length;
+    const stars = starters.filter(p => (p.popularity ?? 50) >= 85).length;
     return { progress: clamp01(stars / 4), metric: `${stars}/4 stars` };
   }
   if (coach === 'kerr') {
-    const shooters = all.filter(p => p.archetype === 'Sharpshooter').length;
+    const shooters = starters.filter(p => p.archetype === 'Sharpshooter').length;
     return { progress: clamp01(shooters / 3), metric: `${shooters}/3 sharpshooters` };
   }
   if (coach === 'popovich') {
-    const p = statRatioProgress(bench, ['ppg', 'rpg', 'apg', 'spg', 'bpg'], BENCH_BASE, 2);
-    return { progress: p, metric: `Bench ${Math.round(p * 100)}%` };
+    // The Beautiful Game — efficient team offense (re-homed from bench depth)
+    const p = statRatioProgress(starters, ['ppg'], STARTER_BASE, 5);
+    return { progress: p, metric: `Offense ${Math.round(p * 100)}%` };
   }
   if (coach === 'rivers') {
     // Cohesion — no weak links: keyed to the worst starter stat ratio,
@@ -124,11 +128,10 @@ export function coachSystemProgress(coach, starters, bench) {
  * Simulates a full 82-game regular season.
  *
  * @param {object[]} starters  5 starting player objects
- * @param {object[]} bench     2 bench player objects
  * @returns {object}  { wins, losses, winPct, strength, totals, ratio,
- *                      sTotals, bTotals, chemScore, chemReport }
+ *                      sTotals, chemScore, chemReport }
  */
-export function simulateSeason(starters, bench, coach = null) {
+export function simulateSeason(starters, coach = null) {
   const sumStats = arr => arr.reduce(
     (acc, p) => ({
       ppg: acc.ppg + p.ppg,
@@ -141,9 +144,8 @@ export function simulateSeason(starters, bench, coach = null) {
   );
 
   const sTotals = sumStats(starters);
-  const bTotals = sumStats(bench);
 
-  const { STARTER_BASE, BENCH_BASE } = computeSimBaselines();
+  const { STARTER_BASE } = computeSimBaselines();
 
   const sRatio = {
     ppg: sTotals.ppg / STARTER_BASE.ppg,
@@ -152,22 +154,9 @@ export function simulateSeason(starters, bench, coach = null) {
     spg: sTotals.spg / STARTER_BASE.spg,
     bpg: sTotals.bpg / STARTER_BASE.bpg,
   };
-  const bRatio = {
-    ppg: bTotals.ppg / BENCH_BASE.ppg,
-    rpg: bTotals.rpg / BENCH_BASE.rpg,
-    apg: bTotals.apg / BENCH_BASE.apg,
-    spg: bTotals.spg / BENCH_BASE.spg,
-    bpg: bTotals.bpg / BENCH_BASE.bpg,
-  };
 
-  const SW = 0.92, BW = 0.08;
-  const ratio = {
-    ppg: sRatio.ppg * SW + bRatio.ppg * BW,
-    rpg: sRatio.rpg * SW + bRatio.rpg * BW,
-    apg: sRatio.apg * SW + bRatio.apg * BW,
-    spg: sRatio.spg * SW + bRatio.spg * BW,
-    bpg: sRatio.bpg * SW + bRatio.bpg * BW,
-  };
+  // Starters-only: the starting 5 IS the team.
+  const ratio = sRatio;
 
   const strength =
     ratio.ppg * 0.35 +
@@ -179,12 +168,12 @@ export function simulateSeason(starters, bench, coach = null) {
   const minStarterRatio = Math.min(...Object.values(sRatio));
   const balancePenalty  = minStarterRatio < 0.82 ? (0.82 - minStarterRatio) * 0.8 : 0;
 
-  const { chemBonus, chemScore, chemReport, lineupAssignment } = calculateChemistry(starters, bench);
+  const { chemBonus, chemScore, chemReport, lineupAssignment } = calculateChemistry(starters);
 
   // Unified coach boost — every coach has the same floor and the same
   // reachable ceiling; only the SYSTEM you must draft toward differs.
   const coachBoost = coach
-    ? COACH_BOOST_FLOOR + coachSystemProgress(coach, starters, bench).progress * COACH_BOOST_RANGE
+    ? COACH_BOOST_FLOOR + coachSystemProgress(coach, starters).progress * COACH_BOOST_RANGE
     : 0;
 
   const baseStrength = Math.max(0, strength - balancePenalty + chemBonus + coachBoost);
@@ -196,7 +185,7 @@ export function simulateSeason(starters, bench, coach = null) {
   const POP_CEIL    = 100;
   const MUL_MIN     = 0.97;
   const MUL_MAX     = 1.04;
-  const allPlayers  = [...starters, ...bench];
+  const allPlayers  = starters;
   const avgPop      = allPlayers.length
     ? allPlayers.reduce((s, p) => s + (p.popularity || 50), 0) / allPlayers.length
     : 50;
@@ -222,13 +211,7 @@ export function simulateSeason(starters, bench, coach = null) {
   wins = Math.max(0, Math.min(82, wins));
   decorateSeasonGames(games, winPct);
 
-  const totals = {
-    ppg: sTotals.ppg + bTotals.ppg,
-    rpg: sTotals.rpg + bTotals.rpg,
-    apg: sTotals.apg + bTotals.apg,
-    spg: sTotals.spg + bTotals.spg,
-    bpg: sTotals.bpg + bTotals.bpg,
-  };
+  const totals = { ...sTotals };
 
   return {
     wins,
@@ -236,7 +219,7 @@ export function simulateSeason(starters, bench, coach = null) {
     winPct:     +(winPct * 100).toFixed(1),
     strength:   +adjustedStrength.toFixed(3),
     baseStrength: +baseStrength.toFixed(3),
-    totals, ratio, sTotals, bTotals,
+    totals, ratio, sTotals,
     chemScore, chemReport, lineupAssignment,
     avgPopularity: +avgPop.toFixed(1),
     popEloDelta,
@@ -275,8 +258,8 @@ function decorateSeasonGames(games, winPct) {
  * Simulates a head-to-head best-of-7 series between two drafted rosters.
  * Returns season stats for both teams + the series outcome.
  *
- * @param {object[]} p1Starters  @param {object[]} p1Bench  @param {string|null} p1Coach
- * @param {object[]} p2Starters  @param {object[]} p2Bench  @param {string|null} p2Coach
+ * @param {object[]} p1Starters  @param {string|null} p1Coach
+ * @param {object[]} p2Starters  @param {string|null} p2Coach
  * @returns {{ p1Season, p2Season, series, winner: 'p1'|'p2' }}
  */
 /**
@@ -304,9 +287,9 @@ function generateGameScore(p1Strength, p2Strength) {
   };
 }
 
-export function simulateHeadToHeadSeries(p1Starters, p1Bench, p1Coach, p2Starters, p2Bench, p2Coach) {
-  const p1Season = simulateSeason(p1Starters, p1Bench, p1Coach);
-  const p2Season = simulateSeason(p2Starters, p2Bench, p2Coach);
+export function simulateHeadToHeadSeries(p1Starters, p1Coach, p2Starters, p2Coach) {
+  const p1Season = simulateSeason(p1Starters, p1Coach);
+  const p2Season = simulateSeason(p2Starters, p2Coach);
 
   const p1Str = p1Season.strength;
   const p2Str = p2Season.strength;
