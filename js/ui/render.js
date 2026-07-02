@@ -16,6 +16,7 @@ import {
 } from '../logic/state.js';
 import { calculateChemistry }                             from '../logic/chemistry.js';
 import { rosterFull, availableDecades }                  from '../logic/draft.js';
+import { coachSystemProgress }                            from '../logic/simulation.js';
 import { markReturning }                                  from '../utils/storage.js';
 import { bindEvents }                                     from '../ui/events.js'; // circular — safe (called inside functions only)
 
@@ -185,53 +186,9 @@ function renderModeSelect() {
 }
 
 // ── Coach selection ───────────────────────────────────────────────────────────
-function renderCoachSelect() {
-  const coachIcon = `<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`;
-  let trophies = [];
-  try { trophies = JSON.parse(localStorage.getItem('nba820_trophies') || '[]'); } catch (e) {}
-  return `
-  <div class="flex flex-col min-h-screen main-gradient">
-    ${renderHeader(false)}
-    <main class="flex-1 flex flex-col items-center px-4 pt-6 pb-8">
-      <div class="w-full max-w-2xl flex flex-col gap-4 animate-fade-up">
-        <div class="text-center pb-2">
-          ${S.mode === '1v1' ? `<div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-3 font-bold text-sm" style="background:${S.currentPlayer === 1 ? '#eff6ff' : '#fffbeb'};color:${S.currentPlayer === 1 ? '#2563eb' : '#d97706'};border:1.5px solid ${S.currentPlayer === 1 ? '#bfdbfe' : '#fde68a'}">⚔️ Player ${S.currentPlayer} — Build Your Roster</div>` : ''}
-          <p class="text-xs font-bold uppercase tracking-widest text-primary mb-2">Step 1 of 2</p>
-          <h1 class="text-2xl font-black text-foreground mb-1.5">Choose Your Coach</h1>
-          <p class="text-sm text-muted-fg">Your coach reshapes the chemistry engine — pick a system that fits your philosophy.</p>
-        </div>
-        <div class="flex flex-col gap-3">
-          ${COACHES.map(c => `
-            <button data-action="coach-pick-${c.id}"
-              class="w-full rounded-2xl border border-border bg-card p-5 text-left cursor-pointer transition-all card-shadow hover:border-primary hover:shadow-md">
-              <div class="flex items-start gap-4">
-                <div class="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center" style="background:${c.accent}18;color:${c.accent}">
-                  ${coachIcon}
-                </div>
-                <div class="flex-1 min-w-0">
-                  <div class="flex flex-wrap items-center gap-2 mb-1">
-                    <p class="font-black text-base text-foreground">${c.name}</p>
-                    <span class="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border" style="background:${c.accent}12;color:${c.accent};border-color:${c.accent}30">${c.system}</span>
-                    ${c.era ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 border border-slate-200">${c.era}</span>` : ''}
-                  </div>
-                  <p class="text-sm text-muted-fg leading-relaxed">${c.desc}</p>
-                </div>
-              </div>
-            </button>
-          `).join('')}
-        </div>
-        ${trophies.length > 0 ? `
-          <button data-action="view-trophies"
-            class="w-full py-3.5 rounded-xl font-bold text-sm border border-amber-200 bg-amber-50 text-amber-700 cursor-pointer transition-all hover:bg-amber-100 hover:border-amber-300 card-shadow">
-            🏆 View Trophy Room · ${trophies.length} Championship${trophies.length === 1 ? '' : 's'}
-          </button>` : ''}
-      </div>
-    </main>
-    ${renderFooter()}
-  </div>`;
-}
-
 // ── Era selection ─────────────────────────────────────────────────────────────
+// (Coach selection now lives on the drafting screen as a chip + picker sheet;
+//  it locks on the first spin.)
 function renderEraSelect() {
   return `
   <div class="flex flex-col min-h-screen main-gradient">
@@ -242,9 +199,9 @@ function renderEraSelect() {
           ${S.mode === '1v1'
             ? `<div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-3 font-bold text-sm" style="background:#f0fdf4;color:#16a34a;border:1.5px solid #bbf7d0">⚔️ Shared Draft Era</div>`
             : ''}
-          <p class="text-xs font-bold uppercase tracking-widest text-primary mb-2">${S.mode === '1v1' ? 'Step 1 of 1' : 'Step 2 of 2'}</p>
+          <p class="text-xs font-bold uppercase tracking-widest text-primary mb-2">One Choice, Then Draft</p>
           <h1 class="text-2xl font-black text-foreground mb-1.5">Choose Your Era</h1>
-          <p class="text-sm text-muted-fg">${S.mode === '1v1' ? 'Pick the era both players will draft from — applies to the entire draft.' : 'Lock into a decade or let the draft board decide every round.'}</p>
+          <p class="text-sm text-muted-fg">${S.mode === '1v1' ? 'Pick the era both players will draft from — applies to the entire draft.' : 'Lock into a decade or let the draft board decide every round. Your coach is picked on the draft board.'}</p>
         </div>
         <button data-action="era-all" class="era-card w-full rounded-2xl border-2 border-primary bg-primary/5 p-5 text-left cursor-pointer card-shadow">
           <div class="flex items-start justify-between gap-3">
@@ -270,6 +227,55 @@ function renderEraSelect() {
   </div>`;
 }
 
+// ── Coach chip + picker (drafting screen) ─────────────────────────────────────
+// One line: coach, system, live system meter. Tap to swap until the first
+// spin locks it. The meter converts the coach from a blind pre-commit bet
+// into a drafting objective you can see filling.
+function renderCoachChip() {
+  const coach = COACHES.find(c => c.id === S.coach);
+  if (!coach) return '';
+  const starters = POSITIONS.map(p => S.roster[p]).filter(Boolean);
+  const bench    = BENCH_POSITIONS.map(p => S.roster[p]).filter(Boolean);
+  const sys      = coachSystemProgress(coach.id, starters, bench);
+  const filled   = Math.round(sys.progress * 4);
+  const meter    = Array.from({ length: 4 }, (_, i) =>
+    `<span style="color:${i < filled ? coach.accent : '#e2e8f0'}">★</span>`).join('');
+  const locked   = !!S.coachLocked;
+
+  const chipInner = `
+    <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${coach.accent}"></span>
+    <span class="text-xs font-black text-foreground flex-shrink-0">${coach.name}</span>
+    <span class="text-[10px] font-bold uppercase tracking-wider truncate" style="color:${coach.accent}">${coach.system}</span>
+    <span class="ml-auto flex items-center gap-1.5 flex-shrink-0">
+      <span class="text-sm leading-none tracking-tight">${meter}</span>
+      <span class="text-[10px] text-muted-fg font-semibold">${sys.metric}</span>
+      <span class="text-xs text-muted-fg">${locked ? '🔒' : '▾'}</span>
+    </span>`;
+
+  const chip = locked
+    ? `<div class="w-full rounded-xl border border-border bg-card px-3 py-2 flex items-center gap-2 card-shadow" title="Coach locked for this run">${chipInner}</div>`
+    : `<button data-action="coach-picker-toggle"
+        class="w-full rounded-xl border bg-card px-3 py-2 flex items-center gap-2 card-shadow cursor-pointer transition-all hover:border-primary text-left"
+        style="border-color:${S.coachPickerOpen ? coach.accent : '#e2e8f0'}">${chipInner}</button>`;
+
+  const picker = !locked && S.coachPickerOpen ? `
+    <div class="rounded-xl border border-border bg-white card-shadow overflow-hidden animate-scale-in">
+      <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg px-3 pt-2.5 pb-1.5">Pick your system — locks on first spin</p>
+      ${COACHES.map(c => `
+      <button data-action="coach-pick-${c.id}"
+        class="w-full px-3 py-2 flex items-center gap-2.5 text-left cursor-pointer transition-all hover:bg-slate-50 border-t border-border"
+        style="${c.id === S.coach ? `background:${c.accent}0d` : ''}">
+        <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${c.accent}"></span>
+        <span class="text-xs font-black text-foreground flex-shrink-0 w-28 truncate">${c.name}</span>
+        <span class="text-[10px] font-bold uppercase tracking-wider flex-shrink-0" style="color:${c.accent}">${c.system}</span>
+        <span class="text-[10px] text-muted-fg truncate hidden sm:inline">${c.desc.split('—')[0].trim()}</span>
+        ${c.id === S.coach ? `<span class="ml-auto text-xs flex-shrink-0" style="color:${c.accent}">✓</span>` : ''}
+      </button>`).join('')}
+    </div>` : '';
+
+  return chip + picker;
+}
+
 // ── Drafting screen ───────────────────────────────────────────────────────────
 function renderColdOpenBanner() {
   if (!S.coldOpen || S.round > 0) return '';
@@ -280,7 +286,7 @@ function renderColdOpenBanner() {
     <span class="text-2xl flex-shrink-0">🏀</span>
     <div class="min-w-0">
       <p class="text-sm font-black text-foreground leading-tight">Welcome to 82-0 — your first pick is waiting.</p>
-      <p class="text-xs text-muted-fg mt-0.5">You drew Coach <b>${coach ? coach.name : ''}</b>${coach ? ` (${coach.system})` : ''}. Draft 7 legends, then chase the perfect season.</p>
+      <p class="text-xs text-muted-fg mt-0.5">Coach <b>${coach ? coach.name : ''}</b> is running the show${coach ? ` (${coach.system})` : ''}. Draft 7 legends, then chase the perfect season.</p>
     </div>
   </div>`;
 }
@@ -296,6 +302,7 @@ function renderDrafting() {
         ${renderColdOpenBanner()}
         ${full ? renderSimulateCard() : ''}
         ${renderRoundBar()}
+        ${renderCoachChip()}
         ${!full ? renderSlotMachine() : ''}
         ${!full && S.spinState === 'done' ? renderDraftBoard() : ''}
         ${renderPopularityBar()}
@@ -996,6 +1003,17 @@ function renderResults() {
             <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full border border-border bg-slate-50 text-slate-600">
               🌍 Global Fanbase: ${fansLabel}
             </span>
+            ${(() => {
+              if (!r.coachBoost) return '';
+              const coachObj = S.coach ? COACHES.find(c => c.id === S.coach) : null;
+              if (!coachObj) return '';
+              const pctOfMax = r.coachBoost / 0.040;
+              const grade    = pctOfMax >= 0.75 ? 'Mastered' : pctOfMax >= 0.4 ? 'Building' : 'Faint';
+              return `<span class="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full border"
+                style="background:${coachObj.accent}12;border-color:${coachObj.accent}40;color:${coachObj.accent}">
+                📋 ${coachObj.system}: +${(r.coachBoost * 100).toFixed(1)}% · ${grade}
+              </span>`;
+            })()}
             ${hypeBadge}
           </div>
         </div>
@@ -1830,7 +1848,6 @@ function renderSeriesSim() {
 // ── Main render dispatcher ────────────────────────────────────────────────────
 export function render() {
   if      (S.phase === 'mode-select')   $app.innerHTML = renderModeSelect();
-  else if (S.phase === 'coach-select')  $app.innerHTML = renderCoachSelect();
   else if (S.phase === 'era-select')    $app.innerHTML = renderEraSelect();
   else if (S.phase === 'drafting')      $app.innerHTML = renderDrafting();
   else if (S.phase === 'season-sim')    $app.innerHTML = renderSeasonSim();
