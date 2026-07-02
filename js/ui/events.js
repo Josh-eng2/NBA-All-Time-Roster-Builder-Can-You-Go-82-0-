@@ -101,6 +101,17 @@ function dispatch(action) {
     const idx = parseInt(action.slice(11), 10);
     const p   = S.draftBoard[idx];
     if (!p) { render(); return; }
+    if (S.mode === 'blind') {
+      // HoopIQ: the reveal IS the pick — no toggling, no second look.
+      // Escape hatch: team/era skips still replace the whole board, at the
+      // cost of a limited resource.
+      if (S.selectedPlayer) {
+        if (S.selectedPlayer.id !== p.id) showToast('🔒 Pick locked — place them in a slot');
+        return;
+      }
+      S.selectedPlayer = p;
+      render(); return;
+    }
     S.selectedPlayer = S.selectedPlayer?.id === p.id ? null : p;
     render(); return;
   }
@@ -260,12 +271,29 @@ export function doSpin() {
       S.currentSpin      = spin;
       S.spinState        = 'done';
       S.availablePlayers = getAvailablePlayers(spin.team, spin.decade);
-      S.draftBoard       = [...S.availablePlayers].sort((a, b) => (b.popularity ?? 50) - (a.popularity ?? 50));
+      S.draftBoard       = buildDraftBoard();
       S.selectedPlayer   = null;
       updateDryCounter();
       render();
     }
   }, 90);
+}
+
+/**
+ * Builds the pick board from the current availablePlayers.
+ * Classic/1v1: sorted best-first by popularity.
+ * HoopIQ (blind): Fisher-Yates shuffled — card order must not leak quality.
+ */
+function buildDraftBoard() {
+  const pool = [...S.availablePlayers];
+  if (S.mode === 'blind') {
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    return pool;
+  }
+  return pool.sort((a, b) => (b.popularity ?? 50) - (a.popularity ?? 50));
 }
 
 /**
@@ -285,7 +313,7 @@ function doSkipTeam() {
   S.teamSkips--;
   S.currentSpin      = spin;
   S.availablePlayers = getAvailablePlayers(spin.team, spin.decade);
-  S.draftBoard       = [...S.availablePlayers].sort((a, b) => (b.popularity ?? 50) - (a.popularity ?? 50));
+  S.draftBoard       = buildDraftBoard();
   S.selectedPlayer   = null;
   updateDryCounter();
   render();
@@ -304,7 +332,7 @@ function doSkipDecade() {
   S.decadeSkips--;
   S.currentSpin      = spin;
   S.availablePlayers = getAvailablePlayers(spin.team, spin.decade);
-  S.draftBoard       = [...S.availablePlayers].sort((a, b) => (b.popularity ?? 50) - (a.popularity ?? 50));
+  S.draftBoard       = buildDraftBoard();
   S.selectedPlayer   = null;
   updateDryCounter();
   render();
