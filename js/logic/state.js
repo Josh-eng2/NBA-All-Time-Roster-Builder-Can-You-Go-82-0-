@@ -259,6 +259,7 @@ export function startGame(era = 'all') {
     draftedPlayerNames: new Set(), // names of players currently on the roster (blocks cross-era clones)
     teamSkips:        1,
     decadeSkips:      1,
+    drySpins:         0,        // consecutive boards without a star+ player (pity timer)
 
     spinState:        'idle',   // 'idle' | 'spinning' | 'done'
     currentSpin:      null,     // { team, decade }
@@ -303,6 +304,7 @@ export function startGame1v1() {
     draftedPlayerNames: new Set(),
     teamSkips:  1,
     decadeSkips: 1,
+    drySpins:   0,
     spinState:  'idle',
     currentSpin: null,
     availablePlayers: [],
