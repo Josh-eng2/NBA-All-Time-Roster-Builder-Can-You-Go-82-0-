@@ -20,8 +20,10 @@ import {
 } from '../logic/draft.js';
 import { simulateSeason, simulateSeries, simulateHeadToHeadSeries } from '../logic/simulation.js';
 import { applyPlayoffRound } from '../logic/playoffs.js';
+import { getDailyDraft, dailyDateKey, dailySeasonRng } from '../logic/daily.js';
 import {
   saveLeaderboard, saveToTrophyRoom, markReturning, recordLegends,
+  getDailyResult, saveDailyResult,
   showLeaderboardModal, closeLeaderboardModal,
   showGlobalLeaderboardModal, closeGlobalLeaderboardModal,
 } from '../utils/storage.js';
@@ -73,6 +75,13 @@ function dispatch(action) {
     S.takenPlayerIds = new Set();
     doStartGame('all'); return;
   }
+  if (action === 'mode-daily') {
+    if (getDailyResult()?.date === dailyDateKey()) { render(); return; } // already played today
+    S.currentPlayer = 1; S.p1 = null;
+    S.takenPlayerIds = new Set();
+    doStartGameDaily(); return;
+  }
+  if (action === 'share-daily')  { doShareDaily();  return; }
 
   // ── Coach (in-draft chip) & Era (header picker) ────────────────────────────
   // Coach lives on the drafting screen; era lives in the header. Both lock on first spin.
@@ -209,6 +218,28 @@ function doStartGame(era = 'all') {
 }
 
 /**
+ * Daily Draft: 5 seeded team/decade boards, no skips, no re-spins, seeded
+ * season. The player picks one legend per forced board + a coach; a given
+ * roster always produces the same record so the day is fair and shareable.
+ */
+function doStartGameDaily() {
+  const dateKey = dailyDateKey();
+  const { buckets } = getDailyDraft(dateKey);
+  if (!S.coach) {
+    let remembered = null;
+    try { remembered = localStorage.getItem('nba820_coach'); } catch (e) {}
+    S.coach = COACHES.some(c => c.id === remembered) ? remembered : 'jackson';
+  }
+  S.mode = 'daily';
+  startGame('all');            // rebuilds S; preserves mode + coach
+  S.dailyDate    = dateKey;
+  S.dailyBuckets = buckets;
+  S.eraLocked    = true;       // the day's boards are fixed — no era picker
+  logAnalyticsEvent('daily_started', { date: dateKey });
+  render();
+}
+
+/**
  * Shows a confirmation modal before abandoning an active draft.
  * Calls fn() immediately if there is nothing to lose.
  */
@@ -295,23 +326,31 @@ export function doSpin() {
 
     if (ticks >= total) {
       clearInterval(interval);
-      // Escalating rounds for solo/blind runs:
-      //   round 1      — GOAT-tier guarantee (the hook)
-      //   rounds 2–3   — star-or-better guarantee (front-loaded generosity)
-      //   rounds 4+    — pure random, protected by the pity timer:
-      //                  a starless board forces the NEXT spin to star tier,
-      //                  so back-to-back dry boards can't happen. (With only
-      //                  two unrigged spins in the 5-pick format, the old
-      //                  4-board threshold could never fire.)
-      // 1v1 keeps pure random spins for competitive fairness.
-      const solo    = S.mode !== '1v1';
-      const rigGoat = solo && S.round === 0;
-      const rigStar = solo && !rigGoat && S.round <= 2;
-      const pity    = solo && !rigGoat && !rigStar && (S.drySpins ?? 0) >= 1;
-      if (pity) logAnalyticsEvent('pity_spin_triggered', { round: S.round + 1 });
-      const spin = rigGoat ? spinResultAtLeast('goat')
-        : (rigStar || pity) ? spinResultAtLeast('star')
-        : spinResult();
+      // Daily Draft: the 5 boards are fixed by the date seed — just advance
+      // to this round's pre-determined team/decade. No rig, no randomness.
+      let spin;
+      if (S.mode === 'daily') {
+        const b = S.dailyBuckets?.[S.round];
+        spin = b ? { team: b.team, decade: b.decade } : null;
+      } else {
+        // Escalating rounds for solo/blind runs:
+        //   round 1      — GOAT-tier guarantee (the hook)
+        //   rounds 2–3   — star-or-better guarantee (front-loaded generosity)
+        //   rounds 4+    — pure random, protected by the pity timer:
+        //                  a starless board forces the NEXT spin to star tier,
+        //                  so back-to-back dry boards can't happen. (With only
+        //                  two unrigged spins in the 5-pick format, the old
+        //                  4-board threshold could never fire.)
+        // 1v1 keeps pure random spins for competitive fairness.
+        const solo    = S.mode !== '1v1';
+        const rigGoat = solo && S.round === 0;
+        const rigStar = solo && !rigGoat && S.round <= 2;
+        const pity    = solo && !rigGoat && !rigStar && (S.drySpins ?? 0) >= 1;
+        if (pity) logAnalyticsEvent('pity_spin_triggered', { round: S.round + 1 });
+        spin = rigGoat ? spinResultAtLeast('goat')
+          : (rigStar || pity) ? spinResultAtLeast('star')
+          : spinResult();
+      }
       if (!spin) {
         // All player slots exhausted — reset to idle so the user isn't stuck
         S.spinState = 'idle';
@@ -357,6 +396,7 @@ function updateDryCounter() {
 }
 
 function doSkipTeam() {
+  if (S.mode === 'daily') { render(); return; } // daily boards are fixed
   if (S.teamSkips <= 0 || !S.currentSpin || S.spinState !== 'done') { render(); return; }
   const spin = spinResult(null, S.currentSpin.decade);
   if (!spin) { render(); return; }
@@ -370,6 +410,7 @@ function doSkipTeam() {
 }
 
 function doSkipDecade() {
+  if (S.mode === 'daily') { render(); return; } // daily boards are fixed
   const activeEra = S.mode === '1v1'
     ? (S.currentPlayer === 1 ? (S.p1Era || 'all') : (S.p2Era || 'all'))
     : (S.selectedEra || 'all');
@@ -472,7 +513,9 @@ function placePlayer(pos) {
 function doSimulate() {
   if (S.phase !== 'drafting' || S.mode === '1v1') return;
   const starters = POSITIONS.map(p => S.roster[p]).filter(Boolean);
-  S.result  = simulateSeason(starters, S.coach);
+  // Daily uses a date-seeded win-draw stream so identical rosters tie.
+  const rng = S.mode === 'daily' ? dailySeasonRng(S.dailyDate) : Math.random;
+  S.result  = simulateSeason(starters, S.coach, rng);
   S.runSaved = false;
 
   // Meta-progression: every started legend joins the permanent collection.
@@ -526,6 +569,20 @@ function doSimulate() {
   if (firstLossIdx >= 0) {
     S.seasonGames[firstLossIdx].isFirstLoss  = true;
     S.seasonGames[firstLossIdx].streakBroken = firstLossIdx;
+  }
+
+  // Daily Draft: lock in today's one attempt so it can't be replayed and
+  // can be shared.
+  if (S.mode === 'daily') {
+    saveDailyResult({
+      date:     S.dailyDate,
+      wins:     S.result.wins,
+      losses:   S.result.losses,
+      streak:   longestStreak,
+      coach:    S.coach || null,
+      starters: POSITIONS.map(p => S.roster[p]?.name || '—'),
+    });
+    logAnalyticsEvent('daily_completed', { date: S.dailyDate, wins: S.result.wins });
   }
 
   // Revenge game tagging — two passes over the ordered game log.
@@ -797,6 +854,9 @@ function doShare() {
   const r = S.result;
   if (!r) return;
 
+  // Daily runs get the spoiler-free Wordle-style card instead of the roster dump.
+  if (S.mode === 'daily' && getDailyResult()?.date === S.dailyDate) { doShareDaily(); return; }
+
   const isPerfect  = r.wins === 82;
   const isHistoric = r.wins >= 75;
   const isElite    = r.wins >= 70;
@@ -831,6 +891,36 @@ function doShare() {
   } else if (navigator.clipboard) {
     navigator.clipboard.writeText(text)
       .then(()  => showToast('Copied to clipboard! 🏀'))
+      .catch(() => showToast('Failed to copy to clipboard'));
+  } else {
+    showToast('Failed to copy to clipboard');
+  }
+}
+
+// ── Daily share ───────────────────────────────────────────────────────────────
+
+function doShareDaily() {
+  const d = getDailyResult();
+  if (!d) return;
+  const filled = Math.round((d.wins / 82) * 10);
+  const bar    = '🟩'.repeat(filled) + '⬜'.repeat(10 - filled);
+  const tier   = d.wins === 82 ? '🏆 PERFECT'
+    : d.wins >= 75 ? '🔥 Historic'
+    : d.wins >= 70 ? '⚡ Elite'
+    : d.wins >= 60 ? '✅ Contender'
+    : '😬 Rough';
+  const text = [
+    `82-0 Daily · ${d.date}`,
+    `${d.wins}-${d.losses}  ${tier}`,
+    bar,
+    'Can you beat it? → 82-0.com',
+  ].join('\n');
+
+  if (navigator.share) {
+    navigator.share({ title: '82-0 Daily', text }).catch(() => {});
+  } else if (navigator.clipboard) {
+    navigator.clipboard.writeText(text)
+      .then(()  => showToast('Daily result copied! 🏀'))
       .catch(() => showToast('Failed to copy to clipboard'));
   } else {
     showToast('Failed to copy to clipboard');
