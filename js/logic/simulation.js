@@ -358,7 +358,9 @@ function decorateSeasonGames(games, winPct) {
   let lastOpp = null;
   for (const g of games) {
     let opp = pick(TEAMS);
-    if (opp === lastOpp) opp = pick(TEAMS); // one retry is enough de-duping
+    // Re-draw until the opponent differs from the previous game's (bounded —
+    // a single retry still let back-to-back repeats slip through ~0.1% of rows)
+    for (let t = 0; t < 5 && opp === lastOpp; t++) opp = pick(TEAMS);
     lastOpp = opp;
 
     const r      = Math.random();
@@ -387,7 +389,6 @@ function decorateSeasonGames(games, winPct) {
  * Scores fall in the 88–128 range; margin typically 2–22 pts.
  */
 function generateGameScore(p1Strength, p2Strength) {
-  const totalStr  = p1Strength + p2Strength;
   const p1WinProb = 1 / (1 + Math.exp(-6 * (p1Strength - p2Strength)));
   const p1Wins    = Math.random() < p1WinProb;
 

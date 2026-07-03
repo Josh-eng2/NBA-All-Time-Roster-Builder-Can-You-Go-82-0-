@@ -24,6 +24,13 @@ import { bindEvents }                                     from '../ui/events.js'
 // ── Mount point ───────────────────────────────────────────────────────────────
 export const $app = document.getElementById('app');
 
+// ── HTML escaping ─────────────────────────────────────────────────────────────
+// For user-controlled strings (team names) interpolated into innerHTML or
+// attribute values. Player/coach names from the DB are trusted app data.
+const esc = s => String(s)
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
 // ── Chemistry dashboard cache ─────────────────────────────────────────────────
 // Keyed by sorted roster player IDs — recalculates only when the roster changes.
 let _chemCache = { key: null, result: null };
@@ -577,7 +584,7 @@ function renderSlotMachine() {
   </div>`;
 }
 
-// ── Draft board (3-player pick) ───────────────────────────────────────────────
+// ── Draft board (full team/decade pool for the current spin) ─────────────────
 function renderDraftBoard() {
   if (!S.draftBoard || !S.draftBoard.length) return '';
   const team   = S.currentSpin?.team;
@@ -1241,7 +1248,7 @@ function renderResults() {
             <span class="text-2xl">✅</span>
             <div>
               <p class="font-black text-sm text-green-700">Saved to Leaderboard!</p>
-              <p class="text-xs text-green-600 mt-0.5">"${S.teamName}" &nbsp;·&nbsp; ${r.wins}–${r.losses}</p>
+              <p class="text-xs text-green-600 mt-0.5">"${esc(S.teamName)}" &nbsp;·&nbsp; ${r.wins}–${r.losses}</p>
             </div>
             <button data-action="open-leaderboard" class="ml-auto text-xs font-bold px-3 py-1.5 rounded-lg border border-green-300 bg-white text-green-700 hover:bg-green-50 transition-all cursor-pointer">
               View Board
@@ -1254,7 +1261,7 @@ function renderResults() {
                 id="team-name-input"
                 type="text"
                 maxlength="20"
-                value="${S.teamName || ''}"
+                value="${esc(S.teamName || '')}"
                 placeholder="Untitled Team"
                 class="w-full rounded-xl border border-border bg-white px-3 py-2.5 text-sm font-semibold text-foreground placeholder:text-muted-fg focus:outline-none focus:border-primary focus:ring-2 focus:ring-blue-100 transition-all"
               />
@@ -1301,7 +1308,7 @@ function renderGlobalSubmitCard(champion) {
         <span class="text-2xl flex-shrink-0">🌍</span>
         <div class="flex-1 min-w-0">
           <p class="font-black text-sm text-green-700">You're on the Global Board!</p>
-          <p class="text-xs text-green-600 mt-0.5">"${S.teamName}" &nbsp;·&nbsp; ${record}</p>
+          <p class="text-xs text-green-600 mt-0.5">"${esc(S.teamName)}" &nbsp;·&nbsp; ${record}</p>
         </div>
       </div>
       <button data-action="open-global-leaderboard"
@@ -1333,7 +1340,7 @@ function renderGlobalSubmitCard(champion) {
           id="global-team-name-input"
           type="text"
           maxlength="30"
-          value="${S.teamName || ''}"
+          value="${esc(S.teamName || '')}"
           placeholder="Franchise Name"
           class="w-full rounded-xl border border-border bg-white px-3 py-2.5 text-sm font-semibold text-foreground placeholder:text-muted-fg focus:outline-none focus:border-primary focus:ring-2 focus:ring-blue-100 transition-all"
         />

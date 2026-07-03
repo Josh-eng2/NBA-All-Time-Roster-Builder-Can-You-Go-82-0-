@@ -297,12 +297,15 @@ export function doSpin() {
       //   round 1      — GOAT-tier guarantee (the hook)
       //   rounds 2–3   — star-or-better guarantee (front-loaded generosity)
       //   rounds 4+    — pure random, protected by the pity timer:
-      //                  4 consecutive starless boards force a star-tier spin
+      //                  a starless board forces the NEXT spin to star tier,
+      //                  so back-to-back dry boards can't happen. (With only
+      //                  two unrigged spins in the 5-pick format, the old
+      //                  4-board threshold could never fire.)
       // 1v1 keeps pure random spins for competitive fairness.
       const solo    = S.mode !== '1v1';
       const rigGoat = solo && S.round === 0;
       const rigStar = solo && !rigGoat && S.round <= 2;
-      const pity    = solo && !rigGoat && !rigStar && (S.drySpins ?? 0) >= 4;
+      const pity    = solo && !rigGoat && !rigStar && (S.drySpins ?? 0) >= 1;
       if (pity) logAnalyticsEvent('pity_spin_triggered', { round: S.round + 1 });
       const spin = rigGoat ? spinResultAtLeast('goat')
         : (rigStar || pity) ? spinResultAtLeast('star')
