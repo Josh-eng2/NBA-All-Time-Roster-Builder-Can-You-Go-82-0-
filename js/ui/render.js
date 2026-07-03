@@ -329,13 +329,12 @@ function render1v1RosterPanel(roster, playerNum, isActive) {
     const label   = pos;
 
     if (canPlace && !p) {
-      const isPending = S.pendingPlacePos === pos;
       return `<div data-action="place-${pos}"
-        class="flex items-center gap-1.5 py-1.5 border-b border-border last:border-0 rounded cursor-pointer transition-all ${isPending ? 'animate-pulse-glow' : ''}"
-        style="background:${isPending ? '#fef9c3' : bg}">
-        <span class="text-[10px] font-black w-5 flex-shrink-0" style="color:${isPending ? '#a16207' : color}">${label}</span>
-        <span class="text-[11px] font-bold flex-1" style="color:${isPending ? '#a16207' : color}">${isPending ? 'Tap to confirm' : 'Tap to place'}</span>
-        <span class="text-[10px] font-black" style="color:${isPending ? '#a16207' : color}">${isPending ? '✓' : '+'}</span>
+        class="flex items-center gap-1.5 py-1.5 border-b border-border last:border-0 rounded cursor-pointer transition-all"
+        style="background:${bg}">
+        <span class="text-[10px] font-black w-5 flex-shrink-0" style="color:${color}">${label}</span>
+        <span class="text-[11px] font-bold flex-1" style="color:${color}">Tap to place</span>
+        <span class="text-[10px] font-black" style="color:${color}">+</span>
       </div>`;
     }
     return `<div class="flex items-center gap-1.5 py-1 border-b border-border last:border-0 ${p ? 'locked' : ''}">
@@ -693,16 +692,15 @@ function renderRosterSlot(pos, canPlace) {
   const flexMatch    = !hasMoveActive && canDrop && sp && !primaryMatch &&
     (sp.secondaryPos || []).includes(pos);
   const action       = canDrop ? (hasMoveActive ? `swap-${pos}` : `place-${pos}`) : '';
-  const isPending    = !hasMoveActive && canDrop && S.pendingPlacePos === pos;
 
-  const slotBg     = !canDrop ? '#f8fafc' : isPending ? '#fef9c3' : '#fff1f2';
-  const slotBorder = !canDrop ? '#cbd5e1' : isPending ? '#facc15' : (primaryMatch ? '#86efac' : flexMatch ? '#fde68a' : '#fca5a5');
-  const slotColor  = !canDrop ? '#94a3b8' : isPending ? '#a16207' : (primaryMatch ? '#16a34a' : flexMatch ? '#d97706' : '#dc2626');
-  const slotText   = !canDrop ? 'Empty' : isPending ? 'Tap to Confirm' : (hasMoveActive ? 'Move Here' : primaryMatch ? 'Primary' : flexMatch ? 'Flex' : 'Place');
+  const slotBg     = !canDrop ? '#f8fafc' : '#fff1f2';
+  const slotBorder = !canDrop ? '#cbd5e1' : (primaryMatch ? '#86efac' : flexMatch ? '#fde68a' : '#fca5a5');
+  const slotColor  = !canDrop ? '#94a3b8' : (primaryMatch ? '#16a34a' : flexMatch ? '#d97706' : '#dc2626');
+  const slotText   = !canDrop ? 'Empty' : (hasMoveActive ? 'Move Here' : primaryMatch ? 'Primary' : flexMatch ? 'Flex' : 'Place');
 
   return `
   <div data-action="${action}"
-    class="rounded-xl border-2 border-dashed p-2 flex flex-col items-center gap-1 text-center transition-all ${canDrop ? 'slot-empty droppable' : ''} ${isPending ? 'animate-pulse-glow' : ''}"
+    class="rounded-xl border-2 border-dashed p-2 flex flex-col items-center gap-1 text-center transition-all ${canDrop ? 'slot-empty droppable' : ''}"
     style="background:${slotBg};border-color:${slotBorder}">
     <span class="text-[10px] font-black uppercase" style="color:${slotColor}">${label}</span>
     <span class="text-xs" style="color:${slotColor}">${slotText}</span>
