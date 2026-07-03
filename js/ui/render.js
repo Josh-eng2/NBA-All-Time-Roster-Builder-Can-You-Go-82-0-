@@ -849,9 +849,13 @@ export function renderSeasonTickerRows() {
     const lateLoss = !g.won && (g.num || 0) > 60;
     const rowStyle = g.rival
       ? `background:#fffbeb;border:1px solid #fde68a${latest ? '' : ';opacity:0.75'}`
+      : g.revenge
+      ? `background:#f5f3ff;border:1px solid #ddd6fe${latest ? '' : ';opacity:0.75'}`
       : latest ? '' : 'opacity:0.55';
     const chip = g.rival
       ? `<span class="text-[9px] font-black px-1.5 py-0.5 rounded-full flex-shrink-0" style="background:#0f172a;color:#fbbf24">🔥 RIVALRY</span>`
+      : g.revenge
+      ? `<span class="text-[9px] font-black px-1.5 py-0.5 rounded-full flex-shrink-0" style="background:#4c1d95;color:#c4b5fd">⚡ REVENGE</span>`
       : g.isFirstLoss
       ? `<span class="text-[9px] font-black px-1.5 py-0.5 rounded-full flex-shrink-0" style="background:#450a0a;color:#fca5a5">STREAK ENDED</span>`
       : lateLoss
@@ -893,6 +897,7 @@ function renderSeasonSim() {
           <p id="sim-record" class="text-5xl font-black text-foreground leading-none" style="font-variant-numeric:tabular-nums">${w}–${l}</p>
           <p id="sim-gp" class="text-xs text-muted-fg mt-2">Game ${played.length} of ${total}</p>
           <p id="sim-streak" class="text-xs font-bold mt-1" style="color:${streakLbl.color}">${streakLbl.text}</p>
+          <p id="sim-beststart" class="text-xs font-bold mt-0.5" style="color:#94a3b8;min-height:1em"></p>
         </div>
 
         <div class="h-2 rounded-full overflow-hidden" style="background:#e2e8f0">
