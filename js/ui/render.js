@@ -18,7 +18,8 @@ import { calculateChemistry }                             from '../logic/chemist
 import { rosterFull, availableDecades, getLegendCatalog } from '../logic/draft.js';
 import { coachSystemProgress }                            from '../logic/simulation.js';
 import { getBracketDisplayState }                         from '../logic/playoffs.js';
-import { markReturning, getCollectedLegends }             from '../utils/storage.js';
+import { markReturning, getCollectedLegends, getDailyResult } from '../utils/storage.js';
+import { dailyDateKey }                                    from '../logic/daily.js';
 import { bindEvents }                                     from '../ui/events.js'; // circular — safe (called inside functions only)
 
 // ── Mount point ───────────────────────────────────────────────────────────────
@@ -171,6 +172,50 @@ function renderFooter() {
   </footer>`;
 }
 
+// ── Daily Draft card (mode-select hero) ───────────────────────────────────────
+function renderDailyCard() {
+  const today  = dailyDateKey();
+  const result = getDailyResult();
+  const played = result?.date === today;
+  const prettyDate = new Date(today + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+  if (!played) {
+    return `
+    <button data-action="mode-daily"
+      class="w-full rounded-2xl p-4 flex items-center gap-3 cursor-pointer card-shadow transition-all hover:shadow-md mb-3 text-left"
+      style="background:linear-gradient(135deg,#4f46e5,#7c3aed);border:1px solid #4338ca">
+      <span class="text-3xl flex-shrink-0" style="pointer-events:none">📅</span>
+      <div class="min-w-0 flex-1" style="pointer-events:none">
+        <p class="font-black text-base text-white leading-tight">Daily Draft <span class="text-indigo-200 font-bold text-xs">· ${prettyDate}</span></p>
+        <p class="text-xs text-indigo-100 leading-snug mt-0.5">Same 5 boards for everyone. One shot. How high can you go?</p>
+      </div>
+      <span class="flex-shrink-0 px-3 py-2 rounded-xl font-black text-xs uppercase tracking-wider bg-white text-indigo-700" style="pointer-events:none">Play</span>
+    </button>`;
+  }
+
+  // Played today — show the result + share, replay locked until tomorrow.
+  const filled = Math.round((result.wins / 82) * 10);
+  const bar = Array.from({ length: 10 }, (_, i) =>
+    `<span class="inline-block w-3.5 h-3.5 rounded-sm" style="background:${i < filled ? '#22c55e' : '#e2e8f0'}"></span>`
+  ).join('');
+  return `
+  <div class="w-full rounded-2xl p-4 card-shadow mb-3" style="background:#eef2ff;border:1px solid #c7d2fe">
+    <div class="flex items-center gap-2 mb-2">
+      <span class="text-xl">📅</span>
+      <p class="font-black text-sm text-indigo-700">Daily Draft · ${prettyDate}</p>
+      <span class="ml-auto text-[10px] font-bold uppercase tracking-wider text-indigo-400">Done ✓</span>
+    </div>
+    <div class="flex items-center gap-3 mb-2.5">
+      <p class="text-3xl font-black" style="color:#4f46e5">${result.wins}<span class="text-lg text-muted-fg font-light">–${result.losses}</span></p>
+      <div class="flex gap-1 flex-wrap">${bar}</div>
+    </div>
+    <button data-action="share-daily"
+      class="w-full py-2.5 rounded-xl font-bold text-sm text-white cursor-pointer transition-all hover:opacity-90"
+      style="background:#4f46e5">Share Result</button>
+    <p class="text-[10px] text-indigo-400 text-center mt-1.5">New draft tomorrow — one attempt per day.</p>
+  </div>`;
+}
+
 // ── Mode selection ────────────────────────────────────────────────────────────
 function renderModeSelect() {
   // Anyone who reaches the menus — by finishing the cold open or escaping
@@ -202,6 +247,8 @@ function renderModeSelect() {
           <h1 class="text-2xl font-black text-foreground mb-1">Choose Your Mode</h1>
           <p class="text-sm text-muted-fg">How do you want to build your all-time team?</p>
         </div>
+
+        ${renderDailyCard()}
 
         ${best ? `
         <div class="rounded-2xl bg-white px-4 py-3 card-shadow border border-slate-100 flex items-center gap-3 mb-3">
@@ -631,8 +678,8 @@ function renderSlotMachine() {
     <div class="flex items-center gap-2 mb-3">
       <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Draft Board — Round ${S.round + 1}</p>
       <div class="ml-auto flex gap-1.5">
-        ${isDone && S.teamSkips > 0 ? `<button data-action="skip-team" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">Skip Team (${S.teamSkips})</button>` : ''}
-        ${isDone && S.decadeSkips > 0 && !eraLocked ? `<button data-action="skip-decade" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">Skip Era (${S.decadeSkips})</button>` : ''}      </div>
+        ${S.mode !== 'daily' && isDone && S.teamSkips > 0 ? `<button data-action="skip-team" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">Skip Team (${S.teamSkips})</button>` : ''}
+        ${S.mode !== 'daily' && isDone && S.decadeSkips > 0 && !eraLocked ? `<button data-action="skip-decade" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">Skip Era (${S.decadeSkips})</button>` : ''}      </div>
     </div>
     <div class="grid grid-cols-2 gap-3 mb-4 ${isSpin ? 'slot-spinning' : ''}">
       <div class="rounded-xl border-2 p-4 flex flex-col items-center justify-center min-h-[88px] transition-all"
