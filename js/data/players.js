@@ -40,7 +40,7 @@ const PLAYER_DB = {
       "apg": 6.3,
       "spg": 1.2,
       "bpg": 0.4,
-      "archetype": "Sharpshooter",
+      "archetype": "Two-Way Star",
       "traits": [
         "Clutch",
         "Floor Spacer",
@@ -10557,7 +10557,7 @@ const PLAYER_DB = {
       "apg": 3.5,
       "spg": 1.5,
       "bpg": 0.3,
-      "archetype": "Two-Way Star",
+      "archetype": "Slasher",
       "traits": [
         "Defensive Stopper",
         "Slasher"

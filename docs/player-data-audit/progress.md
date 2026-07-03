@@ -39,7 +39,7 @@ Squash-merge each after review.
 
 | # | Decade | Players | Buckets | Status | Notes |
 |---|---|---|---|---|---|
-| 1 | 1960s | 35 | `Bucks_1960s`, `Bulls_1960s`, `Celtics_1960s`, `Hawks_1960s`, `Kings_1960s`, `Knicks_1960s`, `Lakers_1960s`, `Pistons_1960s` | pending | |
+| 1 | 1960s | 35 | `Bucks_1960s`, `Bulls_1960s`, `Celtics_1960s`, `Hawks_1960s`, `Kings_1960s`, `Knicks_1960s`, `Lakers_1960s`, `Pistons_1960s` | **done** | Stats already matched real career/season lines (verified stars vs sources). 2 archetype fixes; popularity gaps logged for batch 27. |
 | 2 | 1960s | 23 | `Rockets_1960s`, `Sixers_1960s`, `Suns_1960s`, `Thunder_1960s`, `Warriors_1960s`, `Wizards_1960s` | pending | |
 | 3 | 1970s | 37 | `Blazers_1970s`, `Bucks_1970s`, `Bulls_1970s`, `Cavaliers_1970s`, `Celtics_1970s`, `Clippers_1970s`, `Hawks_1970s`, `Jazz_1970s` | pending | |
 | 4 | 1970s | 38 | `Kings_1970s`, `Knicks_1970s`, `Lakers_1970s`, `Nets_1970s`, `Nuggets_1970s`, `Pacers_1970s`, `Pistons_1970s`, `Rockets_1970s` | pending | |
@@ -79,55 +79,55 @@ was generated directly from `players.json` and re-verified 1:1 against it
 ### Batch 1 — 1960s (35 players)
 
 **Bucks_1960s** (3)
-- [ ] Jon McGlocklin (`mcglocklin_69`)
-- [ ] Len Chappell (`chappell_69`)
-- [ ] Wayne Embry (`embry_69`)
+- [x] Jon McGlocklin (`mcglocklin_69`)
+- [x] Len Chappell (`chappell_69`)
+- [x] Wayne Embry (`embry_69`)
 
 **Bulls_1960s** (3)
-- [ ] Jerry Sloan (`sloan_69`)
-- [ ] Guy Rodgers (`rodgers_67`)
-- [ ] Bob Boozer (`boozer_67`)
+- [x] Jerry Sloan (`sloan_69`)
+- [x] Guy Rodgers (`rodgers_67`)
+- [x] Bob Boozer (`boozer_67`)
 
 **Celtics_1960s** (7)
-- [ ] Bill Russell (`russell_65`)
-- [ ] John Havlicek (`havlicek_68`)
-- [ ] Sam Jones (`jones_65`)
-- [ ] Tom Heinsohn (`heinsohn_62`)
-- [ ] Bob Cousy (`cousy_63`)
-- [ ] K.C. Jones (`kcjones_65`)
-- [ ] Don Nelson (`nelson_66`)
+- [x] Bill Russell (`russell_65`)
+- [x] John Havlicek (`havlicek_68`)
+- [x] Sam Jones (`jones_65`)
+- [x] Tom Heinsohn (`heinsohn_62`)
+- [x] Bob Cousy (`cousy_63`)
+- [x] K.C. Jones (`kcjones_65`)
+- [x] Don Nelson (`nelson_66`)
 
 **Hawks_1960s** (5)
-- [ ] Bob Pettit (`pettit_63`)
-- [ ] Cliff Hagan (`hagan_63`)
-- [ ] Lenny Wilkens (`wilkens_63`)
-- [ ] Joe Caldwell (`caldwell_68`)
-- [ ] Zelmo Beaty (`beaty_68`)
+- [x] Bob Pettit (`pettit_63`)
+- [x] Cliff Hagan (`hagan_63`)
+- [x] Lenny Wilkens (`wilkens_63`)
+- [x] Joe Caldwell (`caldwell_68`)
+- [x] Zelmo Beaty (`beaty_68`)
 
 **Kings_1960s** (5)
-- [ ] Oscar Robertson (`robertson_o_63`)
-- [ ] Jerry Lucas (`lucas_j_66`)
-- [ ] Jack Twyman (`twyman_62`)
-- [ ] Wayne Embry (`embry_63`)
-- [ ] Adrian Smith (`smith_a_66`)
+- [x] Oscar Robertson (`robertson_o_63`)
+- [x] Jerry Lucas (`lucas_j_66`)
+- [x] Jack Twyman (`twyman_62`)
+- [x] Wayne Embry (`embry_63`)
+- [x] Adrian Smith (`smith_a_66`)
 
 **Knicks_1960s** (3)
-- [ ] Willis Reed (`reed_69`)
-- [ ] Walt Frazier (`frazier_69`)
-- [ ] Dave DeBusschere (`debusschere_knk_69`)
+- [x] Willis Reed (`reed_69`)
+- [x] Walt Frazier (`frazier_69`)
+- [x] Dave DeBusschere (`debusschere_knk_69`)
 
 **Lakers_1960s** (6)
-- [ ] Jerry West (`west_68`)
-- [ ] Elgin Baylor (`baylor_68`)
-- [ ] Wilt Chamberlain (`chamberlain_68`)
-- [ ] Rudy LaRusso (`larusso_67`)
-- [ ] Happy Hairston (`hairston_68`)
-- [ ] Johnny Egan (`egan_68`)
+- [x] Jerry West (`west_68`)
+- [x] Elgin Baylor (`baylor_68`)
+- [x] Wilt Chamberlain (`chamberlain_68`)
+- [x] Rudy LaRusso (`larusso_67`)
+- [x] Happy Hairston (`hairston_68`)
+- [x] Johnny Egan (`egan_68`)
 
 **Pistons_1960s** (3)
-- [ ] Dave Bing (`bing_68`)
-- [ ] Dave DeBusschere (`debusschere_pis_65`)
-- [ ] Bailey Howell (`howell_64`)
+- [x] Dave Bing (`bing_68`)
+- [x] Dave DeBusschere (`debusschere_pis_65`)
+- [x] Bailey Howell (`howell_64`)
 
 ### Batch 2 — 1960s (23 players)
 
@@ -1429,3 +1429,45 @@ was generated directly from `players.json` and re-verified 1:1 against it
 (Running notes get appended here per completed batch — notable judgment
 calls, players you weren't fully confident on, anything the next session
 should double-check.)
+
+### Batch 1 — 1960s (Bucks, Bulls, Celtics, Hawks, Kings, Knicks, Lakers, Pistons)
+
+The 1960s stat lines are, overwhelmingly, already accurate — they match
+real career or specific-season averages. Research-grade checks on the
+star tier all held up:
+- **Wilt Chamberlain** (Lakers_1960s, 24.3/23.8/4.4) — verified against
+  his 1968-69 Lakers season (his only 1960s Lakers year); Wikipedia
+  reports 24.3 pts / 23.8 reb, so the entry is correct. Left unchanged.
+  (I initially suspected inflation and nearly "corrected" it to a wrong
+  20.5/21.1 — the source check prevented introducing an error.)
+- Oscar Robertson (30.8/—/11.4), Jerry West (26.9 = career avg), Walt
+  Frazier (17.5 ≈ '68-69), Elgin Baylor (27.1/13.5 = career), Bill
+  Russell (career line), Bob Cousy (early-60s decline line), Willis Reed
+  (peak line) — all consistent with real data. Left unchanged.
+
+**Two archetype fixes (the only edits this batch):**
+- **Jerry West** (Lakers_1960s): `Sharpshooter` → `Two-Way Star`. He was
+  a shot-creating scorer + 4× All-Defensive First Team, not a
+  catch-and-shoot floor-spacer; "Sharpshooter" also conflicted with his
+  existing `Elite Playmaker` trait. Verified defensive credentials via
+  source.
+- **Joe Caldwell** (Hawks_1960s, pop 37): `Two-Way Star` → `Slasher`.
+  "Two-Way Star" (per rubric = genuine two-way *superstar*) was inflating
+  a role player and would have mis-fired the Two-Way Pillars chemistry
+  synergy; `Slasher` matches his athletic-scorer role and his existing
+  `Slasher` trait.
+
+**Head start for batch 27 (popularity) — genuine all-time greats the
+formula severely under-rates in this batch (do NOT hand-edit here; add to
+the `NAMED` dict in batch 27):**
+- **Bob Pettit** (Hawks) — pop **52**. 2× MVP, 26.4/16.2 career, first
+  to 20k points. Egregiously low; should be ~80s.
+- **Lenny Wilkens** (Hawks) — pop **35** (floor!). HOF PG, 9× All-Star.
+- Jerry Lucas (Kings) 60, Jack Twyman (Kings) 39, Dave Bing (Pistons) 65,
+  Bailey Howell (Pistons) 48 — all Hall of Famers rated as role players.
+
+**Minor archetype mismatches left as-is** (sub-75, no clean fit among the
+6 archetypes, per the "leave plausible role-player data" rule): Don Nelson
+(Celtics) as `Paint Beast` for a 10/5 crafty stretch forward; Tom Heinsohn
+(Celtics) as `Slasher` for a volume jump-shooter. Flag only if a future
+pass wants stricter archetype fidelity for the long tail.
