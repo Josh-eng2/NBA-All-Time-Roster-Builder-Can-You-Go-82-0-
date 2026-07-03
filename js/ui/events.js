@@ -96,6 +96,10 @@ function dispatch(action) {
     }
     render(); return;
   }
+  if (action === 'era-picker-close') {
+    S.eraPickerOpen = false;
+    render(); return;
+  }
   if (action.startsWith('era-pick-')) { setEra(action.slice(9)); return; }
 
   // ── Navigation ─────────────────────────────────────────────────────────────

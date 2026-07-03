@@ -87,65 +87,73 @@ function getEraLabel() {
 
 function renderEraPickerSheet() {
   const active = getActiveEra();
+
+  function eraRow(eraId, label, subtitle, action) {
+    const selected = active === eraId;
+    return `
+    <button data-action="${action}"
+      class="era-picker-row${selected ? ' era-picker-row--active' : ''}">
+      <span class="era-picker-row__label">${label}</span>
+      ${subtitle ? `<span class="era-picker-row__sub">${subtitle}</span>` : ''}
+      <span class="era-picker-row__check" aria-hidden="true">${selected ? '✓' : ''}</span>
+    </button>`;
+  }
+
   return `
-  <div class="border-t border-border bg-white px-4 py-3 animate-scale-in" style="box-shadow:0 4px 12px rgba(0,0,0,0.06)">
-    <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg mb-2">Draft era — locks on first spin</p>
-    <button data-action="era-pick-all"
-      class="w-full rounded-xl border-2 p-3 mb-2 text-left cursor-pointer transition-all card-shadow"
-      style="border-color:${active === 'all' ? '#2563eb' : '#e2e8f0'};background:${active === 'all' ? '#eff6ff' : '#ffffff'}">
-      <div class="flex items-center justify-between gap-2">
-        <div>
-          <p class="text-[10px] font-bold uppercase tracking-widest text-primary mb-0.5">Recommended</p>
-          <p class="font-black text-sm text-foreground">All Eras</p>
-          <p class="text-[11px] text-muted-fg">Random decade each spin</p>
-        </div>
-        ${active === 'all' ? '<span class="text-primary font-bold text-sm">✓</span>' : ''}
-      </div>
-    </button>
-    <div class="grid grid-cols-2 gap-2">
-      ${DECADES.map(d => `
-        <button data-action="era-pick-${d}"
-          class="rounded-lg border p-2.5 text-left cursor-pointer transition-all card-shadow"
-          style="border-color:${active === d ? '#2563eb' : '#e2e8f0'};background:${active === d ? '#eff6ff' : '#ffffff'}">
-          <div class="flex items-start justify-between gap-1">
-            <div class="min-w-0">
-              <p class="font-black text-sm text-foreground">${d}</p>
-              <p class="text-[10px] text-muted-fg leading-snug truncate">${ERA_DESC[d]}</p>
-            </div>
-            ${active === d ? '<span class="text-primary font-bold text-xs flex-shrink-0">✓</span>' : ''}
-          </div>
-        </button>
-      `).join('')}
+  <div class="era-picker-panel" role="listbox" aria-label="Draft era">
+    <div class="era-picker-panel__head">
+      <p class="era-picker-panel__title">Draft era</p>
+      <p class="era-picker-panel__hint">Locks on first spin</p>
+    </div>
+    <div class="era-picker-panel__list">
+      ${eraRow('all', 'All Eras', 'Random decade each spin', 'era-pick-all')}
+      <div class="era-picker-panel__divider" role="separator"></div>
+      ${DECADES.map(d => eraRow(d, d, ERA_DESC[d], `era-pick-${d}`)).join('')}
     </div>
   </div>`;
 }
 
 function renderHeader(showRestart = false) {
-  const eraLabel   = getEraLabel();
-  const coachObj   = S.coach ? COACHES.find(c => c.id === S.coach) : null;
-  const eraInteractive = S.phase === 'drafting' && !S.eraLocked;
+  const eraLabel         = getEraLabel();
+  const coachObj         = S.coach ? COACHES.find(c => c.id === S.coach) : null;
+  const eraInteractive   = S.phase === 'drafting' && !S.eraLocked;
+  const eraPickerOpen    = S.eraPickerOpen && !S.eraLocked;
   const eraPill = eraInteractive
-    ? `<button data-action="era-picker-toggle"
-        class="text-[11px] px-2.5 py-1 rounded-full font-bold border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer"
-        style="${S.eraPickerOpen ? 'border-color:#2563eb;color:#2563eb' : ''}">${eraLabel} ▾</button>`
-    : `<span class="text-[11px] px-2.5 py-1 rounded-full font-bold border border-border bg-card2 text-muted-fg">${eraLabel}${S.eraLocked ? ' 🔒' : ''}</span>`;
+    ? `<button data-action="era-picker-toggle" type="button"
+        class="header-pill header-pill--interactive${eraPickerOpen ? ' header-pill--open' : ''}"
+        aria-expanded="${eraPickerOpen}" aria-haspopup="listbox">
+        <span>${eraLabel}</span>
+        <svg class="header-pill__chev${eraPickerOpen ? ' header-pill__chev--open' : ''}" width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+          <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>`
+    : `<span class="header-pill">${eraLabel}${S.eraLocked ? '<span class="header-pill__lock" aria-hidden="true">🔒</span>' : ''}</span>`;
+
+  const eraOverlay = eraPickerOpen ? `
+    <div data-action="era-picker-close" class="era-picker-backdrop" aria-hidden="true"></div>
+    <div class="era-picker-anchor">
+      ${renderEraPickerSheet()}
+    </div>` : '';
+
   return `
-  <header class="sticky top-0 z-50 w-full border-b border-border bg-white" style="box-shadow:0 1px 3px rgba(0,0,0,0.05)">
-    <div class="mx-auto flex h-12 max-w-2xl items-center justify-between px-4">
-      <div class="flex items-center gap-2 font-black text-base text-foreground">
-        ${iconBall('h-5 w-5 text-primary')}
-        <span>82-0</span>
+  <div class="app-header-wrap">
+    <header class="app-header">
+      <div class="app-header__inner">
+        <div class="app-header__brand">
+          ${iconBall('h-5 w-5 text-primary')}
+          <span>82-0</span>
+        </div>
+        <div class="app-header__actions">
+          ${coachObj ? `<span class="header-pill header-pill--muted">${coachObj.system}</span>` : ''}
+          ${eraPill}
+          <button data-action="open-leaderboard" type="button" class="header-pill header-pill--icon" title="Personal Best">🏅</button>
+          <button data-action="open-global-leaderboard" type="button" class="header-pill header-pill--icon" title="Global Leaderboard">🌍</button>
+          ${showRestart ? `<button data-action="restart" type="button" class="header-pill header-pill--muted">Restart</button>` : ''}
+        </div>
       </div>
-      <div class="flex items-center gap-1.5">
-        ${coachObj ? `<span class="text-[11px] px-2.5 py-1 rounded-full font-bold border border-border bg-card2 text-muted-fg">${coachObj.system}</span>` : ''}
-        ${eraPill}
-        <button data-action="open-leaderboard" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Personal Best">🏅</button>
-        <button data-action="open-global-leaderboard" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Global Leaderboard">🌍</button>
-        ${showRestart ? `<button data-action="restart" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">Restart</button>` : ''}
-      </div>
-    </div>
-    ${S.eraPickerOpen && !S.eraLocked ? `<div class="mx-auto max-w-2xl">${renderEraPickerSheet()}</div>` : ''}
-  </header>`;
+    </header>
+    ${eraOverlay}
+  </div>`;
 }
 
 function renderFooter() {
