@@ -12,7 +12,7 @@
 
 import {
   S, POSITIONS, ALL_POSITIONS, TOTAL_ROUNDS,
-  COACHES, ERA_DESC, TEAM_COLORS, ARCHETYPE_STYLE, DECADES, TEAMS, pick,
+  COACHES, ERA_DESC, TEAM_COLORS, ARCHETYPE_STYLE, DECADES, TEAMS, pick, SNAKE_ORDER,
 } from '../logic/state.js';
 import { calculateChemistry }                             from '../logic/chemistry.js';
 import { rosterFull, availableDecades }                  from '../logic/draft.js';
@@ -359,11 +359,39 @@ function render1v1RosterPanel(roster, playerNum, isActive) {
 }
 
 function renderDrafting1v1() {
-  const totalPick  = S.p1Round + S.p2Round + 1;
-  const isP1Turn   = S.currentPlayer === 1;
-  const clockColor = isP1Turn ? '#2563eb' : '#d97706';
-  const clockBg    = isP1Turn ? '#eff6ff'  : '#fffbeb';
-  const clockBdr   = isP1Turn ? '#bfdbfe'  : '#fde68a';
+  const completedPicks = S.p1Round + S.p2Round;
+  const totalPick      = completedPicks + 1;
+  const totalPicks     = SNAKE_ORDER.length; // 10
+  const isP1Turn       = S.currentPlayer === 1;
+  const clockColor     = isP1Turn ? '#2563eb' : '#d97706';
+  const clockBg        = isP1Turn ? '#eff6ff'  : '#fffbeb';
+  const clockBdr       = isP1Turn ? '#bfdbfe'  : '#fde68a';
+
+  // Snake order tracker — shows all 10 pick slots with player colour coding
+  const snakeDots = SNAKE_ORDER.map((player, idx) => {
+    const isDone    = idx < completedPicks;
+    const isCurrent = idx === completedPicks;
+    const p1Pick    = player === 1;
+    const dotBg     = isDone
+      ? (p1Pick ? '#93c5fd' : '#fcd34d')
+      : isCurrent
+        ? (p1Pick ? '#2563eb' : '#d97706')
+        : '#e2e8f0';
+    const dotText   = isDone
+      ? (p1Pick ? '#1e40af' : '#92400e')
+      : isCurrent
+        ? '#ffffff'
+        : '#94a3b8';
+    const label     = isCurrent ? `P${player}` : (isDone ? '✓' : `P${player}`);
+    const ringStyle = isCurrent
+      ? `box-shadow:0 0 0 2px ${p1Pick ? '#2563eb' : '#d97706'};`
+      : '';
+    return `<div class="flex flex-col items-center gap-0.5">
+      <div class="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-black transition-all"
+        style="background:${dotBg};color:${dotText};${ringStyle}">${label}</div>
+      <span class="text-[8px] text-muted-fg font-semibold">${idx + 1}</span>
+    </div>`;
+  }).join('');
 
   // Recent picks log (last 5)
   const recentPicks = S.draftLog.slice(-5).reverse().map(entry => {
@@ -385,7 +413,20 @@ function renderDrafting1v1() {
         <div class="flex items-center justify-between px-4 py-2.5 rounded-xl font-black text-sm uppercase tracking-widest"
           style="background:${clockBg};color:${clockColor};border:2px solid ${clockBdr}">
           <span>⚡ Player ${S.currentPlayer} On The Clock</span>
-          <span class="text-xs font-bold opacity-70">Pick ${totalPick} of 14</span>
+          <span class="text-xs font-bold opacity-70">Pick ${totalPick} of ${totalPicks}</span>
+        </div>
+
+        <!-- Snake draft order tracker -->
+        <div class="rounded-xl border border-border bg-white px-4 py-3 card-shadow">
+          <p class="text-[9px] font-bold uppercase tracking-widest text-muted-fg mb-2">🐍 Snake Draft Order</p>
+          <div class="flex items-end justify-between gap-1">
+            ${snakeDots}
+          </div>
+          <div class="flex items-center gap-3 mt-2">
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full inline-block" style="background:#2563eb"></span><span class="text-[9px] text-muted-fg">Player 1</span></span>
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full inline-block" style="background:#d97706"></span><span class="text-[9px] text-muted-fg">Player 2</span></span>
+            <span class="flex items-center gap-1 ml-auto"><span class="text-[9px] text-muted-fg">Balances first-pick advantage</span></span>
+          </div>
         </div>
 
         <!-- Side-by-side rosters -->

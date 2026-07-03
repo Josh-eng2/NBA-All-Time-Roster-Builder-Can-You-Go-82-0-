@@ -25,6 +25,14 @@ export const POSITIONS     = ['PG','SG','SF','PF','C'];
 export const ALL_POSITIONS  = [...POSITIONS]; // starters-only format — no bench
 export const TOTAL_ROUNDS   = 5;
 
+/**
+ * Snake draft pick order for 1v1 (10 total picks, 5 per player).
+ * Pattern: 1-2-2-1-1-2-2-1-1-2
+ * Indexed by overall pick number (0 = first pick).
+ * Eliminates the structural first-pick advantage of strict alternation.
+ */
+export const SNAKE_ORDER = [1, 2, 2, 1, 1, 2, 2, 1, 1, 2];
+
 export const ERA_DESC = {
   '1960s': 'Chamberlain · West · Russell',
   '1970s': 'Kareem · Erving · Frazier',
