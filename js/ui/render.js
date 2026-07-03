@@ -75,9 +75,60 @@ export function showToast(msg, duration = 2500) {
 }
 
 // ── Shared chrome ─────────────────────────────────────────────────────────────
+function getActiveEra() {
+  if (S.mode === '1v1') return S.p1Era || S.p2Era || 'all';
+  return S.selectedEra || 'all';
+}
+
+function getEraLabel() {
+  const era = getActiveEra();
+  return era !== 'all' ? era : 'All Eras';
+}
+
+function renderEraPickerSheet() {
+  const active = getActiveEra();
+  return `
+  <div class="border-t border-border bg-white px-4 py-3 animate-scale-in" style="box-shadow:0 4px 12px rgba(0,0,0,0.06)">
+    <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg mb-2">Draft era — locks on first spin</p>
+    <button data-action="era-pick-all"
+      class="w-full rounded-xl border-2 p-3 mb-2 text-left cursor-pointer transition-all card-shadow"
+      style="border-color:${active === 'all' ? '#2563eb' : '#e2e8f0'};background:${active === 'all' ? '#eff6ff' : '#ffffff'}">
+      <div class="flex items-center justify-between gap-2">
+        <div>
+          <p class="text-[10px] font-bold uppercase tracking-widest text-primary mb-0.5">Recommended</p>
+          <p class="font-black text-sm text-foreground">All Eras</p>
+          <p class="text-[11px] text-muted-fg">Random decade each spin</p>
+        </div>
+        ${active === 'all' ? '<span class="text-primary font-bold text-sm">✓</span>' : ''}
+      </div>
+    </button>
+    <div class="grid grid-cols-2 gap-2">
+      ${DECADES.map(d => `
+        <button data-action="era-pick-${d}"
+          class="rounded-lg border p-2.5 text-left cursor-pointer transition-all card-shadow"
+          style="border-color:${active === d ? '#2563eb' : '#e2e8f0'};background:${active === d ? '#eff6ff' : '#ffffff'}">
+          <div class="flex items-start justify-between gap-1">
+            <div class="min-w-0">
+              <p class="font-black text-sm text-foreground">${d}</p>
+              <p class="text-[10px] text-muted-fg leading-snug truncate">${ERA_DESC[d]}</p>
+            </div>
+            ${active === d ? '<span class="text-primary font-bold text-xs flex-shrink-0">✓</span>' : ''}
+          </div>
+        </button>
+      `).join('')}
+    </div>
+  </div>`;
+}
+
 function renderHeader(showRestart = false) {
-  const eraLabel = S.selectedEra && S.selectedEra !== 'all' ? S.selectedEra : 'All Eras';
-  const coachObj = S.coach ? COACHES.find(c => c.id === S.coach) : null;
+  const eraLabel   = getEraLabel();
+  const coachObj   = S.coach ? COACHES.find(c => c.id === S.coach) : null;
+  const eraInteractive = S.phase === 'drafting' && !S.eraLocked;
+  const eraPill = eraInteractive
+    ? `<button data-action="era-picker-toggle"
+        class="text-[11px] px-2.5 py-1 rounded-full font-bold border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer"
+        style="${S.eraPickerOpen ? 'border-color:#2563eb;color:#2563eb' : ''}">${eraLabel} ▾</button>`
+    : `<span class="text-[11px] px-2.5 py-1 rounded-full font-bold border border-border bg-card2 text-muted-fg">${eraLabel}${S.eraLocked ? ' 🔒' : ''}</span>`;
   return `
   <header class="sticky top-0 z-50 w-full border-b border-border bg-white" style="box-shadow:0 1px 3px rgba(0,0,0,0.05)">
     <div class="mx-auto flex h-12 max-w-2xl items-center justify-between px-4">
@@ -87,12 +138,13 @@ function renderHeader(showRestart = false) {
       </div>
       <div class="flex items-center gap-1.5">
         ${coachObj ? `<span class="text-[11px] px-2.5 py-1 rounded-full font-bold border border-border bg-card2 text-muted-fg">${coachObj.system}</span>` : ''}
-        <span class="text-[11px] px-2.5 py-1 rounded-full font-bold border border-border bg-card2 text-muted-fg">${eraLabel}</span>
+        ${eraPill}
         <button data-action="open-leaderboard" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Personal Best">🏅</button>
         <button data-action="open-global-leaderboard" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Global Leaderboard">🌍</button>
         ${showRestart ? `<button data-action="restart" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">Restart</button>` : ''}
       </div>
     </div>
+    ${S.eraPickerOpen && !S.eraLocked ? `<div class="mx-auto max-w-2xl">${renderEraPickerSheet()}</div>` : ''}
   </header>`;
 }
 
@@ -188,48 +240,8 @@ function renderModeSelect() {
 }
 
 // ── Coach selection ───────────────────────────────────────────────────────────
-// ── Era selection ─────────────────────────────────────────────────────────────
-// (Coach selection now lives on the drafting screen as a chip + picker sheet;
-//  it locks on the first spin.)
-function renderEraSelect() {
-  return `
-  <div class="flex flex-col min-h-screen main-gradient">
-    ${renderHeader(false)}
-    <main class="flex-1 flex flex-col items-center px-4 pt-6 pb-8">
-      <div class="w-full max-w-2xl flex flex-col gap-4 animate-fade-up">
-        <div class="text-center pb-2">
-          ${S.mode === '1v1'
-            ? `<div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-3 font-bold text-sm" style="background:#f0fdf4;color:#16a34a;border:1.5px solid #bbf7d0">⚔️ Shared Draft Era</div>`
-            : ''}
-          <p class="text-xs font-bold uppercase tracking-widest text-primary mb-2">One Choice, Then Draft</p>
-          <h1 class="text-2xl font-black text-foreground mb-1.5">Choose Your Era</h1>
-          <p class="text-sm text-muted-fg">${S.mode === '1v1' ? 'Pick the era both players will draft from — applies to the entire draft.' : 'Lock into a decade or let the draft board decide every round. Your coach is picked on the draft board.'}</p>
-        </div>
-        <button data-action="era-all" class="era-card w-full rounded-2xl border-2 border-primary bg-primary/5 p-5 text-left cursor-pointer card-shadow">
-          <div class="flex items-start justify-between gap-3">
-            <div class="flex-1 min-w-0">
-              <p class="text-[10px] font-bold uppercase tracking-widest text-primary mb-1">Recommended</p>
-              <p class="font-black text-xl text-foreground mb-1">All Eras</p>
-              <p class="text-sm text-muted-fg">Random decade each spin — 7-era gauntlet across every NBA generation</p>
-            </div>
-            <div class="flex-shrink-0 mt-1">${iconBall('h-8 w-8 text-primary/40')}</div>
-          </div>
-        </button>
-        <div class="grid grid-cols-2 gap-3">
-          ${DECADES.map(d => `
-            <button data-action="era-${d}" class="era-card rounded-xl border border-border bg-card p-4 text-left cursor-pointer card-shadow">
-              <p class="font-black text-xl text-foreground mb-1">${d}</p>
-              <p class="text-xs text-muted-fg leading-snug">${ERA_DESC[d]}</p>
-            </button>
-          `).join('')}
-        </div>
-      </div>
-    </main>
-    ${renderFooter()}
-  </div>`;
-}
-
-// ── Coach chip + picker (drafting screen) ─────────────────────────────────────
+// Coach selection lives on the drafting screen as a chip + picker sheet;
+// era selection lives in the header and locks on the first spin.
 // One line: coach, system, live system meter. Tap to swap until the first
 // spin locks it. The meter converts the coach from a blind pre-commit bet
 // into a drafting objective you can see filling.
@@ -1935,7 +1947,6 @@ function renderSeriesSim() {
 // ── Main render dispatcher ────────────────────────────────────────────────────
 export function render() {
   if      (S.phase === 'mode-select')   $app.innerHTML = renderModeSelect();
-  else if (S.phase === 'era-select')    $app.innerHTML = renderEraSelect();
   else if (S.phase === 'drafting')      $app.innerHTML = renderDrafting();
   else if (S.phase === 'season-sim')    $app.innerHTML = renderSeasonSim();
   else if (S.phase === 'results')       $app.innerHTML = renderResults();
