@@ -108,7 +108,7 @@ function dispatch(action) {
     const idx = parseInt(action.slice(11), 10);
     const p   = S.draftBoard[idx];
     if (!p) { render(); return; }
-    S.pendingPlacePos = null; // new card in hand — any armed slot goes stale
+    S.pendingPlacePos = null;
     if (S.mode === 'blind') {
       // HoopIQ: the reveal IS the pick — no toggling, no second look.
       // Escape hatch: team/era skips still replace the whole board, at the
@@ -132,18 +132,7 @@ function dispatch(action) {
     render(); return;
   }
   if (action.startsWith('place-')) {
-    // Two-tap confirm: picks are permanent, and auto-spin fires the instant
-    // a slot is placed — a single fast tap shouldn't be able to lock in a
-    // misclick. First tap arms the slot; a second tap on the SAME slot
-    // confirms it. Tapping a different slot just re-arms there instead.
-    const pos = action.slice(6);
-    if (S.pendingPlacePos === pos) {
-      S.pendingPlacePos = null;
-      placePlayer(pos);
-    } else {
-      S.pendingPlacePos = pos;
-      render();
-    }
+    placePlayer(action.slice(6));
     return;
   }
   if (action.startsWith('swap-')) {
