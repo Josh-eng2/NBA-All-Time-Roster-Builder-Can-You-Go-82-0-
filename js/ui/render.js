@@ -620,8 +620,6 @@ function renderDraftCard(p, index) {
   </div>`;
   }
 
-  const pop    = p.popularity ?? 50;
-  const popCol = pop >= 80 ? '#2563eb' : pop >= 60 ? '#d97706' : '#94a3b8';
   return `
   <div class="rounded-xl border-2 flex flex-col overflow-hidden transition-all card-shadow"
     style="border-color:${cardBorder};background:${cardBg};${cardOpacity}">
@@ -629,7 +627,6 @@ function renderDraftCard(p, index) {
       <div class="flex items-center gap-1.5 mb-2">
         <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full border border-border bg-card2 text-muted-fg">${p.secondaryPos?.length ? `${p.pos} / ${p.secondaryPos[0]}` : p.pos}</span>
         ${archetypeBadge(p.archetype)}
-        <span class="ml-auto text-xs font-black" style="color:${popCol}">★ ${pop}</span>
       </div>
       <p class="font-bold text-sm text-foreground leading-tight mb-1.5">${p.name}</p>
       <div class="flex flex-wrap gap-x-2 gap-y-0.5">
