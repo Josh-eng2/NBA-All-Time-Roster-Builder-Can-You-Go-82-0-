@@ -109,17 +109,6 @@ function dispatch(action) {
     const p   = S.draftBoard[idx];
     if (!p) { render(); return; }
     S.pendingPlacePos = null; // new card in hand — any armed slot goes stale
-    if (S.mode === 'blind') {
-      // HoopIQ: the reveal IS the pick — no toggling, no second look.
-      // Escape hatch: team/era skips still replace the whole board, at the
-      // cost of a limited resource.
-      if (S.selectedPlayer) {
-        if (S.selectedPlayer.id !== p.id) showToast('🔒 Pick locked — place them in a slot');
-        return;
-      }
-      S.selectedPlayer = p;
-      render(); return;
-    }
     S.selectedPlayer = S.selectedPlayer?.id === p.id ? null : p;
     render(); return;
   }
