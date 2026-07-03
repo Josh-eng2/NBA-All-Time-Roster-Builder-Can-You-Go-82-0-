@@ -42,6 +42,41 @@ export function markReturning() {
   try { localStorage.setItem(RETURNING_KEY, '1'); } catch (e) {}
 }
 
+// ── Legends collection ────────────────────────────────────────────────────────
+// A persistent set of every player id the user has ever STARTED (across solo,
+// HoopIQ, Daily, and both 1v1 rosters). Survives runs — the "number goes up"
+// meta-progression hook.
+
+const LEGENDS_KEY = 'nba820_legends';
+
+/** @returns {Set<string>} the set of collected player ids. */
+export function getCollectedLegends() {
+  try { return new Set(JSON.parse(localStorage.getItem(LEGENDS_KEY) || '[]')); }
+  catch (e) { return new Set(); }
+}
+
+/**
+ * Records the given players into the collection.
+ * @param {object[]} players  player objects (nulls tolerated)
+ * @returns {object[]} the players newly added this call (for the "+N new" banner)
+ */
+export function recordLegends(players) {
+  const collected  = getCollectedLegends();
+  const newlyAdded = [];
+  const seenThisCall = new Set();
+  for (const p of players) {
+    if (!p || !p.id || collected.has(p.id) || seenThisCall.has(p.id)) continue;
+    seenThisCall.add(p.id);
+    collected.add(p.id);
+    newlyAdded.push(p);
+  }
+  if (newlyAdded.length) {
+    try { localStorage.setItem(LEGENDS_KEY, JSON.stringify([...collected])); }
+    catch (e) { if (e.name === 'QuotaExceededError') console.warn('[storage] localStorage full — legends not saved'); }
+  }
+  return newlyAdded;
+}
+
 // ── Save leaderboard entry ────────────────────────────────────────────────────
 
 export function saveLeaderboard() {

@@ -15,10 +15,10 @@ import {
   COACHES, ERA_DESC, TEAM_COLORS, ARCHETYPE_STYLE, DECADES, TEAMS, pick, SNAKE_ORDER,
 } from '../logic/state.js';
 import { calculateChemistry }                             from '../logic/chemistry.js';
-import { rosterFull, availableDecades }                  from '../logic/draft.js';
+import { rosterFull, availableDecades, getLegendCatalog } from '../logic/draft.js';
 import { coachSystemProgress }                            from '../logic/simulation.js';
 import { getBracketDisplayState }                         from '../logic/playoffs.js';
-import { markReturning }                                  from '../utils/storage.js';
+import { markReturning, getCollectedLegends }             from '../utils/storage.js';
 import { bindEvents }                                     from '../ui/events.js'; // circular — safe (called inside functions only)
 
 // ── Mount point ───────────────────────────────────────────────────────────────
@@ -245,10 +245,92 @@ function renderModeSelect() {
 
         ${trophies.length > 0 ? `
         <button data-action="view-trophies"
-          class="w-full py-3 rounded-xl font-bold text-sm border border-amber-200 bg-amber-50 text-amber-700 cursor-pointer transition-all hover:bg-amber-100 card-shadow">
+          class="w-full py-3 rounded-xl font-bold text-sm border border-amber-200 bg-amber-50 text-amber-700 cursor-pointer transition-all hover:bg-amber-100 card-shadow mb-3">
           🏆 Trophy Room · ${trophies.length} Championship${trophies.length === 1 ? '' : 's'}
         </button>` : ''}
 
+        ${(() => {
+          const { total } = getLegendCatalog();
+          const collected = getCollectedLegends().size;
+          const pct = total ? Math.round((collected / total) * 100) : 0;
+          return `
+          <button data-action="view-legends"
+            class="w-full rounded-xl border border-indigo-200 bg-indigo-50 cursor-pointer transition-all hover:bg-indigo-100 card-shadow overflow-hidden text-left">
+            <div class="flex items-center gap-2.5 px-4 py-3">
+              <span class="text-lg flex-shrink-0">🃏</span>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-bold text-indigo-700">Legends Collected · ${collected}/${total}</p>
+                <div class="mt-1 h-1.5 rounded-full overflow-hidden" style="background:#e0e7ff">
+                  <div class="h-full rounded-full" style="width:${pct}%;background:#6366f1"></div>
+                </div>
+              </div>
+              <span class="text-xs font-black text-indigo-400 flex-shrink-0">${pct}%</span>
+            </div>
+          </button>`;
+        })()}
+
+      </div>
+    </main>
+    ${renderFooter()}
+  </div>`;
+}
+
+// ── Legends collection ────────────────────────────────────────────────────────
+function renderLegends() {
+  const { decades, byDecade, total } = getLegendCatalog();
+  const collected = getCollectedLegends();
+  const have      = collected.size;
+  const pct       = total ? Math.round((have / total) * 100) : 0;
+
+  const decadeCards = decades.map(decade => {
+    const players = byDecade[decade];
+    const got     = players.filter(p => collected.has(p.id));
+    const dPct    = players.length ? Math.round((got.length / players.length) * 100) : 0;
+    const done    = got.length === players.length;
+    // Collected legends shown as chips, best-first; locked ones as a tail count.
+    const chips = got.length
+      ? got.map(p => `<span class="inline-block text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-white border border-indigo-200 text-indigo-700 mr-1 mb-1">${p.name}</span>`).join('')
+      : `<span class="text-[11px] text-muted-fg italic">None yet — draft a ${decade} legend to start.</span>`;
+    const lockedCount = players.length - got.length;
+    return `
+    <div class="rounded-xl border border-border bg-white p-3 card-shadow">
+      <div class="flex items-center justify-between mb-1.5">
+        <p class="text-sm font-black text-foreground">${decade}${done ? ' <span class="text-[10px]" title="Decade complete">✅</span>' : ''}</p>
+        <span class="text-xs font-bold" style="color:${done ? '#16a34a' : '#6366f1'}">${got.length}/${players.length}</span>
+      </div>
+      <div class="h-1.5 rounded-full overflow-hidden mb-2.5" style="background:#eef2ff">
+        <div class="h-full rounded-full" style="width:${dPct}%;background:${done ? '#16a34a' : '#6366f1'}"></div>
+      </div>
+      <div class="leading-tight">
+        ${chips}
+        ${lockedCount > 0 && got.length > 0 ? `<span class="inline-block text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-slate-100 text-muted-fg mb-1">+${lockedCount} locked</span>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  return `
+  <div class="flex flex-col min-h-screen main-gradient">
+    <header class="sticky top-0 z-50 w-full bg-white border-b border-border" style="box-shadow:0 1px 3px rgba(0,0,0,0.05)">
+      <div class="mx-auto flex h-14 max-w-2xl items-center justify-between px-4">
+        <button data-action="legends-back" class="text-sm font-bold text-muted-fg hover:text-primary transition-all cursor-pointer">← Back</button>
+        <p class="text-sm font-black text-foreground">🃏 Legends</p>
+        <div class="w-12"></div>
+      </div>
+    </header>
+    <main class="flex-1 flex flex-col items-center px-4 py-6">
+      <div class="w-full max-w-2xl flex flex-col gap-3 animate-fade-up">
+        <div class="rounded-2xl border-2 bg-white p-5 text-center card-shadow" style="border-color:#c7d2fe">
+          <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg mb-2">Legends Collected</p>
+          <div class="text-5xl font-black mb-2" style="color:#6366f1">${have}<span class="text-2xl text-muted-fg font-light"> / ${total}</span></div>
+          <div class="h-2 rounded-full overflow-hidden mx-auto max-w-xs" style="background:#eef2ff">
+            <div class="h-full rounded-full stat-bar-fill" style="width:${pct}%;background:#6366f1"></div>
+          </div>
+          <p class="text-xs text-muted-fg mt-2">${pct}% of every legend across all seven decades${have === 0 ? ' — draft a roster to start collecting.' : have === total ? ' — you collected them all. 🏆' : ''}</p>
+        </div>
+        ${decadeCards}
+        <button data-action="legends-back" class="w-full py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer card-shadow">
+          ← Back
+        </button>
       </div>
     </main>
     ${renderFooter()}
@@ -1136,6 +1218,22 @@ function renderResults() {
           </div>
         </div>
 
+        ${r.newLegends > 0 ? (() => {
+          const { total } = getLegendCatalog();
+          const have = getCollectedLegends().size;
+          return `
+          <button data-action="view-legends"
+            class="w-full rounded-2xl border cursor-pointer transition-all hover:bg-indigo-100 card-shadow flex items-center gap-3 px-4 py-3 text-left"
+            style="border-color:#c7d2fe;background:#eef2ff">
+            <span class="text-2xl flex-shrink-0">🃏</span>
+            <div class="min-w-0 flex-1">
+              <p class="text-sm font-black text-indigo-700">+${r.newLegends} new legend${r.newLegends === 1 ? '' : 's'} collected!</p>
+              <p class="text-xs text-indigo-500 mt-0.5">${have}/${total} all-time legends in your collection · tap to view</p>
+            </div>
+            <span class="text-indigo-400 flex-shrink-0">›</span>
+          </button>`;
+        })() : ''}
+
         ${!isPerfect ? (() => {
           const a = computeAutopsy();
           if (!a) return '';
@@ -1991,6 +2089,7 @@ export function render() {
   else if (S.phase === 'results')       $app.innerHTML = renderResults();
   else if (S.phase === 'playoffs')      $app.innerHTML = renderPlayoffs();
   else if (S.phase === 'trophy-room')   $app.innerHTML = renderTrophyRoom();
+  else if (S.phase === 'legends')       $app.innerHTML = renderLegends();
   else if (S.phase === 'series-preview') $app.innerHTML = renderSeriesPreview();
   else if (S.phase === 'series-sim')    $app.innerHTML = renderSeriesSim();
   else if (S.phase === 'series-result') $app.innerHTML = renderSeriesResult();
