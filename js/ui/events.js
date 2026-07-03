@@ -512,6 +512,30 @@ function doSimulate() {
     S.seasonGames[firstLossIdx].streakBroken = firstLossIdx;
   }
 
+  // Revenge game tagging — two passes over the ordered game log.
+  // Pass 1: record the game number of the first loss to each opponent.
+  // Pass 2: tag the very first rematch against that opponent (after the loss)
+  //         so the ticker chip can surface the "will you get them back?" beat.
+  // Rival games (CPU all-time teams) are excluded — they never rematch.
+  const _firstLossAt = {};
+  for (const g of S.seasonGames) {
+    if (!g.won && !g.rival && g.opp && !_firstLossAt[g.opp]) _firstLossAt[g.opp] = g.num;
+  }
+  const _revengeMarked = new Set();
+  for (const g of S.seasonGames) {
+    if (!g.rival && g.opp && _firstLossAt[g.opp] && g.num > _firstLossAt[g.opp] && !_revengeMarked.has(g.opp)) {
+      g.revenge = true;
+      _revengeMarked.add(g.opp);
+    }
+  }
+
+  // Capture personal bests BEFORE overwriting localStorage so the live
+  // reveal can fire "tied your streak" and "new personal best" moments.
+  let _prevBestSnap = null;
+  try { _prevBestSnap = JSON.parse(localStorage.getItem('nba820_best') || 'null'); } catch (e) {}
+  S._prevBestWins   = _prevBestSnap ? _prevBestSnap.wins : 0;
+  S._prevBestStreak = parseInt(localStorage.getItem('nba820_bestStreak') || '0', 10);
+
   // Auto-persist personal best, best streak, and last-run tip — feeds the
   // mode-select greeting without requiring a manual "Save Run".
   try {
@@ -546,6 +570,11 @@ function runSeasonReveal() {
     const total = S.seasonGames.length;
 
     if (S.seasonRevealIdx >= total) {
+      // New personal best — fire before transitioning to results so it lands
+      // while the player is still in the season-sim screen.
+      if ((S._prevBestWins || 0) > 0 && S.result.wins > S._prevBestWins) {
+        showToast(`🆕 New personal best — ${S.result.wins} wins!`, 2800);
+      }
       setTimeout(() => {
         if (S.gameId !== simId || S.phase !== 'season-sim') return;
         S.phase = 'results';
@@ -602,6 +631,19 @@ function runSeasonReveal() {
     const crossed = STREAK_MILESTONES.find(m => liveStreak >= m && liveStreak - n < m);
     if (crossed) showToast(`🔥 ${crossed} STRAIGHT WINS!`, 2200);
 
+    // Personal streak record — fires exactly once when the live streak ties
+    // then again when it first surpasses the previous personal best.
+    // Uses (liveStreak - n) as the pre-tick value; clamped to 0 so the first
+    // batch (where n may equal liveStreak) doesn't produce a negative.
+    const _pbs = S._prevBestStreak || 0;
+    if (_pbs > 0) {
+      const preTick = Math.max(0, liveStreak - n);
+      if (liveStreak >= _pbs && preTick < _pbs) {
+        if (liveStreak === _pbs) showToast(`⚡ Matching your best-ever streak — ${_pbs} straight!`, 2400);
+        else                     showToast(`🏆 New streak record — ${liveStreak} straight!`, 2800);
+      }
+    }
+
     // Cliffhanger — first-ever run pauses after a won Game 1
     if (S.coldOpen && S.seasonRevealIdx === 1 && S.seasonGames[0].won) {
       S.seasonPaused = true;
@@ -646,6 +688,31 @@ function updateSeasonSimDOM() {
     const { text, color } = liveStreakLabel(n);
     streakEl.textContent = text;
     streakEl.style.color = color;
+  }
+
+  // Live best-start pace comparison — compares current wins to a pro-rated
+  // target based on the player's personal best final record.
+  // Stays blank for the first 4 games (too noisy) and when there's no history.
+  const bsEl = document.getElementById('sim-beststart');
+  if (bsEl) {
+    const prevBestWins = S._prevBestWins || 0;
+    let bsText = '', bsColor = '#94a3b8';
+    if (prevBestWins > 0 && played.length >= 5) {
+      const pace = Math.round(prevBestWins * played.length / 82);
+      const diff = w - pace;
+      if (diff > 0) {
+        bsText  = `↑ ${diff} ahead of ${prevBestWins}-win pace`;
+        bsColor = '#16a34a';
+      } else if (diff < 0) {
+        bsText  = `↓ ${Math.abs(diff)} behind ${prevBestWins}-win pace`;
+        bsColor = '#dc2626';
+      } else {
+        bsText  = `On ${prevBestWins}-win pace`;
+        bsColor = '#2563eb';
+      }
+    }
+    bsEl.textContent = bsText;
+    bsEl.style.color  = bsColor;
   }
 }
 
