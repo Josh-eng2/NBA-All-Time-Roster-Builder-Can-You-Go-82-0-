@@ -17,6 +17,7 @@ import {
 import { calculateChemistry }                             from '../logic/chemistry.js';
 import { rosterFull, availableDecades }                  from '../logic/draft.js';
 import { coachSystemProgress }                            from '../logic/simulation.js';
+import { getBracketDisplayState }                         from '../logic/playoffs.js';
 import { markReturning }                                  from '../utils/storage.js';
 import { bindEvents }                                     from '../ui/events.js'; // circular — safe (called inside functions only)
 
@@ -1349,107 +1350,135 @@ function renderGlobalSubmitCard(champion) {
 }
 
 // ── Playoffs ──────────────────────────────────────────────────────────────────
+
+function renderBracketTeam(team, seed, score, won, isLive) {
+  if (!team) {
+    return `<div class="bracket-team bracket-team--tbd"><span class="bracket-team__seed">—</span><span class="bracket-team__name">TBD</span></div>`;
+  }
+  const isPlayer = team.isPlayer;
+  const cls = [
+    'bracket-team',
+    isPlayer ? 'bracket-team--player' : '',
+    won === true  ? 'bracket-team--won'  : '',
+    won === false ? 'bracket-team--lost' : '',
+    isLive        ? 'bracket-team--live' : '',
+  ].filter(Boolean).join(' ');
+  const scoreHtml = score !== null && score !== undefined
+    ? `<span class="bracket-team__score">${score}</span>` : '';
+  return `
+  <div class="${cls}">
+    <span class="bracket-team__seed">${seed ?? '·'}</span>
+    <span class="bracket-team__name">${isPlayer ? '⭐ ' : ''}${team.name}</span>
+    ${scoreHtml}
+  </div>`;
+}
+
+function renderBracketMatchup(top, bottom, opts = {}) {
+  const { topSeed, bottomSeed, topScore, bottomScore, topWon, live } = opts;
+  const topWonState    = topWon === null ? null : topWon;
+  const bottomWonState = topWon === null ? null : !topWon;
+  return `
+  <div class="bracket-matchup${live ? ' bracket-matchup--live' : ''}">
+    ${renderBracketTeam(top, topSeed, topScore, topWonState, live)}
+    ${renderBracketTeam(bottom, bottomSeed, bottomScore, bottomWonState, live)}
+  </div>`;
+}
+
+function renderPlayoffBracketTree(po) {
+  const { qf, sf, finals, champion } = getBracketDisplayState(po);
+  const roundLabels = ['Quarterfinals', 'Semifinals', 'Finals'];
+
+  return `
+  <div class="playoff-bracket-wrap">
+    <div class="playoff-bracket" role="img" aria-label="NBA Playoff bracket">
+      <div class="playoff-bracket__col playoff-bracket__col--qf">
+        <p class="playoff-bracket__round-label">${roundLabels[0]}</p>
+        <div class="playoff-bracket__stack">
+          ${qf.map((m, i) => `
+          <div class="bracket-matchup-wrap bracket-matchup-wrap--qf${i}">
+            ${renderBracketMatchup(m.top, m.bottom, {
+              topSeed: m.topSeed, bottomSeed: m.bottomSeed,
+              topScore: m.topScore, bottomScore: m.bottomScore,
+              topWon: m.complete || m.live ? m.topWon : null,
+              live: m.live,
+            })}
+          </div>`).join('')}
+        </div>
+      </div>
+      <div class="playoff-bracket__col playoff-bracket__col--sf">
+        <p class="playoff-bracket__round-label">${roundLabels[1]}</p>
+        <div class="playoff-bracket__stack playoff-bracket__stack--sf">
+          ${sf.map((m, i) => `
+          <div class="bracket-matchup-wrap bracket-matchup-wrap--sf${i}">
+            ${renderBracketMatchup(m.top, m.bottom, {
+              topScore: m.topScore, bottomScore: m.bottomScore,
+              topWon: m.complete || m.live ? m.topWon : null,
+              live: m.live,
+            })}
+          </div>`).join('')}
+        </div>
+      </div>
+      <div class="playoff-bracket__col playoff-bracket__col--f">
+        <p class="playoff-bracket__round-label">${roundLabels[2]}</p>
+        <div class="playoff-bracket__stack playoff-bracket__stack--f">
+          <div class="bracket-matchup-wrap bracket-matchup-wrap--f">
+            ${renderBracketMatchup(finals.top, finals.bottom, {
+              topScore: finals.topScore, bottomScore: finals.bottomScore,
+              topWon: finals.complete || finals.live ? finals.topWon : null,
+              live: finals.live,
+            })}
+          </div>
+        </div>
+      </div>
+      <div class="playoff-bracket__col playoff-bracket__col--champ">
+        <p class="playoff-bracket__round-label">Champion</p>
+        <div class="bracket-champion${champion ? ' bracket-champion--filled' : ''}">
+          ${champion
+            ? `<span class="bracket-champion__icon">🏆</span><span class="bracket-champion__name">${champion.isPlayer ? '⭐ ' : ''}${champion.name}</span>`
+            : `<span class="bracket-champion__placeholder">?</span>`}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
 function renderPlayoffs() {
   const po = S.playoffs;
   const r  = S.result;
   if (po.champion)   return renderChampionship();
   if (po.eliminated) return renderEliminated();
 
-  const roundName       = po.roundNames[po.currentRound];
-  const completedRounds = po.rounds;
-
-  const renderTeamCard = (team, seriesScore = null, won = null) => {
-    const isPlayer = team.isPlayer;
-    const badge    = won === true ? '✅' : won === false ? '❌' : '';
-    return `
-      <div class="flex items-center gap-2 px-3 py-2 rounded-lg border ${isPlayer ? 'border-primary' : 'border-border'} ${isPlayer ? 'bg-blue-50' : 'bg-white'} card-shadow">
-        <span class="text-xs font-bold ${isPlayer ? 'text-primary' : 'text-foreground'} flex-1 truncate">${isPlayer ? '⭐ ' : ''}${team.name}</span>
-        ${seriesScore !== null ? `<span class="text-xs font-mono font-bold text-muted-fg">${seriesScore}</span>` : ''}
-        ${badge ? `<span class="text-xs">${badge}</span>` : ''}
-      </div>`;
-  };
-
-  const renderMatchup = (teamA, teamB, seriesA = null, seriesB = null) => {
-    const wonA = seriesA !== null ? (seriesA > seriesB) : null;
-    const wonB = seriesB !== null ? (seriesB > seriesA) : null;
-    return `
-      <div class="flex flex-col gap-1">
-        ${renderTeamCard(teamA, seriesA, wonA)}
-        <div class="text-center text-[10px] text-muted-fg font-bold">vs</div>
-        ${renderTeamCard(teamB, seriesB, wonB)}
-      </div>`;
-  };
-
-  let bracketHTML = '';
-  const ts = po.tickState;
-
-  for (let ri = 0; ri < completedRounds.length; ri++) {
-    bracketHTML += `
-      <div class="mb-4">
-        <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg mb-2">${po.roundNames[ri]}</p>
-        <div class="grid grid-cols-2 gap-3">
-          ${completedRounds[ri].map(sr => renderMatchup(sr.teamA, sr.teamB, sr.playerWins, sr.oppWins)).join('')}
-        </div>
-      </div>`;
-  }
-
-  if (ts) {
-    const renderTickingMatchup = (sr) => {
-      const isPlayerSeries = sr.teamA.isPlayer || sr.teamB.isPlayer;
-      const revealedGames  = sr.games.slice(0, ts.revealedGames);
-      const pending        = !ts.done && revealedGames.length < sr.games.length;
-      const gameBubbles    = revealedGames.map(g =>
-        `<span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-[10px] font-black ${g === 'W' ? 'bg-green-100 text-green-700 border border-green-300' : 'bg-red-100 text-red-600 border border-red-200'}">${g}</span>`
-      ).join('');
-      const pendingDot = pending
-        ? `<span class="inline-flex items-center justify-center w-6 h-6 rounded-full border-2 border-dashed border-border text-muted-fg text-[10px] animate-pulse">·</span>`
-        : '';
-      const pWins = revealedGames.filter(g => g === 'W').length;
-      const oWins = revealedGames.filter(g => g === 'L').length;
-      return `
-        <div class="flex flex-col gap-2 p-3 rounded-xl border ${isPlayerSeries ? 'border-primary bg-blue-50' : 'border-border bg-white'} card-shadow">
-          <div class="flex items-center justify-between gap-2">
-            <span class="text-xs font-bold ${sr.teamA.isPlayer ? 'text-primary' : 'text-foreground'} truncate">${sr.teamA.isPlayer ? '⭐ ' : ''}${sr.teamA.name}</span>
-            <span class="text-xs font-mono text-foreground font-black">${pWins}–${oWins}</span>
-            <span class="text-xs font-bold ${sr.teamB.isPlayer ? 'text-primary' : 'text-foreground'} truncate text-right">${sr.teamB.isPlayer ? '⭐ ' : ''}${sr.teamB.name}</span>
-          </div>
-          <div class="flex flex-wrap gap-1">${gameBubbles}${pendingDot}</div>
-        </div>`;
-    };
-    bracketHTML += `
-      <div class="mb-4">
-        <p class="text-[10px] font-bold uppercase tracking-widest text-primary mb-2">${roundName} — Simulating...</p>
-        <div class="flex flex-col gap-3">${ts.results.map(sr => renderTickingMatchup(sr)).join('')}</div>
-      </div>`;
-  } else {
-    bracketHTML += `
-      <div class="mb-4">
-        <p class="text-[10px] font-bold uppercase tracking-widest text-primary mb-2">${roundName} — Up Next</p>
-        <div class="grid grid-cols-2 gap-3">
-          ${po.bracket.map(([a, b]) => renderMatchup(a, b)).join('')}
-        </div>
-      </div>`;
-  }
+  const roundName = po.roundNames[po.currentRound];
+  const ts        = po.tickState;
+  const simLabel  = ts ? 'Simulating...' : `Simulate ${roundName}`;
 
   return `
   <div class="min-h-screen flex flex-col main-gradient">
     ${renderHeader(false)}
-    <main class="flex-1 flex flex-col items-center px-4 py-8">
-      <div class="w-full max-w-lg flex flex-col gap-5">
+    <main class="flex-1 flex flex-col items-center px-4 py-6">
+      <div class="w-full max-w-3xl flex flex-col gap-4">
         <div class="text-center">
           <p class="text-xs font-bold uppercase tracking-widest text-primary mb-1">NBA Playoffs</p>
           <h1 class="text-2xl font-black text-foreground">Playoff Bracket</h1>
           <p class="text-sm text-muted-fg mt-1">Regular Season: ${r.wins}–${r.losses} · Seed #${po.playerSeed}</p>
         </div>
-        <div class="rounded-2xl border border-border bg-white p-4 card-shadow">${bracketHTML}</div>
-        <button data-action="sim-next-round" ${ts ? 'disabled' : ''}
-          class="py-4 rounded-xl font-black text-base transition-all text-center card-shadow ${ts ? 'bg-card2 border border-border text-muted-fg cursor-not-allowed' : 'bg-primary text-white hover:bg-blue-700 cursor-pointer'}">
-          ${ts ? 'Simulating...' : `Simulate ${roundName} →`}
-        </button>
-        <button data-action="draft-new-roster"
-          class="py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer text-center card-shadow">
-          Draft New Roster
-        </button>
+        <div class="rounded-2xl border border-border bg-white p-3 sm:p-4 card-shadow overflow-hidden">
+          ${renderPlayoffBracketTree(po)}
+        </div>
+        <div class="flex flex-col gap-2">
+          <button data-action="sim-next-round" type="button" ${ts ? 'disabled' : ''}
+            class="py-3.5 rounded-xl font-black text-sm transition-all text-center card-shadow ${ts ? 'bg-card2 border border-border text-muted-fg cursor-not-allowed' : 'bg-primary text-white hover:bg-blue-700 cursor-pointer'}">
+            ${ts ? 'Simulating...' : `${simLabel} →`}
+          </button>
+          <button data-action="sim-all-playoffs" type="button" ${ts ? 'disabled' : ''}
+            class="py-3.5 rounded-xl font-bold text-sm transition-all text-center card-shadow border-2 border-primary/30 bg-white text-primary hover:bg-blue-50 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+            Simulate Entire Playoffs →
+          </button>
+          <button data-action="draft-new-roster" type="button"
+            class="py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer text-center card-shadow">
+            Draft New Roster
+          </button>
+        </div>
       </div>
     </main>
     ${renderFooter()}

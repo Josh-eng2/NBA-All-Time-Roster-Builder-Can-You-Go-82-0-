@@ -19,6 +19,7 @@ import {
   playerTier, rosterFull,
 } from '../logic/draft.js';
 import { simulateSeason, simulateSeries, simulateHeadToHeadSeries } from '../logic/simulation.js';
+import { applyPlayoffRound } from '../logic/playoffs.js';
 import {
   saveLeaderboard, saveToTrophyRoom, markReturning,
   showLeaderboardModal, closeLeaderboardModal,
@@ -157,6 +158,7 @@ function dispatch(action) {
   if (action === 'save-run')             { doSaveRun();           return; }
   if (action === 'advance-to-playoffs') { doAdvanceToPlayoffs(); return; }
   if (action === 'sim-next-round')      { doSimNextRound();      return; }
+  if (action === 'sim-all-playoffs')    { doSimAllPlayoffs();    return; }
 
   // ── UI helpers ─────────────────────────────────────────────────────────────
   if (action === 'share')                  { doShare();                          return; }
@@ -827,6 +829,28 @@ function doShare() {
 
 // ── Playoffs ──────────────────────────────────────────────────────────────────
 
+function computeRoundResults(bracket) {
+  return bracket.map(([teamA, teamB]) => {
+    const series = simulateSeries(teamA.strength, teamB.strength);
+    return { teamA, teamB, ...series };
+  });
+}
+
+function onPlayoffChampion() {
+  saveToTrophyRoom();
+  logAnalyticsEvent('championship_won', {
+    team:  S.teamName,
+    wins:  S.result?.wins ?? 0,
+    coach: S.coach ?? 'none',
+    era:   S.selectedEra ?? 'all',
+  });
+  setTimeout(() => {
+    if (typeof confetti !== 'undefined') {
+      confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#f97316', '#eab308', '#ffffff'] });
+    }
+  }, 200);
+}
+
 function doAdvanceToPlayoffs() {
   const playerStrength = S.result.strength;
   const playerSeed     = getPlayerSeed(S.result.wins);
@@ -850,12 +874,9 @@ function doAdvanceToPlayoffs() {
 
 function doSimNextRound() {
   const po = S.playoffs;
-  if (po.tickState) return; // guard against double-click during animation
+  if (po.tickState) return;
 
-  const results = po.bracket.map(([teamA, teamB]) => {
-    const series = simulateSeries(teamA.strength, teamB.strength);
-    return { teamA, teamB, ...series };
-  });
+  const results = computeRoundResults(po.bracket);
 
   const playerResult = results.find(r => r.teamA.isPlayer || r.teamB.isPlayer);
   const playerWon    = playerResult
@@ -876,33 +897,28 @@ function doSimNextRound() {
       render();
       setTimeout(() => {
         if (S.phase !== 'playoffs') return;
-        po.rounds.push(po.tickState.results);
-        const { results: r2, playerWon: pw } = po.tickState;
+        const { results: r2 } = po.tickState;
         po.tickState = null;
-        if (!pw) {
-          po.eliminated   = true;
-          po.eliminatedIn = po.roundNames[po.currentRound];
-        } else {
-          const winners = r2.map(r => r.won ? r.teamA : r.teamB);
-          po.currentRound++;
-          if (po.currentRound === 3) {
-            po.champion = true;
-            saveToTrophyRoom();
-            logAnalyticsEvent('championship_won', { team: S.teamName, wins: S.result?.wins ?? 0, coach: S.coach ?? 'none', era: S.selectedEra ?? 'all' });
-            setTimeout(() => {
-              if (typeof confetti !== 'undefined') {
-                confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#f97316', '#eab308', '#ffffff'] });
-              }
-            }, 200);
-          } else {
-            po.bracket = [];
-            for (let i = 0; i < winners.length; i += 2) {
-              po.bracket.push([winners[i], winners[i + 1]]);
-            }
-          }
-        }
+        const outcome = applyPlayoffRound(po, r2);
+        if (outcome === 'champion') onPlayoffChampion();
         render();
       }, 800);
     }
   }, 400);
+}
+
+function doSimAllPlayoffs() {
+  const po = S.playoffs;
+  if (po.tickState || po.champion || po.eliminated) return;
+
+  while (po.currentRound < 3 && !po.eliminated && !po.champion) {
+    const results = computeRoundResults(po.bracket);
+    const outcome = applyPlayoffRound(po, results);
+    if (outcome === 'champion') {
+      onPlayoffChampion();
+      break;
+    }
+    if (outcome === 'eliminated') break;
+  }
+  render();
 }

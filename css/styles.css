@@ -340,3 +340,267 @@ body {
   color: #2563eb;
   text-align: center;
 }
+
+/* ── Playoff bracket tree ───────────────────────────────────── */
+.playoff-bracket-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 0 -0.25rem;
+  padding: 0 0.25rem;
+}
+
+.playoff-bracket {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  min-width: 34rem;
+  min-height: 17rem;
+  padding: 0.25rem 0;
+}
+
+.playoff-bracket__col {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-width: 5.75rem;
+  padding: 0 0.5rem;
+}
+
+.playoff-bracket__col:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 1.5rem;
+  right: 0;
+  bottom: 0.5rem;
+  width: 1px;
+  background: linear-gradient(180deg, transparent, #e2e8f0 8%, #e2e8f0 92%, transparent);
+  pointer-events: none;
+}
+
+.playoff-bracket__round-label {
+  text-align: center;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #94a3b8;
+  margin-bottom: 0.375rem;
+  flex-shrink: 0;
+}
+
+.playoff-bracket__stack {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  gap: 0.35rem;
+}
+
+.playoff-bracket__stack--sf {
+  justify-content: center;
+  gap: 3.5rem;
+  padding: 1.25rem 0;
+}
+
+.playoff-bracket__stack--f {
+  justify-content: center;
+}
+
+.bracket-matchup-wrap {
+  position: relative;
+}
+
+/* Horizontal connectors into next round */
+.playoff-bracket__col--qf .bracket-matchup-wrap::after,
+.playoff-bracket__col--sf .bracket-matchup-wrap::after {
+  content: '';
+  position: absolute;
+  right: -0.5rem;
+  top: 50%;
+  width: 0.5rem;
+  height: 2px;
+  background: #94a3b8;
+  transform: translateY(-50%);
+  z-index: 2;
+}
+
+/* Vertical connectors on semifinal side */
+.playoff-bracket__col--sf .bracket-matchup-wrap--sf0::before,
+.playoff-bracket__col--sf .bracket-matchup-wrap--sf1::before {
+  content: '';
+  position: absolute;
+  left: -0.5rem;
+  width: 2px;
+  background: #94a3b8;
+  z-index: 1;
+}
+
+.playoff-bracket__col--sf .bracket-matchup-wrap--sf0::before {
+  top: -2.75rem;
+  height: calc(50% + 2.75rem);
+}
+
+.playoff-bracket__col--sf .bracket-matchup-wrap--sf1::before {
+  bottom: -2.75rem;
+  height: calc(50% + 2.75rem);
+}
+
+.playoff-bracket__col--f .bracket-matchup-wrap--f::before {
+  content: '';
+  position: absolute;
+  left: -0.5rem;
+  top: 25%;
+  bottom: 25%;
+  width: 2px;
+  background: #94a3b8;
+}
+
+.bracket-matchup {
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.bracket-matchup--live {
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.12);
+}
+
+.bracket-team {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.35rem 0.45rem;
+  border-bottom: 1px solid #f1f5f9;
+  min-height: 1.65rem;
+}
+
+.bracket-team:last-child {
+  border-bottom: none;
+}
+
+.bracket-team__seed {
+  width: 0.9rem;
+  flex-shrink: 0;
+  font-size: 9px;
+  font-weight: 800;
+  color: #94a3b8;
+  text-align: center;
+}
+
+.bracket-team__name {
+  flex: 1;
+  min-width: 0;
+  font-size: 10px;
+  font-weight: 600;
+  color: #0f172a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.bracket-team__score {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: #64748b;
+}
+
+.bracket-team--player {
+  background: #eff6ff;
+}
+
+.bracket-team--player .bracket-team__name {
+  color: #1d4ed8;
+  font-weight: 700;
+}
+
+.bracket-team--won {
+  background: #f0fdf4;
+}
+
+.bracket-team--won .bracket-team__name {
+  color: #15803d;
+  font-weight: 700;
+}
+
+.bracket-team--won .bracket-team__score {
+  color: #16a34a;
+}
+
+.bracket-team--lost {
+  opacity: 0.42;
+}
+
+.bracket-team--tbd {
+  background: #f8fafc;
+}
+
+.bracket-team--tbd .bracket-team__name {
+  color: #94a3b8;
+  font-style: italic;
+  font-weight: 500;
+}
+
+.bracket-champion {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 4rem;
+  margin-top: 0.25rem;
+  padding: 0.75rem 0.5rem;
+  border: 2px dashed #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.bracket-champion--filled {
+  border-style: solid;
+  border-color: #fbbf24;
+  background: linear-gradient(180deg, #fffbeb 0%, #fef3c7 100%);
+  box-shadow: 0 2px 8px rgba(251, 191, 36, 0.2);
+}
+
+.bracket-champion__icon {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.bracket-champion__name {
+  font-size: 11px;
+  font-weight: 800;
+  color: #92400e;
+  text-align: center;
+  line-height: 1.25;
+  max-width: 5rem;
+  word-break: break-word;
+}
+
+.bracket-champion__placeholder {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #cbd5e1;
+}
+
+@media (min-width: 640px) {
+  .playoff-bracket {
+    min-width: 38rem;
+    min-height: 19rem;
+  }
+
+  .bracket-team__name {
+    font-size: 11px;
+  }
+
+  .playoff-bracket__col {
+    min-width: 6.5rem;
+  }
+}
