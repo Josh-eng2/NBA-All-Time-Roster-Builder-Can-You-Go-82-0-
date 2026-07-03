@@ -161,7 +161,7 @@ function renderModeSelect() {
             class="rounded-2xl bg-white p-4 flex flex-col items-center gap-2 cursor-pointer card-shadow hover:shadow-md transition-all border border-slate-100">
             <span class="text-3xl" style="pointer-events:none">🧠</span>
             <p class="font-black text-base" style="color:#f97316;pointer-events:none">HoopIQ</p>
-            <p class="text-xs text-muted-fg text-center leading-snug flex-1" style="pointer-events:none">Stats hidden — draft by memory and test your ball knowledge.</p>
+            <p class="text-xs text-muted-fg text-center leading-snug flex-1" style="pointer-events:none">Names only — draft by memory and test your ball knowledge.</p>
             <div class="w-full py-2 rounded-xl font-bold text-sm text-white text-center mt-1" style="background:#f97316;pointer-events:none">Play HoopIQ</div>
           </button>
         </div>
@@ -552,7 +552,7 @@ function renderSlotMachine() {
         SPINNING...
       </button>
     ` : `
-      <p class="text-center text-xs text-muted-fg py-1">${S.mode === 'blind' ? '❓ One tap reveals AND locks your pick — choose your mystery card wisely' : 'Select a player below, then tap a roster slot to place them'}</p>
+      <p class="text-center text-xs text-muted-fg py-1">${S.mode === 'blind' ? 'Names only — select a player, then tap a roster slot to place them' : 'Select a player below, then tap a roster slot to place them'}</p>
     `}
   </div>`;
 }
@@ -578,47 +578,42 @@ function renderDraftBoard() {
 }
 
 function renderDraftCard(p, index) {
-  const pop             = p.popularity ?? 50;
-  const popCol          = pop >= 80 ? '#2563eb' : pop >= 60 ? '#d97706' : '#94a3b8';
   const alreadyOnRoster = S.draftedPlayerNames?.has(p.name) ?? false;
   const takenByP1       = !alreadyOnRoster && (S.takenPlayerIds?.has(p.id) ?? false);
   const unavailable     = alreadyOnRoster || takenByP1;
   const isSelected      = !unavailable && S.selectedPlayer?.id === p.id;
+  const cardBorder      = unavailable ? '#e2e8f0' : isSelected ? '#2563eb' : '#e2e8f0';
+  const cardBg          = unavailable ? '#f8fafc' : isSelected ? '#eff6ff' : '#ffffff';
+  const cardOpacity     = unavailable ? 'opacity:0.5;' : '';
 
-  // Blind mode — unselected cards shown face-down; the reveal IS the pick,
-  // so once any card is revealed the rest of the board goes inert.
-  if (S.mode === 'blind' && !isSelected) {
-    const lockedOut = !unavailable && !!S.selectedPlayer;
-    const inert     = unavailable || lockedOut;
-    const posLabel  = p.secondaryPos?.length ? `${p.pos} / ${p.secondaryPos[0]}` : p.pos;
+  // HoopIQ — name only, no stats or position hints
+  if (S.mode === 'blind') {
     return `
-    <div class="rounded-xl border-2 flex flex-col overflow-hidden card-shadow${inert ? ' opacity-40' : ''}"
-      style="border-color:${inert ? '#e2e8f0' : '#475569'};background:${inert ? '#f8fafc' : '#1e293b'}">
-      <div class="p-3 flex-1 flex flex-col items-center justify-center gap-2 text-center" style="min-height:120px">
-        <span class="text-[10px] font-black px-2 py-0.5 rounded-full"
-          style="background:${inert ? '#f1f5f9' : '#334155'};color:${inert ? '#94a3b8' : '#64748b'}">${posLabel}</span>
-        <span class="text-3xl">${unavailable ? '🚫' : lockedOut ? '🔒' : '❓'}</span>
-        <p class="text-[11px] font-bold" style="color:${inert ? '#94a3b8' : '#475569'}">${unavailable ? 'Already Taken' : lockedOut ? 'Locked Out' : 'Mystery Player'}</p>
-      </div>
-      <div class="px-3 pb-3">
-        ${unavailable
-          ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs cursor-not-allowed" style="background:#f1f5f9;color:#94a3b8;border:1.5px solid #e2e8f0">Taken</button>`
-          : lockedOut
-          ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs cursor-not-allowed" style="background:#f1f5f9;color:#94a3b8;border:1.5px solid #e2e8f0">🔒 Locked</button>`
-          : `<button data-action="draft-pick-${index}" class="w-full py-2 rounded-lg font-bold text-xs cursor-pointer transition-all" style="background:#334155;color:#94a3b8;border:1.5px solid #475569">🎲 Mystery Pick</button>`
-        }
-      </div>
-    </div>`;
+  <div class="rounded-xl border-2 flex flex-col overflow-hidden transition-all card-shadow"
+    style="border-color:${cardBorder};background:${cardBg};${cardOpacity}">
+    <div class="p-3 flex-1 flex items-center justify-center" style="min-height:72px">
+      <p class="font-bold text-sm text-foreground leading-tight text-center">${p.name}</p>
+    </div>
+    <div class="px-3 pb-3">
+      ${alreadyOnRoster
+        ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs" style="background:#f1f5f9;color:#94a3b8;border:1.5px solid #e2e8f0;cursor:not-allowed">Already on Roster</button>`
+        : takenByP1
+        ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs" style="background:#fef2f2;color:#dc2626;border:1.5px solid #fecaca;cursor:not-allowed">Taken by Player 1</button>`
+        : `<button data-action="draft-pick-${index}"
+            class="w-full py-2 rounded-lg font-bold text-xs transition-all cursor-pointer"
+            style="background:${isSelected ? '#2563eb' : '#eff6ff'};color:${isSelected ? '#fff' : '#2563eb'};border:1.5px solid ${isSelected ? '#2563eb' : '#bfdbfe'}">
+            ${isSelected ? '✓ Selected — Tap a Roster Slot' : 'Draft Player'}
+          </button>`
+      }
+    </div>
+  </div>`;
   }
 
-  // Full-reveal card — all modes, plus selected card in blind mode
-  const cardBorder  = unavailable ? '#e2e8f0' : isSelected ? '#2563eb' : '#e2e8f0';
-  const cardBg      = unavailable ? '#f8fafc' : isSelected ? '#eff6ff' : '#ffffff';
-  const cardOpacity = unavailable ? 'opacity:0.5;' : '';
+  const pop    = p.popularity ?? 50;
+  const popCol = pop >= 80 ? '#2563eb' : pop >= 60 ? '#d97706' : '#94a3b8';
   return `
   <div class="rounded-xl border-2 flex flex-col overflow-hidden transition-all card-shadow"
     style="border-color:${cardBorder};background:${cardBg};${cardOpacity}">
-    ${S.mode === 'blind' && isSelected ? `<div class="pt-2 px-3"><span class="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full" style="background:#fef9c3;color:#a16207">🔍 Revealed</span></div>` : ''}
     <div class="p-3 flex-1">
       <div class="flex items-center gap-1.5 mb-2">
         <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full border border-border bg-card2 text-muted-fg">${p.secondaryPos?.length ? `${p.pos} / ${p.secondaryPos[0]}` : p.pos}</span>
@@ -644,7 +639,7 @@ function renderDraftCard(p, index) {
         : `<button data-action="draft-pick-${index}"
             class="w-full py-2 rounded-lg font-bold text-xs transition-all cursor-pointer"
             style="background:${isSelected ? '#2563eb' : '#eff6ff'};color:${isSelected ? '#fff' : '#2563eb'};border:1.5px solid ${isSelected ? '#2563eb' : '#bfdbfe'}">
-            ${isSelected ? (S.mode === 'blind' ? '✓ Revealed — Tap a Roster Slot' : '✓ Selected — Tap a Roster Slot') : 'Draft Player'}
+            ${isSelected ? '✓ Selected — Tap a Roster Slot' : 'Draft Player'}
           </button>`
       }
     </div>
