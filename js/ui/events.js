@@ -12,7 +12,7 @@
 
 import {
   S, startGame, startGame1v1, ALL_POSITIONS, POSITIONS,
-  TEAMS, DECADES, COACHES, CPU_TEAMS, pick, buildBracket, getPlayerSeed,
+  TEAMS, DECADES, COACHES, CPU_TEAMS, pick, buildBracket, getPlayerSeed, SNAKE_ORDER,
 } from '../logic/state.js';
 import {
   spinResult, spinResultAtLeast, getAvailablePlayers, availableDecades,
@@ -420,8 +420,9 @@ function placePlayer(pos) {
       render(); return;
     }
 
-    // Alternate turn
-    S.currentPlayer = S.currentPlayer === 1 ? 2 : 1;
+    // Snake draft turn order: 1-2-2-1-1-2-2-1-1-2
+    const completedPicks = S.p1Round + S.p2Round;
+    S.currentPlayer = SNAKE_ORDER[completedPicks];
     render(); return;
   }
 
