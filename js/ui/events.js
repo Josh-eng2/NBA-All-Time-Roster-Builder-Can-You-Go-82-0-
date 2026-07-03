@@ -59,22 +59,22 @@ function dispatch(action) {
   // ── Mode selection ─────────────────────────────────────────────────────────
   if (action === 'mode-solo') {
     S.mode = 'solo'; S.currentPlayer = 1; S.p1 = null;
-    S.takenPlayerIds = new Set(); S.phase = 'era-select';
-    render(); return;
+    S.takenPlayerIds = new Set();
+    doStartGame('all'); return;
   }
   if (action === 'mode-1v1') {
     S.mode = '1v1'; S.currentPlayer = 1; S.p1 = null;
-    S.takenPlayerIds = new Set(); S.phase = 'era-select';
-    render(); return;
+    S.takenPlayerIds = new Set();
+    doStartGame('all'); return;
   }
   if (action === 'mode-blind') {
     S.mode = 'blind'; S.currentPlayer = 1; S.p1 = null;
-    S.takenPlayerIds = new Set(); S.phase = 'era-select';
-    render(); return;
+    S.takenPlayerIds = new Set();
+    doStartGame('all'); return;
   }
 
-  // ── Coach (in-draft chip) & Era selection ──────────────────────────────────
-  // Coach lives on the drafting screen and locks on the first spin.
+  // ── Coach (in-draft chip) & Era (header picker) ────────────────────────────
+  // Coach lives on the drafting screen; era lives in the header. Both lock on first spin.
   if (action.startsWith('coach-pick-')) {
     if (!S.coachLocked) {
       S.coach = action.slice(11);
@@ -83,10 +83,20 @@ function dispatch(action) {
     render(); return;
   }
   if (action === 'coach-picker-toggle') {
-    if (!S.coachLocked) S.coachPickerOpen = !S.coachPickerOpen;
+    if (!S.coachLocked) {
+      S.coachPickerOpen = !S.coachPickerOpen;
+      if (S.coachPickerOpen) S.eraPickerOpen = false;
+    }
     render(); return;
   }
-  if (action.startsWith('era-')) { doStartGame(action.slice(4)); return; }
+  if (action === 'era-picker-toggle') {
+    if (!S.eraLocked) {
+      S.eraPickerOpen = !S.eraPickerOpen;
+      if (S.eraPickerOpen) S.coachPickerOpen = false;
+    }
+    render(); return;
+  }
+  if (action.startsWith('era-pick-')) { setEra(action.slice(9)); return; }
 
   // ── Navigation ─────────────────────────────────────────────────────────────
   if (action === 'restart') {
@@ -167,6 +177,18 @@ function dispatch(action) {
 
 // ── Game lifecycle ────────────────────────────────────────────────────────────
 
+function setEra(era) {
+  if (S.phase !== 'drafting' || S.eraLocked) return;
+  if (S.mode === '1v1') {
+    S.p1Era = era;
+    S.p2Era = era;
+  } else {
+    S.selectedEra = era;
+  }
+  S.eraPickerOpen = false;
+  render();
+}
+
 function doStartGame(era = 'all') {
   if (S.mode === '1v1') {
     // Single shared era — no per-player coach selection, launch draft immediately
@@ -195,7 +217,7 @@ function doStartGame(era = 'all') {
  * Calls fn() immediately if there is nothing to lose.
  */
 export function confirmLeave(fn) {
-  const safe = ['era-select', 'results', 'playoffs', 'trophy-room'];
+  const safe = ['results', 'playoffs', 'trophy-room'];
   if (safe.includes(S.phase)) { fn(); return; }
   const overlay = document.createElement('div');
   overlay.style.cssText =
@@ -246,6 +268,11 @@ export function doSpin() {
     S.coachLocked     = true;
     S.coachPickerOpen = false;
     try { if (S.coach) localStorage.setItem('nba820_coach', S.coach); } catch (e) {}
+  }
+
+  if (!S.eraLocked) {
+    S.eraLocked     = true;
+    S.eraPickerOpen = false;
   }
 
   S.spinState      = 'spinning';

@@ -223,7 +223,7 @@ export function buildBracket(playerSeed, playerStrength) {
 
 /** @type {object} */
 export let S = {
-  phase:          'mode-select', // 'mode-select' | 'era-select' | 'drafting' | 'season-sim' | 'results' | 'playoffs' | 'trophy-room' | 'series-result'
+  phase:          'mode-select', // 'mode-select' | 'drafting' | 'season-sim' | 'results' | 'playoffs' | 'trophy-room' | 'series-result'
   mode:           null,          // 'solo' | '1v1'
   currentPlayer:  1,             // 1 or 2 (1v1 only)
   p1:             null,          // snapshot of P1 after sequential draft (old 1v1 flow — kept for compat)
@@ -255,6 +255,8 @@ export function startGame(era = 'all') {
     coach,
     coachLocked:      false,   // locks on the first spin — commit before you see players
     coachPickerOpen:  false,
+    eraLocked:        false,   // locks on the first spin — same moment as coach
+    eraPickerOpen:    false,
     mode,
     currentPlayer,
     p1,
@@ -310,6 +312,8 @@ export function startGame1v1() {
     p1Round:  0,
     p2Round:  0,
     draftLog: [],
+    eraLocked:     false,
+    eraPickerOpen: false,
 
     // Shared draft-pool tracking
     gameId:    crypto.randomUUID(),
