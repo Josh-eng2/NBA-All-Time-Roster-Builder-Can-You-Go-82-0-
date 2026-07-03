@@ -21,7 +21,7 @@ import {
 import { simulateSeason, simulateSeries, simulateHeadToHeadSeries } from '../logic/simulation.js';
 import { applyPlayoffRound } from '../logic/playoffs.js';
 import {
-  saveLeaderboard, saveToTrophyRoom, markReturning,
+  saveLeaderboard, saveToTrophyRoom, markReturning, recordLegends,
   showLeaderboardModal, closeLeaderboardModal,
   showGlobalLeaderboardModal, closeGlobalLeaderboardModal,
 } from '../utils/storage.js';
@@ -109,6 +109,8 @@ function dispatch(action) {
   }
   if (action === 'draft-new-roster') { S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; S.takenPlayerIds = new Set(); render(); return; }
   if (action === 'view-trophies')    { S.phase = 'trophy-room'; render(); return; }
+  if (action === 'view-legends')     { S.legendsReturnPhase = S.phase; S.phase = 'legends'; render(); return; }
+  if (action === 'legends-back')     { S.phase = S.legendsReturnPhase || 'mode-select'; render(); return; }
   if (action === 'back-to-menu')     { S.mode = null; S.phase = 'mode-select'; S.p1 = null; S.takenPlayerIds = new Set(); render(); return; }
   if (action === 'series-play-again') { S.mode = null; S.phase = 'mode-select'; S.p1 = null; S.takenPlayerIds = new Set(); S.seriesResult = null; S.seriesRevealedCount = 0; render(); return; }
   if (action === 'begin-series') { S.phase = 'series-sim'; S.seriesRevealedCount = 0; render(); return; }
@@ -422,6 +424,7 @@ function placePlayer(pos) {
     if (S.p1Round >= 5 && S.p2Round >= 5) {
       const p1s = POSITIONS.map(p => S.p1Roster[p]).filter(Boolean);
       const p2s = POSITIONS.map(p => S.p2Roster[p]).filter(Boolean);
+      recordLegends([...p1s, ...p2s]); // both rosters join the collection
       S.seriesResult       = simulateHeadToHeadSeries(p1s, S.p1Coach, p2s, S.p2Coach);
       S.seriesRevealedCount = 0;
       S.phase = 'series-preview';
@@ -471,6 +474,10 @@ function doSimulate() {
   const starters = POSITIONS.map(p => S.roster[p]).filter(Boolean);
   S.result  = simulateSeason(starters, S.coach);
   S.runSaved = false;
+
+  // Meta-progression: every started legend joins the permanent collection.
+  S.result.newLegends = recordLegends(starters).length;
+
   logAnalyticsEvent('season_simulated', { wins: S.result.wins, losses: S.result.losses, coach: S.coach ?? 'none', era: S.selectedEra ?? 'all' });
 
   // First-visit hook payoff delivered — from here on they're a veteran.

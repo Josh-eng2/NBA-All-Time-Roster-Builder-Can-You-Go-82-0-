@@ -25,6 +25,42 @@ export function getPlayers(team, decade) {
   return ((DB || {})[`${team}_${decade}`] || []).slice();
 }
 
+// ── Legends catalog ─────────────────────────────────────────────────────────
+// The full collectible universe for the Legends collection, keyed by player id
+// and grouped by decade. Memoized — DB is immutable after startup.
+let _catalogCache = null;
+
+/**
+ * @returns {{
+ *   decades: string[],
+ *   byDecade: Record<string, object[]>,   // decade → player objects (distinct ids, popularity-desc)
+ *   idToDecade: Record<string, string>,
+ *   total: number                         // distinct-id count across the whole DB
+ * }}
+ */
+export function getLegendCatalog() {
+  if (_catalogCache) return _catalogCache;
+  const byDecade   = {};
+  const idToDecade = {};
+  const seen       = new Set();
+  for (const [key, players] of Object.entries(DB || {})) {
+    const decade = key.split('_')[1];
+    (byDecade[decade] ||= []);
+    for (const p of players) {
+      if (seen.has(p.id)) continue; // collapse the handful of shared ids
+      seen.add(p.id);
+      byDecade[decade].push(p);
+      idToDecade[p.id] = decade;
+    }
+  }
+  for (const decade of Object.keys(byDecade)) {
+    byDecade[decade].sort((a, b) => (b.popularity ?? 50) - (a.popularity ?? 50));
+  }
+  const decades = DECADES.filter(d => byDecade[d]?.length);
+  _catalogCache = { decades, byDecade, idToDecade, total: seen.size };
+  return _catalogCache;
+}
+
 /** Players from a slot that haven't been drafted yet. */
 export function getAvailablePlayers(team, decade) {
   return getPlayers(team, decade).filter(p =>
