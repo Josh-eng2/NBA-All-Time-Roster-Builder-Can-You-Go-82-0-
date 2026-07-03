@@ -108,10 +108,11 @@ function renderModeSelect() {
   // Anyone who reaches the menus — by finishing the cold open or escaping
   // it deliberately — is a returning player from now on. Idempotent.
   markReturning();
-  let trophies = [], best = null, lastRun = null;
-  try { trophies = JSON.parse(localStorage.getItem('nba820_trophies') || '[]'); } catch (e) {}
-  try { best     = JSON.parse(localStorage.getItem('nba820_best')     || 'null'); } catch (e) {}
-  try { lastRun  = JSON.parse(localStorage.getItem('nba820_lastRun')  || 'null'); } catch (e) {}
+  let trophies = [], best = null, lastRun = null, bestStreak = 0;
+  try { trophies   = JSON.parse(localStorage.getItem('nba820_trophies') || '[]'); } catch (e) {}
+  try { best       = JSON.parse(localStorage.getItem('nba820_best')     || 'null'); } catch (e) {}
+  try { lastRun    = JSON.parse(localStorage.getItem('nba820_lastRun')  || 'null'); } catch (e) {}
+  try { bestStreak = parseInt(localStorage.getItem('nba820_bestStreak') || '0', 10); } catch (e) {}
   return `
   <div class="flex flex-col min-h-screen main-gradient">
     <header class="sticky top-0 z-50 w-full bg-white border-b border-border" style="box-shadow:0 1px 3px rgba(0,0,0,0.05)">
@@ -142,6 +143,7 @@ function renderModeSelect() {
             ${lastRun && lastRun.tip && best.wins < 82
               ? `<p class="text-xs text-muted-fg leading-snug mt-0.5">💡 ${lastRun.tip}</p>`
               : `<p class="text-xs text-muted-fg mt-0.5">${best.wins === 82 ? 'Perfection achieved. Can you do it twice?' : 'The perfect season is still out there.'}</p>`}
+            ${bestStreak > 0 ? `<p class="text-[11px] font-bold mt-1" style="color:#dc2626">🔥 Best streak: ${bestStreak} straight wins</p>` : ''}
           </div>
         </div>` : ''}
 
@@ -327,12 +329,13 @@ function render1v1RosterPanel(roster, playerNum, isActive) {
     const label   = pos;
 
     if (canPlace && !p) {
+      const isPending = S.pendingPlacePos === pos;
       return `<div data-action="place-${pos}"
-        class="flex items-center gap-1.5 py-1.5 border-b border-border last:border-0 rounded cursor-pointer transition-all"
-        style="background:${bg}">
-        <span class="text-[10px] font-black w-5 flex-shrink-0" style="color:${color}">${label}</span>
-        <span class="text-[11px] font-bold flex-1" style="color:${color}">Tap to place</span>
-        <span class="text-[10px] font-black" style="color:${color}">+</span>
+        class="flex items-center gap-1.5 py-1.5 border-b border-border last:border-0 rounded cursor-pointer transition-all ${isPending ? 'animate-pulse-glow' : ''}"
+        style="background:${isPending ? '#fef9c3' : bg}">
+        <span class="text-[10px] font-black w-5 flex-shrink-0" style="color:${isPending ? '#a16207' : color}">${label}</span>
+        <span class="text-[11px] font-bold flex-1" style="color:${isPending ? '#a16207' : color}">${isPending ? 'Tap to confirm' : 'Tap to place'}</span>
+        <span class="text-[10px] font-black" style="color:${isPending ? '#a16207' : color}">${isPending ? '✓' : '+'}</span>
       </div>`;
     }
     return `<div class="flex items-center gap-1.5 py-1 border-b border-border last:border-0 ${p ? 'locked' : ''}">
@@ -654,15 +657,16 @@ function renderRosterSlot(pos, canPlace) {
   const flexMatch    = !hasMoveActive && canDrop && sp && !primaryMatch &&
     (sp.secondaryPos || []).includes(pos);
   const action       = canDrop ? (hasMoveActive ? `swap-${pos}` : `place-${pos}`) : '';
+  const isPending    = !hasMoveActive && canDrop && S.pendingPlacePos === pos;
 
-  const slotBg     = !canDrop ? '#f8fafc' : '#fff1f2';
-  const slotBorder = !canDrop ? '#cbd5e1' : (primaryMatch ? '#86efac' : flexMatch ? '#fde68a' : '#fca5a5');
-  const slotColor  = !canDrop ? '#94a3b8' : (primaryMatch ? '#16a34a' : flexMatch ? '#d97706' : '#dc2626');
-  const slotText   = !canDrop ? 'Empty' : (hasMoveActive ? 'Move Here' : primaryMatch ? 'Primary' : flexMatch ? 'Flex' : 'Place');
+  const slotBg     = !canDrop ? '#f8fafc' : isPending ? '#fef9c3' : '#fff1f2';
+  const slotBorder = !canDrop ? '#cbd5e1' : isPending ? '#facc15' : (primaryMatch ? '#86efac' : flexMatch ? '#fde68a' : '#fca5a5');
+  const slotColor  = !canDrop ? '#94a3b8' : isPending ? '#a16207' : (primaryMatch ? '#16a34a' : flexMatch ? '#d97706' : '#dc2626');
+  const slotText   = !canDrop ? 'Empty' : isPending ? 'Tap to Confirm' : (hasMoveActive ? 'Move Here' : primaryMatch ? 'Primary' : flexMatch ? 'Flex' : 'Place');
 
   return `
   <div data-action="${action}"
-    class="rounded-xl border-2 border-dashed p-2 flex flex-col items-center gap-1 text-center transition-all ${canDrop ? 'slot-empty droppable' : ''}"
+    class="rounded-xl border-2 border-dashed p-2 flex flex-col items-center gap-1 text-center transition-all ${canDrop ? 'slot-empty droppable' : ''} ${isPending ? 'animate-pulse-glow' : ''}"
     style="background:${slotBg};border-color:${slotBorder}">
     <span class="text-[10px] font-black uppercase" style="color:${slotColor}">${label}</span>
     <span class="text-xs" style="color:${slotColor}">${slotText}</span>
@@ -762,23 +766,50 @@ export function computeAutopsy() {
     };
   }
 
-  let weak = null, weakPos = null;
-  for (const pos of POSITIONS) {
-    const p = S.roster[pos];
-    if (p && (!weak || (p.popularity ?? 50) < (weak.popularity ?? 50))) { weak = p; weakPos = pos; }
-  }
-  if (weak) {
+  // Real weak-link mechanism: the sim's own balance penalty names the stat
+  // category dragging the team down — not a cosmetic popularity score.
+  if (S.result.balancePenalty > 0 && S.result.weakestStat) {
+    const STAT_LABEL = {
+      ppg: 'scoring', rpg: 'rebounding', apg: 'playmaking',
+      spg: 'perimeter defense', bpg: 'rim protection',
+    };
+    const key   = S.result.weakestStat;
+    const label = STAT_LABEL[key] || key;
+    let weak = null, weakPos = null;
+    for (const pos of POSITIONS) {
+      const p = S.roster[pos];
+      if (p && (!weak || p[key] < weak[key])) { weak = p; weakPos = pos; }
+    }
     return {
-      icon:   '🔍',
-      title:  `${weak.name} got hunted every night`,
-      detail: `Opponents attacked your ${weakPos} spot all season — the weakest link in an otherwise dangerous lineup.`,
-      fix:    `One upgrade at ${weakPos} changes the math.`,
+      icon:   '📉',
+      title:  weak ? `${weak.name} got exposed on ${label}` : `Your ${label} fell apart`,
+      detail: weak
+        ? `${weak.name} posted your lineup's lowest ${key.toUpperCase()} — opponents attacked that gap every night and it dragged the whole roster down.`
+        : `The starting five's combined ${label} fell below championship level.`,
+      fix:    `Upgrade ${label}${weakPos ? ` at ${weakPos}` : ''} — one swing player fixes this.`,
     };
   }
-  return null;
+
+  // No identifiable weak link — the roster is balanced but not yet elite
+  // anywhere. Say so honestly instead of inventing a culprit.
+  return {
+    icon:   '📊',
+    title:  'No single flaw — just not championship-caliber yet',
+    detail: 'Every category is solid but none is dominant. There\'s no weak link to fix — the whole roster needs to level up.',
+    fix:    'Chase higher-tier players across the board, not one position.',
+  };
 }
 
 // ── Paced season reveal ───────────────────────────────────────────────────────
+/** Live win-streak display for the season-sim screen — escalates with heat. */
+export function liveStreakLabel(n) {
+  if (n === 0)  return { text: '', color: '#94a3b8' };
+  if (n >= 30)  return { text: `🔥🔥🔥 ${n} STRAIGHT`, color: '#dc2626' };
+  if (n >= 15)  return { text: `🔥🔥 ${n} straight wins`, color: '#d97706' };
+  if (n >= 5)   return { text: `🔥 ${n} straight wins`, color: '#2563eb' };
+  return { text: `${n} in a row`, color: '#94a3b8' };
+}
+
 export function renderSeasonTickerRows() {
   const idx    = S.seasonRevealIdx || 0;
   const recent = (S.seasonGames || []).slice(Math.max(0, idx - 8), idx).reverse();
@@ -791,6 +822,8 @@ export function renderSeasonTickerRows() {
       : latest ? '' : 'opacity:0.55';
     const chip = g.rival
       ? `<span class="text-[9px] font-black px-1.5 py-0.5 rounded-full flex-shrink-0" style="background:#0f172a;color:#fbbf24">🔥 RIVALRY</span>`
+      : g.isFirstLoss
+      ? `<span class="text-[9px] font-black px-1.5 py-0.5 rounded-full flex-shrink-0" style="background:#450a0a;color:#fca5a5">STREAK ENDED</span>`
       : lateLoss
       ? `<span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0" style="background:#fef2f2;color:#b91c1c">GUT PUNCH</span>`
       : g.type === 'close'
@@ -816,6 +849,9 @@ function renderSeasonSim() {
   const pct    = (played.length / total) * 100;
   const done   = idx >= total;
   const g1     = S.seasonGames?.[0];
+  let liveN = 0;
+  for (let i = played.length - 1; i >= 0 && played[i].won; i--) liveN++;
+  const streakLbl = liveStreakLabel(liveN);
   return `
   <div class="flex flex-col min-h-screen main-gradient">
     ${renderHeader(true)}
@@ -826,6 +862,7 @@ function renderSeasonSim() {
           <p class="text-xs font-bold uppercase tracking-widest text-muted-fg mb-1.5">Season in progress</p>
           <p id="sim-record" class="text-5xl font-black text-foreground leading-none" style="font-variant-numeric:tabular-nums">${w}–${l}</p>
           <p id="sim-gp" class="text-xs text-muted-fg mt-2">Game ${played.length} of ${total}</p>
+          <p id="sim-streak" class="text-xs font-bold mt-1" style="color:${streakLbl.color}">${streakLbl.text}</p>
         </div>
 
         <div class="h-2 rounded-full overflow-hidden" style="background:#e2e8f0">
@@ -986,6 +1023,7 @@ function renderResults() {
           <span class="inline-block text-sm font-bold px-4 py-1.5 rounded-full mb-2" style="background:${labelBg};color:${labelColor}">${emoji} ${label}</span>
           <p class="text-xs text-muted-fg mb-2">Win% ${r.winPct}% &nbsp;·&nbsp; Strength Index ${r.strength}</p>
           <div class="flex items-center justify-center gap-2 flex-wrap">
+            ${r.longestStreak >= 5 ? `<span class="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full border" style="background:#fef2f2;border-color:#fecaca;color:#dc2626">🔥 ${r.longestStreak}-game win streak</span>` : ''}
             <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full border border-border bg-slate-50 text-slate-600">
               🌍 Global Fanbase: ${fansLabel}
             </span>

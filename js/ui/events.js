@@ -27,7 +27,7 @@ import {
 import { submitGlobalScore, logAnalyticsEvent } from '../utils/firebase.js';
 import {
   render, $app, fmtPlayerLine, fmtDecadeShort, showToast, renderSeasonTickerRows,
-  computeAutopsy,
+  computeAutopsy, liveStreakLabel,
 } from '../ui/render.js'; // circular — safe (used only inside function bodies)
 
 // Expose modal close helpers globally — inline onclicks in modal HTML are outside #app
@@ -108,6 +108,7 @@ function dispatch(action) {
     const idx = parseInt(action.slice(11), 10);
     const p   = S.draftBoard[idx];
     if (!p) { render(); return; }
+    S.pendingPlacePos = null; // new card in hand — any armed slot goes stale
     if (S.mode === 'blind') {
       // HoopIQ: the reveal IS the pick — no toggling, no second look.
       // Escape hatch: team/era skips still replace the whole board, at the
@@ -126,12 +127,23 @@ function dispatch(action) {
     const id = action.slice(5);
     const p  = S.availablePlayers.find(x => x.id === id);
     if (!p) { render(); return; }
+    S.pendingPlacePos = null;
     S.selectedPlayer = S.selectedPlayer?.id === id ? null : p;
     render(); return;
   }
   if (action.startsWith('place-')) {
+    // Two-tap confirm: picks are permanent, and auto-spin fires the instant
+    // a slot is placed — a single fast tap shouldn't be able to lock in a
+    // misclick. First tap arms the slot; a second tap on the SAME slot
+    // confirms it. Tapping a different slot just re-arms there instead.
     const pos = action.slice(6);
-    placePlayer(pos);
+    if (S.pendingPlacePos === pos) {
+      S.pendingPlacePos = null;
+      placePlayer(pos);
+    } else {
+      S.pendingPlacePos = pos;
+      render();
+    }
     return;
   }
   if (action.startsWith('swap-')) {
@@ -237,6 +249,7 @@ function moveRosterPlayer(fromPos, toPos) {
 
 export function doSpin() {
   if (S.spinState !== 'idle') return;
+  S.pendingPlacePos = null;
 
   // First spin commits the coach — the system is chosen with zero players
   // seen, so the system meter is an objective rather than a post-hoc score.
@@ -296,6 +309,7 @@ export function doSpin() {
       S.availablePlayers = getAvailablePlayers(spin.team, spin.decade);
       S.draftBoard       = buildDraftBoard();
       S.selectedPlayer   = null;
+      S.pendingPlacePos  = null;
       updateDryCounter();
       render();
     }
@@ -338,6 +352,7 @@ function doSkipTeam() {
   S.availablePlayers = getAvailablePlayers(spin.team, spin.decade);
   S.draftBoard       = buildDraftBoard();
   S.selectedPlayer   = null;
+  S.pendingPlacePos  = null;
   updateDryCounter();
   render();
 }
@@ -357,6 +372,7 @@ function doSkipDecade() {
   S.availablePlayers = getAvailablePlayers(spin.team, spin.decade);
   S.draftBoard       = buildDraftBoard();
   S.selectedPlayer   = null;
+  S.pendingPlacePos  = null;
   updateDryCounter();
   render();
 }
@@ -450,19 +466,6 @@ function doSimulate() {
   // First-visit hook payoff delivered — from here on they're a veteran.
   if (S.coldOpen) markReturning();
 
-  // Auto-persist personal best + last-run tip — feeds the mode-select
-  // greeting without requiring a manual "Save Run".
-  try {
-    const prevBest = JSON.parse(localStorage.getItem('nba820_best') || 'null');
-    if (!prevBest || S.result.wins > prevBest.wins) {
-      localStorage.setItem('nba820_best', JSON.stringify({ wins: S.result.wins, losses: S.result.losses }));
-    }
-    localStorage.setItem('nba820_lastRun', JSON.stringify({
-      wins: S.result.wins, losses: S.result.losses,
-      tip: computeAutopsy()?.fix || null,
-    }));
-  } catch (e) {}
-
   // Paced reveal — outcome is already decided; this is presentation only.
   S.seasonGames     = S.result.games;
   S.seasonRevealIdx = 0;
@@ -492,10 +495,43 @@ function doSimulate() {
   rg.os   = rg.won ? rBase - Math.floor(rg.margin / 2) : rBase + Math.ceil(rg.margin / 2);
   rg.type = 'close';
 
+  // Longest streak + first-loss marker — computed on the final presented
+  // order (post cold-open reorder, post rival insert). The first loss of
+  // the season always gets the dramatic beat, whenever it lands — that
+  // moment is the biggest emotional swing an 82-0 chase can produce.
+  let curStreak = 0, longestStreak = 0;
+  for (const g of S.seasonGames) {
+    curStreak = g.won ? curStreak + 1 : 0;
+    if (curStreak > longestStreak) longestStreak = curStreak;
+  }
+  S.result.longestStreak = longestStreak;
+  const firstLossIdx = S.seasonGames.findIndex(g => !g.won);
+  if (firstLossIdx >= 0) {
+    S.seasonGames[firstLossIdx].isFirstLoss  = true;
+    S.seasonGames[firstLossIdx].streakBroken = firstLossIdx;
+  }
+
+  // Auto-persist personal best, best streak, and last-run tip — feeds the
+  // mode-select greeting without requiring a manual "Save Run".
+  try {
+    const prevBest = JSON.parse(localStorage.getItem('nba820_best') || 'null');
+    if (!prevBest || S.result.wins > prevBest.wins) {
+      localStorage.setItem('nba820_best', JSON.stringify({ wins: S.result.wins, losses: S.result.losses }));
+    }
+    const prevStreak = parseInt(localStorage.getItem('nba820_bestStreak') || '0', 10);
+    if (longestStreak > prevStreak) localStorage.setItem('nba820_bestStreak', String(longestStreak));
+    localStorage.setItem('nba820_lastRun', JSON.stringify({
+      wins: S.result.wins, losses: S.result.losses,
+      tip: computeAutopsy()?.fix || null,
+    }));
+  } catch (e) {}
+
   S.phase = 'season-sim';
   render();
   runSeasonReveal();
 }
+
+const STREAK_MILESTONES = [10, 20, 30, 40, 50, 60, 70, 80];
 
 /**
  * Reveals season games on a montage cadence: consecutive blowouts flash by
@@ -548,8 +584,22 @@ function runSeasonReveal() {
         !S.seasonGames[S.seasonRevealIdx + n].rival
       ) n++;
     }
+    const prevIdx = S.seasonRevealIdx;
     S.seasonRevealIdx = Math.min(S.seasonRevealIdx + n, total);
     updateSeasonSimDOM();
+
+    // The streak-ends beat — fires the tick the first loss lands, whatever
+    // game number it is.
+    const justRevealed = S.seasonGames.slice(prevIdx, S.seasonRevealIdx);
+    const brokeHere = justRevealed.find(g => g.isFirstLoss);
+    if (brokeHere) showToast(`💔 The streak ends at ${brokeHere.streakBroken}`, 3200);
+
+    // Live win-streak milestones — checked against the streak as of the end
+    // of this tick, since blowout batching can jump several games at once.
+    let liveStreak = 0;
+    for (let i = S.seasonRevealIdx - 1; i >= 0 && S.seasonGames[i].won; i--) liveStreak++;
+    const crossed = STREAK_MILESTONES.find(m => liveStreak >= m && liveStreak - n < m);
+    if (crossed) showToast(`🔥 ${crossed} STRAIGHT WINS!`, 2200);
 
     // Cliffhanger — first-ever run pauses after a won Game 1
     if (S.coldOpen && S.seasonRevealIdx === 1 && S.seasonGames[0].won) {
@@ -558,10 +608,13 @@ function runSeasonReveal() {
       return;
     }
 
-    // Late-season losses (game 61+) get the slow-motion treatment — early
-    // losses tick by at montage speed to protect a new roster's confidence.
+    // The season's first loss always gets the slow-motion beat, whenever it
+    // lands. Later losses keep the late-season-only treatment (game 61+);
+    // earlier ones tick by at montage speed to protect a new roster's
+    // confidence — the first loss is the one exception worth dramatizing.
     const next  = S.seasonGames[S.seasonRevealIdx];
     const delay = !next ? 500
+      : next.isFirstLoss ? 1100
       : (!next.won && (next.num || 0) > 60) ? 950
       : next.type === 'close' ? 550
       : next.type === 'solid' ? 200
@@ -584,6 +637,15 @@ function updateSeasonSimDOM() {
   const barEl = document.getElementById('sim-progress');
   if (barEl) barEl.style.width = `${(played.length / 82) * 100}%`;
   tickEl.innerHTML = renderSeasonTickerRows();
+
+  const streakEl = document.getElementById('sim-streak');
+  if (streakEl) {
+    let n = 0;
+    for (let i = played.length - 1; i >= 0 && played[i].won; i--) n++;
+    const { text, color } = liveStreakLabel(n);
+    streakEl.textContent = text;
+    streakEl.style.color = color;
+  }
 }
 
 function doSaveRun() {
