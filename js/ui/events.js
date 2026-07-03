@@ -118,7 +118,6 @@ function dispatch(action) {
     const idx = parseInt(action.slice(11), 10);
     const p   = S.draftBoard[idx];
     if (!p) { render(); return; }
-    S.pendingPlacePos = null; // new card in hand — any armed slot goes stale
     S.selectedPlayer = S.selectedPlayer?.id === p.id ? null : p;
     render(); return;
   }
@@ -126,23 +125,12 @@ function dispatch(action) {
     const id = action.slice(5);
     const p  = S.availablePlayers.find(x => x.id === id);
     if (!p) { render(); return; }
-    S.pendingPlacePos = null;
     S.selectedPlayer = S.selectedPlayer?.id === id ? null : p;
     render(); return;
   }
   if (action.startsWith('place-')) {
-    // Two-tap confirm: picks are permanent, and auto-spin fires the instant
-    // a slot is placed — a single fast tap shouldn't be able to lock in a
-    // misclick. First tap arms the slot; a second tap on the SAME slot
-    // confirms it. Tapping a different slot just re-arms there instead.
     const pos = action.slice(6);
-    if (S.pendingPlacePos === pos) {
-      S.pendingPlacePos = null;
-      placePlayer(pos);
-    } else {
-      S.pendingPlacePos = pos;
-      render();
-    }
+    placePlayer(pos);
     return;
   }
   if (action.startsWith('swap-')) {
@@ -260,7 +248,6 @@ function moveRosterPlayer(fromPos, toPos) {
 
 export function doSpin() {
   if (S.spinState !== 'idle') return;
-  S.pendingPlacePos = null;
 
   // First spin commits the coach — the system is chosen with zero players
   // seen, so the system meter is an objective rather than a post-hoc score.
@@ -325,7 +312,6 @@ export function doSpin() {
       S.availablePlayers = getAvailablePlayers(spin.team, spin.decade);
       S.draftBoard       = buildDraftBoard();
       S.selectedPlayer   = null;
-      S.pendingPlacePos  = null;
       updateDryCounter();
       render();
     }
@@ -368,7 +354,6 @@ function doSkipTeam() {
   S.availablePlayers = getAvailablePlayers(spin.team, spin.decade);
   S.draftBoard       = buildDraftBoard();
   S.selectedPlayer   = null;
-  S.pendingPlacePos  = null;
   updateDryCounter();
   render();
 }
@@ -388,7 +373,6 @@ function doSkipDecade() {
   S.availablePlayers = getAvailablePlayers(spin.team, spin.decade);
   S.draftBoard       = buildDraftBoard();
   S.selectedPlayer   = null;
-  S.pendingPlacePos  = null;
   updateDryCounter();
   render();
 }
