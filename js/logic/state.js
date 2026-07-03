@@ -275,7 +275,7 @@ export function startGame(era = 'all') {
     spinState:        'idle',   // 'idle' | 'spinning' | 'done'
     currentSpin:      null,     // { team, decade }
     availablePlayers: [],
-    draftBoard:       [],       // 3-player pick array
+    draftBoard:       [],       // pick board — all available players from the current spin's team/decade
     selectedPlayer:   null,
     movingPos:        null,
     roster: { PG: null, SG: null, SF: null, PF: null, C: null },
