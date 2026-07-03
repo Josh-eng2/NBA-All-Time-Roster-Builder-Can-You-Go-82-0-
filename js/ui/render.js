@@ -738,65 +738,95 @@ function renderSimulateCard() {
 
 // ── Results screen ────────────────────────────────────────────────────────────
 // ── Loss autopsy ──────────────────────────────────────────────────────────────
-// Attribution derived from real roster data, in priority order: an
-// out-of-position starter, then the first chemistry penalty, then the
-// lowest-popularity starter. Returns null when there's nothing to pin.
+// Attribution priority order:
+//   1. Out-of-position starter   — direct mechanical mismatch
+//   2. Balance penalty (≥ 0.03)  — the engine's primary loss driver, takes
+//      precedence over chemistry so the player gets the real fix signal first
+//   3. Chemistry penalty         — secondary structural issue
+//   4. Balance penalty (< 0.03)  — minor but still real
+//   5. Balanced-but-not-elite    — honest catch-all
+//
+// The engine packages `S.result.lossDiagnosis` with position-aware culprit
+// selection. This function renders that diagnosis verbatim — no re-derivation.
 export function computeAutopsy() {
   if (!S.result || !S.roster) return null;
 
+  // ── 1. Out-of-position ─────────────────────────────────────────────────────
   for (const pos of POSITIONS) {
     const p = S.roster[pos];
     if (p && p.pos !== pos && !(p.secondaryPos || []).includes(pos)) {
       return {
         icon:   '🎯',
         title:  `${p.name} played out of position all season`,
-        detail: `He's a natural ${p.pos} forced to hold down ${pos} every night. That mismatch is where the losses leaked.`,
-        fix:    `Draft a true ${pos} next run — one swap.`,
+        detail: `He's a natural ${p.pos} forced to hold down ${pos} every night. That positional mismatch bled losses from game one.`,
+        fix:    `Draft a true ${pos} next run — one swap closes the gap.`,
       };
     }
   }
 
-  const penalty = (S.result.chemReport || []).find(l => l.startsWith('🔴'));
-  if (penalty) {
+  const d = S.result.lossDiagnosis;
+
+  // ── 2. Significant balance penalty (≥ 0.03 strength units) ────────────────
+  // This is the engine's primary loss mechanism. It fires before chemistry so
+  // players get the real fix signal, not a secondary structural note.
+  if (d && d.penaltyAmount >= 0.03) return _renderBalanceDiagnosis(d);
+
+  // ── 3. Chemistry penalty ───────────────────────────────────────────────────
+  const chemPenalty = (S.result.chemReport || []).find(l => l.startsWith('🔴'));
+  if (chemPenalty) {
     return {
       icon:   '🧪',
       title:  'Your chemistry sprung a leak',
-      detail: penalty.replace('🔴', '').trim(),
-      fix:    'One roster change breaks the penalty.',
+      detail: chemPenalty.replace('🔴', '').trim(),
+      fix:    'One roster change removes this penalty — check the Chemistry Report below.',
     };
   }
 
-  // Real weak-link mechanism: the sim's own balance penalty names the stat
-  // category dragging the team down — not a cosmetic popularity score.
-  if (S.result.balancePenalty > 0 && S.result.weakestStat) {
-    const STAT_LABEL = {
-      ppg: 'scoring', rpg: 'rebounding', apg: 'playmaking',
-      spg: 'perimeter defense', bpg: 'rim protection',
-    };
-    const key   = S.result.weakestStat;
-    const label = STAT_LABEL[key] || key;
-    let weak = null, weakPos = null;
-    for (const pos of POSITIONS) {
-      const p = S.roster[pos];
-      if (p && (!weak || p[key] < weak[key])) { weak = p; weakPos = pos; }
-    }
-    return {
-      icon:   '📉',
-      title:  weak ? `${weak.name} got exposed on ${label}` : `Your ${label} fell apart`,
-      detail: weak
-        ? `${weak.name} posted your lineup's lowest ${key.toUpperCase()} — opponents attacked that gap every night and it dragged the whole roster down.`
-        : `The starting five's combined ${label} fell below championship level.`,
-      fix:    `Upgrade ${label}${weakPos ? ` at ${weakPos}` : ''} — one swing player fixes this.`,
-    };
-  }
+  // ── 4. Minor balance penalty (> 0 but < 0.03) ─────────────────────────────
+  if (d && d.penaltyAmount > 0) return _renderBalanceDiagnosis(d);
 
-  // No identifiable weak link — the roster is balanced but not yet elite
-  // anywhere. Say so honestly instead of inventing a culprit.
+  // ── 5. Balanced but not elite anywhere ────────────────────────────────────
   return {
     icon:   '📊',
     title:  'No single flaw — just not championship-caliber yet',
-    detail: 'Every category is solid but none is dominant. There\'s no weak link to fix — the whole roster needs to level up.',
-    fix:    'Chase higher-tier players across the board, not one position.',
+    detail: 'Every category is solid but none is dominant. There is no one weak link to fix — the whole roster needs to level up.',
+    fix:    'Target players with elite composite stats across all five categories.',
+  };
+}
+
+/**
+ * Converts a `lossDiagnosis` object (built by the engine) into the autopsy
+ * card shape the UI template expects.
+ *
+ * When the culprit is clearly below the per-player baseline for their stat,
+ * we name them specifically and tell the player what that stat gap looks like.
+ * When the issue is genuinely team-wide (all starters near baseline but the
+ * aggregate still falls short) we describe the team gap instead of inventing
+ * a scapegoat.
+ *
+ * @param {object} d — lossDiagnosis from S.result
+ */
+function _renderBalanceDiagnosis(d) {
+  const { statKey, statLabel, culpritName, culpritPos, culpritStat,
+          perPlayerBase, culpritBelowBase, recommendedFix } = d;
+  const statUpper = statKey.toUpperCase();
+
+  if (culpritBelowBase && culpritName) {
+    // Single player is the clear upgrade point.
+    return {
+      icon:   '📉',
+      title:  `${culpritName} was the weak link on ${statLabel}`,
+      detail: `From the ${culpritPos} slot, ${culpritName} averaged ${culpritStat} ${statUpper} — below the starter baseline of ${perPlayerBase} ${statUpper}. Opponents attacked that gap every night until it dragged the whole lineup down.`,
+      fix:    `Next draft, target ${recommendedFix}.`,
+    };
+  }
+
+  // Team-wide gap — no single player to blame, but the fix is still specific.
+  return {
+    icon:   '📉',
+    title:  `Your ${statLabel} fell below championship level`,
+    detail: `The starting five's combined ${statLabel} didn't reach the baseline for title contenders — no one starter is the villain, but the collective gap gave opponents a free lane all season.`,
+    fix:    `Next draft, target ${recommendedFix}.`,
   };
 }
 

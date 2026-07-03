@@ -124,12 +124,127 @@ export function coachSystemProgress(coach, starters) {
   return { progress: 0, metric: '' };
 }
 
+// ── Loss diagnosis ────────────────────────────────────────────────────────────
+// Human-readable labels for each tracked stat.
+const STAT_LABEL = {
+  ppg: 'scoring',
+  rpg: 'rebounding',
+  apg: 'playmaking',
+  spg: 'perimeter defense',
+  bpg: 'rim protection',
+};
+
+// Which position slot is most accountable for generating each stat.
+// The first position in each array is "most responsible" and so on down.
+// This ensures a C with low APG is never indicted for a playmaking gap —
+// the PG owns that slot.
+const STAT_ROLE_PRIORITY = {
+  ppg: ['SG', 'SF', 'PG', 'PF', 'C'],
+  rpg: ['C',  'PF', 'SF', 'SG', 'PG'],
+  apg: ['PG', 'SG', 'SF', 'PF', 'C'],
+  spg: ['PG', 'SG', 'SF', 'PF', 'C'],
+  bpg: ['C',  'PF', 'SF', 'SG', 'PG'],
+};
+
+// Plain-English draft advice for each stat gap.
+const STAT_DRAFT_FIX = {
+  ppg: 'a higher-scoring starter — look for strong PPG at SG or SF',
+  rpg: 'a dominant rebounder — target a C or PF with elite RPG',
+  apg: 'a playmaking guard — look for strong APG at PG',
+  spg: 'a perimeter stopper — target a PG or SG with high SPG',
+  bpg: 'a rim protector — look for a C or PF with strong BPG',
+};
+
+/**
+ * Packages the engine's balance-penalty diagnosis into a structured object
+ * the UI can display verbatim — no re-derivation on the UI side needed.
+ *
+ * Culprit selection uses position-role priority so a center is never blamed
+ * for a playmaking gap, a guard is never blamed for a rim-protection gap, etc.
+ * Tie-breaking follows: (1) role priority, (2) worst contributor relative to
+ * per-player baseline, (3) lowest raw stat value, (4) draft-slot order.
+ *
+ * @param {object[]} starters
+ * @param {string}   weakestStat   — 'ppg'|'rpg'|'apg'|'spg'|'bpg'
+ * @param {number}   balancePenalty
+ * @param {object}   sRatio        — team stat / STARTER_BASE per stat
+ * @param {object}   STARTER_BASE  — 5-player aggregate baselines
+ * @returns {object|null}
+ */
+function buildLossDiagnosis(starters, weakestStat, balancePenalty, sRatio, STARTER_BASE) {
+  if (!weakestStat || !starters.length) return null;
+
+  const statLabel      = STAT_LABEL[weakestStat] || weakestStat;
+  const teamRatio      = sRatio[weakestStat];
+  const perPlayerBase  = STARTER_BASE[weakestStat] / 5; // expected per-starter contribution
+  const rolePriority   = STAT_ROLE_PRIORITY[weakestStat] || ['PG', 'SG', 'SF', 'PF', 'C'];
+
+  // Build a position → player map for fast lookup.
+  const byPos = {};
+  for (const p of starters) byPos[p.pos] = p;
+
+  // ── Step 1: find the role-priority player whose stat is below per-player baseline.
+  // This is the most actionable upgrade: the "responsible" slot is underperforming.
+  let culprit    = null;
+  let culpritPos = null;
+
+  for (const rolePos of rolePriority) {
+    const p = byPos[rolePos];
+    if (p && p[weakestStat] < perPlayerBase) {
+      culprit    = p;
+      culpritPos = rolePos;
+      break;
+    }
+  }
+
+  // ── Step 2: every role-priority player is at or above baseline, but the team
+  // ratio is still low (secondary positions are dragging). Indict the starter
+  // in the role-priority order who has the lowest raw stat — the clearest
+  // upgrade point.
+  if (!culprit) {
+    for (const rolePos of rolePriority) {
+      const p = byPos[rolePos];
+      if (p && (!culprit || p[weakestStat] < culprit[weakestStat])) {
+        culprit    = p;
+        culpritPos = rolePos;
+      }
+    }
+  }
+
+  // ── Step 3: safety net — position not filled; fall back to lowest raw value.
+  if (!culprit) {
+    for (const p of starters) {
+      if (!culprit || p[weakestStat] < culprit[weakestStat]) culprit = p;
+    }
+    culpritPos = culprit?.pos ?? null;
+  }
+
+  // If the culprit is actually at or above the per-player baseline the weakness
+  // is genuinely team-wide, not a single-player failure — flag it that way.
+  const culpritBelowBase = culprit ? culprit[weakestStat] < perPlayerBase : false;
+
+  return {
+    primaryCause:      'balance_penalty',
+    statKey:           weakestStat,
+    statLabel,
+    teamRatio:         +teamRatio.toFixed(3),
+    penaltyAmount:     +balancePenalty.toFixed(4),
+    culpritId:         culprit?.id          ?? null,
+    culpritName:       culprit?.name        ?? null,
+    culpritPos,
+    culpritStat:       culprit ? +culprit[weakestStat].toFixed(1) : null,
+    perPlayerBase:     +perPlayerBase.toFixed(1),
+    culpritBelowBase,
+    recommendedFix:    STAT_DRAFT_FIX[weakestStat] ?? `a stronger ${statLabel} contributor`,
+  };
+}
+
 /**
  * Simulates a full 82-game regular season.
  *
  * @param {object[]} starters  5 starting player objects
  * @returns {object}  { wins, losses, winPct, strength, totals, ratio,
- *                      sTotals, chemScore, chemReport }
+ *                      sTotals, chemScore, chemReport, lossDiagnosis }
  */
 export function simulateSeason(starters, coach = null) {
   const sumStats = arr => arr.reduce(
@@ -169,6 +284,8 @@ export function simulateSeason(starters, coach = null) {
   const weakestStat      = weakestStatEntry[0];
   const minStarterRatio  = weakestStatEntry[1];
   const balancePenalty   = minStarterRatio < 0.82 ? (0.82 - minStarterRatio) * 0.8 : 0;
+
+  const lossDiagnosis = buildLossDiagnosis(starters, weakestStat, balancePenalty, sRatio, STARTER_BASE);
 
   const { chemBonus, chemScore, chemReport, lineupAssignment } = calculateChemistry(starters);
 
@@ -222,7 +339,7 @@ export function simulateSeason(starters, coach = null) {
     strength:   +adjustedStrength.toFixed(3),
     baseStrength: +baseStrength.toFixed(3),
     totals, ratio, sTotals,
-    balancePenalty: +balancePenalty.toFixed(4), weakestStat,
+    balancePenalty: +balancePenalty.toFixed(4), weakestStat, lossDiagnosis,
     chemScore, chemReport, lineupAssignment,
     avgPopularity: +avgPop.toFixed(1),
     popEloDelta,
