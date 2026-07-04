@@ -246,7 +246,7 @@ function buildLossDiagnosis(starters, weakestStat, balancePenalty, sRatio, START
  * @returns {object}  { wins, losses, winPct, strength, totals, ratio,
  *                      sTotals, chemScore, chemReport, lossDiagnosis }
  */
-export function simulateSeason(starters, coach = null, rng = Math.random) {
+export function simulateSeason(starters, coach = null) {
   const sumStats = arr => arr.reduce(
     (acc, p) => ({
       ppg: acc.ppg + p.ppg,
@@ -318,13 +318,12 @@ export function simulateSeason(starters, coach = null, rng = Math.random) {
 
   const winPct = Math.min(WIN_CAP, 1 / (1 + Math.exp(-SIM_K * (adjustedStrength - SIM_CENTER))));
 
-  // Per-game log. The win draw uses the injected rng (seeded for Daily so
-  // equal rosters produce equal records); opponents, scores, and margins are
-  // presentational flavor layered on top and stay on Math.random.
+  // Per-game log. Opponents, scores, and margins are presentational flavor
+  // layered on top of the win/loss draw.
   let wins = 0;
   const games = [];
   for (let i = 0; i < 82; i++) {
-    const won = rng() < winPct;
+    const won = Math.random() < winPct;
     if (won) wins++;
     games.push({ won });
   }

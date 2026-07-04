@@ -42,26 +42,9 @@ export function markReturning() {
   try { localStorage.setItem(RETURNING_KEY, '1'); } catch (e) {}
 }
 
-// ── Daily Draft result ────────────────────────────────────────────────────────
-// One attempt per calendar day. The stored result gates replay and feeds the
-// shareable score card.
-
-const DAILY_KEY = 'nba820_daily';
-
-/** @returns {object|null} today's stored daily result, or null. */
-export function getDailyResult() {
-  try { return JSON.parse(localStorage.getItem(DAILY_KEY) || 'null'); }
-  catch (e) { return null; }
-}
-
-export function saveDailyResult(entry) {
-  try { localStorage.setItem(DAILY_KEY, JSON.stringify(entry)); }
-  catch (e) { if (e.name === 'QuotaExceededError') console.warn('[storage] localStorage full — daily not saved'); }
-}
-
 // ── Legends collection ────────────────────────────────────────────────────────
 // A persistent set of every player id the user has ever STARTED (across solo,
-// HoopIQ, Daily, and both 1v1 rosters). Survives runs — the "number goes up"
+// HoopIQ, and both 1v1 rosters). Survives runs — the "number goes up"
 // meta-progression hook.
 
 const LEGENDS_KEY = 'nba820_legends';
