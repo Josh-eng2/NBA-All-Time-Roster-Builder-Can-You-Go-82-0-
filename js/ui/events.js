@@ -20,10 +20,8 @@ import {
 } from '../logic/draft.js';
 import { simulateSeason, simulateSeries, simulateHeadToHeadSeries } from '../logic/simulation.js';
 import { applyPlayoffRound } from '../logic/playoffs.js';
-import { getDailyDraft, dailyDateKey, dailySeasonRng } from '../logic/daily.js';
 import {
   saveLeaderboard, saveToTrophyRoom, markReturning, recordLegends,
-  getDailyResult, saveDailyResult,
   showLeaderboardModal, closeLeaderboardModal,
   showGlobalLeaderboardModal, closeGlobalLeaderboardModal,
 } from '../utils/storage.js';
@@ -75,14 +73,6 @@ function dispatch(action) {
     S.takenPlayerIds = new Set();
     doStartGame('all'); return;
   }
-  if (action === 'mode-daily') {
-    if (getDailyResult()?.date === dailyDateKey()) { render(); return; } // already played today
-    S.currentPlayer = 1; S.p1 = null;
-    S.takenPlayerIds = new Set();
-    doStartGameDaily(); return;
-  }
-  if (action === 'share-daily')  { doShareDaily();  return; }
-
   // ── Coach (in-draft chip) & Era (header picker) ────────────────────────────
   // Coach lives on the drafting screen; era lives in the header. Both lock on first spin.
   if (action.startsWith('coach-pick-')) {
@@ -170,6 +160,7 @@ function dispatch(action) {
   if (action === 'advance-to-playoffs') { doAdvanceToPlayoffs(); return; }
   if (action === 'sim-next-round')      { doSimNextRound();      return; }
   if (action === 'sim-all-playoffs')    { doSimAllPlayoffs();    return; }
+  if (action === 'playoffs-continue')   { S.playoffs.pendingReveal = false; render(); return; }
 
   // ── UI helpers ─────────────────────────────────────────────────────────────
   if (action === 'share')                  { doShare();                          return; }
@@ -214,28 +205,6 @@ function doStartGame(era = 'all') {
   }
   startGame(era);
   logAnalyticsEvent('game_started', { era, coach: S.coach ?? 'none' });
-  render();
-}
-
-/**
- * Daily Draft: 5 seeded team/decade boards, no skips, no re-spins, seeded
- * season. The player picks one legend per forced board + a coach; a given
- * roster always produces the same record so the day is fair and shareable.
- */
-function doStartGameDaily() {
-  const dateKey = dailyDateKey();
-  const { buckets } = getDailyDraft(dateKey);
-  if (!S.coach) {
-    let remembered = null;
-    try { remembered = localStorage.getItem('nba820_coach'); } catch (e) {}
-    S.coach = COACHES.some(c => c.id === remembered) ? remembered : 'jackson';
-  }
-  S.mode = 'daily';
-  startGame('all');            // rebuilds S; preserves mode + coach
-  S.dailyDate    = dateKey;
-  S.dailyBuckets = buckets;
-  S.eraLocked    = true;       // the day's boards are fixed — no era picker
-  logAnalyticsEvent('daily_started', { date: dateKey });
   render();
 }
 
@@ -326,31 +295,23 @@ export function doSpin() {
 
     if (ticks >= total) {
       clearInterval(interval);
-      // Daily Draft: the 5 boards are fixed by the date seed — just advance
-      // to this round's pre-determined team/decade. No rig, no randomness.
-      let spin;
-      if (S.mode === 'daily') {
-        const b = S.dailyBuckets?.[S.round];
-        spin = b ? { team: b.team, decade: b.decade } : null;
-      } else {
-        // Escalating rounds for solo/blind runs:
-        //   round 1      — GOAT-tier guarantee (the hook)
-        //   rounds 2–3   — star-or-better guarantee (front-loaded generosity)
-        //   rounds 4+    — pure random, protected by the pity timer:
-        //                  a starless board forces the NEXT spin to star tier,
-        //                  so back-to-back dry boards can't happen. (With only
-        //                  two unrigged spins in the 5-pick format, the old
-        //                  4-board threshold could never fire.)
-        // 1v1 keeps pure random spins for competitive fairness.
-        const solo    = S.mode !== '1v1';
-        const rigGoat = solo && S.round === 0;
-        const rigStar = solo && !rigGoat && S.round <= 2;
-        const pity    = solo && !rigGoat && !rigStar && (S.drySpins ?? 0) >= 1;
-        if (pity) logAnalyticsEvent('pity_spin_triggered', { round: S.round + 1 });
-        spin = rigGoat ? spinResultAtLeast('goat')
-          : (rigStar || pity) ? spinResultAtLeast('star')
-          : spinResult();
-      }
+      // Escalating rounds for solo/blind runs:
+      //   round 1      — GOAT-tier guarantee (the hook)
+      //   rounds 2–3   — star-or-better guarantee (front-loaded generosity)
+      //   rounds 4+    — pure random, protected by the pity timer:
+      //                  a starless board forces the NEXT spin to star tier,
+      //                  so back-to-back dry boards can't happen. (With only
+      //                  two unrigged spins in the 5-pick format, the old
+      //                  4-board threshold could never fire.)
+      // 1v1 keeps pure random spins for competitive fairness.
+      const solo    = S.mode !== '1v1';
+      const rigGoat = solo && S.round === 0;
+      const rigStar = solo && !rigGoat && S.round <= 2;
+      const pity    = solo && !rigGoat && !rigStar && (S.drySpins ?? 0) >= 1;
+      if (pity) logAnalyticsEvent('pity_spin_triggered', { round: S.round + 1 });
+      const spin = rigGoat ? spinResultAtLeast('goat')
+        : (rigStar || pity) ? spinResultAtLeast('star')
+        : spinResult();
       if (!spin) {
         // All player slots exhausted — reset to idle so the user isn't stuck
         S.spinState = 'idle';
@@ -395,22 +356,51 @@ function updateDryCounter() {
   S.drySpins = hasStar ? 0 : (S.drySpins ?? 0) + 1;
 }
 
+/**
+ * Re-plays the slot-machine spin animation before landing on an
+ * already-determined result — used by skip-team/skip-decade so a skip
+ * feels like a re-spin, not an instant swap. Whichever slot didn't change
+ * stays fixed on its current value throughout; the other tumbles.
+ * @param {{team:string, decade:string}} spin  the predetermined landing result
+ * @param {boolean} tumbleTeam
+ * @param {boolean} tumbleDecade
+ */
+function animateSkipReveal(spin, tumbleTeam, tumbleDecade) {
+  S.spinState = 'spinning';
+  render();
+  const spinGameId = S.gameId; // guards against a mid-spin restart
+  let ticks = 0;
+  const total = 14;
+  const interval = setInterval(() => {
+    if (S.gameId !== spinGameId) { clearInterval(interval); return; }
+    ticks++;
+    const teamEl   = document.getElementById('slot-team');
+    const decadeEl = document.getElementById('slot-decade');
+    if (teamEl)   teamEl.textContent   = tumbleTeam   ? pick(TEAMS)   : spin.team;
+    if (decadeEl) decadeEl.textContent = tumbleDecade ? pick(DECADES) : spin.decade;
+
+    if (ticks >= total) {
+      clearInterval(interval);
+      S.currentSpin      = spin;
+      S.spinState        = 'done';
+      S.availablePlayers = getAvailablePlayers(spin.team, spin.decade);
+      S.draftBoard       = buildDraftBoard();
+      S.selectedPlayer   = null;
+      updateDryCounter();
+      render();
+    }
+  }, 90);
+}
+
 function doSkipTeam() {
-  if (S.mode === 'daily') { render(); return; } // daily boards are fixed
   if (S.teamSkips <= 0 || !S.currentSpin || S.spinState !== 'done') { render(); return; }
   const spin = spinResult(null, S.currentSpin.decade);
   if (!spin) { render(); return; }
   S.teamSkips--;
-  S.currentSpin      = spin;
-  S.availablePlayers = getAvailablePlayers(spin.team, spin.decade);
-  S.draftBoard       = buildDraftBoard();
-  S.selectedPlayer   = null;
-  updateDryCounter();
-  render();
+  animateSkipReveal(spin, true, false);
 }
 
 function doSkipDecade() {
-  if (S.mode === 'daily') { render(); return; } // daily boards are fixed
   const activeEra = S.mode === '1v1'
     ? (S.currentPlayer === 1 ? (S.p1Era || 'all') : (S.p2Era || 'all'))
     : (S.selectedEra || 'all');
@@ -421,12 +411,7 @@ function doSkipDecade() {
   const spin = spinResult(S.currentSpin.team, pick(pool));
   if (!spin) { render(); return; }
   S.decadeSkips--;
-  S.currentSpin      = spin;
-  S.availablePlayers = getAvailablePlayers(spin.team, spin.decade);
-  S.draftBoard       = buildDraftBoard();
-  S.selectedPlayer   = null;
-  updateDryCounter();
-  render();
+  animateSkipReveal(spin, false, true);
 }
 
 function placePlayer(pos) {
@@ -513,9 +498,7 @@ function placePlayer(pos) {
 function doSimulate() {
   if (S.phase !== 'drafting' || S.mode === '1v1') return;
   const starters = POSITIONS.map(p => S.roster[p]).filter(Boolean);
-  // Daily uses a date-seeded win-draw stream so identical rosters tie.
-  const rng = S.mode === 'daily' ? dailySeasonRng(S.dailyDate) : Math.random;
-  S.result  = simulateSeason(starters, S.coach, rng);
+  S.result  = simulateSeason(starters, S.coach);
   S.runSaved = false;
 
   // Meta-progression: every started legend joins the permanent collection.
@@ -569,20 +552,6 @@ function doSimulate() {
   if (firstLossIdx >= 0) {
     S.seasonGames[firstLossIdx].isFirstLoss  = true;
     S.seasonGames[firstLossIdx].streakBroken = firstLossIdx;
-  }
-
-  // Daily Draft: lock in today's one attempt so it can't be replayed and
-  // can be shared.
-  if (S.mode === 'daily') {
-    saveDailyResult({
-      date:     S.dailyDate,
-      wins:     S.result.wins,
-      losses:   S.result.losses,
-      streak:   longestStreak,
-      coach:    S.coach || null,
-      starters: POSITIONS.map(p => S.roster[p]?.name || '—'),
-    });
-    logAnalyticsEvent('daily_completed', { date: S.dailyDate, wins: S.result.wins });
   }
 
   // Revenge game tagging — two passes over the ordered game log.
@@ -854,9 +823,6 @@ function doShare() {
   const r = S.result;
   if (!r) return;
 
-  // Daily runs get the spoiler-free Wordle-style card instead of the roster dump.
-  if (S.mode === 'daily' && getDailyResult()?.date === S.dailyDate) { doShareDaily(); return; }
-
   const isPerfect  = r.wins === 82;
   const isHistoric = r.wins >= 75;
   const isElite    = r.wins >= 70;
@@ -891,36 +857,6 @@ function doShare() {
   } else if (navigator.clipboard) {
     navigator.clipboard.writeText(text)
       .then(()  => showToast('Copied to clipboard! 🏀'))
-      .catch(() => showToast('Failed to copy to clipboard'));
-  } else {
-    showToast('Failed to copy to clipboard');
-  }
-}
-
-// ── Daily share ───────────────────────────────────────────────────────────────
-
-function doShareDaily() {
-  const d = getDailyResult();
-  if (!d) return;
-  const filled = Math.round((d.wins / 82) * 10);
-  const bar    = '🟩'.repeat(filled) + '⬜'.repeat(10 - filled);
-  const tier   = d.wins === 82 ? '🏆 PERFECT'
-    : d.wins >= 75 ? '🔥 Historic'
-    : d.wins >= 70 ? '⚡ Elite'
-    : d.wins >= 60 ? '✅ Contender'
-    : '😬 Rough';
-  const text = [
-    `82-0 Daily · ${d.date}`,
-    `${d.wins}-${d.losses}  ${tier}`,
-    bar,
-    'Can you beat it? → 82-0.com',
-  ].join('\n');
-
-  if (navigator.share) {
-    navigator.share({ title: '82-0 Daily', text }).catch(() => {});
-  } else if (navigator.clipboard) {
-    navigator.clipboard.writeText(text)
-      .then(()  => showToast('Daily result copied! 🏀'))
       .catch(() => showToast('Failed to copy to clipboard'));
   } else {
     showToast('Failed to copy to clipboard');
@@ -963,9 +899,10 @@ function doAdvanceToPlayoffs() {
     rounds:       [],
     currentRound: 0,
     bracket,
-    eliminated:   false,
-    champion:     false,
-    tickState:    null,
+    eliminated:    false,
+    champion:      false,
+    tickState:     null,
+    pendingReveal: false, // true right after "Simulate Entire Playoffs" — holds on the filled bracket before the champion/eliminated splash
     roundNames:   ['Conference Quarterfinals', 'Conference Semifinals', 'NBA Finals'],
   };
   S.phase = 'playoffs';
@@ -1020,5 +957,8 @@ function doSimAllPlayoffs() {
     }
     if (outcome === 'eliminated') break;
   }
+  // Hold on the fully-filled bracket instead of jumping straight to the
+  // champion/eliminated splash — "Continue" (below) advances from there.
+  po.pendingReveal = true;
   render();
 }

@@ -18,8 +18,7 @@ import { calculateChemistry }                             from '../logic/chemist
 import { rosterFull, availableDecades, getLegendCatalog } from '../logic/draft.js';
 import { coachSystemProgress }                            from '../logic/simulation.js';
 import { getBracketDisplayState }                         from '../logic/playoffs.js';
-import { markReturning, getCollectedLegends, getDailyResult } from '../utils/storage.js';
-import { dailyDateKey }                                    from '../logic/daily.js';
+import { markReturning, getCollectedLegends }             from '../utils/storage.js';
 import { bindEvents }                                     from '../ui/events.js'; // circular — safe (called inside functions only)
 
 // ── Mount point ───────────────────────────────────────────────────────────────
@@ -172,28 +171,6 @@ function renderFooter() {
   </footer>`;
 }
 
-// ── Daily Draft card (mode-select hero) ───────────────────────────────────────
-// Compact Daily Draft entry point for the mode-select header. Unplayed → play
-// today's draft; played → shows the record and taps through to share.
-function renderDailyHeaderPill() {
-  const result = getDailyResult();
-  const played = result?.date === dailyDateKey();
-
-  if (!played) {
-    return `
-    <button data-action="mode-daily" type="button" title="Daily Draft — same 5 boards for everyone, one shot"
-      class="inline-flex items-center gap-1 text-[11px] font-black px-2.5 py-1 rounded-full text-white cursor-pointer transition-all hover:opacity-90"
-      style="background:linear-gradient(135deg,#4f46e5,#7c3aed)">
-      <span style="pointer-events:none">📅 Daily</span>
-    </button>`;
-  }
-  return `
-    <button data-action="share-daily" type="button" title="Daily Draft done — tap to share your result"
-      class="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full cursor-pointer border border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-all">
-      <span style="pointer-events:none">📅 ${result.wins}–${result.losses} ✓</span>
-    </button>`;
-}
-
 // ── Mode selection ────────────────────────────────────────────────────────────
 function renderModeSelect() {
   // Anyone who reaches the menus — by finishing the cold open or escaping
@@ -207,12 +184,10 @@ function renderModeSelect() {
   return `
   <div class="flex flex-col min-h-screen main-gradient">
     <header class="sticky top-0 z-50 w-full bg-white border-b border-border" style="box-shadow:0 1px 3px rgba(0,0,0,0.05)">
-      <div class="mx-auto flex h-14 max-w-2xl items-center px-4">
-        <div class="flex-1 flex justify-start">
-          ${renderDailyHeaderPill()}
-        </div>
+      <div class="mx-auto flex h-14 max-w-2xl items-center justify-between px-4">
+        <div class="w-20"></div>
         <img src="logo-badge.svg" alt="82-0" style="height:52px;width:auto;margin-top:2px"/>
-        <div class="flex-1 flex items-center gap-1.5 justify-end">
+        <div class="flex items-center gap-1.5 w-20 justify-end">
           <button data-action="open-leaderboard" class="text-[11px] px-2 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Personal Best">🏅</button>
           <button data-action="open-global-leaderboard" class="text-[11px] px-2 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Global Leaderboard">🌍</button>
         </div>
@@ -635,8 +610,8 @@ function renderSlotMachine() {
     <div class="flex items-center gap-2 mb-3">
       <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Draft Board — Round ${S.round + 1}</p>
       <div class="ml-auto flex gap-1.5">
-        ${S.mode !== 'daily' && isDone && S.teamSkips > 0 ? `<button data-action="skip-team" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">Skip Team (${S.teamSkips})</button>` : ''}
-        ${S.mode !== 'daily' && isDone && S.decadeSkips > 0 && !eraLocked ? `<button data-action="skip-decade" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">Skip Era (${S.decadeSkips})</button>` : ''}      </div>
+        ${isDone && S.teamSkips > 0 ? `<button data-action="skip-team" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">Skip Team (${S.teamSkips})</button>` : ''}
+        ${isDone && S.decadeSkips > 0 && !eraLocked ? `<button data-action="skip-decade" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">Skip Era (${S.decadeSkips})</button>` : ''}      </div>
     </div>
     <div class="grid grid-cols-2 gap-3 mb-4 ${isSpin ? 'slot-spinning' : ''}">
       <div class="rounded-xl border-2 p-4 flex flex-col items-center justify-center min-h-[88px] transition-all"
@@ -1179,6 +1154,10 @@ function renderResults() {
       }).join('')
     : `<p class="text-sm text-muted-fg py-1">No synergies or penalties — balanced roster.</p>`;
 
+  // Hoisted once — used both for the autopsy card and to decide whether the
+  // "Advance to Playoffs" button needs a standalone home at the bottom.
+  const autopsy = !isPerfect ? computeAutopsy() : null;
+
   const chemScoreBadge = r.chemScore !== undefined ? (() => {
     const sc      = r.chemScore;
     const scColor = sc >= 60 ? '#16a34a' : sc >= 40 ? '#d97706' : '#dc2626';
@@ -1222,43 +1201,28 @@ function renderResults() {
           </div>
         </div>
 
-        ${r.newLegends > 0 ? (() => {
-          const { total } = getLegendCatalog();
-          const have = getCollectedLegends().size;
-          return `
-          <button data-action="view-legends"
-            class="w-full rounded-2xl border cursor-pointer transition-all hover:bg-indigo-100 card-shadow flex items-center gap-3 px-4 py-3 text-left"
-            style="border-color:#c7d2fe;background:#eef2ff">
-            <span class="text-2xl flex-shrink-0">🃏</span>
-            <div class="min-w-0 flex-1">
-              <p class="text-sm font-black text-indigo-700">+${r.newLegends} new legend${r.newLegends === 1 ? '' : 's'} collected!</p>
-              <p class="text-xs text-indigo-500 mt-0.5">${have}/${total} all-time legends in your collection · tap to view</p>
-            </div>
-            <span class="text-indigo-400 flex-shrink-0">›</span>
-          </button>`;
-        })() : ''}
-
-        ${!isPerfect ? (() => {
-          const a = computeAutopsy();
-          if (!a) return '';
-          return `
+        ${autopsy ? `
           <div class="rounded-2xl bg-white p-4 card-shadow" style="border:1.5px solid #fecaca">
             <p class="text-xs font-bold uppercase tracking-widest mb-2.5" style="color:#dc2626">
               Loss Autopsy — where the ${r.losses} ${r.losses === 1 ? 'loss' : 'losses'} came from
             </p>
             <div class="flex items-start gap-3">
-              <span class="text-2xl flex-shrink-0">${a.icon}</span>
+              <span class="text-2xl flex-shrink-0">${autopsy.icon}</span>
               <div class="min-w-0 flex-1">
-                <p class="text-sm font-black text-foreground mb-0.5">${a.title}</p>
-                <p class="text-xs text-muted-fg leading-relaxed">${a.detail}</p>
-                <p class="text-xs font-bold mt-2" style="color:#2563eb">💡 ${a.fix}</p>
+                <p class="text-sm font-black text-foreground mb-0.5">${autopsy.title}</p>
+                <p class="text-xs text-muted-fg leading-relaxed">${autopsy.detail}</p>
+                <p class="text-xs font-bold mt-2" style="color:#2563eb">💡 ${autopsy.fix}</p>
               </div>
             </div>
-            <button data-action="draft-new-roster"
-              class="w-full mt-3 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest text-white cursor-pointer transition-all hover:opacity-90"
-              style="background:#dc2626">🔁 Run It Back — Fix It</button>
-          </div>`;
-        })() : ''}
+            <div class="grid grid-cols-2 gap-3 mt-3">
+              <button data-action="draft-new-roster"
+                class="py-2.5 rounded-xl font-black text-xs uppercase tracking-widest text-white cursor-pointer transition-all hover:opacity-90"
+                style="background:#dc2626">🔁 Run It Back — Fix It</button>
+              <button data-action="advance-to-playoffs"
+                class="py-2.5 rounded-xl font-black text-xs uppercase tracking-widest text-white cursor-pointer transition-all hover:opacity-90"
+                style="background:#2563eb">Advance to Playoffs 🏆</button>
+            </div>
+          </div>` : ''}
 
         <div class="rounded-2xl border border-border bg-white p-4 card-shadow">
           <div class="flex items-center justify-between mb-3">
@@ -1378,9 +1342,10 @@ function renderResults() {
         </div>
         <!-- ── Action buttons ────────────────────────────────────────── -->
         <div class="flex flex-col gap-3">
+          ${!autopsy ? `
           <button data-action="advance-to-playoffs" class="py-3.5 rounded-xl font-bold text-sm bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer text-center card-shadow">
             Advance to Playoffs 🏆
-          </button>
+          </button>` : ''}
           <div class="grid grid-cols-2 gap-3">
             <button data-action="restart" class="py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer card-shadow">
               Build Another
@@ -1390,6 +1355,22 @@ function renderResults() {
             </button>
           </div>
         </div>
+
+        ${r.newLegends > 0 ? (() => {
+          const { total } = getLegendCatalog();
+          const have = getCollectedLegends().size;
+          return `
+          <button data-action="view-legends"
+            class="w-full rounded-2xl border cursor-pointer transition-all hover:bg-indigo-100 card-shadow flex items-center gap-3 px-4 py-3 text-left"
+            style="border-color:#c7d2fe;background:#eef2ff">
+            <span class="text-2xl flex-shrink-0">🃏</span>
+            <div class="min-w-0 flex-1">
+              <p class="text-sm font-black text-indigo-700">+${r.newLegends} new legend${r.newLegends === 1 ? '' : 's'} collected!</p>
+              <p class="text-xs text-indigo-500 mt-0.5">${have}/${total} all-time legends in your collection · tap to view</p>
+            </div>
+            <span class="text-indigo-400 flex-shrink-0">›</span>
+          </button>`;
+        })() : ''}
       </div>
     </main>
     ${renderFooter()}
@@ -1554,12 +1535,20 @@ function renderPlayoffBracketTree(po) {
 function renderPlayoffs() {
   const po = S.playoffs;
   const r  = S.result;
-  if (po.champion)   return renderChampionship();
-  if (po.eliminated) return renderEliminated();
+  if ((po.champion || po.eliminated) && !po.pendingReveal) {
+    return po.champion ? renderChampionship() : renderEliminated();
+  }
 
-  const roundName = po.roundNames[po.currentRound];
-  const ts        = po.tickState;
-  const simLabel  = ts ? 'Simulating...' : `Simulate ${roundName}`;
+  const ts     = po.tickState;
+  // "Simulate Entire Playoffs" resolves the whole tournament at once — hold
+  // on the fully-filled bracket so the result is visible before handing off
+  // to the champion/eliminated splash screen.
+  const reveal = po.pendingReveal;
+  const roundName = po.roundNames[Math.min(po.currentRound, po.roundNames.length - 1)];
+  const simLabel   = ts ? 'Simulating...' : `Simulate ${roundName}`;
+  const headline   = reveal
+    ? (po.champion ? '🏆 World Champions!' : `💔 Eliminated — ${po.eliminatedIn}`)
+    : 'Playoff Bracket';
 
   return `
   <div class="min-h-screen flex flex-col main-gradient">
@@ -1568,13 +1557,18 @@ function renderPlayoffs() {
       <div class="w-full max-w-3xl flex flex-col gap-4">
         <div class="text-center">
           <p class="text-xs font-bold uppercase tracking-widest text-primary mb-1">NBA Playoffs</p>
-          <h1 class="text-2xl font-black text-foreground">Playoff Bracket</h1>
+          <h1 class="text-2xl font-black text-foreground">${headline}</h1>
           <p class="text-sm text-muted-fg mt-1">Regular Season: ${r.wins}–${r.losses} · Seed #${po.playerSeed}</p>
         </div>
         <div class="rounded-2xl border border-border bg-white p-3 sm:p-4 card-shadow overflow-hidden">
           ${renderPlayoffBracketTree(po)}
         </div>
         <div class="flex flex-col gap-2">
+          ${reveal ? `
+          <button data-action="playoffs-continue" type="button"
+            class="py-3.5 rounded-xl font-black text-sm transition-all text-center card-shadow bg-primary text-white hover:bg-blue-700 cursor-pointer">
+            ${po.champion ? 'Continue to Championship 🏆' : 'Continue →'}
+          </button>` : `
           <button data-action="sim-next-round" type="button" ${ts ? 'disabled' : ''}
             class="py-3.5 rounded-xl font-black text-sm transition-all text-center card-shadow ${ts ? 'bg-card2 border border-border text-muted-fg cursor-not-allowed' : 'bg-primary text-white hover:bg-blue-700 cursor-pointer'}">
             ${ts ? 'Simulating...' : `${simLabel} →`}
@@ -1582,7 +1576,7 @@ function renderPlayoffs() {
           <button data-action="sim-all-playoffs" type="button" ${ts ? 'disabled' : ''}
             class="py-3.5 rounded-xl font-bold text-sm transition-all text-center card-shadow border-2 border-primary/30 bg-white text-primary hover:bg-blue-50 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
             Simulate Entire Playoffs →
-          </button>
+          </button>`}
           <button data-action="draft-new-roster" type="button"
             class="py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer text-center card-shadow">
             Draft New Roster
