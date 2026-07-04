@@ -34,15 +34,15 @@
         extend: {
           fontFamily: { sans: ['Fira Sans', 'ui-sans-serif', 'system-ui', 'sans-serif'] },
           colors: {
-            background:   '#f8fafc',
-            card:         '#ffffff',
-            card2:        '#f1f5f9',
-            border:       '#e2e8f0',
-            foreground:   '#0f172a',
-            muted:        '#94a3b8',
-            'muted-fg':   '#64748b',
-            primary:      '#2563eb',
-            'primary-fg': '#fff',
+            background:   'var(--bg)',
+            card:         'var(--card)',
+            card2:        'var(--card2)',
+            border:       'var(--border)',
+            foreground:   'var(--fg)',
+            muted:        'var(--muted)',
+            'muted-fg':   'var(--muted-fg)',
+            primary:      'var(--primary)',
+            'primary-fg': 'var(--primary-fg)',
           },
           animation: {
             'fade-up':    'fadeUp 0.3s ease-out',
@@ -60,6 +60,10 @@
       },
     };
   </script>
+  <!-- Apply saved theme before first paint to prevent flash -->
+  <script>
+    try { if (localStorage.getItem('nba820_theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark'); } catch(e){}
+  </script>
 
   <!-- Custom CSS (animations, scrollbar, card classes) -->
   <link rel="stylesheet" href="css/styles.css" />
@@ -71,12 +75,12 @@
 
   <!-- Loading overlay — removed by js/data/players.js once the DB is ready -->
   <div id="loading-overlay" style="
-    position:fixed;inset:0;background:#f8fafc;
+    position:fixed;inset:0;background:var(--bg);
     display:flex;flex-direction:column;align-items:center;justify-content:center;
-    font-family:'Fira Sans',sans-serif;color:#0f172a;z-index:9999">
-    <div style="width:36px;height:36px;border:3px solid #e2e8f0;border-top-color:#2563eb;
+    font-family:'Fira Sans',sans-serif;color:var(--fg);z-index:9999">
+    <div style="width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--primary);
       border-radius:50%;animation:_spin 0.7s linear infinite"></div>
-    <p style="margin-top:16px;font-size:14px;color:#64748b;letter-spacing:0.02em">Loading players…</p>
+    <p style="margin-top:16px;font-size:14px;color:var(--muted-fg);letter-spacing:0.02em">Loading players…</p>
     <style>@keyframes _spin { to { transform: rotate(360deg); } }</style>
   </div>
 

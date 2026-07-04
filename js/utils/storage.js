@@ -139,44 +139,43 @@ function renderLeaderboardModal() {
   const top5 = lb.slice(0, 5);
 
   const rows = top5.length === 0
-    ? `<p style="font-size:14px;color:#64748b;text-align:center;padding:24px 0">No runs yet — simulate a season to get on the board!</p>`
+    ? `<p style="font-size:14px;color:var(--muted-fg);text-align:center;padding:24px 0">No runs yet — simulate a season to get on the board!</p>`
     : top5.map((e, i) => {
         const isPerfect = e.wins === 82;
         const rowBg     = isPerfect
           ? 'background:#fffbeb;border-color:#fcd34d'
-          : 'background:#f8fafc;border-color:#e2e8f0';
+          : 'background:var(--card3);border-color:var(--border)';
         const medals    = ['🥇','🥈','🥉','4️⃣','5️⃣'];
-        const rankColor = i === 0 ? '#2563eb' : '#94a3b8';
-        const winsColor = isPerfect ? '#b45309' : '#0f172a';
+        const winsColor = isPerfect ? '#b45309' : 'var(--fg)';
         const name      = esc(e.teamName || 'Untitled Team');
         return `
         <div style="border-radius:12px;border:1.5px solid;padding:12px;display:flex;align-items:center;gap:12px;${rowBg}">
           <span style="font-size:20px;width:28px;text-align:center;flex-shrink:0">${medals[i]}</span>
           <div style="flex:1;min-width:0">
             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:2px">
-              <span style="font-weight:900;font-size:15px;color:#0f172a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px">${name}</span>
+              <span style="font-weight:900;font-size:15px;color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px">${name}</span>
               ${isPerfect ? '<span style="font-size:10px;font-weight:900;padding:2px 8px;border-radius:999px;background:#fef3c7;color:#92400e;border:1px solid #fcd34d">🏆 PERFECT</span>' : ''}
             </div>
             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
               <span style="font-weight:900;font-size:16px;color:${winsColor}">${e.wins}–${e.losses}</span>
-              <span style="font-size:11px;color:#64748b">${e.date}</span>
+              <span style="font-size:11px;color:var(--muted-fg)">${e.date}</span>
             </div>
-            <p style="font-size:11px;color:#94a3b8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:3px 0 0">${esc(e.starters || '')}</p>
+            <p style="font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:3px 0 0">${esc(e.starters || '')}</p>
           </div>
         </div>`;
       }).join('');
 
   return `
   <div id="lb-modal-backdrop" onclick="if(event.target===this)closeLeaderboardModal()"
-    style="position:fixed;inset:0;background:rgba(15,23,42,0.5);z-index:9998;display:flex;align-items:center;justify-content:center;padding:16px">
-    <div style="background:#ffffff;border:1.5px solid #e2e8f0;border-radius:20px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;padding:24px;font-family:'Fira Sans',sans-serif;color:#0f172a;animation:scaleIn 0.2s ease-out;box-shadow:0 20px 60px rgba(0,0,0,0.12)">
+    style="position:fixed;inset:0;background:var(--overlay);z-index:9998;display:flex;align-items:center;justify-content:center;padding:16px">
+    <div style="background:var(--card);border:1.5px solid var(--border);border-radius:20px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;padding:24px;font-family:'Fira Sans',sans-serif;color:var(--fg);animation:scaleIn 0.2s ease-out;box-shadow:0 20px 60px var(--shadow)">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
         <div>
-          <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#2563eb;margin:0 0 4px">Personal Best</p>
-          <h2 style="font-size:22px;font-weight:900;margin:0;color:#0f172a">Hall of Fame</h2>
+          <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--primary);margin:0 0 4px">Personal Best</p>
+          <h2 style="font-size:22px;font-weight:900;margin:0;color:var(--fg)">Leaderboard</h2>
         </div>
         <button onclick="closeLeaderboardModal()"
-          style="background:#f1f5f9;border:1px solid #e2e8f0;color:#64748b;border-radius:999px;width:32px;height:32px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">✕</button>
+          style="background:var(--card2);border:1px solid var(--border);color:var(--muted-fg);border-radius:999px;width:32px;height:32px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">✕</button>
       </div>
       <div style="display:flex;flex-direction:column;gap:10px">
         ${rows}
@@ -226,24 +225,24 @@ const GLOBAL_TABS = [
 function _globalLbLoadingHtml() {
   return `
   <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 0;gap:12px">
-    <div style="width:28px;height:28px;border:3px solid #e2e8f0;border-top-color:#2563eb;border-radius:50%;animation:_spin 0.7s linear infinite"></div>
-    <p style="font-size:13px;color:#64748b;font-family:Fira Sans,sans-serif">Loading leaderboard…</p>
+    <div style="width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:_spin 0.7s linear infinite"></div>
+    <p style="font-size:13px;color:var(--muted-fg);font-family:Fira Sans,sans-serif">Loading leaderboard…</p>
   </div>`;
 }
 
 function _globalLbRowsHtml(entries) {
   if (!entries || entries.length === 0) {
-    return `<p style="font-size:14px;color:#64748b;text-align:center;padding:28px 0;font-family:Fira Sans,sans-serif">No runs yet — be the first on the global board!</p>`;
+    return `<p style="font-size:14px;color:var(--muted-fg);text-align:center;padding:28px 0;font-family:Fira Sans,sans-serif">No runs yet — be the first on the global board!</p>`;
   }
   const medals = ['🥇', '🥈', '🥉'];
   return entries.map((e, i) => {
     const isPerfect  = e.wins === 82;
-    const rowBg      = isPerfect ? 'background:#fffbeb;border-color:#fcd34d' : 'background:#f8fafc;border-color:#e2e8f0';
+    const rowBg      = isPerfect ? 'background:#fffbeb;border-color:#fcd34d' : 'background:var(--card3);border-color:var(--border)';
     const medal      = i < 3
       ? `<span style="font-size:18px">${medals[i]}</span>`
-      : `<span style="font-size:12px;font-weight:800;color:#94a3b8">#${i + 1}</span>`;
+      : `<span style="font-size:12px;font-weight:800;color:var(--muted)">#${i + 1}</span>`;
     const name       = esc((e.teamName || 'Untitled Team').slice(0, 30));
-    const winsColor  = isPerfect ? '#b45309' : e.wins >= 70 ? '#16a34a' : e.wins >= 50 ? '#2563eb' : '#0f172a';
+    const winsColor  = isPerfect ? '#b45309' : e.wins >= 70 ? '#16a34a' : e.wins >= 50 ? 'var(--primary)' : 'var(--fg)';
     const champBadge = e.champion
       ? `<span style="font-size:10px;font-weight:900;padding:2px 7px;border-radius:999px;background:#fef3c7;color:#92400e;border:1px solid #fcd34d;white-space:nowrap">🏆 CHAMP</span>`
       : '';
@@ -255,19 +254,19 @@ function _globalLbRowsHtml(entries) {
       <div style="width:28px;text-align:center;flex-shrink:0">${medal}</div>
       <div style="flex:1;min-width:0">
         <div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;flex-wrap:wrap">
-          <span style="font-weight:900;font-size:14px;color:#0f172a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:150px;font-family:Fira Sans,sans-serif">${name}</span>
+          <span style="font-weight:900;font-size:14px;color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:150px;font-family:Fira Sans,sans-serif">${name}</span>
           ${champBadge}${perfectBadge}
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
           <span style="font-weight:900;font-size:15px;color:${winsColor};font-family:Fira Sans,sans-serif">${e.wins}–${e.losses}</span>
-          ${e.coachName ? `<span style="font-size:11px;color:#64748b;font-family:Fira Sans,sans-serif">${esc(e.coachName)}</span>` : ''}
-          ${e.era && e.era !== 'all' ? `<span style="font-size:11px;color:#94a3b8;font-family:Fira Sans,sans-serif">${esc(e.era)}</span>` : ''}
+          ${e.coachName ? `<span style="font-size:11px;color:var(--muted-fg);font-family:Fira Sans,sans-serif">${esc(e.coachName)}</span>` : ''}
+          ${e.era && e.era !== 'all' ? `<span style="font-size:11px;color:var(--muted);font-family:Fira Sans,sans-serif">${esc(e.era)}</span>` : ''}
         </div>
-        ${e.starters ? `<p style="font-size:10px;color:#94a3b8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:2px 0 0;font-family:Fira Sans,sans-serif">${esc(e.starters)}</p>` : ''}
+        ${e.starters ? `<p style="font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:2px 0 0;font-family:Fira Sans,sans-serif">${esc(e.starters)}</p>` : ''}
       </div>
       <div style="text-align:right;flex-shrink:0">
-        <p style="font-size:10px;color:#94a3b8;margin:0 0 2px;font-family:Fira Sans,sans-serif">CHEM</p>
-        <p style="font-size:13px;font-weight:800;color:#2563eb;margin:0;font-family:Fira Sans,sans-serif">${e.chemScore ?? 0}%</p>
+        <p style="font-size:10px;color:var(--muted);margin:0 0 2px;font-family:Fira Sans,sans-serif">CHEM</p>
+        <p style="font-size:13px;font-weight:800;color:var(--primary);margin:0;font-family:Fira Sans,sans-serif">${e.chemScore ?? 0}%</p>
       </div>
     </div>`;
   }).join('');
@@ -279,30 +278,30 @@ function _globalModalShellHtml(activeTab) {
       onclick="window.switchGlobalLbTab('${t.id}')"
       style="flex:1;padding:7px 4px;border-radius:8px;border:none;cursor:pointer;transition:background 0.15s,color 0.15s;
              font-family:Fira Sans,sans-serif;font-size:12px;font-weight:700;
-             background:${activeTab === t.id ? '#2563eb' : '#f1f5f9'};
-             color:${activeTab === t.id ? '#fff' : '#64748b'}">
+             background:${activeTab === t.id ? 'var(--primary)' : 'var(--card2)'};
+             color:${activeTab === t.id ? 'var(--primary-fg)' : 'var(--muted-fg)'}">
       ${t.label}
     </button>`).join('');
 
   return `
   <div id="global-lb-modal-backdrop" onclick="if(event.target===this)window.closeGlobalLeaderboardModal()"
-    style="position:fixed;inset:0;background:rgba(15,23,42,0.5);z-index:9998;display:flex;
+    style="position:fixed;inset:0;background:var(--overlay);z-index:9998;display:flex;
            align-items:center;justify-content:center;padding:16px">
-    <div style="background:#ffffff;border:1.5px solid #e2e8f0;border-radius:20px;width:100%;
+    <div style="background:var(--card);border:1.5px solid var(--border);border-radius:20px;width:100%;
                 max-width:520px;max-height:90vh;overflow-y:auto;padding:24px;
-                font-family:Fira Sans,sans-serif;color:#0f172a;
-                animation:scaleIn 0.2s ease-out;box-shadow:0 20px 60px rgba(0,0,0,0.12)">
+                font-family:Fira Sans,sans-serif;color:var(--fg);
+                animation:scaleIn 0.2s ease-out;box-shadow:0 20px 60px var(--shadow)">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
         <div>
-          <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#2563eb;margin:0 0 4px">Global Competition</p>
-          <h2 style="font-size:22px;font-weight:900;margin:0;color:#0f172a">🌍 Global Leaderboard</h2>
+          <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--primary);margin:0 0 4px">Global Competition</p>
+          <h2 style="font-size:22px;font-weight:900;margin:0;color:var(--fg)">🌍 Global Leaderboard</h2>
         </div>
         <button onclick="window.closeGlobalLeaderboardModal()"
-          style="background:#f1f5f9;border:1px solid #e2e8f0;color:#64748b;border-radius:999px;
+          style="background:var(--card2);border:1px solid var(--border);color:var(--muted-fg);border-radius:999px;
                  width:32px;height:32px;font-size:16px;cursor:pointer;display:flex;
                  align-items:center;justify-content:center;flex-shrink:0">✕</button>
       </div>
-      <div style="display:flex;gap:5px;padding:4px;background:#f1f5f9;border-radius:10px;margin-bottom:16px">
+      <div style="display:flex;gap:5px;padding:4px;background:var(--card2);border-radius:10px;margin-bottom:16px">
         ${tabsHtml}
       </div>
       <div id="global-lb-table" style="display:flex;flex-direction:column;gap:8px">

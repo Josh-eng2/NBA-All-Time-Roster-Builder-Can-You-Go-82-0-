@@ -47,6 +47,12 @@ function iconBall(cls = '') {
 function iconCheck(cls = '') {
   return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>`;
 }
+function isDark() {
+  return document.documentElement.getAttribute('data-theme') === 'dark';
+}
+function themeIcon() {
+  return isDark() ? '☀️' : '🌙';
+}
 function iconPlus(cls = '') {
   return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16m8-8H4"/></svg>`;
 }
@@ -156,6 +162,7 @@ function renderHeader(showRestart = false) {
           ${eraPill}
           <button data-action="open-leaderboard" type="button" class="header-pill header-pill--icon" title="Personal Best">🏅</button>
           <button data-action="open-global-leaderboard" type="button" class="header-pill header-pill--icon" title="Global Leaderboard">🌍</button>
+          <button data-action="toggle-theme" type="button" class="header-pill header-pill--icon" title="Toggle Dark Mode">${themeIcon()}</button>
           ${showRestart ? `<button data-action="restart" type="button" class="header-pill header-pill--muted">Restart</button>` : ''}
         </div>
       </div>
@@ -167,7 +174,7 @@ function renderHeader(showRestart = false) {
 function renderFooter() {
   return `
   <footer class="w-full mt-auto" style="padding:2px 0">
-    <p style="font-size:6px;color:#f1f5f9;text-align:center;user-select:none;letter-spacing:0.02em;line-height:1">82-0.com is an independent fan project not affiliated with the NBA or its teams.</p>
+    <p style="font-size:6px;color:var(--border);text-align:center;user-select:none;letter-spacing:0.02em;line-height:1">82-0.com is an independent fan project not affiliated with the NBA or its teams.</p>
   </footer>`;
 }
 
@@ -183,13 +190,14 @@ function renderModeSelect() {
   try { bestStreak = parseInt(localStorage.getItem('nba820_bestStreak') || '0', 10); } catch (e) {}
   return `
   <div class="flex flex-col min-h-screen main-gradient">
-    <header class="sticky top-0 z-50 w-full bg-white border-b border-border" style="box-shadow:0 1px 3px rgba(0,0,0,0.05)">
+    <header class="sticky top-0 z-50 w-full bg-white border-b border-border" style="box-shadow:0 1px 3px var(--header-shadow)">
       <div class="mx-auto flex h-14 max-w-2xl items-center justify-between px-4">
         <div class="w-20"></div>
         <img src="logo-badge.svg" alt="82-0" style="height:52px;width:auto;margin-top:2px"/>
-        <div class="flex items-center gap-1.5 w-20 justify-end">
+        <div class="flex items-center gap-1.5 justify-end">
           <button data-action="open-leaderboard" class="text-[11px] px-2 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Personal Best">🏅</button>
           <button data-action="open-global-leaderboard" class="text-[11px] px-2 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Global Leaderboard">🌍</button>
+          <button data-action="toggle-theme" class="theme-toggle" title="Toggle Dark Mode">${themeIcon()}</button>
         </div>
       </div>
     </header>
@@ -329,7 +337,7 @@ function renderCoachChip() {
   const sys      = coachSystemProgress(coach.id, starters);
   const filled   = Math.round(sys.progress * 4);
   const meter    = Array.from({ length: 4 }, (_, i) =>
-    `<span style="color:${i < filled ? coach.accent : '#e2e8f0'}">★</span>`).join('');
+    `<span style="color:${i < filled ? coach.accent : 'var(--border)'}">★</span>`).join('');
   const locked   = !!S.coachLocked;
 
   const chipInner = `
@@ -346,7 +354,7 @@ function renderCoachChip() {
     ? `<div class="w-full rounded-xl border border-border bg-card px-3 py-2 flex items-center gap-2 card-shadow" title="Coach locked for this run">${chipInner}</div>`
     : `<button data-action="coach-picker-toggle"
         class="w-full rounded-xl border bg-card px-3 py-2 flex items-center gap-2 card-shadow cursor-pointer transition-all hover:border-primary text-left"
-        style="border-color:${S.coachPickerOpen ? coach.accent : '#e2e8f0'}">${chipInner}</button>`;
+        style="border-color:${S.coachPickerOpen ? coach.accent : 'var(--border)'}">${chipInner}</button>`;
 
   const picker = !locked && S.coachPickerOpen ? `
     <div class="rounded-xl border border-border bg-white card-shadow overflow-hidden animate-scale-in">
@@ -407,7 +415,7 @@ function renderDrafting() {
 function render1v1RosterPanel(roster, playerNum, isActive) {
   const color    = playerNum === 1 ? '#2563eb' : '#d97706';
   const bg       = playerNum === 1 ? '#eff6ff'  : '#fffbeb';
-  const bdrCol   = isActive ? color : '#e2e8f0';
+  const bdrCol   = isActive ? color : 'var(--border)';
   const coachId  = playerNum === 1 ? S.p1Coach : S.p2Coach;
   const coachObj = coachId ? COACHES.find(c => c.id === coachId) : null;
   // Active player with a player selected — slots become tappable placement targets
@@ -464,7 +472,7 @@ function renderDrafting1v1() {
       ? (p1Pick ? '#93c5fd' : '#fcd34d')
       : isCurrent
         ? (p1Pick ? '#2563eb' : '#d97706')
-        : '#e2e8f0';
+        : 'var(--border)';
     const dotText   = isDone
       ? (p1Pick ? '#1e40af' : '#92400e')
       : isCurrent
@@ -565,7 +573,7 @@ function renderRoundBar() {
         ${Array.from({ length: TOTAL_ROUNDS }, (_, i) => {
           const done   = i < S.round;
           const active = i === S.round;
-          const color  = done || active ? '#2563eb' : '#e2e8f0';
+          const color  = done || active ? 'var(--primary)' : 'var(--border)';
           return `<div class="rounded-full transition-all" style="width:${active ? 9 : 7}px;height:${active ? 9 : 7}px;background:${color};border:${active ? '2px solid #2563eb' : 'none'}"></div>`;
         }).join('')}
       </div>
@@ -615,7 +623,7 @@ function renderSlotMachine() {
     </div>
     <div class="grid grid-cols-2 gap-3 mb-4 ${isSpin ? 'slot-spinning' : ''}">
       <div class="rounded-xl border-2 p-4 flex flex-col items-center justify-center min-h-[88px] transition-all"
-        style="background:${isDone && tc ? tc.bg + '12' : '#f1f5f9'};border-color:${isDone && tc ? tc.bg + '88' : '#e2e8f0'}">
+        style="background:${isDone && tc ? tc.bg + '12' : 'var(--card2)'};border-color:${isDone && tc ? tc.bg + '88' : 'var(--border)'}">
         <span class="text-[10px] font-bold uppercase tracking-widest mb-2 text-muted-fg">TEAM</span>
         <span class="slot-badge text-xl font-black text-foreground" id="slot-team">
           ${isDone ? S.currentSpin.team : isSpin ? pick(TEAMS) : '—'}
@@ -623,7 +631,7 @@ function renderSlotMachine() {
         ${isDone ? `<span class="mt-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary text-white uppercase tracking-wider">LOCKED</span>` : ''}
       </div>
       <div class="rounded-xl border-2 p-4 flex flex-col items-center justify-center min-h-[88px] transition-all"
-        style="background:${isDone ? '#eff6ff' : '#f1f5f9'};border-color:${isDone ? '#93c5fd' : '#e2e8f0'}">
+        style="background:${isDone ? '#eff6ff' : 'var(--card2)'};border-color:${isDone ? '#93c5fd' : 'var(--border)'}">
         <span class="text-[10px] font-bold uppercase tracking-widest mb-2 text-muted-fg">ERA</span>
         <span class="slot-badge text-xl font-black text-foreground" id="slot-decade">
           ${isDone ? S.currentSpin.decade : isSpin ? (eraLocked ? activeEra : pick(decPool.length ? decPool : DECADES)) : '—'}
@@ -670,8 +678,8 @@ function renderDraftCard(p, index) {
   const takenByP1       = !alreadyOnRoster && (S.takenPlayerIds?.has(p.id) ?? false);
   const unavailable     = alreadyOnRoster || takenByP1;
   const isSelected      = !unavailable && S.selectedPlayer?.id === p.id;
-  const cardBorder      = unavailable ? '#e2e8f0' : isSelected ? '#2563eb' : '#e2e8f0';
-  const cardBg          = unavailable ? '#f8fafc' : isSelected ? '#eff6ff' : '#ffffff';
+  const cardBorder      = unavailable ? 'var(--border)' : isSelected ? 'var(--primary)' : 'var(--border)';
+  const cardBg          = unavailable ? 'var(--card3)' : isSelected ? 'var(--card2)' : 'var(--card)';
   const cardOpacity     = unavailable ? 'opacity:0.5;' : '';
 
   // HoopIQ — name only, no stats or position hints
@@ -684,12 +692,12 @@ function renderDraftCard(p, index) {
     </div>
     <div class="px-3 pb-3">
       ${alreadyOnRoster
-        ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs" style="background:#f1f5f9;color:#94a3b8;border:1.5px solid #e2e8f0;cursor:not-allowed">Already on Roster</button>`
+        ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs" style="background:var(--card2);color:var(--muted);border:1.5px solid var(--border);cursor:not-allowed">Already on Roster</button>`
         : takenByP1
         ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs" style="background:#fef2f2;color:#dc2626;border:1.5px solid #fecaca;cursor:not-allowed">Taken by Player 1</button>`
         : `<button data-action="draft-pick-${index}"
             class="w-full py-2 rounded-lg font-bold text-xs transition-all cursor-pointer"
-            style="background:${isSelected ? '#2563eb' : '#eff6ff'};color:${isSelected ? '#fff' : '#2563eb'};border:1.5px solid ${isSelected ? '#2563eb' : '#bfdbfe'}">
+            style="background:${isSelected ? 'var(--primary)' : 'var(--card2)'};color:${isSelected ? 'var(--primary-fg)' : 'var(--primary)'};border:1.5px solid ${isSelected ? 'var(--primary)' : '#bfdbfe'}">
             ${isSelected ? '✓ Selected — Tap a Roster Slot' : 'Draft Player'}
           </button>`
       }
@@ -718,12 +726,12 @@ function renderDraftCard(p, index) {
     </div>
     <div class="px-3 pb-3">
       ${alreadyOnRoster
-        ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs" style="background:#f1f5f9;color:#94a3b8;border:1.5px solid #e2e8f0;cursor:not-allowed">Already on Roster</button>`
+        ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs" style="background:var(--card2);color:var(--muted);border:1.5px solid var(--border);cursor:not-allowed">Already on Roster</button>`
         : takenByP1
         ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs" style="background:#fef2f2;color:#dc2626;border:1.5px solid #fecaca;cursor:not-allowed">Taken by Player 1</button>`
         : `<button data-action="draft-pick-${index}"
             class="w-full py-2 rounded-lg font-bold text-xs transition-all cursor-pointer"
-            style="background:${isSelected ? '#2563eb' : '#eff6ff'};color:${isSelected ? '#fff' : '#2563eb'};border:1.5px solid ${isSelected ? '#2563eb' : '#bfdbfe'}">
+            style="background:${isSelected ? 'var(--primary)' : 'var(--card2)'};color:${isSelected ? 'var(--primary-fg)' : 'var(--primary)'};border:1.5px solid ${isSelected ? 'var(--primary)' : '#bfdbfe'}">
             ${isSelected ? '✓ Selected — Tap a Roster Slot' : 'Draft Player'}
           </button>`
       }
@@ -1020,8 +1028,8 @@ function renderSeasonSim() {
           <p id="sim-beststart" class="text-xs font-bold mt-0.5" style="color:#94a3b8;min-height:1em"></p>
         </div>
 
-        <div class="h-2 rounded-full overflow-hidden" style="background:#e2e8f0">
-          <div id="sim-progress" class="h-full rounded-full" style="width:${pct}%;background:#2563eb;transition:width 0.15s linear"></div>
+        <div class="h-2 rounded-full overflow-hidden" style="background:var(--border)">
+          <div id="sim-progress" class="h-full rounded-full" style="width:${pct}%;background:var(--primary);transition:width 0.15s linear"></div>
         </div>
 
         ${S.seasonPaused && g1 ? `
@@ -1172,7 +1180,7 @@ function renderResults() {
     <main class="flex-1 flex flex-col items-center px-4 py-6">
       <div class="w-full max-w-2xl flex flex-col gap-4 animate-fade-up">
         <div class="rounded-2xl border-2 bg-white p-6 text-center card-shadow ${isPerfect ? 'perfect-glow' : ''}"
-          style="border-color:${isPerfect ? '#fcd34d' : '#e2e8f0'}">
+          style="border-color:${isPerfect ? '#fcd34d' : 'var(--border)'}">
           <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg mb-3">Season Record</p>
           <div class="text-7xl sm:text-8xl font-black mb-3 flex items-center justify-center gap-3 leading-none">
             <span style="color:${winsColor}">${r.wins}</span>
@@ -1201,12 +1209,25 @@ function renderResults() {
           </div>
         </div>
 
-        ${autopsy ? `
-          <div class="rounded-2xl bg-white p-4 card-shadow" style="border:1.5px solid #fecaca">
+        <!-- Advance to Playoffs + Autopsy side by side -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="rounded-2xl border-2 border-primary bg-white p-5 card-shadow flex flex-col justify-between">
+            <div class="text-center mb-4">
+              <span class="text-4xl mb-2 block">🏆</span>
+              <p class="text-sm font-black text-foreground mb-1">Advance to Playoffs</p>
+              <p class="text-xs text-muted-fg">Take your ${r.wins}-win roster into the postseason bracket.</p>
+            </div>
+            <button data-action="advance-to-playoffs"
+              class="w-full py-3 rounded-xl font-bold text-sm bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer card-shadow">
+              Enter Playoffs →
+            </button>
+          </div>
+          ${autopsy ? `
+          <div class="rounded-2xl bg-white p-4 card-shadow flex flex-col" style="border:1.5px solid #fecaca">
             <p class="text-xs font-bold uppercase tracking-widest mb-2.5" style="color:#dc2626">
-              Loss Autopsy — where the ${r.losses} ${r.losses === 1 ? 'loss' : 'losses'} came from
+              Loss Autopsy — ${r.losses} ${r.losses === 1 ? 'loss' : 'losses'}
             </p>
-            <div class="flex items-start gap-3">
+            <div class="flex items-start gap-3 flex-1">
               <span class="text-2xl flex-shrink-0">${autopsy.icon}</span>
               <div class="min-w-0 flex-1">
                 <p class="text-sm font-black text-foreground mb-0.5">${autopsy.title}</p>
@@ -1214,15 +1235,11 @@ function renderResults() {
                 <p class="text-xs font-bold mt-2" style="color:#2563eb">💡 ${autopsy.fix}</p>
               </div>
             </div>
-            <div class="grid grid-cols-2 gap-3 mt-3">
-              <button data-action="draft-new-roster"
-                class="py-2.5 rounded-xl font-black text-xs uppercase tracking-widest text-white cursor-pointer transition-all hover:opacity-90"
-                style="background:#dc2626">🔁 Run It Back — Fix It</button>
-              <button data-action="advance-to-playoffs"
-                class="py-2.5 rounded-xl font-black text-xs uppercase tracking-widest text-white cursor-pointer transition-all hover:opacity-90"
-                style="background:#2563eb">Advance to Playoffs 🏆</button>
-            </div>
-          </div>` : ''}
+            <button data-action="draft-new-roster"
+              class="w-full mt-3 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest text-white cursor-pointer transition-all hover:opacity-90"
+              style="background:#dc2626">🔁 Run It Back — Fix It</button>
+          </div>` : `<div></div>`}
+        </div>
 
         <div class="rounded-2xl border border-border bg-white p-4 card-shadow">
           <div class="flex items-center justify-between mb-3">
@@ -1308,7 +1325,7 @@ function renderResults() {
         </div>
         <!-- ── Save to Leaderboard card ─────────────────────────────── -->
         <div id="save-run-card" class="rounded-2xl border bg-white p-4 card-shadow"
-          style="border-color:${S.runSaved ? '#bbf7d0' : '#e2e8f0'};background:${S.runSaved ? '#f0fdf4' : '#ffffff'}">
+          style="border-color:${S.runSaved ? '#bbf7d0' : 'var(--border)'};background:${S.runSaved ? '#f0fdf4' : 'var(--card)'}">
           ${S.runSaved ? `
           <div class="flex items-center gap-3">
             <span class="text-2xl">✅</span>
@@ -1341,19 +1358,13 @@ function renderResults() {
           <p class="text-[10px] text-muted-fg mt-2">Defaults to "Untitled Team" if left blank · max 20 characters</p>`}
         </div>
         <!-- ── Action buttons ────────────────────────────────────────── -->
-        <div class="flex flex-col gap-3">
-          ${!autopsy ? `
-          <button data-action="advance-to-playoffs" class="py-3.5 rounded-xl font-bold text-sm bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer text-center card-shadow">
-            Advance to Playoffs 🏆
-          </button>` : ''}
-          <div class="grid grid-cols-2 gap-3">
-            <button data-action="restart" class="py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer card-shadow">
-              Build Another
-            </button>
-            <button data-action="share" class="py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer card-shadow">
-              Share Result
-            </button>
-          </div>
+        <div class="grid grid-cols-2 gap-3">
+          <button data-action="restart" class="py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer card-shadow">
+            Build Another
+          </button>
+          <button data-action="share" class="py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer card-shadow">
+            Share Result
+          </button>
         </div>
 
         ${r.newLegends > 0 ? (() => {
@@ -1683,14 +1694,14 @@ function renderTrophyRoom() {
         ${Array.from({ length: PEDESTALS }, (_, i) => {
           const t = trophies[i];
           if (!t) return `
-          <div class="rounded-xl flex flex-col items-center justify-center py-3 gap-1" style="border:1.5px dashed #e2e8f0">
+          <div class="rounded-xl flex flex-col items-center justify-center py-3 gap-1" style="border:1.5px dashed var(--border)">
             <span class="text-xl" style="opacity:0.15;filter:grayscale(1)">🏆</span>
             <span class="text-[8px] font-bold uppercase" style="color:#cbd5e1">Empty</span>
           </div>`;
           const perfect = t.wins === 82;
           return `
           <div class="rounded-xl flex flex-col items-center justify-center py-3 gap-1 ${perfect ? 'perfect-glow' : 'card-shadow'}"
-            style="background:${perfect ? '#fffbeb' : '#f8fafc'};border:1.5px solid ${perfect ? '#fcd34d' : '#e2e8f0'}">
+            style="background:${perfect ? '#fffbeb' : 'var(--card3)'};border:1.5px solid ${perfect ? '#fcd34d' : 'var(--border)'}">
             <span class="text-xl">🏆</span>
             <span class="text-[9px] font-black" style="color:${perfect ? '#b45309' : '#334155'}">${t.wins}–${t.losses}</span>
           </div>`;
@@ -1742,7 +1753,6 @@ function renderTrophyRoom() {
       <div class="w-full max-w-2xl flex flex-col gap-5 animate-fade-up">
         <div class="flex items-center justify-between gap-4">
           <div>
-            <p class="text-xs font-bold uppercase tracking-widest text-amber-600 mb-1">Hall of Fame</p>
             <h1 class="text-2xl font-black text-foreground">Trophy Room</h1>
           </div>
           <button data-action="back-to-menu"
@@ -2002,7 +2012,7 @@ function renderSeriesSim() {
   let statusText, statusColor, statusBg, statusBdr;
   if (!revealed) {
     statusText  = 'Series Not Started';
-    statusColor = '#64748b'; statusBg = '#f8fafc'; statusBdr = '#e2e8f0';
+    statusColor = 'var(--muted-fg)'; statusBg = 'var(--card3)'; statusBdr = 'var(--border)';
   } else if (seriesOver) {
     const w = p1Wins === 4 ? 'Player 1' : 'Player 2';
     const wc = p1Wins === 4 ? '#2563eb' : '#d97706';
@@ -2010,7 +2020,7 @@ function renderSeriesSim() {
     statusColor = wc; statusBg = p1Wins === 4 ? '#eff6ff' : '#fffbeb'; statusBdr = wc + '40';
   } else if (p1Wins === p2Wins) {
     statusText  = `Series tied ${p1Wins}–${p2Wins}`;
-    statusColor = '#64748b'; statusBg = '#f8fafc'; statusBdr = '#e2e8f0';
+    statusColor = 'var(--muted-fg)'; statusBg = 'var(--card3)'; statusBdr = 'var(--border)';
   } else {
     const leader = p1Wins > p2Wins ? 'Player 1' : 'Player 2';
     const lc     = p1Wins > p2Wins ? '#2563eb' : '#d97706';

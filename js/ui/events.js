@@ -167,11 +167,24 @@ function dispatch(action) {
   if (action === 'open-leaderboard')       { showLeaderboardModal();             return; }
   if (action === 'open-global-leaderboard'){ showGlobalLeaderboardModal();       return; }
   if (action === 'submit-global')          { doSubmitGlobal();                   return; }
+  if (action === 'toggle-theme')           { toggleTheme();                      return; }
 
   render(); // fallback — re-render for unhandled actions
 }
 
 // ── Game lifecycle ────────────────────────────────────────────────────────────
+
+function toggleTheme() {
+  const html = document.documentElement;
+  const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  if (next === 'dark') {
+    html.setAttribute('data-theme', 'dark');
+  } else {
+    html.removeAttribute('data-theme');
+  }
+  try { localStorage.setItem('nba820_theme', next); } catch (e) {}
+  render();
+}
 
 function setEra(era) {
   if (S.phase !== 'drafting' || S.eraLocked) return;
