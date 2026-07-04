@@ -173,47 +173,25 @@ function renderFooter() {
 }
 
 // ── Daily Draft card (mode-select hero) ───────────────────────────────────────
-function renderDailyCard() {
-  const today  = dailyDateKey();
+// Compact Daily Draft entry point for the mode-select header. Unplayed → play
+// today's draft; played → shows the record and taps through to share.
+function renderDailyHeaderPill() {
   const result = getDailyResult();
-  const played = result?.date === today;
-  const prettyDate = new Date(today + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const played = result?.date === dailyDateKey();
 
   if (!played) {
     return `
-    <button data-action="mode-daily"
-      class="w-full rounded-2xl p-4 flex items-center gap-3 cursor-pointer card-shadow transition-all hover:shadow-md mb-3 text-left"
-      style="background:linear-gradient(135deg,#4f46e5,#7c3aed);border:1px solid #4338ca">
-      <span class="text-3xl flex-shrink-0" style="pointer-events:none">📅</span>
-      <div class="min-w-0 flex-1" style="pointer-events:none">
-        <p class="font-black text-base text-white leading-tight">Daily Draft <span class="text-indigo-200 font-bold text-xs">· ${prettyDate}</span></p>
-        <p class="text-xs text-indigo-100 leading-snug mt-0.5">Same 5 boards for everyone. One shot. How high can you go?</p>
-      </div>
-      <span class="flex-shrink-0 px-3 py-2 rounded-xl font-black text-xs uppercase tracking-wider bg-white text-indigo-700" style="pointer-events:none">Play</span>
+    <button data-action="mode-daily" type="button" title="Daily Draft — same 5 boards for everyone, one shot"
+      class="inline-flex items-center gap-1 text-[11px] font-black px-2.5 py-1 rounded-full text-white cursor-pointer transition-all hover:opacity-90"
+      style="background:linear-gradient(135deg,#4f46e5,#7c3aed)">
+      <span style="pointer-events:none">📅 Daily</span>
     </button>`;
   }
-
-  // Played today — show the result + share, replay locked until tomorrow.
-  const filled = Math.round((result.wins / 82) * 10);
-  const bar = Array.from({ length: 10 }, (_, i) =>
-    `<span class="inline-block w-3.5 h-3.5 rounded-sm" style="background:${i < filled ? '#22c55e' : '#e2e8f0'}"></span>`
-  ).join('');
   return `
-  <div class="w-full rounded-2xl p-4 card-shadow mb-3" style="background:#eef2ff;border:1px solid #c7d2fe">
-    <div class="flex items-center gap-2 mb-2">
-      <span class="text-xl">📅</span>
-      <p class="font-black text-sm text-indigo-700">Daily Draft · ${prettyDate}</p>
-      <span class="ml-auto text-[10px] font-bold uppercase tracking-wider text-indigo-400">Done ✓</span>
-    </div>
-    <div class="flex items-center gap-3 mb-2.5">
-      <p class="text-3xl font-black" style="color:#4f46e5">${result.wins}<span class="text-lg text-muted-fg font-light">–${result.losses}</span></p>
-      <div class="flex gap-1 flex-wrap">${bar}</div>
-    </div>
-    <button data-action="share-daily"
-      class="w-full py-2.5 rounded-xl font-bold text-sm text-white cursor-pointer transition-all hover:opacity-90"
-      style="background:#4f46e5">Share Result</button>
-    <p class="text-[10px] text-indigo-400 text-center mt-1.5">New draft tomorrow — one attempt per day.</p>
-  </div>`;
+    <button data-action="share-daily" type="button" title="Daily Draft done — tap to share your result"
+      class="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full cursor-pointer border border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-all">
+      <span style="pointer-events:none">📅 ${result.wins}–${result.losses} ✓</span>
+    </button>`;
 }
 
 // ── Mode selection ────────────────────────────────────────────────────────────
@@ -229,10 +207,12 @@ function renderModeSelect() {
   return `
   <div class="flex flex-col min-h-screen main-gradient">
     <header class="sticky top-0 z-50 w-full bg-white border-b border-border" style="box-shadow:0 1px 3px rgba(0,0,0,0.05)">
-      <div class="mx-auto flex h-14 max-w-2xl items-center justify-between px-4">
-        <div class="w-20"></div>
+      <div class="mx-auto flex h-14 max-w-2xl items-center px-4">
+        <div class="flex-1 flex justify-start">
+          ${renderDailyHeaderPill()}
+        </div>
         <img src="logo-badge.svg" alt="82-0" style="height:52px;width:auto;margin-top:2px"/>
-        <div class="flex items-center gap-1.5 w-20 justify-end">
+        <div class="flex-1 flex items-center gap-1.5 justify-end">
           <button data-action="open-leaderboard" class="text-[11px] px-2 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Personal Best">🏅</button>
           <button data-action="open-global-leaderboard" class="text-[11px] px-2 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Global Leaderboard">🌍</button>
         </div>
@@ -247,8 +227,6 @@ function renderModeSelect() {
           <h1 class="text-2xl font-black text-foreground mb-1">Choose Your Mode</h1>
           <p class="text-sm text-muted-fg">How do you want to build your all-time team?</p>
         </div>
-
-        ${renderDailyCard()}
 
         ${best ? `
         <div class="rounded-2xl bg-white px-4 py-3 card-shadow border border-slate-100 flex items-center gap-3 mb-3">
@@ -290,31 +268,10 @@ function renderModeSelect() {
           <div class="w-full py-2.5 rounded-xl font-bold text-sm text-white text-center mt-1" style="background:#f97316;pointer-events:none">Play</div>
         </button>
 
-        ${trophies.length > 0 ? `
         <button data-action="view-trophies"
-          class="w-full py-3 rounded-xl font-bold text-sm border border-amber-200 bg-amber-50 text-amber-700 cursor-pointer transition-all hover:bg-amber-100 card-shadow mb-3">
-          🏆 Trophy Room · ${trophies.length} Championship${trophies.length === 1 ? '' : 's'}
-        </button>` : ''}
-
-        ${(() => {
-          const { total } = getLegendCatalog();
-          const collected = getCollectedLegends().size;
-          const pct = total ? Math.round((collected / total) * 100) : 0;
-          return `
-          <button data-action="view-legends"
-            class="w-full rounded-xl border border-indigo-200 bg-indigo-50 cursor-pointer transition-all hover:bg-indigo-100 card-shadow overflow-hidden text-left">
-            <div class="flex items-center gap-2.5 px-4 py-3">
-              <span class="text-lg flex-shrink-0">🃏</span>
-              <div class="min-w-0 flex-1">
-                <p class="text-sm font-bold text-indigo-700">Legends Collected · ${collected}/${total}</p>
-                <div class="mt-1 h-1.5 rounded-full overflow-hidden" style="background:#e0e7ff">
-                  <div class="h-full rounded-full" style="width:${pct}%;background:#6366f1"></div>
-                </div>
-              </div>
-              <span class="text-xs font-black text-indigo-400 flex-shrink-0">${pct}%</span>
-            </div>
-          </button>`;
-        })()}
+          class="w-full py-3 rounded-xl font-bold text-sm border border-amber-200 bg-amber-50 text-amber-700 cursor-pointer transition-all hover:bg-amber-100 card-shadow">
+          🏆 Trophy Room${trophies.length > 0 ? ` · ${trophies.length} Championship${trophies.length === 1 ? '' : 's'}` : ''}
+        </button>
 
       </div>
     </main>
@@ -1800,6 +1757,25 @@ function renderTrophyRoom() {
           </button>
         </div>
         ${pedestalGrid}
+        ${(() => {
+          const { total } = getLegendCatalog();
+          const collected = getCollectedLegends().size;
+          const pct = total ? Math.round((collected / total) * 100) : 0;
+          return `
+          <button data-action="view-legends"
+            class="w-full rounded-2xl border border-indigo-200 bg-indigo-50 cursor-pointer transition-all hover:bg-indigo-100 card-shadow overflow-hidden text-left">
+            <div class="flex items-center gap-2.5 px-4 py-3">
+              <span class="text-lg flex-shrink-0">🃏</span>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-bold text-indigo-700">Legends Collected · ${collected}/${total}</p>
+                <div class="mt-1 h-1.5 rounded-full overflow-hidden" style="background:#e0e7ff">
+                  <div class="h-full rounded-full" style="width:${pct}%;background:#6366f1"></div>
+                </div>
+              </div>
+              <span class="text-xs font-black text-indigo-400 flex-shrink-0">${pct}% ›</span>
+            </div>
+          </button>`;
+        })()}
         ${trophies.length > 0 ? `<div class="flex flex-col gap-4">${trophyCards}</div>` : ''}
       </div>
     </main>
