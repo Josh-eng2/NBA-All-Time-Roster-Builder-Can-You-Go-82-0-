@@ -46,7 +46,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Elite Playmaker"
       ],
-      "popularity": 93
+      "popularity": 93,
+      "rating": 19.2
     },
     {
       "id": "baylor_68",
@@ -63,7 +64,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Slasher"
       ],
-      "popularity": 82
+      "popularity": 82,
+      "rating": 24
     },
     {
       "id": "chamberlain_68",
@@ -80,7 +82,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 92
+      "popularity": 92,
+      "rating": 33.2
     },
     {
       "id": "larusso_67",
@@ -96,7 +99,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 42
+      "popularity": 42,
+      "rating": 16.3
     },
     {
       "id": "hairston_68",
@@ -112,7 +116,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 41
+      "popularity": 41,
+      "rating": 16.6
     },
     {
       "id": "egan_68",
@@ -128,7 +133,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Glue Guy"
       ],
-      "popularity": 38
+      "popularity": 38,
+      "rating": 11
     }
   ],
   "Lakers_1970s": [
@@ -147,7 +153,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 90
+      "popularity": 90,
+      "rating": 29.1
     },
     {
       "id": "goodrich_74",
@@ -163,7 +170,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 65
+      "popularity": 65,
+      "rating": 16.2
     },
     {
       "id": "wilkes_79",
@@ -179,7 +187,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 56
+      "popularity": 56,
+      "rating": 15.3
     },
     {
       "id": "west_71",
@@ -196,7 +205,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 93
+      "popularity": 93,
+      "rating": 19.6
     },
     {
       "id": "haywood_75",
@@ -212,7 +222,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Volume Shooter"
       ],
-      "popularity": 60
+      "popularity": 60,
+      "rating": 18.1
     },
     {
       "id": "rileylak_75",
@@ -228,7 +239,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 62
+      "popularity": 62,
+      "rating": 8.2
     },
     {
       "id": "mcharter_75",
@@ -244,7 +256,8 @@ const PLAYER_DB = {
         "Glue Guy",
         "Volume Shooter"
       ],
-      "popularity": 36
+      "popularity": 36,
+      "rating": 12.1
     }
   ],
   "Lakers_1980s": [
@@ -263,7 +276,8 @@ const PLAYER_DB = {
         "Clutch",
         "Floor Spacer"
       ],
-      "popularity": 98
+      "popularity": 98,
+      "rating": 22.1
     },
     {
       "id": "kareem_87",
@@ -280,7 +294,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 90
+      "popularity": 90,
+      "rating": 22.1
     },
     {
       "id": "worthy_88",
@@ -297,7 +312,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Lockdown Defender"
       ],
-      "popularity": 72
+      "popularity": 72,
+      "rating": 16.7
     },
     {
       "id": "scott_88",
@@ -313,7 +329,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 58
+      "popularity": 58,
+      "rating": 13.3
     },
     {
       "id": "cooper_88",
@@ -329,7 +346,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 11.4
     },
     {
       "id": "mcadoo_82",
@@ -345,7 +363,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Rim Protector"
       ],
-      "popularity": 63
+      "popularity": 63,
+      "rating": 15.3
     },
     {
       "id": "acgreen_88",
@@ -361,7 +380,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 12.3
     },
     {
       "id": "rambis_84",
@@ -377,7 +397,8 @@ const PLAYER_DB = {
         "Glue Guy",
         "Rim Protector"
       ],
-      "popularity": 42
+      "popularity": 42,
+      "rating": 11.4
     }
   ],
   "Lakers_1990s": [
@@ -396,7 +417,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 97
+      "popularity": 97,
+      "rating": 24.4
     },
     {
       "id": "kobe_99",
@@ -412,7 +434,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 98
+      "popularity": 98,
+      "rating": 16.9
     },
     {
       "id": "vanexel_97",
@@ -428,7 +451,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 57
+      "popularity": 57,
+      "rating": 13.4
     },
     {
       "id": "jones_97",
@@ -444,7 +468,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Floor Spacer"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 15.8
     },
     {
       "id": "ceballos_95",
@@ -460,7 +485,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 48
+      "popularity": 48,
+      "rating": 16.6
     },
     {
       "id": "divac_96",
@@ -476,7 +502,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Glue Guy"
       ],
-      "popularity": 62
+      "popularity": 62,
+      "rating": 16.6
     },
     {
       "id": "fox_99",
@@ -493,7 +520,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 44
+      "popularity": 44,
+      "rating": 10.6
     }
   ],
   "Lakers_2000s": [
@@ -512,7 +540,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Lockdown Defender"
       ],
-      "popularity": 98
+      "popularity": 98,
+      "rating": 21.6
     },
     {
       "id": "shaq_02",
@@ -529,7 +558,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 97
+      "popularity": 97,
+      "rating": 24.6
     },
     {
       "id": "gasol_09",
@@ -546,7 +576,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 74
+      "popularity": 74,
+      "rating": 19.8
     },
     {
       "id": "odom_04",
@@ -562,7 +593,8 @@ const PLAYER_DB = {
         "Glue Guy",
         "Floor Spacer"
       ],
-      "popularity": 60
+      "popularity": 60,
+      "rating": 17.8
     },
     {
       "id": "fisher_02",
@@ -579,7 +611,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 9.4
     },
     {
       "id": "horry_02",
@@ -596,7 +629,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 62
+      "popularity": 62,
+      "rating": 12.4
     },
     {
       "id": "fox_02",
@@ -613,7 +647,8 @@ const PLAYER_DB = {
         "Glue Guy",
         "Floor Spacer"
       ],
-      "popularity": 44
+      "popularity": 44,
+      "rating": 12.3
     },
     {
       "id": "grant_02",
@@ -629,7 +664,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 44
+      "popularity": 44,
+      "rating": 12.4
     }
   ],
   "Lakers_2010s": [
@@ -648,7 +684,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Lockdown Defender"
       ],
-      "popularity": 98
+      "popularity": 98,
+      "rating": 19.6
     },
     {
       "id": "lebron_18",
@@ -665,7 +702,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Lockdown Defender"
       ],
-      "popularity": 99
+      "popularity": 99,
+      "rating": 30.4
     },
     {
       "id": "davis_19",
@@ -682,7 +720,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 80
+      "popularity": 80,
+      "rating": 22.5
     },
     {
       "id": "dwight_13",
@@ -698,7 +737,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 75
+      "popularity": 75,
+      "rating": 21.1
     },
     {
       "id": "gasol_14",
@@ -715,7 +755,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 74
+      "popularity": 74,
+      "rating": 18.9
     },
     {
       "id": "nash_13",
@@ -731,7 +772,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 82
+      "popularity": 82,
+      "rating": 12.2
     },
     {
       "id": "randle_15",
@@ -747,7 +789,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Volume Shooter"
       ],
-      "popularity": 57
+      "popularity": 57,
+      "rating": 14.8
     },
     {
       "id": "ingram_18",
@@ -763,7 +806,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 53
+      "popularity": 53,
+      "rating": 13.9
     }
   ],
   "Lakers_2020s": [
@@ -782,7 +826,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Lockdown Defender"
       ],
-      "popularity": 99
+      "popularity": 99,
+      "rating": 28
     },
     {
       "id": "davis_23",
@@ -799,7 +844,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 80
+      "popularity": 80,
+      "rating": 24.3
     },
     {
       "id": "russ_22",
@@ -815,7 +861,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 93
+      "popularity": 93,
+      "rating": 19.3
     },
     {
       "id": "reaves_24",
@@ -832,7 +879,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 41
+      "popularity": 41,
+      "rating": 14.5
     },
     {
       "id": "drussell_24",
@@ -848,7 +896,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Floor Spacer"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 14.3
     },
     {
       "id": "hayes_24",
@@ -864,7 +913,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 38
+      "popularity": 38,
+      "rating": 12.5
     }
   ],
   "Bulls_1980s": [
@@ -883,7 +933,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Volume Shooter"
       ],
-      "popularity": 99
+      "popularity": 99,
+      "rating": 33.1
     },
     {
       "id": "pippen_88",
@@ -899,7 +950,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 92
+      "popularity": 92,
+      "rating": 13.1
     },
     {
       "id": "grant_89",
@@ -915,7 +967,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 56
+      "popularity": 56,
+      "rating": 15.5
     },
     {
       "id": "cartwright_88",
@@ -931,7 +984,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 42
+      "popularity": 42,
+      "rating": 13.7
     },
     {
       "id": "paxson_88",
@@ -947,7 +1001,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 9.5
     },
     {
       "id": "corzine_88",
@@ -963,7 +1018,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 36
+      "popularity": 36,
+      "rating": 11.3
     }
   ],
   "Bulls_1990s": [
@@ -982,7 +1038,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Volume Shooter"
       ],
-      "popularity": 99
+      "popularity": 99,
+      "rating": 25.3
     },
     {
       "id": "pippen_96",
@@ -999,7 +1056,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Elite Playmaker"
       ],
-      "popularity": 92
+      "popularity": 92,
+      "rating": 20.2
     },
     {
       "id": "rodman_96",
@@ -1016,7 +1074,8 @@ const PLAYER_DB = {
         "Glue Guy",
         "Rim Protector"
       ],
-      "popularity": 96
+      "popularity": 96,
+      "rating": 17.4
     },
     {
       "id": "longley_96",
@@ -1032,7 +1091,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 39
+      "popularity": 39,
+      "rating": 11.5
     },
     {
       "id": "kukoc_96",
@@ -1049,7 +1109,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Clutch"
       ],
-      "popularity": 62
+      "popularity": 62,
+      "rating": 13.6
     },
     {
       "id": "kerr_96",
@@ -1066,7 +1127,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 58
+      "popularity": 58,
+      "rating": 7.4
     },
     {
       "id": "paxson_93",
@@ -1083,7 +1145,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 8.5
     },
     {
       "id": "armstrong_92",
@@ -1099,7 +1162,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 11.3
     }
   ],
   "Bulls_2000s": [
@@ -1117,7 +1181,8 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 58
+      "popularity": 58,
+      "rating": 16.1
     },
     {
       "id": "gordon_06",
@@ -1133,7 +1198,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 11.7
     },
     {
       "id": "hinrich_07",
@@ -1149,7 +1215,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 50
+      "popularity": 50,
+      "rating": 14.2
     },
     {
       "id": "nocioni_06",
@@ -1165,7 +1232,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 42
+      "popularity": 42,
+      "rating": 12.7
     },
     {
       "id": "brand_02",
@@ -1181,7 +1249,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Volume Shooter"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 20.7
     },
     {
       "id": "chandler_02",
@@ -1197,7 +1266,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 58
+      "popularity": 58,
+      "rating": 15.3
     },
     {
       "id": "duhon_07",
@@ -1213,7 +1283,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Glue Guy"
       ],
-      "popularity": 40
+      "popularity": 40,
+      "rating": 11.2
     }
   ],
   "Bulls_2010s": [
@@ -1231,7 +1302,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 95
+      "popularity": 95,
+      "rating": 19.2
     },
     {
       "id": "butler_17",
@@ -1247,7 +1319,8 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 75
+      "popularity": 75,
+      "rating": 19.4
     },
     {
       "id": "noah_14",
@@ -1263,7 +1336,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 62
+      "popularity": 62,
+      "rating": 20.2
     },
     {
       "id": "boozer_11",
@@ -1279,7 +1353,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 56
+      "popularity": 56,
+      "rating": 16.7
     },
     {
       "id": "deng_13",
@@ -1295,7 +1370,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 58
+      "popularity": 58,
+      "rating": 15
     },
     {
       "id": "gibson_14",
@@ -1311,7 +1387,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 45
+      "popularity": 45,
+      "rating": 14.6
     },
     {
       "id": "pgasol_15",
@@ -1328,7 +1405,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 74
+      "popularity": 74,
+      "rating": 20.8
     },
     {
       "id": "dunleavy_14",
@@ -1344,7 +1422,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 42
+      "popularity": 42,
+      "rating": 11
     }
   ],
   "Warriors_1990s": [
@@ -1362,7 +1441,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 68
+      "popularity": 68,
+      "rating": 19.7
     },
     {
       "id": "mullin_92",
@@ -1378,7 +1458,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 68
+      "popularity": 68,
+      "rating": 18.2
     },
     {
       "id": "sprewell_97",
@@ -1394,7 +1475,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 63
+      "popularity": 63,
+      "rating": 17.7
     },
     {
       "id": "webber_94",
@@ -1410,7 +1492,8 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 76
+      "popularity": 76,
+      "rating": 20.8
     },
     {
       "id": "marciulionis_92",
@@ -1426,7 +1509,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 45
+      "popularity": 45,
+      "rating": 13.9
     },
     {
       "id": "hill_93",
@@ -1442,7 +1526,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 42
+      "popularity": 42,
+      "rating": 15.3
     },
     {
       "id": "owens_93",
@@ -1458,7 +1543,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Floor Spacer"
       ],
-      "popularity": 41
+      "popularity": 41,
+      "rating": 17.4
     }
   ],
   "Warriors_2000s": [
@@ -1476,7 +1562,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 65
+      "popularity": 65,
+      "rating": 18.9
     },
     {
       "id": "monta_09",
@@ -1492,7 +1579,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 17.4
     },
     {
       "id": "jackson_04",
@@ -1508,7 +1596,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 50
+      "popularity": 50,
+      "rating": 13.6
     },
     {
       "id": "richardson_07",
@@ -1524,7 +1613,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Floor Spacer"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 16
     },
     {
       "id": "pietrus_07",
@@ -1540,7 +1630,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Floor Spacer"
       ],
-      "popularity": 40
+      "popularity": 40,
+      "rating": 10.6
     },
     {
       "id": "harrington_07",
@@ -1556,7 +1647,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Floor Spacer"
       ],
-      "popularity": 42
+      "popularity": 42,
+      "rating": 13.2
     },
     {
       "id": "foyle_07",
@@ -1572,7 +1664,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 38
+      "popularity": 38,
+      "rating": 11.8
     }
   ],
   "Warriors_2010s": [
@@ -1591,7 +1684,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Elite Playmaker"
       ],
-      "popularity": 98
+      "popularity": 98,
+      "rating": 21.3
     },
     {
       "id": "durant_18",
@@ -1608,7 +1702,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Floor Spacer"
       ],
-      "popularity": 91
+      "popularity": 91,
+      "rating": 21.2
     },
     {
       "id": "thompson_16",
@@ -1625,7 +1720,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 75
+      "popularity": 75,
+      "rating": 14.4
     },
     {
       "id": "green_16",
@@ -1642,7 +1738,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 72
+      "popularity": 72,
+      "rating": 19.2
     },
     {
       "id": "iguodala_15",
@@ -1658,7 +1755,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 68
+      "popularity": 68,
+      "rating": 11.6
     },
     {
       "id": "livingston_16",
@@ -1674,7 +1772,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Glue Guy"
       ],
-      "popularity": 44
+      "popularity": 44,
+      "rating": 9.4
     },
     {
       "id": "dwest_16",
@@ -1690,7 +1789,8 @@ const PLAYER_DB = {
         "Glue Guy",
         "Rim Protector"
       ],
-      "popularity": 43
+      "popularity": 43,
+      "rating": 9.9
     },
     {
       "id": "mcgee_17",
@@ -1706,7 +1806,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 42
+      "popularity": 42,
+      "rating": 11
     },
     {
       "id": "kcousins_19",
@@ -1722,7 +1823,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Rim Protector"
       ],
-      "popularity": 63
+      "popularity": 63,
+      "rating": 18.2
     }
   ],
   "Warriors_2020s": [
@@ -1740,7 +1842,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 98
+      "popularity": 98,
+      "rating": 20.8
     },
     {
       "id": "thompson_22",
@@ -1756,7 +1859,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 75
+      "popularity": 75,
+      "rating": 13.6
     },
     {
       "id": "green_22",
@@ -1772,7 +1876,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 72
+      "popularity": 72,
+      "rating": 17.1
     },
     {
       "id": "poole_22",
@@ -1788,7 +1893,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Floor Spacer"
       ],
-      "popularity": 60
+      "popularity": 60,
+      "rating": 13.5
     },
     {
       "id": "wiggins_22",
@@ -1804,7 +1910,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Volume Shooter"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 13.6
     },
     {
       "id": "looney_22",
@@ -1820,7 +1927,8 @@ const PLAYER_DB = {
         "Glue Guy",
         "Rim Protector"
       ],
-      "popularity": 38
+      "popularity": 38,
+      "rating": 12
     }
   ],
   "Celtics_1960s": [
@@ -1839,7 +1947,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Clutch"
       ],
-      "popularity": 87
+      "popularity": 87,
+      "rating": 32.5
     },
     {
       "id": "havlicek_68",
@@ -1856,7 +1965,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Volume Shooter"
       ],
-      "popularity": 78
+      "popularity": 78,
+      "rating": 17.9
     },
     {
       "id": "jones_65",
@@ -1872,7 +1982,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 14.6
     },
     {
       "id": "heinsohn_62",
@@ -1888,7 +1999,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 57
+      "popularity": 57,
+      "rating": 16.6
     },
     {
       "id": "cousy_63",
@@ -1905,7 +2017,8 @@ const PLAYER_DB = {
         "Clutch",
         "Floor Spacer"
       ],
-      "popularity": 82
+      "popularity": 82,
+      "rating": 15.4
     },
     {
       "id": "kcjones_65",
@@ -1921,7 +2034,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 58
+      "popularity": 58,
+      "rating": 11
     },
     {
       "id": "nelson_66",
@@ -1937,7 +2051,8 @@ const PLAYER_DB = {
         "Glue Guy",
         "Clutch"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 10.3
     }
   ],
   "Celtics_1970s": [
@@ -1955,7 +2070,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 70
+      "popularity": 70,
+      "rating": 24.2
     },
     {
       "id": "havlicek_74",
@@ -1971,7 +2087,8 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 78
+      "popularity": 78,
+      "rating": 18.7
     },
     {
       "id": "white_74",
@@ -1987,7 +2104,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 15.1
     },
     {
       "id": "silas_74",
@@ -2003,7 +2121,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 58
+      "popularity": 58,
+      "rating": 16.9
     },
     {
       "id": "nelson_73",
@@ -2019,7 +2138,8 @@ const PLAYER_DB = {
         "Glue Guy",
         "Clutch"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 13.8
     },
     {
       "id": "westphal_73",
@@ -2035,7 +2155,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 62
+      "popularity": 62,
+      "rating": 9.9
     }
   ],
   "Celtics_1980s": [
@@ -2054,7 +2175,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Elite Playmaker"
       ],
-      "popularity": 96
+      "popularity": 96,
+      "rating": 24
     },
     {
       "id": "mchale_87",
@@ -2071,7 +2193,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Clutch"
       ],
-      "popularity": 78
+      "popularity": 78,
+      "rating": 19.9
     },
     {
       "id": "parish_86",
@@ -2087,7 +2210,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 72
+      "popularity": 72,
+      "rating": 18.7
     },
     {
       "id": "ainge_87",
@@ -2103,7 +2227,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 58
+      "popularity": 58,
+      "rating": 12.1
     },
     {
       "id": "johnson_86",
@@ -2119,7 +2244,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 62
+      "popularity": 62,
+      "rating": 15.9
     },
     {
       "id": "walton_86",
@@ -2135,7 +2261,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 80
+      "popularity": 80,
+      "rating": 12.8
     },
     {
       "id": "wedman_86",
@@ -2151,7 +2278,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Clutch"
       ],
-      "popularity": 41
+      "popularity": 41,
+      "rating": 10
     },
     {
       "id": "carr_84",
@@ -2167,7 +2295,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 40
+      "popularity": 40,
+      "rating": 8.8
     }
   ],
   "Celtics_1990s": [
@@ -2185,7 +2314,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 15.8
     },
     {
       "id": "pierce_99",
@@ -2201,7 +2331,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 85
+      "popularity": 85,
+      "rating": 15.6
     },
     {
       "id": "walker_99",
@@ -2217,7 +2348,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 62
+      "popularity": 62,
+      "rating": 21
     },
     {
       "id": "douglas_92",
@@ -2233,7 +2365,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Glue Guy"
       ],
-      "popularity": 43
+      "popularity": 43,
+      "rating": 13.6
     },
     {
       "id": "brown_99",
@@ -2249,7 +2382,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 44
+      "popularity": 44,
+      "rating": 11.4
     }
   ],
   "Celtics_2000s": [
@@ -2267,7 +2401,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 85
+      "popularity": 85,
+      "rating": 19.9
     },
     {
       "id": "garnett_08",
@@ -2283,7 +2418,8 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 88
+      "popularity": 88,
+      "rating": 19.2
     },
     {
       "id": "allen_08",
@@ -2299,7 +2435,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 82
+      "popularity": 82,
+      "rating": 12.8
     },
     {
       "id": "rondo_09",
@@ -2315,7 +2452,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 68
+      "popularity": 68,
+      "rating": 16.9
     },
     {
       "id": "perkins_08",
@@ -2332,7 +2470,8 @@ const PLAYER_DB = {
         "Glue Guy",
         "Lockdown Defender"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 12.3
     },
     {
       "id": "powe_08",
@@ -2348,7 +2487,8 @@ const PLAYER_DB = {
         "Glue Guy",
         "Volume Shooter"
       ],
-      "popularity": 37
+      "popularity": 37,
+      "rating": 9.4
     },
     {
       "id": "house_08",
@@ -2364,7 +2504,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Clutch"
       ],
-      "popularity": 40
+      "popularity": 40,
+      "rating": 7.3
     }
   ],
   "Celtics_2010s": [
@@ -2382,7 +2523,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 85
+      "popularity": 85,
+      "rating": 16.5
     },
     {
       "id": "tatum_19",
@@ -2398,7 +2540,8 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 75
+      "popularity": 75,
+      "rating": 14.5
     },
     {
       "id": "brown_19",
@@ -2414,7 +2557,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 74
+      "popularity": 74,
+      "rating": 11.2
     },
     {
       "id": "horford_17",
@@ -2430,7 +2574,8 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 62
+      "popularity": 62,
+      "rating": 17.1
     },
     {
       "id": "smart_19",
@@ -2447,7 +2592,8 @@ const PLAYER_DB = {
         "Clutch",
         "Glue Guy"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 13.3
     },
     {
       "id": "morris_19",
@@ -2463,7 +2609,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Clutch"
       ],
-      "popularity": 42
+      "popularity": 42,
+      "rating": 12.5
     },
     {
       "id": "rozier_19",
@@ -2479,7 +2626,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 45
+      "popularity": 45,
+      "rating": 11.4
     }
   ],
   "Celtics_2020s": [
@@ -2497,7 +2645,8 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 75
+      "popularity": 75,
+      "rating": 20.6
     },
     {
       "id": "brown_24",
@@ -2513,7 +2662,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 74
+      "popularity": 74,
+      "rating": 16.9
     },
     {
       "id": "white_24",
@@ -2529,7 +2679,8 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 15.7
     },
     {
       "id": "porzingis_24",
@@ -2545,7 +2696,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 65
+      "popularity": 65,
+      "rating": 17.8
     },
     {
       "id": "holiday_24",
@@ -2562,7 +2714,8 @@ const PLAYER_DB = {
         "Glue Guy",
         "Clutch"
       ],
-      "popularity": 63
+      "popularity": 63,
+      "rating": 14.7
     },
     {
       "id": "horford_24",
@@ -2579,7 +2732,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 62
+      "popularity": 62,
+      "rating": 13.5
     },
     {
       "id": "pritchard_24",
@@ -2595,7 +2749,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Clutch"
       ],
-      "popularity": 40
+      "popularity": 40,
+      "rating": 9.4
     }
   ],
   "Heat_1990s": [
@@ -2613,7 +2768,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 75
+      "popularity": 75,
+      "rating": 23.3
     },
     {
       "id": "hardaway_97",
@@ -2629,7 +2785,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 68
+      "popularity": 68,
+      "rating": 17.5
     },
     {
       "id": "mashburn_99",
@@ -2645,7 +2802,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 16.9
     },
     {
       "id": "rice_96",
@@ -2661,7 +2819,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 14.5
     },
     {
       "id": "zo_95",
@@ -2677,7 +2836,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Floor Spacer"
       ],
-      "popularity": 60
+      "popularity": 60,
+      "rating": 13.6
     },
     {
       "id": "willis_97",
@@ -2693,7 +2853,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 42
+      "popularity": 42,
+      "rating": 13.1
     },
     {
       "id": "owens_98",
@@ -2709,7 +2870,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 40
+      "popularity": 40,
+      "rating": 10.6
     }
   ],
   "Heat_2000s": [
@@ -2727,7 +2889,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 95
+      "popularity": 95,
+      "rating": 21.5
     },
     {
       "id": "shaq_05",
@@ -2743,7 +2906,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 97
+      "popularity": 97,
+      "rating": 21.7
     },
     {
       "id": "haslem_07",
@@ -2759,7 +2923,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 44
+      "popularity": 44,
+      "rating": 12.7
     },
     {
       "id": "mourning_06",
@@ -2776,7 +2941,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Clutch"
       ],
-      "popularity": 75
+      "popularity": 75,
+      "rating": 13
     },
     {
       "id": "posey_06",
@@ -2793,7 +2959,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 41
+      "popularity": 41,
+      "rating": 10.2
     },
     {
       "id": "payton_06",
@@ -2809,7 +2976,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 78
+      "popularity": 78,
+      "rating": 11
     }
   ],
   "Heat_2010s": [
@@ -2828,7 +2996,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Lockdown Defender"
       ],
-      "popularity": 99
+      "popularity": 99,
+      "rating": 26.3
     },
     {
       "id": "wade_13",
@@ -2844,7 +3013,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 95
+      "popularity": 95,
+      "rating": 17.6
     },
     {
       "id": "bosh_13",
@@ -2860,7 +3030,8 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 72
+      "popularity": 72,
+      "rating": 17.7
     },
     {
       "id": "chalmers_12",
@@ -2876,7 +3047,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 43
+      "popularity": 43,
+      "rating": 11.3
     },
     {
       "id": "miller_13",
@@ -2893,7 +3065,8 @@ const PLAYER_DB = {
         "Clutch",
         "Glue Guy"
       ],
-      "popularity": 41
+      "popularity": 41,
+      "rating": 9
     },
     {
       "id": "cole_13",
@@ -2909,7 +3082,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 36
+      "popularity": 36,
+      "rating": 9.1
     },
     {
       "id": "haslem_13",
@@ -2925,7 +3099,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 44
+      "popularity": 44,
+      "rating": 10.3
     },
     {
       "id": "andersen_14",
@@ -2941,7 +3116,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 42
+      "popularity": 42,
+      "rating": 10.7
     }
   ],
   "Heat_2020s": [
@@ -2959,7 +3135,8 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 75
+      "popularity": 75,
+      "rating": 18.5
     },
     {
       "id": "adebayo_23",
@@ -2975,7 +3152,8 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 65
+      "popularity": 65,
+      "rating": 18.9
     },
     {
       "id": "herro_23",
@@ -2991,7 +3169,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 58
+      "popularity": 58,
+      "rating": 15.5
     },
     {
       "id": "lowry_22",
@@ -3007,7 +3186,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 65
+      "popularity": 65,
+      "rating": 15.1
     },
     {
       "id": "strus_23",
@@ -3023,7 +3203,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 42
+      "popularity": 42,
+      "rating": 10.3
     },
     {
       "id": "vincent_23",
@@ -3039,7 +3220,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 40
+      "popularity": 40,
+      "rating": 10
     },
     {
       "id": "robinson_23",
@@ -3055,7 +3237,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 48
+      "popularity": 48,
+      "rating": 10.9
     }
   ],
   "Spurs_1980s": [
@@ -3073,7 +3256,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 85
+      "popularity": 85,
+      "rating": 17
     },
     {
       "id": "mitchell_85",
@@ -3089,7 +3273,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 48
+      "popularity": 48,
+      "rating": 15.6
     },
     {
       "id": "robertson_85",
@@ -3105,7 +3290,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 17.4
     },
     {
       "id": "gilmore_83",
@@ -3121,7 +3307,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Volume Shooter"
       ],
-      "popularity": 72
+      "popularity": 72,
+      "rating": 20.7
     },
     {
       "id": "johnson_85",
@@ -3137,7 +3324,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 38
+      "popularity": 38,
+      "rating": 14.3
     }
   ],
   "Spurs_1990s": [
@@ -3155,7 +3343,8 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 88
+      "popularity": 88,
+      "rating": 26.4
     },
     {
       "id": "elliott_95",
@@ -3171,7 +3360,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 14.4
     },
     {
       "id": "duncan_99",
@@ -3187,7 +3377,8 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 92
+      "popularity": 92,
+      "rating": 22.7
     },
     {
       "id": "avery_96",
@@ -3203,7 +3394,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Clutch"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 15.3
     },
     {
       "id": "person_97",
@@ -3219,7 +3411,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 48
+      "popularity": 48,
+      "rating": 12.4
     },
     {
       "id": "vinnie_97",
@@ -3235,7 +3428,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 42
+      "popularity": 42,
+      "rating": 10.8
     }
   ],
   "Spurs_2000s": [
@@ -3254,7 +3448,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Lockdown Defender"
       ],
-      "popularity": 92
+      "popularity": 92,
+      "rating": 25.6
     },
     {
       "id": "parker_07",
@@ -3270,7 +3465,8 @@ const PLAYER_DB = {
         "Clutch",
         "Elite Playmaker"
       ],
-      "popularity": 78
+      "popularity": 78,
+      "rating": 14.2
     },
     {
       "id": "ginobili_05",
@@ -3286,7 +3482,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 82
+      "popularity": 82,
+      "rating": 14.4
     },
     {
       "id": "bowen_03",
@@ -3302,7 +3499,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 9.2
     },
     {
       "id": "horry_05",
@@ -3319,7 +3517,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 62
+      "popularity": 62,
+      "rating": 10.4
     },
     {
       "id": "popovich_03",
@@ -3335,7 +3534,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 50
+      "popularity": 50,
+      "rating": 12.4
     },
     {
       "id": "nesterovic_04",
@@ -3351,7 +3551,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 40
+      "popularity": 40,
+      "rating": 12.1
     }
   ],
   "Spurs_2010s": [
@@ -3370,7 +3571,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Volume Shooter"
       ],
-      "popularity": 80
+      "popularity": 80,
+      "rating": 17.7
     },
     {
       "id": "aldridge_16",
@@ -3386,7 +3588,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 63
+      "popularity": 63,
+      "rating": 18.8
     },
     {
       "id": "parker_12",
@@ -3402,7 +3605,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 78
+      "popularity": 78,
+      "rating": 15.8
     },
     {
       "id": "duncan_14",
@@ -3418,7 +3622,8 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 92
+      "popularity": 92,
+      "rating": 18.8
     },
     {
       "id": "mills_14",
@@ -3435,7 +3640,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 65
+      "popularity": 65,
+      "rating": 8.4
     },
     {
       "id": "diaw_14",
@@ -3452,7 +3658,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 11.4
     },
     {
       "id": "splitter_14",
@@ -3468,7 +3675,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 41
+      "popularity": 41,
+      "rating": 13.7
     },
     {
       "id": "green_14",
@@ -3485,7 +3693,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 10.6
     },
     {
       "id": "mginobili_16",
@@ -3502,7 +3711,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Elite Playmaker"
       ],
-      "popularity": 82
+      "popularity": 82,
+      "rating": 12
     }
   ],
   "Knicks_1970s": [
@@ -3520,7 +3730,8 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 78
+      "popularity": 78,
+      "rating": 21
     },
     {
       "id": "reed_70",
@@ -3536,7 +3747,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 72
+      "popularity": 72,
+      "rating": 22.2
     },
     {
       "id": "bradley_72",
@@ -3552,7 +3764,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 58
+      "popularity": 58,
+      "rating": 12.7
     },
     {
       "id": "monroe_71",
@@ -3568,7 +3781,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 65
+      "popularity": 65,
+      "rating": 14.7
     },
     {
       "id": "debusschere_72",
@@ -3584,7 +3798,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 65
+      "popularity": 65,
+      "rating": 17
     },
     {
       "id": "lucas_72",
@@ -3600,7 +3815,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Floor Spacer"
       ],
-      "popularity": 60
+      "popularity": 60,
+      "rating": 17.6
     },
     {
       "id": "barnett_72",
@@ -3616,7 +3832,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 42
+      "popularity": 42,
+      "rating": 10.5
     }
   ],
   "Knicks_1990s": [
@@ -3634,7 +3851,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 80
+      "popularity": 80,
+      "rating": 23.4
     },
     {
       "id": "starks_94",
@@ -3650,7 +3868,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 58
+      "popularity": 58,
+      "rating": 13.3
     },
     {
       "id": "oakley_94",
@@ -3666,7 +3885,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 16.3
     },
     {
       "id": "houston_99",
@@ -3682,7 +3902,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 58
+      "popularity": 58,
+      "rating": 14
     },
     {
       "id": "ewing_jr94",
@@ -3698,7 +3919,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 58
+      "popularity": 58,
+      "rating": 15.7
     },
     {
       "id": "doc_94",
@@ -3714,7 +3936,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Glue Guy"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 11.5
     },
     {
       "id": "ward_99",
@@ -3730,7 +3953,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Glue Guy"
       ],
-      "popularity": 38
+      "popularity": 38,
+      "rating": 10.2
     }
   ],
   "Knicks_2000s": [
@@ -3748,7 +3972,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 62
+      "popularity": 62,
+      "rating": 17.7
     },
     {
       "id": "crawford_06",
@@ -3764,7 +3989,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 12.5
     },
     {
       "id": "lee_09",
@@ -3780,7 +4006,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 45
+      "popularity": 45,
+      "rating": 17.5
     },
     {
       "id": "thomas_05",
@@ -3796,7 +4023,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 11.2
     },
     {
       "id": "curry_07",
@@ -3812,7 +4040,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Volume Shooter"
       ],
-      "popularity": 40
+      "popularity": 40,
+      "rating": 15.5
     },
     {
       "id": "james_07",
@@ -3828,7 +4057,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 48
+      "popularity": 48,
+      "rating": 12.4
     }
   ],
   "Knicks_2010s": [
@@ -3846,7 +4076,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 88
+      "popularity": 88,
+      "rating": 18.6
     },
     {
       "id": "amare_11",
@@ -3862,7 +4093,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 72
+      "popularity": 72,
+      "rating": 19.4
     },
     {
       "id": "chandler_12",
@@ -3878,7 +4110,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 58
+      "popularity": 58,
+      "rating": 15.8
     },
     {
       "id": "kidd_13",
@@ -3894,7 +4127,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Glue Guy"
       ],
-      "popularity": 78
+      "popularity": 78,
+      "rating": 11.6
     },
     {
       "id": "jrsmith_13",
@@ -3911,7 +4145,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Clutch"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 13.1
     },
     {
       "id": "felton_13",
@@ -3927,7 +4162,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Glue Guy"
       ],
-      "popularity": 44
+      "popularity": 44,
+      "rating": 13.3
     }
   ],
   "Jazz_1980s": [
@@ -3945,7 +4181,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 70
+      "popularity": 70,
+      "rating": 22
     },
     {
       "id": "stockton_88",
@@ -3961,7 +4198,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 78
+      "popularity": 78,
+      "rating": 20
     },
     {
       "id": "griffith_85",
@@ -3977,7 +4215,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 48
+      "popularity": 48,
+      "rating": 15.9
     },
     {
       "id": "thurl_88",
@@ -3993,7 +4232,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Floor Spacer"
       ],
-      "popularity": 40
+      "popularity": 40,
+      "rating": 14.9
     },
     {
       "id": "eaton_88",
@@ -4010,7 +4250,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 17.7
     },
     {
       "id": "bailey_87",
@@ -4026,7 +4267,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 62
+      "popularity": 62,
+      "rating": 18
     }
   ],
   "Jazz_1990s": [
@@ -4044,7 +4286,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 70
+      "popularity": 70,
+      "rating": 22.4
     },
     {
       "id": "stockton_97",
@@ -4060,7 +4303,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 78
+      "popularity": 78,
+      "rating": 17.2
     },
     {
       "id": "hornacek_96",
@@ -4076,7 +4320,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 57
+      "popularity": 57,
+      "rating": 13.2
     },
     {
       "id": "ostertag_97",
@@ -4092,7 +4337,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 41
+      "popularity": 41,
+      "rating": 12.5
     },
     {
       "id": "eaton_97",
@@ -4109,7 +4355,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 13.1
     },
     {
       "id": "benoit_96",
@@ -4125,7 +4372,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 38
+      "popularity": 38,
+      "rating": 9.6
     },
     {
       "id": "brown_97",
@@ -4141,7 +4389,8 @@ const PLAYER_DB = {
         "Glue Guy",
         "Rim Protector"
       ],
-      "popularity": 40
+      "popularity": 40,
+      "rating": 10.6
     }
   ],
   "Jazz_2000s": [
@@ -4159,7 +4408,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 56
+      "popularity": 56,
+      "rating": 19.6
     },
     {
       "id": "deron_08",
@@ -4175,7 +4425,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 68
+      "popularity": 68,
+      "rating": 17.7
     },
     {
       "id": "okur_07",
@@ -4191,7 +4442,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 48
+      "popularity": 48,
+      "rating": 16.8
     },
     {
       "id": "kirilenko_07",
@@ -4208,7 +4460,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 63
+      "popularity": 63,
+      "rating": 20.8
     },
     {
       "id": "harpring_07",
@@ -4224,7 +4477,8 @@ const PLAYER_DB = {
         "Glue Guy",
         "Volume Shooter"
       ],
-      "popularity": 44
+      "popularity": 44,
+      "rating": 12.7
     },
     {
       "id": "maynor_09",
@@ -4240,7 +4494,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Glue Guy"
       ],
-      "popularity": 39
+      "popularity": 39,
+      "rating": 9.4
     }
   ],
   "Jazz_2010s": [
@@ -4258,7 +4513,8 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 60
+      "popularity": 60,
+      "rating": 16.3
     },
     {
       "id": "gobert_17",
@@ -4274,7 +4530,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 68
+      "popularity": 68,
+      "rating": 20.6
     },
     {
       "id": "mitchell_19",
@@ -4290,7 +4547,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 72
+      "popularity": 72,
+      "rating": 16.9
     },
     {
       "id": "ingles_18",
@@ -4306,7 +4564,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 50
+      "popularity": 50,
+      "rating": 13.9
     },
     {
       "id": "favors_16",
@@ -4322,7 +4581,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 46
+      "popularity": 46,
+      "rating": 16.1
     },
     {
       "id": "crowder_18",
@@ -4339,7 +4599,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 44
+      "popularity": 44,
+      "rating": 10.8
     },
     {
       "id": "exum_16",
@@ -4355,7 +4616,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 40
+      "popularity": 40,
+      "rating": 9.2
     }
   ],
   "Pistons_1980s": [
@@ -4373,7 +4635,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 94
+      "popularity": 94,
+      "rating": 18
     },
     {
       "id": "dumars_89",
@@ -4389,7 +4652,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 72
+      "popularity": 72,
+      "rating": 13.1
     },
     {
       "id": "laimbeer_89",
@@ -4405,7 +4669,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 68
+      "popularity": 68,
+      "rating": 16.8
     },
     {
       "id": "rodman_89",
@@ -4421,7 +4686,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 96
+      "popularity": 96,
+      "rating": 13.8
     },
     {
       "id": "dantley_87",
@@ -4437,7 +4703,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 62
+      "popularity": 62,
+      "rating": 14.7
     },
     {
       "id": "johnson_89",
@@ -4453,7 +4720,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 12.2
     },
     {
       "id": "salley_89",
@@ -4469,7 +4737,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 45
+      "popularity": 45,
+      "rating": 12
     },
     {
       "id": "mahorn_89",
@@ -4485,7 +4754,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Lockdown Defender"
       ],
-      "popularity": 46
+      "popularity": 46,
+      "rating": 13.6
     }
   ],
   "Pistons_1990s": [
@@ -4503,7 +4773,8 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 78
+      "popularity": 78,
+      "rating": 20.4
     },
     {
       "id": "stackhouse_97",
@@ -4519,7 +4790,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 57
+      "popularity": 57,
+      "rating": 14.1
     },
     {
       "id": "dumars_93",
@@ -4535,7 +4807,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 72
+      "popularity": 72,
+      "rating": 14.8
     },
     {
       "id": "thomas_95",
@@ -4551,7 +4824,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 16.1
     },
     {
       "id": "long_95",
@@ -4567,7 +4841,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 38
+      "popularity": 38,
+      "rating": 13.2
     }
   ],
   "Pistons_2000s": [
@@ -4585,7 +4860,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 70
+      "popularity": 70,
+      "rating": 14.4
     },
     {
       "id": "rasheed_04",
@@ -4601,7 +4877,8 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 67
+      "popularity": 67,
+      "rating": 15.8
     },
     {
       "id": "hamilton_04",
@@ -4617,7 +4894,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 63
+      "popularity": 63,
+      "rating": 12.6
     },
     {
       "id": "prince_04",
@@ -4633,7 +4911,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 57
+      "popularity": 57,
+      "rating": 12.8
     },
     {
       "id": "ben_04",
@@ -4649,7 +4928,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 68
+      "popularity": 68,
+      "rating": 21.3
     },
     {
       "id": "hunter_04",
@@ -4665,7 +4945,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 41
+      "popularity": 41,
+      "rating": 8.8
     },
     {
       "id": "mcdyess_06",
@@ -4681,7 +4962,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 14.7
     }
   ],
   "Magic_1990s": [
@@ -4700,7 +4982,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 97
+      "popularity": 97,
+      "rating": 26.8
     },
     {
       "id": "penny_95",
@@ -4716,7 +4999,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Clutch"
       ],
-      "popularity": 72
+      "popularity": 72,
+      "rating": 21.5
     },
     {
       "id": "anderson_95",
@@ -4732,7 +5016,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 44
+      "popularity": 44,
+      "rating": 14.5
     },
     {
       "id": "horace_95",
@@ -4748,7 +5033,8 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 56
+      "popularity": 56,
+      "rating": 16.7
     },
     {
       "id": "shaw_95",
@@ -4764,7 +5050,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Glue Guy"
       ],
-      "popularity": 41
+      "popularity": 41,
+      "rating": 12
     },
     {
       "id": "scott_95",
@@ -4780,7 +5067,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 43
+      "popularity": 43,
+      "rating": 10.8
     },
     {
       "id": "gabriel_95",
@@ -4796,7 +5084,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 13.2
     }
   ],
   "Magic_2000s": [
@@ -4814,7 +5103,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 84
+      "popularity": 84,
+      "rating": 22.5
     },
     {
       "id": "dwight_09",
@@ -4830,7 +5120,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 75
+      "popularity": 75,
+      "rating": 24
     },
     {
       "id": "turkoglu_08",
@@ -4846,7 +5137,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 16.6
     },
     {
       "id": "lewis_09",
@@ -4862,7 +5154,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 51
+      "popularity": 51,
+      "rating": 14.5
     },
     {
       "id": "arenas_04",
@@ -4878,7 +5171,8 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 78
+      "popularity": 78,
+      "rating": 13.3
     },
     {
       "id": "bogans_09",
@@ -4894,7 +5188,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 38
+      "popularity": 38,
+      "rating": 8.9
     },
     {
       "id": "pietrus_09",
@@ -4910,7 +5205,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Floor Spacer"
       ],
-      "popularity": 40
+      "popularity": 40,
+      "rating": 10.9
     }
   ],
   "Magic_2010s": [
@@ -4928,7 +5224,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 75
+      "popularity": 75,
+      "rating": 24.5
     },
     {
       "id": "vucevic_14",
@@ -4944,7 +5241,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 18.1
     },
     {
       "id": "gordon_18",
@@ -4960,7 +5258,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 58
+      "popularity": 58,
+      "rating": 16.2
     },
     {
       "id": "anderson_13",
@@ -4976,7 +5275,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 46
+      "popularity": 46,
+      "rating": 14.5
     },
     {
       "id": "afflalo_14",
@@ -4992,7 +5292,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Floor Spacer"
       ],
-      "popularity": 42
+      "popularity": 42,
+      "rating": 12.4
     }
   ],
   "Suns_1970s": [
@@ -5010,7 +5311,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 62
+      "popularity": 62,
+      "rating": 17.6
     },
     {
       "id": "adams_76",
@@ -5026,7 +5328,8 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 21.1
     },
     {
       "id": "scott_76",
@@ -5042,7 +5345,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 18.3
     },
     {
       "id": "silas_76",
@@ -5058,7 +5362,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 58
+      "popularity": 58,
+      "rating": 13.8
     },
     {
       "id": "hawkins_76",
@@ -5074,7 +5379,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 63
+      "popularity": 63,
+      "rating": 17.8
     }
   ],
   "Suns_1990s": [
@@ -5092,7 +5398,8 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 91
+      "popularity": 91,
+      "rating": 24.5
     },
     {
       "id": "kj_93",
@@ -5108,7 +5415,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 68
+      "popularity": 68,
+      "rating": 19.5
     },
     {
       "id": "majerle_93",
@@ -5124,7 +5432,8 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 60
+      "popularity": 60,
+      "rating": 15.3
     },
     {
       "id": "manning_93",
@@ -5140,7 +5449,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 58
+      "popularity": 58,
+      "rating": 16.1
     },
     {
       "id": "chambers_93",
@@ -5156,7 +5466,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 57
+      "popularity": 57,
+      "rating": 16.2
     },
     {
       "id": "ceballos_93",
@@ -5172,7 +5483,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 48
+      "popularity": 48,
+      "rating": 11.7
     },
     {
       "id": "johnson_93",
@@ -5188,7 +5500,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Glue Guy"
       ],
-      "popularity": 38
+      "popularity": 38,
+      "rating": 8.7
     }
   ],
   "Suns_2000s": [
@@ -5206,7 +5519,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 82
+      "popularity": 82,
+      "rating": 17.6
     },
     {
       "id": "amare_06",
@@ -5222,7 +5536,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 72
+      "popularity": 72,
+      "rating": 20.6
     },
     {
       "id": "marion_06",
@@ -5238,7 +5553,8 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 68
+      "popularity": 68,
+      "rating": 21.4
     },
     {
       "id": "barbosa_07",
@@ -5254,7 +5570,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 12.8
     },
     {
       "id": "richardson_06",
@@ -5270,7 +5587,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 47
+      "popularity": 47,
+      "rating": 12.3
     },
     {
       "id": "jones_06",
@@ -5286,7 +5604,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 40
+      "popularity": 40,
+      "rating": 7.4
     },
     {
       "id": "tmac_suns",
@@ -5303,7 +5622,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 16
     }
   ],
   "Suns_2020s": [
@@ -5321,7 +5641,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 72
+      "popularity": 72,
+      "rating": 18
     },
     {
       "id": "durant_23",
@@ -5337,7 +5658,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 91
+      "popularity": 91,
+      "rating": 21.3
     },
     {
       "id": "beal_23",
@@ -5353,7 +5675,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 62
+      "popularity": 62,
+      "rating": 15
     },
     {
       "id": "bridges_22",
@@ -5369,7 +5692,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Floor Spacer"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 14.4
     },
     {
       "id": "ayton_22",
@@ -5385,7 +5709,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Volume Shooter"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 18
     },
     {
       "id": "cp3_22",
@@ -5402,7 +5727,8 @@ const PLAYER_DB = {
         "Clutch",
         "Floor Spacer"
       ],
-      "popularity": 78
+      "popularity": 78,
+      "rating": 16.4
     }
   ],
   "Nuggets_1980s": [
@@ -5420,7 +5746,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 62
+      "popularity": 62,
+      "rating": 19.1
     },
     {
       "id": "lever_88",
@@ -5436,7 +5763,8 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 45
+      "popularity": 45,
+      "rating": 22.8
     },
     {
       "id": "rasmussen_88",
@@ -5452,7 +5780,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 38
+      "popularity": 38,
+      "rating": 14.4
     },
     {
       "id": "vandeweghe_84",
@@ -5468,7 +5797,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Floor Spacer"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 18
     },
     {
       "id": "issel_85",
@@ -5484,7 +5814,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Volume Shooter"
       ],
-      "popularity": 68
+      "popularity": 68,
+      "rating": 18.2
     },
     {
       "id": "dunn_87",
@@ -5500,7 +5831,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 40
+      "popularity": 40,
+      "rating": 11.5
     }
   ],
   "Nuggets_2000s": [
@@ -5518,7 +5850,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 88
+      "popularity": 88,
+      "rating": 16.9
     },
     {
       "id": "iverson_07",
@@ -5534,7 +5867,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 98
+      "popularity": 98,
+      "rating": 19
     },
     {
       "id": "camby_07",
@@ -5550,7 +5884,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 58
+      "popularity": 58,
+      "rating": 21.6
     },
     {
       "id": "martin_07",
@@ -5566,7 +5901,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 54
+      "popularity": 54,
+      "rating": 14.7
     },
     {
       "id": "nene_06",
@@ -5582,7 +5918,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 42
+      "popularity": 42,
+      "rating": 15.5
     },
     {
       "id": "boykins_04",
@@ -5598,7 +5935,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 44
+      "popularity": 44,
+      "rating": 10.7
     },
     {
       "id": "anthony_09",
@@ -5614,7 +5952,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Floor Spacer"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 10.1
     }
   ],
   "Nuggets_2010s": [
@@ -5632,7 +5971,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 80
+      "popularity": 80,
+      "rating": 22.2
     },
     {
       "id": "murray_19",
@@ -5648,7 +5988,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 65
+      "popularity": 65,
+      "rating": 14.4
     },
     {
       "id": "melo_11",
@@ -5664,7 +6005,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 88
+      "popularity": 88,
+      "rating": 18.6
     },
     {
       "id": "faried_14",
@@ -5680,7 +6022,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Volume Shooter"
       ],
-      "popularity": 44
+      "popularity": 44,
+      "rating": 15.4
     },
     {
       "id": "lawson_14",
@@ -5696,7 +6039,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Clutch"
       ],
-      "popularity": 48
+      "popularity": 48,
+      "rating": 16.2
     },
     {
       "id": "gallinari_13",
@@ -5712,7 +6056,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 46
+      "popularity": 46,
+      "rating": 13
     }
   ],
   "Nuggets_2020s": [
@@ -5731,7 +6076,8 @@ const PLAYER_DB = {
         "Clutch",
         "Floor Spacer"
       ],
-      "popularity": 80
+      "popularity": 80,
+      "rating": 26.3
     },
     {
       "id": "murray_23",
@@ -5747,7 +6093,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 65
+      "popularity": 65,
+      "rating": 16.4
     },
     {
       "id": "porter_23",
@@ -5763,7 +6110,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 14.6
     },
     {
       "id": "gordon_23",
@@ -5780,7 +6128,8 @@ const PLAYER_DB = {
         "Glue Guy",
         "Lockdown Defender"
       ],
-      "popularity": 58
+      "popularity": 58,
+      "rating": 14.5
     },
     {
       "id": "braun_24",
@@ -5796,7 +6145,8 @@ const PLAYER_DB = {
         "Clutch",
         "Glue Guy"
       ],
-      "popularity": 38
+      "popularity": 38,
+      "rating": 10.2
     }
   ],
   "Sixers_1960s": [
@@ -5814,7 +6164,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 92
+      "popularity": 92,
+      "rating": 35.3
     },
     {
       "id": "greer_67",
@@ -5830,7 +6181,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 58
+      "popularity": 58,
+      "rating": 16.3
     },
     {
       "id": "walker_67",
@@ -5846,7 +6198,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 16.4
     },
     {
       "id": "jones_67",
@@ -5862,7 +6215,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 38
+      "popularity": 38,
+      "rating": 11.4
     },
     {
       "id": "cunningham_68",
@@ -5878,7 +6232,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 68
+      "popularity": 68,
+      "rating": 17.8
     },
     {
       "id": "jackson_67",
@@ -5894,7 +6249,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 36
+      "popularity": 36,
+      "rating": 14.8
     }
   ],
   "Sixers_1980s": [
@@ -5912,7 +6268,8 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 92
+      "popularity": 92,
+      "rating": 20.6
     },
     {
       "id": "malone_83",
@@ -5928,7 +6285,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 85
+      "popularity": 85,
+      "rating": 24.4
     },
     {
       "id": "cheeks_87",
@@ -5944,7 +6302,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 57
+      "popularity": 57,
+      "rating": 15.7
     },
     {
       "id": "toney_83",
@@ -5960,7 +6319,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 14.4
     },
     {
       "id": "toney_83b",
@@ -5976,7 +6336,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 13.1
     },
     {
       "id": "edwards_83",
@@ -5992,7 +6353,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 38
+      "popularity": 38,
+      "rating": 8.9
     },
     {
       "id": "richardson_82",
@@ -6008,7 +6370,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 39
+      "popularity": 39,
+      "rating": 11.2
     }
   ],
   "Sixers_1990s": [
@@ -6026,7 +6389,8 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 91
+      "popularity": 91,
+      "rating": 23.9
     },
     {
       "id": "iverson_99",
@@ -6042,7 +6406,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 98
+      "popularity": 98,
+      "rating": 19.9
     },
     {
       "id": "coleman_93",
@@ -6058,7 +6423,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 20.4
     },
     {
       "id": "weatherspoon_95",
@@ -6074,7 +6440,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Volume Shooter"
       ],
-      "popularity": 42
+      "popularity": 42,
+      "rating": 18
     },
     {
       "id": "mashburn_98",
@@ -6090,7 +6457,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 42
+      "popularity": 42,
+      "rating": 14.3
     }
   ],
   "Sixers_2000s": [
@@ -6108,7 +6476,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 98
+      "popularity": 98,
+      "rating": 20.5
     },
     {
       "id": "webber_05",
@@ -6124,7 +6493,8 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 76
+      "popularity": 76,
+      "rating": 20.1
     },
     {
       "id": "iguodala_09",
@@ -6140,7 +6510,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 68
+      "popularity": 68,
+      "rating": 17.3
     },
     {
       "id": "mckinley_03",
@@ -6157,7 +6528,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 40
+      "popularity": 40,
+      "rating": 11.4
     },
     {
       "id": "dalembrt_04",
@@ -6173,7 +6545,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 41
+      "popularity": 41,
+      "rating": 16.1
     }
   ],
   "Sixers_2010s": [
@@ -6191,7 +6564,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 65
+      "popularity": 65,
+      "rating": 28.5
     },
     {
       "id": "simmons_19",
@@ -6207,7 +6581,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 68
+      "popularity": 68,
+      "rating": 21.1
     },
     {
       "id": "harris_19",
@@ -6223,7 +6598,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 16.5
     },
     {
       "id": "saric_18",
@@ -6239,7 +6615,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 44
+      "popularity": 44,
+      "rating": 12.3
     },
     {
       "id": "covington_18",
@@ -6255,7 +6632,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Floor Spacer"
       ],
-      "popularity": 48
+      "popularity": 48,
+      "rating": 15
     },
     {
       "id": "redick_18",
@@ -6271,7 +6649,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 78
+      "popularity": 78,
+      "rating": 12.1
     }
   ],
   "Rockets_1990s": [
@@ -6290,7 +6669,8 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 88
+      "popularity": 88,
+      "rating": 28
     },
     {
       "id": "clyde_95",
@@ -6306,7 +6686,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 78
+      "popularity": 78,
+      "rating": 18.2
     },
     {
       "id": "horry_95",
@@ -6323,7 +6704,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 62
+      "popularity": 62,
+      "rating": 14.7
     },
     {
       "id": "cassell_95",
@@ -6339,7 +6721,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Clutch"
       ],
-      "popularity": 62
+      "popularity": 62,
+      "rating": 13.9
     },
     {
       "id": "otis_95",
@@ -6355,7 +6738,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 15.9
     }
   ],
   "Rockets_2000s": [
@@ -6373,7 +6757,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 90
+      "popularity": 90,
+      "rating": 21.2
     },
     {
       "id": "tmac_04",
@@ -6389,7 +6774,8 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 84
+      "popularity": 84,
+      "rating": 19.7
     },
     {
       "id": "scola_07",
@@ -6405,7 +6791,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 48
+      "popularity": 48,
+      "rating": 13.6
     },
     {
       "id": "alston_07",
@@ -6421,7 +6808,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Glue Guy"
       ],
-      "popularity": 42
+      "popularity": 42,
+      "rating": 10.3
     },
     {
       "id": "hayes_07",
@@ -6438,7 +6826,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 38
+      "popularity": 38,
+      "rating": 13.2
     }
   ],
   "Rockets_2010s": [
@@ -6456,7 +6845,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 65
+      "popularity": 65,
+      "rating": 25.1
     },
     {
       "id": "cp3_18",
@@ -6472,7 +6862,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 78
+      "popularity": 78,
+      "rating": 18
     },
     {
       "id": "tucker_18",
@@ -6489,7 +6880,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 48
+      "popularity": 48,
+      "rating": 11.2
     },
     {
       "id": "gordon_18b",
@@ -6505,7 +6897,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Floor Spacer"
       ],
-      "popularity": 50
+      "popularity": 50,
+      "rating": 11
     },
     {
       "id": "capela_18",
@@ -6521,7 +6914,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 19.4
     }
   ],
   "Thunder_1970s": [
@@ -6539,7 +6933,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 18.3
     },
     {
       "id": "djohnson_79",
@@ -6555,7 +6950,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 62
+      "popularity": 62,
+      "rating": 15.2
     },
     {
       "id": "brown_79",
@@ -6571,7 +6967,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 50
+      "popularity": 50,
+      "rating": 12.6
     },
     {
       "id": "silas_79",
@@ -6587,7 +6984,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Floor Spacer"
       ],
-      "popularity": 60
+      "popularity": 60,
+      "rating": 19.6
     },
     {
       "id": "green_79",
@@ -6603,7 +7001,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 40
+      "popularity": 40,
+      "rating": 13.9
     }
   ],
   "Thunder_1990s": [
@@ -6621,7 +7020,8 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 78
+      "popularity": 78,
+      "rating": 21.8
     },
     {
       "id": "kemp_96",
@@ -6637,7 +7037,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 72
+      "popularity": 72,
+      "rating": 21.3
     },
     {
       "id": "schrempf_96",
@@ -6653,7 +7054,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Elite Playmaker"
       ],
-      "popularity": 57
+      "popularity": 57,
+      "rating": 16.6
     },
     {
       "id": "mcmillan_96",
@@ -6670,7 +7072,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Glue Guy"
       ],
-      "popularity": 42
+      "popularity": 42,
+      "rating": 14.9
     },
     {
       "id": "gill_96",
@@ -6686,7 +7089,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Volume Shooter"
       ],
-      "popularity": 48
+      "popularity": 48,
+      "rating": 14.3
     }
   ],
   "Thunder_2010s": [
@@ -6705,7 +7109,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Floor Spacer"
       ],
-      "popularity": 91
+      "popularity": 91,
+      "rating": 23.1
     },
     {
       "id": "russ_17",
@@ -6722,7 +7127,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Elite Playmaker"
       ],
-      "popularity": 93
+      "popularity": 93,
+      "rating": 27.2
     },
     {
       "id": "harden_12",
@@ -6739,7 +7145,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Floor Spacer"
       ],
-      "popularity": 65
+      "popularity": 65,
+      "rating": 13.8
     },
     {
       "id": "ibaka_12",
@@ -6755,7 +7162,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Floor Spacer"
       ],
-      "popularity": 58
+      "popularity": 58,
+      "rating": 19.2
     },
     {
       "id": "perkins_12",
@@ -6772,7 +7180,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 11.1
     }
   ],
   "Thunder_2020s": [
@@ -6790,7 +7199,8 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 68
+      "popularity": 68,
+      "rating": 22.7
     },
     {
       "id": "williams_24",
@@ -6807,7 +7217,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Elite Playmaker"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 17.7
     },
     {
       "id": "dort_24",
@@ -6824,7 +7235,8 @@ const PLAYER_DB = {
         "Glue Guy",
         "Clutch"
       ],
-      "popularity": 42
+      "popularity": 42,
+      "rating": 12.6
     },
     {
       "id": "holmgren_24",
@@ -6840,7 +7252,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Floor Spacer"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 18.2
     }
   ],
   "Bucks_1970s": [
@@ -6858,7 +7271,8 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 90
+      "popularity": 90,
+      "rating": 33.4
     },
     {
       "id": "oscar_71",
@@ -6874,7 +7288,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 90
+      "popularity": 90,
+      "rating": 18.1
     },
     {
       "id": "dandridge_71",
@@ -6890,7 +7305,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Clutch"
       ],
-      "popularity": 58
+      "popularity": 58,
+      "rating": 16.8
     },
     {
       "id": "mcghee_71",
@@ -6906,7 +7322,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Glue Guy"
       ],
-      "popularity": 36
+      "popularity": 36,
+      "rating": 10.6
     },
     {
       "id": "allen_71",
@@ -6922,7 +7339,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 42
+      "popularity": 42,
+      "rating": 9.3
     }
   ],
   "Bucks_1980s": [
@@ -6940,7 +7358,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 62
+      "popularity": 62,
+      "rating": 18.1
     },
     {
       "id": "mjohnson_79",
@@ -6956,7 +7375,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 59
+      "popularity": 59,
+      "rating": 16.9
     },
     {
       "id": "pressey_82",
@@ -6972,7 +7392,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Lockdown Defender"
       ],
-      "popularity": 42
+      "popularity": 42,
+      "rating": 15.8
     },
     {
       "id": "pierce_82",
@@ -6988,7 +7409,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 58
+      "popularity": 58,
+      "rating": 19
     },
     {
       "id": "lanier_82",
@@ -7004,7 +7426,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Volume Shooter"
       ],
-      "popularity": 68
+      "popularity": 68,
+      "rating": 17.2
     }
   ],
   "Bucks_2000s": [
@@ -7022,7 +7445,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 82
+      "popularity": 82,
+      "rating": 16
     },
     {
       "id": "redd_06",
@@ -7038,7 +7462,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 57
+      "popularity": 57,
+      "rating": 16.3
     },
     {
       "id": "cassell_01",
@@ -7054,7 +7479,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Clutch"
       ],
-      "popularity": 62
+      "popularity": 62,
+      "rating": 15.4
     },
     {
       "id": "mason_01",
@@ -7070,7 +7496,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 58
+      "popularity": 58,
+      "rating": 13.7
     },
     {
       "id": "mobley_06",
@@ -7086,7 +7513,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 45
+      "popularity": 45,
+      "rating": 12.5
     }
   ],
   "Bucks_2020s": [
@@ -7105,7 +7533,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Volume Shooter"
       ],
-      "popularity": 92
+      "popularity": 92,
+      "rating": 26.2
     },
     {
       "id": "dame_23",
@@ -7121,7 +7550,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 89
+      "popularity": 89,
+      "rating": 17.8
     },
     {
       "id": "middleton_22",
@@ -7138,7 +7568,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Lockdown Defender"
       ],
-      "popularity": 62
+      "popularity": 62,
+      "rating": 15.4
     },
     {
       "id": "portis_22",
@@ -7155,7 +7586,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 48
+      "popularity": 48,
+      "rating": 15.2
     },
     {
       "id": "brook_22",
@@ -7171,7 +7603,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Floor Spacer"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 14.4
     }
   ],
   "Mavericks_1980s": [
@@ -7189,7 +7622,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 60
+      "popularity": 60,
+      "rating": 17.1
     },
     {
       "id": "blackman_87",
@@ -7205,7 +7639,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 57
+      "popularity": 57,
+      "rating": 14.2
     },
     {
       "id": "harper_89",
@@ -7221,7 +7656,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Elite Playmaker"
       ],
-      "popularity": 58
+      "popularity": 58,
+      "rating": 14.7
     },
     {
       "id": "perkins_88",
@@ -7237,7 +7673,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 42
+      "popularity": 42,
+      "rating": 13.8
     }
   ],
   "Mavericks_2000s": [
@@ -7255,7 +7692,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 94
+      "popularity": 94,
+      "rating": 20.1
     },
     {
       "id": "nash_02",
@@ -7271,7 +7709,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 82
+      "popularity": 82,
+      "rating": 14.6
     },
     {
       "id": "finley_02",
@@ -7287,7 +7726,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Floor Spacer"
       ],
-      "popularity": 56
+      "popularity": 56,
+      "rating": 15.8
     },
     {
       "id": "walker_02",
@@ -7303,7 +7743,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Floor Spacer"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 16.1
     },
     {
       "id": "terry_07",
@@ -7320,7 +7761,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 57
+      "popularity": 57,
+      "rating": 11.9
     }
   ],
   "Mavericks_2010s": [
@@ -7338,7 +7780,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 94
+      "popularity": 94,
+      "rating": 16.8
     },
     {
       "id": "kidd_12",
@@ -7354,7 +7797,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 78
+      "popularity": 78,
+      "rating": 16.2
     },
     {
       "id": "terry_11",
@@ -7371,7 +7815,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 57
+      "popularity": 57,
+      "rating": 12.2
     },
     {
       "id": "marion_11",
@@ -7387,7 +7832,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 68
+      "popularity": 68,
+      "rating": 15.2
     },
     {
       "id": "chandler_11",
@@ -7404,7 +7850,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 58
+      "popularity": 58,
+      "rating": 15.2
     }
   ],
   "Mavericks_2020s": [
@@ -7423,7 +7870,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Volume Shooter"
       ],
-      "popularity": 92
+      "popularity": 92,
+      "rating": 26.6
     },
     {
       "id": "kyrie_23",
@@ -7439,7 +7887,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 85
+      "popularity": 85,
+      "rating": 17.3
     },
     {
       "id": "washington_24",
@@ -7455,7 +7904,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Lockdown Defender"
       ],
-      "popularity": 41
+      "popularity": 41,
+      "rating": 12.2
     },
     {
       "id": "dinwiddie_24",
@@ -7471,7 +7921,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Clutch"
       ],
-      "popularity": 43
+      "popularity": 43,
+      "rating": 11.9
     }
   ],
   "Cavaliers_1980s": [
@@ -7489,7 +7940,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 62
+      "popularity": 62,
+      "rating": 15.8
     },
     {
       "id": "daugherty_89",
@@ -7505,7 +7957,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 20
     },
     {
       "id": "free_88",
@@ -7521,7 +7974,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 53
+      "popularity": 53,
+      "rating": 14.8
     },
     {
       "id": "ehlo_89",
@@ -7537,7 +7991,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 40
+      "popularity": 40,
+      "rating": 13.3
     },
     {
       "id": "nance_88",
@@ -7553,7 +8008,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Lockdown Defender"
       ],
-      "popularity": 48
+      "popularity": 48,
+      "rating": 19.5
     }
   ],
   "Cavaliers_1990s": [
@@ -7571,7 +8027,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 62
+      "popularity": 62,
+      "rating": 14.9
     },
     {
       "id": "nance_90",
@@ -7587,7 +8044,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 48
+      "popularity": 48,
+      "rating": 19.8
     },
     {
       "id": "ferry_94",
@@ -7603,7 +8061,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 38
+      "popularity": 38,
+      "rating": 9.6
     },
     {
       "id": "kemp_97",
@@ -7619,7 +8078,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Volume Shooter"
       ],
-      "popularity": 72
+      "popularity": 72,
+      "rating": 18.9
     },
     {
       "id": "ilgauskas_99",
@@ -7635,7 +8095,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Floor Spacer"
       ],
-      "popularity": 48
+      "popularity": 48,
+      "rating": 17.6
     }
   ],
   "Cavaliers_2000s": [
@@ -7653,7 +8114,8 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 99
+      "popularity": 99,
+      "rating": 24.4
     },
     {
       "id": "ilg_06",
@@ -7669,7 +8131,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Floor Spacer"
       ],
-      "popularity": 48
+      "popularity": 48,
+      "rating": 17.4
     },
     {
       "id": "hughes_07",
@@ -7685,7 +8148,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Volume Shooter"
       ],
-      "popularity": 42
+      "popularity": 42,
+      "rating": 15.2
     },
     {
       "id": "gooden_07",
@@ -7701,7 +8165,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 41
+      "popularity": 41,
+      "rating": 13.5
     }
   ],
   "Cavaliers_2010s": [
@@ -7720,7 +8185,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Lockdown Defender"
       ],
-      "popularity": 99
+      "popularity": 99,
+      "rating": 25.1
     },
     {
       "id": "kyrie_16",
@@ -7736,7 +8202,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 85
+      "popularity": 85,
+      "rating": 17.1
     },
     {
       "id": "love_16",
@@ -7753,7 +8220,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 68
+      "popularity": 68,
+      "rating": 18.1
     },
     {
       "id": "thompson_16",
@@ -7769,7 +8237,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 12.2
     },
     {
       "id": "shumpert_16",
@@ -7785,7 +8254,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 43
+      "popularity": 43,
+      "rating": 9.8
     },
     {
       "id": "jrsmith_16",
@@ -7802,7 +8272,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 11.5
     }
   ],
   "Cavaliers_2020s": [
@@ -7820,7 +8291,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 72
+      "popularity": 72,
+      "rating": 19.1
     },
     {
       "id": "garland_24",
@@ -7836,7 +8308,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 58
+      "popularity": 58,
+      "rating": 16.8
     },
     {
       "id": "mobley_24",
@@ -7852,7 +8325,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Floor Spacer"
       ],
-      "popularity": 57
+      "popularity": 57,
+      "rating": 18.1
     },
     {
       "id": "allen_24",
@@ -7868,7 +8342,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 17.2
     }
   ],
   "Blazers_1970s": [
@@ -7886,7 +8361,8 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 80
+      "popularity": 80,
+      "rating": 26.2
     },
     {
       "id": "lucas_77",
@@ -7902,7 +8378,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 19.5
     },
     {
       "id": "hollins_77",
@@ -7918,7 +8395,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 48
+      "popularity": 48,
+      "rating": 15.3
     },
     {
       "id": "gross_77",
@@ -7934,7 +8412,8 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 40
+      "popularity": 40,
+      "rating": 14.2
     },
     {
       "id": "twarren_77",
@@ -7950,7 +8429,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 51
+      "popularity": 51,
+      "rating": 10.7
     },
     {
       "id": "steele_77",
@@ -7966,7 +8446,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 40
+      "popularity": 40,
+      "rating": 12.4
     },
     {
       "id": "twarren_77b",
@@ -7982,7 +8463,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Glue Guy"
       ],
-      "popularity": 40
+      "popularity": 40,
+      "rating": 11.2
     }
   ],
   "Warriors_1970s": [
@@ -8000,7 +8482,8 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 82
+      "popularity": 82,
+      "rating": 23.1
     },
     {
       "id": "jwilkes_75",
@@ -8016,7 +8499,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 56
+      "popularity": 56,
+      "rating": 16.4
     },
     {
       "id": "psmith_75",
@@ -8032,7 +8516,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 42
+      "popularity": 42,
+      "rating": 13.6
     },
     {
       "id": "cray_75",
@@ -8048,7 +8533,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 41
+      "popularity": 41,
+      "rating": 15.8
     },
     {
       "id": "bbutts_75",
@@ -8064,7 +8550,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 40
+      "popularity": 40,
+      "rating": 13.1
     },
     {
       "id": "cassell_75",
@@ -8080,7 +8567,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Glue Guy"
       ],
-      "popularity": 38
+      "popularity": 38,
+      "rating": 10.9
     },
     {
       "id": "dickey_75",
@@ -8096,7 +8584,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 38
+      "popularity": 38,
+      "rating": 13.1
     },
     {
       "id": "ray_75b",
@@ -8112,7 +8601,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 38
+      "popularity": 38,
+      "rating": 11.9
     }
   ],
   "Raptors_2010s": [
@@ -8130,7 +8620,8 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 80
+      "popularity": 80,
+      "rating": 19.7
     },
     {
       "id": "siakam_19",
@@ -8146,7 +8637,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 63
+      "popularity": 63,
+      "rating": 15.5
     },
     {
       "id": "lowry_19",
@@ -8162,7 +8654,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 65
+      "popularity": 65,
+      "rating": 16.4
     },
     {
       "id": "mgasol_19",
@@ -8178,7 +8671,8 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 68
+      "popularity": 68,
+      "rating": 17.2
     },
     {
       "id": "dgreen_19",
@@ -8194,7 +8688,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 10.4
     },
     {
       "id": "derozan_16",
@@ -8210,7 +8705,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 65
+      "popularity": 65,
+      "rating": 15.7
     },
     {
       "id": "ibaka_19",
@@ -8226,7 +8722,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Floor Spacer"
       ],
-      "popularity": 58
+      "popularity": 58,
+      "rating": 17.1
     },
     {
       "id": "vvanvleet_19",
@@ -8243,7 +8740,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Clutch"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 13.3
     }
   ],
   "Nets_2000s": [
@@ -8262,7 +8760,8 @@ const PLAYER_DB = {
         "Floor General",
         "Defensive Stopper"
       ],
-      "popularity": 78
+      "popularity": 78,
+      "rating": 19.1
     },
     {
       "id": "carter_v_05",
@@ -8279,7 +8778,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Slasher"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 16.4
     },
     {
       "id": "jefferson_r_04",
@@ -8295,7 +8795,8 @@ const PLAYER_DB = {
         "Slasher",
         "3-and-D"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 14.5
     },
     {
       "id": "martin_k_03",
@@ -8312,7 +8813,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Hustle Player"
       ],
-      "popularity": 54
+      "popularity": 54,
+      "rating": 16.2
     },
     {
       "id": "lopez_br_09",
@@ -8329,7 +8831,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Volume Shooter"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 17.1
     }
   ],
   "Kings_2000s": [
@@ -8347,7 +8850,8 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 76
+      "popularity": 76,
+      "rating": 22.7
     },
     {
       "id": "peja_02",
@@ -8363,7 +8867,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 65
+      "popularity": 65,
+      "rating": 16.1
     },
     {
       "id": "bibby_02",
@@ -8379,7 +8884,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor Spacer"
       ],
-      "popularity": 58
+      "popularity": 58,
+      "rating": 14.4
     },
     {
       "id": "divac_02",
@@ -8395,7 +8901,8 @@ const PLAYER_DB = {
         "Clutch",
         "Lockdown Defender"
       ],
-      "popularity": 62
+      "popularity": 62,
+      "rating": 18.1
     },
     {
       "id": "christie_02",
@@ -8411,7 +8918,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 15.6
     },
     {
       "id": "pollard_02",
@@ -8427,7 +8935,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 40
+      "popularity": 40,
+      "rating": 10.4
     },
     {
       "id": "turkoglu_02",
@@ -8443,7 +8952,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 10.3
     },
     {
       "id": "jackson_02",
@@ -8459,7 +8969,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 48
+      "popularity": 48,
+      "rating": 13.3
     }
   ],
   "Knicks_1960s": [
@@ -8478,7 +8989,8 @@ const PLAYER_DB = {
         "Clutch",
         "Rebounding Machine"
       ],
-      "popularity": 72
+      "popularity": 72,
+      "rating": 22.2
     },
     {
       "id": "frazier_69",
@@ -8495,7 +9007,8 @@ const PLAYER_DB = {
         "Clutch Assassin",
         "Lockdown Defender"
       ],
-      "popularity": 78
+      "popularity": 78,
+      "rating": 18.3
     },
     {
       "id": "debusschere_knk_69",
@@ -8514,7 +9027,8 @@ const PLAYER_DB = {
         "Glue Guy",
         "Hustle Player"
       ],
-      "popularity": 65
+      "popularity": 65,
+      "rating": 18.5
     }
   ],
   "Pistons_1960s": [
@@ -8536,7 +9050,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Clutch"
       ],
-      "popularity": 65
+      "popularity": 65,
+      "rating": 18.2
     },
     {
       "id": "debusschere_pis_65",
@@ -8555,7 +9070,8 @@ const PLAYER_DB = {
         "Glue Guy",
         "Hustle Player"
       ],
-      "popularity": 65
+      "popularity": 65,
+      "rating": 18.3
     },
     {
       "id": "howell_64",
@@ -8571,7 +9087,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Volume Shooter"
       ],
-      "popularity": 48
+      "popularity": 48,
+      "rating": 19.3
     }
   ],
   "Warriors_1960s": [
@@ -8590,7 +9107,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Rebounding Machine"
       ],
-      "popularity": 92
+      "popularity": 92,
+      "rating": 39.4
     },
     {
       "id": "thurmond_67",
@@ -8609,7 +9127,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Rebounding Machine"
       ],
-      "popularity": 68
+      "popularity": 68,
+      "rating": 32.3
     },
     {
       "id": "rbarry_67",
@@ -8629,7 +9148,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Elite Playmaker"
       ],
-      "popularity": 82
+      "popularity": 82,
+      "rating": 22.1
     }
   ],
   "Bulls_1960s": [
@@ -8651,7 +9171,8 @@ const PLAYER_DB = {
         "Hustle Player",
         "Glue Guy"
       ],
-      "popularity": 62
+      "popularity": 62,
+      "rating": 16.7
     },
     {
       "id": "rodgers_67",
@@ -8667,7 +9188,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor General"
       ],
-      "popularity": 48
+      "popularity": 48,
+      "rating": 15.7
     },
     {
       "id": "boozer_67",
@@ -8683,7 +9205,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Volume Shooter"
       ],
-      "popularity": 44
+      "popularity": 44,
+      "rating": 17.7
     }
   ],
   "Rockets_1960s": [
@@ -8705,7 +9228,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Rim Protector"
       ],
-      "popularity": 75
+      "popularity": 75,
+      "rating": 27.1
     },
     {
       "id": "kojis_68",
@@ -8724,7 +9248,8 @@ const PLAYER_DB = {
         "Hustle Player",
         "Glue Guy"
       ],
-      "popularity": 40
+      "popularity": 40,
+      "rating": 16
     },
     {
       "id": "awilliams_69",
@@ -8740,7 +9265,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor General"
       ],
-      "popularity": 37
+      "popularity": 37,
+      "rating": 14.9
     }
   ],
   "Thunder_1960s": [
@@ -8761,7 +9287,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Rebounding Machine"
       ],
-      "popularity": 41
+      "popularity": 41,
+      "rating": 23.2
     },
     {
       "id": "hazzard_68",
@@ -8777,7 +9304,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor General"
       ],
-      "popularity": 46
+      "popularity": 46,
+      "rating": 16.2
     },
     {
       "id": "meschery_68",
@@ -8796,7 +9324,8 @@ const PLAYER_DB = {
         "Glue Guy",
         "Hustle Player"
       ],
-      "popularity": 43
+      "popularity": 43,
+      "rating": 13.3
     }
   ],
   "Suns_1960s": [
@@ -8818,7 +9347,8 @@ const PLAYER_DB = {
         "Clutch",
         "Hustle Player"
       ],
-      "popularity": 50
+      "popularity": 50,
+      "rating": 15.3
     },
     {
       "id": "goodrich_69",
@@ -8835,7 +9365,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch Assassin"
       ],
-      "popularity": 65
+      "popularity": 65,
+      "rating": 15.1
     },
     {
       "id": "silas_69",
@@ -8855,7 +9386,8 @@ const PLAYER_DB = {
         "Glue Guy",
         "Hustle Player"
       ],
-      "popularity": 58
+      "popularity": 58,
+      "rating": 16.2
     }
   ],
   "Bucks_1960s": [
@@ -8874,7 +9406,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Glue Guy"
       ],
-      "popularity": 42
+      "popularity": 42,
+      "rating": 13.9
     },
     {
       "id": "chappell_69",
@@ -8890,7 +9423,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Glue Guy"
       ],
-      "popularity": 39
+      "popularity": 39,
+      "rating": 15
     },
     {
       "id": "embry_69",
@@ -8906,7 +9440,8 @@ const PLAYER_DB = {
         "Glue Guy",
         "Rim Protector"
       ],
-      "popularity": 44
+      "popularity": 44,
+      "rating": 14.1
     }
   ],
   "Bulls_1970s": [
@@ -8925,7 +9460,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Clutch"
       ],
-      "popularity": 57
+      "popularity": 57,
+      "rating": 18.4
     },
     {
       "id": "vanlier_74",
@@ -8945,7 +9481,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Glue Guy"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 17.1
     },
     {
       "id": "gilmore_77",
@@ -8961,7 +9498,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Rebounding Machine"
       ],
-      "popularity": 72
+      "popularity": 72,
+      "rating": 27.7
     }
   ],
   "Spurs_1970s": [
@@ -8983,7 +9521,8 @@ const PLAYER_DB = {
         "Clutch Assassin",
         "Floor Spacer"
       ],
-      "popularity": 85
+      "popularity": 85,
+      "rating": 18.1
     },
     {
       "id": "silas_jm_77",
@@ -8999,7 +9538,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Clutch Assassin"
       ],
-      "popularity": 42
+      "popularity": 42,
+      "rating": 17.9
     },
     {
       "id": "kenon_78",
@@ -9018,7 +9558,8 @@ const PLAYER_DB = {
         "Hustle Player",
         "Volume Shooter"
       ],
-      "popularity": 45
+      "popularity": 45,
+      "rating": 19.5
     }
   ],
   "Jazz_1970s": [
@@ -9040,7 +9581,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch Assassin"
       ],
-      "popularity": 82
+      "popularity": 82,
+      "rating": 18.9
     },
     {
       "id": "trobinson_78",
@@ -9059,7 +9601,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Volume Shooter"
       ],
-      "popularity": 44
+      "popularity": 44,
+      "rating": 24
     },
     {
       "id": "goodrich_jaz_77",
@@ -9076,7 +9619,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 65
+      "popularity": 65,
+      "rating": 14
     }
   ],
   "Pistons_1970s": [
@@ -9095,7 +9639,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Rebounding Machine"
       ],
-      "popularity": 68
+      "popularity": 68,
+      "rating": 25.5
     },
     {
       "id": "bing_73",
@@ -9115,7 +9660,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 65
+      "popularity": 65,
+      "rating": 18.1
     },
     {
       "id": "kporter_79",
@@ -9131,7 +9677,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor General"
       ],
-      "popularity": 43
+      "popularity": 43,
+      "rating": 16.5
     }
   ],
   "Sixers_1970s": [
@@ -9153,7 +9700,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Slasher"
       ],
-      "popularity": 92
+      "popularity": 92,
+      "rating": 22.2
     },
     {
       "id": "dcollins_77",
@@ -9170,7 +9718,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 15.5
     },
     {
       "id": "mcginnis_77",
@@ -9189,7 +9738,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Rebounding Machine"
       ],
-      "popularity": 58
+      "popularity": 58,
+      "rating": 22.9
     }
   ],
   "Rockets_1970s": [
@@ -9211,7 +9761,8 @@ const PLAYER_DB = {
         "Clutch Assassin",
         "Floor Spacer"
       ],
-      "popularity": 60
+      "popularity": 60,
+      "rating": 15.1
     },
     {
       "id": "rtomjanovich_77",
@@ -9231,7 +9782,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Clutch"
       ],
-      "popularity": 58
+      "popularity": 58,
+      "rating": 18.8
     },
     {
       "id": "mmalone_79",
@@ -9247,7 +9799,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Rim Protector"
       ],
-      "popularity": 85
+      "popularity": 85,
+      "rating": 20.9
     }
   ],
   "Nuggets_1970s": [
@@ -9269,7 +9822,8 @@ const PLAYER_DB = {
         "Clutch Assassin",
         "Slasher"
       ],
-      "popularity": 75
+      "popularity": 75,
+      "rating": 16.9
     },
     {
       "id": "issel_78",
@@ -9288,7 +9842,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Rebounding Machine"
       ],
-      "popularity": 68
+      "popularity": 68,
+      "rating": 18.6
     },
     {
       "id": "bjones_nug_78",
@@ -9308,7 +9863,8 @@ const PLAYER_DB = {
         "Hustle Player",
         "Rim Protector"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 14.4
     }
   ],
   "Cavaliers_1970s": [
@@ -9327,7 +9883,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Clutch"
       ],
-      "popularity": 48
+      "popularity": 48,
+      "rating": 14.3
     },
     {
       "id": "crussell_77",
@@ -9343,7 +9900,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 42
+      "popularity": 42,
+      "rating": 16
     },
     {
       "id": "chones_77",
@@ -9359,7 +9917,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Glue Guy"
       ],
-      "popularity": 40
+      "popularity": 40,
+      "rating": 17.5
     }
   ],
   "Warriors_1980s": [
@@ -9380,7 +9939,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch Assassin"
       ],
-      "popularity": 53
+      "popularity": 53,
+      "rating": 17.5
     },
     {
       "id": "pshort_84",
@@ -9400,7 +9960,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Clutch"
       ],
-      "popularity": 44
+      "popularity": 44,
+      "rating": 14.6
     },
     {
       "id": "jbcarroll_83",
@@ -9416,7 +9977,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Volume Shooter"
       ],
-      "popularity": 47
+      "popularity": 47,
+      "rating": 19.3
     }
   ],
   "Knicks_1980s": [
@@ -9435,7 +9997,8 @@ const PLAYER_DB = {
         "Clutch Assassin",
         "Floor Spacer"
       ],
-      "popularity": 62
+      "popularity": 62,
+      "rating": 17.7
     },
     {
       "id": "ewing_89",
@@ -9452,7 +10015,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Volume Shooter"
       ],
-      "popularity": 80
+      "popularity": 80,
+      "rating": 22.4
     },
     {
       "id": "mjackson_88",
@@ -9468,7 +10032,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor General"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 17.5
     }
   ],
   "Suns_1980s": [
@@ -9487,7 +10052,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Clutch Assassin"
       ],
-      "popularity": 53
+      "popularity": 53,
+      "rating": 15.4
     },
     {
       "id": "lnance_86",
@@ -9506,7 +10072,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Hustle Player"
       ],
-      "popularity": 48
+      "popularity": 48,
+      "rating": 18.4
     },
     {
       "id": "kjohnson_89",
@@ -9523,7 +10090,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Clutch"
       ],
-      "popularity": 68
+      "popularity": 68,
+      "rating": 18.8
     }
   ],
   "Rockets_1980s": [
@@ -9542,7 +10110,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Clutch Assassin"
       ],
-      "popularity": 88
+      "popularity": 88,
+      "rating": 26.9
     },
     {
       "id": "rsampson_86",
@@ -9562,7 +10131,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Volume Shooter"
       ],
-      "popularity": 58
+      "popularity": 58,
+      "rating": 22
     },
     {
       "id": "rreid_84",
@@ -9581,7 +10151,8 @@ const PLAYER_DB = {
         "Glue Guy",
         "Lockdown Defender"
       ],
-      "popularity": 41
+      "popularity": 41,
+      "rating": 14.1
     }
   ],
   "Thunder_1980s": [
@@ -9600,7 +10171,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Clutch"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 17.7
     },
     {
       "id": "jsikma_85",
@@ -9616,7 +10188,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Volume Shooter"
       ],
-      "popularity": 60
+      "popularity": 60,
+      "rating": 19.3
     },
     {
       "id": "dellis_88",
@@ -9633,7 +10206,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 48
+      "popularity": 48,
+      "rating": 16
     }
   ],
   "Nuggets_1990s": [
@@ -9652,7 +10226,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Glue Guy"
       ],
-      "popularity": 78
+      "popularity": 78,
+      "rating": 21.7
     },
     {
       "id": "abdrauf_95",
@@ -9672,7 +10247,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Clutch Assassin"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 12.4
     },
     {
       "id": "lellis_96",
@@ -9691,7 +10267,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Hustle Player"
       ],
-      "popularity": 41
+      "popularity": 41,
+      "rating": 18
     }
   ],
   "Bucks_1990s": [
@@ -9710,7 +10287,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Clutch"
       ],
-      "popularity": 62
+      "popularity": 62,
+      "rating": 15.7
     },
     {
       "id": "rallen_99",
@@ -9727,7 +10305,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch Assassin"
       ],
-      "popularity": 82
+      "popularity": 82,
+      "rating": 15.2
     },
     {
       "id": "vbaker_96",
@@ -9743,7 +10322,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Volume Shooter"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 18.5
     }
   ],
   "Mavericks_1990s": [
@@ -9762,7 +10342,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Clutch Assassin"
       ],
-      "popularity": 78
+      "popularity": 78,
+      "rating": 18.1
     },
     {
       "id": "mashburn_96",
@@ -9781,7 +10362,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Slasher"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 15.1
     },
     {
       "id": "jjackson_95",
@@ -9800,7 +10382,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 42
+      "popularity": 42,
+      "rating": 17.6
     }
   ],
   "Thunder_2000s": [
@@ -9819,7 +10402,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch Assassin"
       ],
-      "popularity": 82
+      "popularity": 82,
+      "rating": 15.3
     },
     {
       "id": "rlewis_06",
@@ -9838,7 +10422,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 51
+      "popularity": 51,
+      "rating": 15.5
     },
     {
       "id": "gpayton_02",
@@ -9855,7 +10440,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Clutch Assassin"
       ],
-      "popularity": 78
+      "popularity": 78,
+      "rating": 19.3
     }
   ],
   "Pistons_2010s": [
@@ -9873,7 +10459,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Rim Protector"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 21.9
     },
     {
       "id": "bgriffin_pis_18",
@@ -9893,7 +10480,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Slasher"
       ],
-      "popularity": 68
+      "popularity": 68,
+      "rating": 19.1
     },
     {
       "id": "rjackson_17",
@@ -9909,7 +10497,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Volume Shooter"
       ],
-      "popularity": 44
+      "popularity": 44,
+      "rating": 14.7
     }
   ],
   "Suns_2010s": [
@@ -9928,7 +10517,8 @@ const PLAYER_DB = {
         "Clutch Assassin",
         "Floor Spacer"
       ],
-      "popularity": 72
+      "popularity": 72,
+      "rating": 17.7
     },
     {
       "id": "gdragic_14",
@@ -9945,7 +10535,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 15.8
     },
     {
       "id": "ebledsoe_15",
@@ -9964,7 +10555,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Elite Playmaker"
       ],
-      "popularity": 50
+      "popularity": 50,
+      "rating": 17.5
     }
   ],
   "Bucks_2010s": [
@@ -9986,7 +10578,8 @@ const PLAYER_DB = {
         "Clutch Assassin",
         "Lob Threat"
       ],
-      "popularity": 92
+      "popularity": 92,
+      "rating": 26.2
     },
     {
       "id": "middleton_19",
@@ -10006,7 +10599,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 62
+      "popularity": 62,
+      "rating": 16.3
     },
     {
       "id": "brogdon_18",
@@ -10026,7 +10620,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Glue Guy"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 14.1
     }
   ],
   "Bulls_2020s": [
@@ -10045,7 +10640,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Clutch Assassin"
       ],
-      "popularity": 65
+      "popularity": 65,
+      "rating": 17.3
     },
     {
       "id": "derozan_bulls_22",
@@ -10065,7 +10661,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Mid-Range Maestro"
       ],
-      "popularity": 65
+      "popularity": 65,
+      "rating": 18.3
     },
     {
       "id": "vucevic_21",
@@ -10085,7 +10682,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Post Scorer"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 18.6
     }
   ],
   "Spurs_2020s": [
@@ -10107,7 +10705,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Franchise Player"
       ],
-      "popularity": 88
+      "popularity": 88,
+      "rating": 24.8
     },
     {
       "id": "dmurray_22",
@@ -10127,7 +10726,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Hustle Player"
       ],
-      "popularity": 57
+      "popularity": 57,
+      "rating": 22.4
     },
     {
       "id": "derozan_spurs_21",
@@ -10147,7 +10747,8 @@ const PLAYER_DB = {
         "Mid-Range Maestro",
         "Volume Shooter"
       ],
-      "popularity": 65
+      "popularity": 65,
+      "rating": 16
     }
   ],
   "Knicks_2020s": [
@@ -10166,7 +10767,8 @@ const PLAYER_DB = {
         "Clutch Assassin",
         "Volume Shooter"
       ],
-      "popularity": 90
+      "popularity": 90,
+      "rating": 18.4
     },
     {
       "id": "randle_21",
@@ -10186,7 +10788,8 @@ const PLAYER_DB = {
         "Post Scorer",
         "Volume Shooter"
       ],
-      "popularity": 57
+      "popularity": 57,
+      "rating": 21.2
     },
     {
       "id": "rjbarrett_23",
@@ -10206,7 +10809,8 @@ const PLAYER_DB = {
         "Slasher",
         "Defensive Stopper"
       ],
-      "popularity": 53
+      "popularity": 53,
+      "rating": 16.3
     }
   ],
   "Jazz_2020s": [
@@ -10225,7 +10829,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Floor Spacer"
       ],
-      "popularity": 72
+      "popularity": 72,
+      "rating": 18.5
     },
     {
       "id": "rgobert_21",
@@ -10242,7 +10847,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Lob Threat"
       ],
-      "popularity": 68
+      "popularity": 68,
+      "rating": 21.6
     },
     {
       "id": "markkanen_23",
@@ -10262,7 +10868,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Stretch Big"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 18.3
     }
   ],
   "Pistons_2020s": [
@@ -10284,7 +10891,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Floor Spacer"
       ],
-      "popularity": 58
+      "popularity": 58,
+      "rating": 18.4
     },
     {
       "id": "duren_23",
@@ -10301,7 +10909,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Lob Threat"
       ],
-      "popularity": 44
+      "popularity": 44,
+      "rating": 18.9
     },
     {
       "id": "sbey_22",
@@ -10321,7 +10930,8 @@ const PLAYER_DB = {
         "3-and-D",
         "Volume Shooter"
       ],
-      "popularity": 40
+      "popularity": 40,
+      "rating": 13.1
     }
   ],
   "Magic_2020s": [
@@ -10343,7 +10953,8 @@ const PLAYER_DB = {
         "Clutch Assassin",
         "Volume Shooter"
       ],
-      "popularity": 60
+      "popularity": 60,
+      "rating": 18.8
     },
     {
       "id": "fwagner_23",
@@ -10363,7 +10974,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Slasher"
       ],
-      "popularity": 50
+      "popularity": 50,
+      "rating": 14.8
     },
     {
       "id": "canthony_22",
@@ -10380,7 +10992,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 44
+      "popularity": 44,
+      "rating": 14.7
     }
   ],
   "Sixers_2020s": [
@@ -10399,7 +11012,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Clutch Assassin"
       ],
-      "popularity": 65
+      "popularity": 65,
+      "rating": 25.2
     },
     {
       "id": "maxey_24",
@@ -10416,7 +11030,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch Assassin"
       ],
-      "popularity": 62
+      "popularity": 62,
+      "rating": 18
     },
     {
       "id": "tharris_21",
@@ -10436,7 +11051,8 @@ const PLAYER_DB = {
         "Defensive Stopper",
         "Volume Shooter"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 15.5
     }
   ],
   "Rockets_2020s": [
@@ -10455,7 +11071,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Clutch Assassin"
       ],
-      "popularity": 56
+      "popularity": 56,
+      "rating": 15.1
     },
     {
       "id": "sengun_24",
@@ -10475,7 +11092,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Rim Protector"
       ],
-      "popularity": 42
+      "popularity": 42,
+      "rating": 20.5
     },
     {
       "id": "jsmith_23",
@@ -10495,7 +11113,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "3-and-D"
       ],
-      "popularity": 40
+      "popularity": 40,
+      "rating": 15.8
     }
   ],
   "Hawks_1960s": [
@@ -10514,7 +11133,8 @@ const PLAYER_DB = {
         "Volume Scorer",
         "Clutch"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 25.5
     },
     {
       "id": "hagan_63",
@@ -10530,7 +11150,8 @@ const PLAYER_DB = {
         "Mid-Range Maestro",
         "Clutch"
       ],
-      "popularity": 44
+      "popularity": 44,
+      "rating": 17.2
     },
     {
       "id": "wilkens_63",
@@ -10546,7 +11167,8 @@ const PLAYER_DB = {
         "Floor General",
         "Elite Playmaker"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 15.5
     },
     {
       "id": "caldwell_68",
@@ -10562,7 +11184,8 @@ const PLAYER_DB = {
         "Defensive Stopper",
         "Slasher"
       ],
-      "popularity": 37
+      "popularity": 37,
+      "rating": 16.1
     },
     {
       "id": "beaty_68",
@@ -10578,7 +11201,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Post Scorer"
       ],
-      "popularity": 37
+      "popularity": 37,
+      "rating": 19.8
     }
   ],
   "Hawks_1970s": [
@@ -10597,7 +11221,8 @@ const PLAYER_DB = {
         "Point God",
         "Clutch Assassin"
       ],
-      "popularity": 82
+      "popularity": 82,
+      "rating": 17.4
     },
     {
       "id": "hudson_73",
@@ -10613,7 +11238,8 @@ const PLAYER_DB = {
         "Mid-Range Maestro",
         "Volume Shooter"
       ],
-      "popularity": 43
+      "popularity": 43,
+      "rating": 15.5
     },
     {
       "id": "drew_78",
@@ -10629,7 +11255,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Slasher"
       ],
-      "popularity": 39
+      "popularity": 39,
+      "rating": 15.5
     },
     {
       "id": "roundfield_78",
@@ -10645,7 +11272,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Defensive Stopper"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 17.4
     },
     {
       "id": "bellamy_71",
@@ -10661,7 +11289,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Post Scorer"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 19.2
     }
   ],
   "Hawks_1980s": [
@@ -10680,7 +11309,8 @@ const PLAYER_DB = {
         "Clutch Assassin",
         "Slasher"
       ],
-      "popularity": 53
+      "popularity": 53,
+      "rating": 19.5
     },
     {
       "id": "rivers_85",
@@ -10696,7 +11326,8 @@ const PLAYER_DB = {
         "Floor General",
         "Defensive Stopper"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 13.7
     },
     {
       "id": "willis_85",
@@ -10712,7 +11343,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Post Scorer"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 15.6
     },
     {
       "id": "webb_85",
@@ -10728,7 +11360,8 @@ const PLAYER_DB = {
         "Floor General",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 11.7
     },
     {
       "id": "rollins_83",
@@ -10745,7 +11378,8 @@ const PLAYER_DB = {
         "Defensive Stopper",
         "Hustle Player"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 16
     }
   ],
   "Hawks_1990s": [
@@ -10764,7 +11398,8 @@ const PLAYER_DB = {
         "Clutch",
         "Slasher"
       ],
-      "popularity": 44
+      "popularity": 44,
+      "rating": 18.1
     },
     {
       "id": "blaylock_95",
@@ -10781,7 +11416,8 @@ const PLAYER_DB = {
         "Floor General",
         "Lockdown Defender"
       ],
-      "popularity": 37
+      "popularity": 37,
+      "rating": 16.1
     },
     {
       "id": "mutombo_97",
@@ -10798,7 +11434,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Defensive Stopper"
       ],
-      "popularity": 78
+      "popularity": 78,
+      "rating": 20.4
     },
     {
       "id": "smith_s_96",
@@ -10814,7 +11451,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Mid-Range Maestro"
       ],
-      "popularity": 39
+      "popularity": 39,
+      "rating": 14.2
     },
     {
       "id": "augmon_92",
@@ -10830,7 +11468,8 @@ const PLAYER_DB = {
         "Defensive Stopper",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 13.2
     }
   ],
   "Hawks_2000s": [
@@ -10849,7 +11488,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 44
+      "popularity": 44,
+      "rating": 15.8
     },
     {
       "id": "smith_j_05",
@@ -10866,7 +11506,8 @@ const PLAYER_DB = {
         "Slasher",
         "Defensive Stopper"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 18.7
     },
     {
       "id": "horford_08",
@@ -10882,7 +11523,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Post Scorer"
       ],
-      "popularity": 62
+      "popularity": 62,
+      "rating": 17.1
     },
     {
       "id": "bibby_08",
@@ -10898,7 +11540,8 @@ const PLAYER_DB = {
         "Floor General",
         "Floor Spacer"
       ],
-      "popularity": 58
+      "popularity": 58,
+      "rating": 13
     },
     {
       "id": "terry_02",
@@ -10915,7 +11558,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 57
+      "popularity": 57,
+      "rating": 13.9
     }
   ],
   "Hawks_2010s": [
@@ -10934,7 +11578,8 @@ const PLAYER_DB = {
         "Post Scorer",
         "Rim Protector"
       ],
-      "popularity": 62
+      "popularity": 62,
+      "rating": 16.7
     },
     {
       "id": "millsap_14",
@@ -10951,7 +11596,8 @@ const PLAYER_DB = {
         "Clutch",
         "Hustle Player"
       ],
-      "popularity": 37
+      "popularity": 37,
+      "rating": 18.3
     },
     {
       "id": "korver_14",
@@ -10967,7 +11613,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "3-and-D"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 9.7
     },
     {
       "id": "teague_13",
@@ -10983,7 +11630,8 @@ const PLAYER_DB = {
         "Floor General",
         "Elite Playmaker"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 14.8
     },
     {
       "id": "schroeder_16",
@@ -11000,7 +11648,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Slasher"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 14.5
     }
   ],
   "Hawks_2020s": [
@@ -11019,7 +11668,8 @@ const PLAYER_DB = {
         "Floor General",
         "Clutch Assassin"
       ],
-      "popularity": 54
+      "popularity": 54,
+      "rating": 19.7
     },
     {
       "id": "murray_d_23",
@@ -11036,7 +11686,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Slasher"
       ],
-      "popularity": 57
+      "popularity": 57,
+      "rating": 17.9
     },
     {
       "id": "capela_22",
@@ -11053,7 +11704,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Hustle Player"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 18.8
     },
     {
       "id": "collins_j_22",
@@ -11070,7 +11722,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Clutch"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 15
     },
     {
       "id": "hunter_d_22",
@@ -11086,7 +11739,8 @@ const PLAYER_DB = {
         "3-and-D",
         "Defensive Stopper"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 11.7
     }
   ],
   "Nets_1970s": [
@@ -11105,7 +11759,8 @@ const PLAYER_DB = {
         "Clutch Assassin",
         "Volume Shooter"
       ],
-      "popularity": 92
+      "popularity": 92,
+      "rating": 26.6
     },
     {
       "id": "paultz_75",
@@ -11121,7 +11776,8 @@ const PLAYER_DB = {
         "Post Scorer",
         "Rebounding Machine"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 18.5
     },
     {
       "id": "williamson_j_75",
@@ -11137,7 +11793,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 13.3
     },
     {
       "id": "taylor_b_75",
@@ -11153,7 +11810,8 @@ const PLAYER_DB = {
         "Defensive Stopper",
         "Floor General"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 14.4
     },
     {
       "id": "kenon_75",
@@ -11169,7 +11827,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Slasher"
       ],
-      "popularity": 45
+      "popularity": 45,
+      "rating": 16.5
     }
   ],
   "Nets_1980s": [
@@ -11188,7 +11847,8 @@ const PLAYER_DB = {
         "Hustle Player",
         "Post Scorer"
       ],
-      "popularity": 38
+      "popularity": 38,
+      "rating": 18.8
     },
     {
       "id": "richardson_mr_83",
@@ -11205,7 +11865,8 @@ const PLAYER_DB = {
         "Defensive Stopper",
         "Elite Playmaker"
       ],
-      "popularity": 44
+      "popularity": 44,
+      "rating": 19.8
     },
     {
       "id": "dawkins_d_84",
@@ -11221,7 +11882,8 @@ const PLAYER_DB = {
         "Post Scorer",
         "Rim Protector"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 15.9
     },
     {
       "id": "gminski_85",
@@ -11237,7 +11899,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Post Scorer"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 14.8
     },
     {
       "id": "cook_d_83",
@@ -11253,7 +11916,8 @@ const PLAYER_DB = {
         "Defensive Stopper",
         "3-and-D"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 13.3
     }
   ],
   "Nets_1990s": [
@@ -11272,7 +11936,8 @@ const PLAYER_DB = {
         "Mid-Range Maestro",
         "Clutch Assassin"
       ],
-      "popularity": 45
+      "popularity": 45,
+      "rating": 14.2
     },
     {
       "id": "coleman_d_93",
@@ -11289,7 +11954,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Post Scorer"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 19.8
     },
     {
       "id": "anderson_k_95",
@@ -11305,7 +11971,8 @@ const PLAYER_DB = {
         "Floor General",
         "Elite Playmaker"
       ],
-      "popularity": 39
+      "popularity": 39,
+      "rating": 16.1
     },
     {
       "id": "vanhorn_98",
@@ -11321,7 +11988,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 43
+      "popularity": 43,
+      "rating": 17.1
     },
     {
       "id": "kittles_97",
@@ -11337,7 +12005,8 @@ const PLAYER_DB = {
         "Defensive Stopper",
         "3-and-D"
       ],
-      "popularity": 47
+      "popularity": 47,
+      "rating": 13.2
     }
   ],
   "Nets_2010s": [
@@ -11356,7 +12025,8 @@ const PLAYER_DB = {
         "Floor General",
         "Volume Shooter"
       ],
-      "popularity": 68
+      "popularity": 68,
+      "rating": 16.8
     },
     {
       "id": "lopez_br_14",
@@ -11373,7 +12043,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Volume Shooter"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 18.3
     },
     {
       "id": "pierce_p_14",
@@ -11390,7 +12061,8 @@ const PLAYER_DB = {
         "Mid-Range Maestro",
         "Post Scorer"
       ],
-      "popularity": 85
+      "popularity": 85,
+      "rating": 14.3
     },
     {
       "id": "garnett_k_14",
@@ -11407,7 +12079,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Hustle Player"
       ],
-      "popularity": 88
+      "popularity": 88,
+      "rating": 16.9
     },
     {
       "id": "johnson_jo_14",
@@ -11423,7 +12096,8 @@ const PLAYER_DB = {
         "Mid-Range Maestro",
         "Clutch"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 13.5
     }
   ],
   "Nets_2020s": [
@@ -11442,7 +12116,8 @@ const PLAYER_DB = {
         "Clutch Assassin",
         "Elite Playmaker"
       ],
-      "popularity": 91
+      "popularity": 91,
+      "rating": 21.9
     },
     {
       "id": "irving_bk_22",
@@ -11459,7 +12134,8 @@ const PLAYER_DB = {
         "Mid-Range Maestro",
         "Floor Spacer"
       ],
-      "popularity": 85
+      "popularity": 85,
+      "rating": 18.6
     },
     {
       "id": "harden_bk_21",
@@ -11476,7 +12152,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Floor General"
       ],
-      "popularity": 65
+      "popularity": 65,
+      "rating": 23
     },
     {
       "id": "bridges_mi_23",
@@ -11493,7 +12170,8 @@ const PLAYER_DB = {
         "Defensive Stopper",
         "Clutch"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 15.1
     },
     {
       "id": "claxton_n_23",
@@ -11510,7 +12188,8 @@ const PLAYER_DB = {
         "Defensive Stopper",
         "Hustle Player"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 17.8
     }
   ],
   "Hornets_1990s": [
@@ -11529,7 +12208,8 @@ const PLAYER_DB = {
         "Defensive Stopper",
         "Post Scorer"
       ],
-      "popularity": 75
+      "popularity": 75,
+      "rating": 22.8
     },
     {
       "id": "johnson_l_93",
@@ -11546,7 +12226,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Clutch"
       ],
-      "popularity": 38
+      "popularity": 38,
+      "rating": 18.5
     },
     {
       "id": "bogues_93",
@@ -11562,7 +12243,8 @@ const PLAYER_DB = {
         "Floor General",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 13.1
     },
     {
       "id": "rice_g_95",
@@ -11579,7 +12261,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "3-and-D"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 14.1
     },
     {
       "id": "curry_d_95",
@@ -11595,7 +12278,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "3-and-D"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 10.9
     }
   ],
   "Hornets_2000s": [
@@ -11614,7 +12298,8 @@ const PLAYER_DB = {
         "Hustle Player",
         "Slasher"
       ],
-      "popularity": 37
+      "popularity": 37,
+      "rating": 18.2
     },
     {
       "id": "okafor_e_05",
@@ -11631,7 +12316,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Defensive Stopper"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 17.7
     },
     {
       "id": "jackson_s_07",
@@ -11648,7 +12334,8 @@ const PLAYER_DB = {
         "Defensive Stopper",
         "Clutch"
       ],
-      "popularity": 50
+      "popularity": 50,
+      "rating": 15.4
     },
     {
       "id": "diaw_07",
@@ -11664,7 +12351,8 @@ const PLAYER_DB = {
         "Floor General",
         "Glue Guy"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 15.1
     },
     {
       "id": "felton_06",
@@ -11680,7 +12368,8 @@ const PLAYER_DB = {
         "Floor General",
         "Elite Playmaker"
       ],
-      "popularity": 44
+      "popularity": 44,
+      "rating": 13.3
     }
   ],
   "Hornets_2010s": [
@@ -11699,7 +12388,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Floor General"
       ],
-      "popularity": 40
+      "popularity": 40,
+      "rating": 16.3
     },
     {
       "id": "batum_15",
@@ -11716,7 +12406,8 @@ const PLAYER_DB = {
         "Floor General",
         "Defensive Stopper"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 15.2
     },
     {
       "id": "jefferson_al_14",
@@ -11732,7 +12423,8 @@ const PLAYER_DB = {
         "Post Scorer",
         "Rebounding Machine"
       ],
-      "popularity": 38
+      "popularity": 38,
+      "rating": 18.4
     },
     {
       "id": "lamb_j_17",
@@ -11748,7 +12440,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Clutch"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 12
     },
     {
       "id": "williams_ma_16",
@@ -11764,7 +12457,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "3-and-D"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 12
     }
   ],
   "Hornets_2020s": [
@@ -11783,7 +12477,8 @@ const PLAYER_DB = {
         "Floor General",
         "Clutch Assassin"
       ],
-      "popularity": 41
+      "popularity": 41,
+      "rating": 19.3
     },
     {
       "id": "bridges_mi_22",
@@ -11800,7 +12495,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 36
+      "popularity": 36,
+      "rating": 17.1
     },
     {
       "id": "rozier_22",
@@ -11817,7 +12513,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Floor Spacer"
       ],
-      "popularity": 45
+      "popularity": 45,
+      "rating": 15.9
     },
     {
       "id": "washington_pj_22",
@@ -11833,7 +12530,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "3-and-D"
       ],
-      "popularity": 41
+      "popularity": 41,
+      "rating": 14.1
     },
     {
       "id": "williams_mk_22",
@@ -11849,7 +12547,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Rebounding Machine"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 16
     }
   ],
   "Pacers_1970s": [
@@ -11867,7 +12566,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Post Scorer"
       ],
-      "popularity": 41
+      "popularity": 41,
+      "rating": 23
     },
     {
       "id": "brown_r_71",
@@ -11883,7 +12583,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 15.6
     },
     {
       "id": "netolicky_71",
@@ -11899,7 +12600,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Post Scorer"
       ],
-      "popularity": 36
+      "popularity": 36,
+      "rating": 17.1
     },
     {
       "id": "buse_77",
@@ -11915,7 +12617,8 @@ const PLAYER_DB = {
         "Defensive Stopper",
         "Floor General"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 14.8
     },
     {
       "id": "keller_71",
@@ -11931,7 +12634,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Floor General"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 12.6
     }
   ],
   "Pacers_1980s": [
@@ -11950,7 +12654,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Mid-Range Maestro"
       ],
-      "popularity": 48
+      "popularity": 48,
+      "rating": 15.8
     },
     {
       "id": "tisdale_87",
@@ -11966,7 +12671,8 @@ const PLAYER_DB = {
         "Post Scorer",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 15.2
     },
     {
       "id": "fleming_85",
@@ -11982,7 +12688,8 @@ const PLAYER_DB = {
         "Floor General",
         "Defensive Stopper"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 15.4
     },
     {
       "id": "kellogg_83",
@@ -11998,7 +12705,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Post Scorer"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 18.7
     },
     {
       "id": "williams_h_85",
@@ -12014,7 +12722,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Post Scorer"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 17
     }
   ],
   "Pacers_1990s": [
@@ -12033,7 +12742,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 36
+      "popularity": 36,
+      "rating": 14.2
     },
     {
       "id": "smits_95",
@@ -12049,7 +12759,8 @@ const PLAYER_DB = {
         "Post Scorer",
         "Rim Protector"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 15.4
     },
     {
       "id": "jackson_mk_96",
@@ -12065,7 +12776,8 @@ const PLAYER_DB = {
         "Point God",
         "Floor General"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 15.8
     },
     {
       "id": "davis_d_97",
@@ -12082,7 +12794,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Hustle Player"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 16.6
     },
     {
       "id": "rose_j_97",
@@ -12098,7 +12811,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Slasher"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 13.9
     }
   ],
   "Pacers_2000s": [
@@ -12117,7 +12831,8 @@ const PLAYER_DB = {
         "Post Scorer",
         "Rebounding Machine"
       ],
-      "popularity": 40
+      "popularity": 40,
+      "rating": 21
     },
     {
       "id": "miller_r_03",
@@ -12134,7 +12849,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 11.8
     },
     {
       "id": "artest_03",
@@ -12151,7 +12867,8 @@ const PLAYER_DB = {
         "Lockdown Defender",
         "Volume Shooter"
       ],
-      "popularity": 37
+      "popularity": 37,
+      "rating": 16.7
     },
     {
       "id": "granger_07",
@@ -12168,7 +12885,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "3-and-D"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 14.7
     },
     {
       "id": "jackson_s_04",
@@ -12184,7 +12902,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Defensive Stopper"
       ],
-      "popularity": 50
+      "popularity": 50,
+      "rating": 13.4
     }
   ],
   "Pacers_2010s": [
@@ -12203,7 +12922,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 43
+      "popularity": 43,
+      "rating": 18.4
     },
     {
       "id": "hibbert_13",
@@ -12219,7 +12939,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Defensive Stopper"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 17.2
     },
     {
       "id": "west_d_14",
@@ -12236,7 +12957,8 @@ const PLAYER_DB = {
         "Mid-Range Maestro",
         "Hustle Player"
       ],
-      "popularity": 43
+      "popularity": 43,
+      "rating": 15.5
     },
     {
       "id": "stephenson_14",
@@ -12253,7 +12975,8 @@ const PLAYER_DB = {
         "Slasher",
         "Elite Playmaker"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 16.7
     },
     {
       "id": "oladipo_18",
@@ -12270,7 +12993,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch Assassin"
       ],
-      "popularity": 45
+      "popularity": 45,
+      "rating": 18.9
     }
   ],
   "Pacers_2020s": [
@@ -12289,7 +13013,8 @@ const PLAYER_DB = {
         "Floor General",
         "Elite Playmaker"
       ],
-      "popularity": 44
+      "popularity": 44,
+      "rating": 19.9
     },
     {
       "id": "turner_m_23",
@@ -12306,7 +13031,8 @@ const PLAYER_DB = {
         "Defensive Stopper",
         "Floor Spacer"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 17.5
     },
     {
       "id": "siakam_24",
@@ -12323,7 +13049,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Defensive Stopper"
       ],
-      "popularity": 63
+      "popularity": 63,
+      "rating": 17.8
     },
     {
       "id": "hield_23",
@@ -12340,7 +13067,8 @@ const PLAYER_DB = {
         "3-and-D",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 12.7
     },
     {
       "id": "mathurin_23",
@@ -12357,7 +13085,8 @@ const PLAYER_DB = {
         "Slasher",
         "Clutch"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 13.1
     }
   ],
   "Clippers_1970s": [
@@ -12376,7 +13105,8 @@ const PLAYER_DB = {
         "Clutch Assassin",
         "Rebounding Machine"
       ],
-      "popularity": 63
+      "popularity": 63,
+      "rating": 26
     },
     {
       "id": "smith_r_75",
@@ -12392,7 +13122,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Defensive Stopper"
       ],
-      "popularity": 44
+      "popularity": 44,
+      "rating": 16.3
     },
     {
       "id": "smith_el_73",
@@ -12408,7 +13139,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Rebounding Machine"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 21.3
     },
     {
       "id": "mcmillian_74",
@@ -12424,7 +13156,8 @@ const PLAYER_DB = {
         "Mid-Range Maestro",
         "Floor Spacer"
       ],
-      "popularity": 36
+      "popularity": 36,
+      "rating": 13.3
     },
     {
       "id": "heard_75",
@@ -12440,7 +13173,8 @@ const PLAYER_DB = {
         "Defensive Stopper",
         "Hustle Player"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 14.3
     }
   ],
   "Clippers_1980s": [
@@ -12459,7 +13193,8 @@ const PLAYER_DB = {
         "Mid-Range Maestro",
         "Clutch"
       ],
-      "popularity": 53
+      "popularity": 53,
+      "rating": 16.2
     },
     {
       "id": "cummings_83",
@@ -12476,7 +13211,8 @@ const PLAYER_DB = {
         "Slasher",
         "Post Scorer"
       ],
-      "popularity": 58
+      "popularity": 58,
+      "rating": 18.7
     },
     {
       "id": "nixon_83",
@@ -12492,7 +13228,8 @@ const PLAYER_DB = {
         "Floor General",
         "Elite Playmaker"
       ],
-      "popularity": 41
+      "popularity": 41,
+      "rating": 15.8
     },
     {
       "id": "johnson_mq_84",
@@ -12508,7 +13245,8 @@ const PLAYER_DB = {
         "Slasher",
         "Mid-Range Maestro"
       ],
-      "popularity": 59
+      "popularity": 59,
+      "rating": 16.5
     },
     {
       "id": "smith_dk_85",
@@ -12524,7 +13262,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Slasher"
       ],
-      "popularity": 38
+      "popularity": 38,
+      "rating": 14.5
     }
   ],
   "Clippers_1990s": [
@@ -12543,7 +13282,8 @@ const PLAYER_DB = {
         "Mid-Range Maestro",
         "Slasher"
       ],
-      "popularity": 58
+      "popularity": 58,
+      "rating": 18.4
     },
     {
       "id": "harper_r_92",
@@ -12560,7 +13300,8 @@ const PLAYER_DB = {
         "Slasher",
         "Floor General"
       ],
-      "popularity": 39
+      "popularity": 39,
+      "rating": 17.9
     },
     {
       "id": "vaught_94",
@@ -12576,7 +13317,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Post Scorer"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 16.2
     },
     {
       "id": "murray_lm_96",
@@ -12592,7 +13334,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Floor Spacer"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 13
     },
     {
       "id": "piatkowski_96",
@@ -12608,7 +13351,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "3-and-D"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 9.4
     }
   ],
   "Clippers_2000s": [
@@ -12627,7 +13371,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Rim Protector"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 20.6
     },
     {
       "id": "maggette_04",
@@ -12643,7 +13388,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Slasher"
       ],
-      "popularity": 43
+      "popularity": 43,
+      "rating": 15.4
     },
     {
       "id": "cassell_s_04",
@@ -12660,7 +13406,8 @@ const PLAYER_DB = {
         "Floor General",
         "Mid-Range Maestro"
       ],
-      "popularity": 62
+      "popularity": 62,
+      "rating": 15.5
     },
     {
       "id": "kaman_06",
@@ -12676,7 +13423,8 @@ const PLAYER_DB = {
         "Post Scorer",
         "Rebounding Machine"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 17.4
     },
     {
       "id": "livingston_s_06",
@@ -12692,7 +13440,8 @@ const PLAYER_DB = {
         "Floor General",
         "Mid-Range Maestro"
       ],
-      "popularity": 44
+      "popularity": 44,
+      "rating": 13.9
     }
   ],
   "Clippers_2010s": [
@@ -12711,7 +13460,8 @@ const PLAYER_DB = {
         "Floor General",
         "Defensive Stopper"
       ],
-      "popularity": 78
+      "popularity": 78,
+      "rating": 19.4
     },
     {
       "id": "griffin_b_14",
@@ -12728,7 +13478,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch Assassin"
       ],
-      "popularity": 68
+      "popularity": 68,
+      "rating": 19.3
     },
     {
       "id": "jordan_da_14",
@@ -12745,7 +13496,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Hustle Player"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 20.5
     },
     {
       "id": "redick_14",
@@ -12761,7 +13513,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "3-and-D"
       ],
-      "popularity": 78
+      "popularity": 78,
+      "rating": 11.2
     },
     {
       "id": "crawford_j_14",
@@ -12778,7 +13531,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch Assassin"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 13
     }
   ],
   "Clippers_2020s": [
@@ -12797,7 +13551,8 @@ const PLAYER_DB = {
         "Clutch Assassin",
         "Lockdown Defender"
       ],
-      "popularity": 80
+      "popularity": 80,
+      "rating": 19.3
     },
     {
       "id": "george_p_21",
@@ -12814,7 +13569,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 44
+      "popularity": 44,
+      "rating": 17.5
     },
     {
       "id": "powell_n_22",
@@ -12831,7 +13587,8 @@ const PLAYER_DB = {
         "Clutch",
         "3-and-D"
       ],
-      "popularity": 36
+      "popularity": 36,
+      "rating": 13
     },
     {
       "id": "zubac_21",
@@ -12847,7 +13604,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Rim Protector"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 16
     },
     {
       "id": "jackson_rg_22",
@@ -12864,7 +13622,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Floor General"
       ],
-      "popularity": 44
+      "popularity": 44,
+      "rating": 13.8
     }
   ],
   "Timberwolves_1990s": [
@@ -12883,7 +13642,8 @@ const PLAYER_DB = {
         "Defensive Stopper",
         "Rebounding Machine"
       ],
-      "popularity": 88
+      "popularity": 88,
+      "rating": 22.7
     },
     {
       "id": "marbury_s_98",
@@ -12900,7 +13660,8 @@ const PLAYER_DB = {
         "Floor General",
         "Point God"
       ],
-      "popularity": 62
+      "popularity": 62,
+      "rating": 18.3
     },
     {
       "id": "gugliotta_97",
@@ -12917,7 +13678,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Hustle Player"
       ],
-      "popularity": 42
+      "popularity": 42,
+      "rating": 18.2
     },
     {
       "id": "rider_94",
@@ -12933,7 +13695,8 @@ const PLAYER_DB = {
         "Slasher",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 13.2
     },
     {
       "id": "laettner_94",
@@ -12949,7 +13712,8 @@ const PLAYER_DB = {
         "Post Scorer",
         "Mid-Range Maestro"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 15.8
     }
   ],
   "Timberwolves_2000s": [
@@ -12968,7 +13732,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Defensive Stopper"
       ],
-      "popularity": 88
+      "popularity": 88,
+      "rating": 27
     },
     {
       "id": "cassell_s_04",
@@ -12985,7 +13750,8 @@ const PLAYER_DB = {
         "Floor General",
         "Mid-Range Maestro"
       ],
-      "popularity": 62
+      "popularity": 62,
+      "rating": 16
     },
     {
       "id": "sprewell_04",
@@ -13002,7 +13768,8 @@ const PLAYER_DB = {
         "Slasher",
         "Clutch"
       ],
-      "popularity": 63
+      "popularity": 63,
+      "rating": 13.5
     },
     {
       "id": "szczerbiak_03",
@@ -13018,7 +13785,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "3-and-D"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 12
     },
     {
       "id": "hassell_04",
@@ -13034,7 +13802,8 @@ const PLAYER_DB = {
         "Defensive Stopper",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 12.1
     }
   ],
   "Timberwolves_2010s": [
@@ -13053,7 +13822,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Floor Spacer"
       ],
-      "popularity": 68
+      "popularity": 68,
+      "rating": 21.2
     },
     {
       "id": "rubio_r_13",
@@ -13070,7 +13840,8 @@ const PLAYER_DB = {
         "Defensive Stopper",
         "Elite Playmaker"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 16.4
     },
     {
       "id": "towns_kat_17",
@@ -13087,7 +13858,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Post Scorer"
       ],
-      "popularity": 42
+      "popularity": 42,
+      "rating": 20.9
     },
     {
       "id": "wiggins_a_17",
@@ -13103,7 +13875,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Slasher"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 13.6
     },
     {
       "id": "lavine_z_16",
@@ -13120,7 +13893,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 65
+      "popularity": 65,
+      "rating": 13.2
     }
   ],
   "Timberwolves_2020s": [
@@ -13139,7 +13913,8 @@ const PLAYER_DB = {
         "Slasher",
         "Clutch Assassin"
       ],
-      "popularity": 54
+      "popularity": 54,
+      "rating": 18.7
     },
     {
       "id": "towns_kat_23",
@@ -13156,7 +13931,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Post Scorer"
       ],
-      "popularity": 49
+      "popularity": 49,
+      "rating": 20.7
     },
     {
       "id": "gobert_r_23",
@@ -13173,7 +13949,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Defensive Stopper"
       ],
-      "popularity": 68
+      "popularity": 68,
+      "rating": 20.3
     },
     {
       "id": "conley_m_23",
@@ -13190,7 +13967,8 @@ const PLAYER_DB = {
         "Defensive Stopper",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 13.4
     },
     {
       "id": "mcdaniels_j_23",
@@ -13206,7 +13984,8 @@ const PLAYER_DB = {
         "3-and-D",
         "Defensive Stopper"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 12.2
     }
   ],
   "Pelicans_2000s": [
@@ -13225,7 +14004,8 @@ const PLAYER_DB = {
         "Floor General",
         "Defensive Stopper"
       ],
-      "popularity": 78
+      "popularity": 78,
+      "rating": 20.5
     },
     {
       "id": "davis_b_03",
@@ -13242,7 +14022,8 @@ const PLAYER_DB = {
         "Slasher",
         "Elite Playmaker"
       ],
-      "popularity": 65
+      "popularity": 65,
+      "rating": 19.4
     },
     {
       "id": "stojakovic_p_07",
@@ -13259,7 +14040,8 @@ const PLAYER_DB = {
         "3-and-D",
         "Volume Shooter"
       ],
-      "popularity": 65
+      "popularity": 65,
+      "rating": 13.3
     },
     {
       "id": "mashburn_03",
@@ -13275,7 +14057,8 @@ const PLAYER_DB = {
         "Mid-Range Maestro",
         "Volume Shooter"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 16.5
     },
     {
       "id": "west_d_07",
@@ -13291,7 +14074,8 @@ const PLAYER_DB = {
         "Post Scorer",
         "Mid-Range Maestro"
       ],
-      "popularity": 43
+      "popularity": 43,
+      "rating": 15.6
     }
   ],
   "Pelicans_2010s": [
@@ -13310,7 +14094,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Volume Shooter"
       ],
-      "popularity": 80
+      "popularity": 80,
+      "rating": 24.1
     },
     {
       "id": "cousins_dm_17",
@@ -13327,7 +14112,8 @@ const PLAYER_DB = {
         "Post Scorer",
         "Rebounding Machine"
       ],
-      "popularity": 63
+      "popularity": 63,
+      "rating": 25.8
     },
     {
       "id": "holiday_j_16",
@@ -13344,7 +14130,8 @@ const PLAYER_DB = {
         "Floor General",
         "Elite Playmaker"
       ],
-      "popularity": 63
+      "popularity": 63,
+      "rating": 17.5
     },
     {
       "id": "gordon_e_15",
@@ -13361,7 +14148,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "3-and-D"
       ],
-      "popularity": 50
+      "popularity": 50,
+      "rating": 13.5
     },
     {
       "id": "anderson_r_14",
@@ -13377,7 +14165,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "3-and-D"
       ],
-      "popularity": 46
+      "popularity": 46,
+      "rating": 14.7
     }
   ],
   "Pelicans_2020s": [
@@ -13396,7 +14185,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch Assassin"
       ],
-      "popularity": 48
+      "popularity": 48,
+      "rating": 19.1
     },
     {
       "id": "ingram_b_22",
@@ -13413,7 +14203,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Mid-Range Maestro"
       ],
-      "popularity": 53
+      "popularity": 53,
+      "rating": 18.1
     },
     {
       "id": "mccollum_cj_22",
@@ -13430,7 +14221,8 @@ const PLAYER_DB = {
         "Clutch Assassin",
         "Volume Shooter"
       ],
-      "popularity": 39
+      "popularity": 39,
+      "rating": 15.1
     },
     {
       "id": "jones_h_23",
@@ -13447,7 +14239,8 @@ const PLAYER_DB = {
         "3-and-D",
         "Lockdown Defender"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 13.7
     },
     {
       "id": "valanciunas_22",
@@ -13463,7 +14256,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Post Scorer"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 17.6
     }
   ],
   "Blazers_1980s": [
@@ -13482,7 +14276,8 @@ const PLAYER_DB = {
         "Defensive Stopper",
         "Volume Shooter"
       ],
-      "popularity": 78
+      "popularity": 78,
+      "rating": 20.7
     },
     {
       "id": "vandeweghe_84",
@@ -13498,7 +14293,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Mid-Range Maestro"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 16.4
     },
     {
       "id": "porter_t_87",
@@ -13514,7 +14310,8 @@ const PLAYER_DB = {
         "Floor General",
         "Floor Spacer"
       ],
-      "popularity": 51
+      "popularity": 51,
+      "rating": 15.5
     },
     {
       "id": "kersey_86",
@@ -13531,7 +14328,8 @@ const PLAYER_DB = {
         "Hustle Player",
         "Slasher"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 15.8
     },
     {
       "id": "duckworth_88",
@@ -13547,7 +14345,8 @@ const PLAYER_DB = {
         "Post Scorer",
         "Rebounding Machine"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 14.3
     }
   ],
   "Blazers_1990s": [
@@ -13566,7 +14365,8 @@ const PLAYER_DB = {
         "Defensive Stopper",
         "Clutch Assassin"
       ],
-      "popularity": 78
+      "popularity": 78,
+      "rating": 20.1
     },
     {
       "id": "sabonis_97",
@@ -13583,7 +14383,8 @@ const PLAYER_DB = {
         "Post Scorer",
         "Rim Protector"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 19.3
     },
     {
       "id": "wallace_r_98",
@@ -13600,7 +14401,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Defensive Stopper"
       ],
-      "popularity": 67
+      "popularity": 67,
+      "rating": 17.5
     },
     {
       "id": "robinson_c_95",
@@ -13616,7 +14418,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Defensive Stopper"
       ],
-      "popularity": 38
+      "popularity": 38,
+      "rating": 16.2
     },
     {
       "id": "stoudamire_99",
@@ -13632,7 +14435,8 @@ const PLAYER_DB = {
         "Floor General",
         "Volume Shooter"
       ],
-      "popularity": 37
+      "popularity": 37,
+      "rating": 15.8
     }
   ],
   "Blazers_2000s": [
@@ -13651,7 +14455,8 @@ const PLAYER_DB = {
         "Clutch Assassin",
         "Volume Shooter"
       ],
-      "popularity": 45
+      "popularity": 45,
+      "rating": 16.2
     },
     {
       "id": "aldridge_la_09",
@@ -13667,7 +14472,8 @@ const PLAYER_DB = {
         "Post Scorer",
         "Mid-Range Maestro"
       ],
-      "popularity": 63
+      "popularity": 63,
+      "rating": 16.8
     },
     {
       "id": "pippen_s_01",
@@ -13684,7 +14490,8 @@ const PLAYER_DB = {
         "Floor General",
         "Elite Playmaker"
       ],
-      "popularity": 92
+      "popularity": 92,
+      "rating": 18
     },
     {
       "id": "randolph_z_04",
@@ -13700,7 +14507,8 @@ const PLAYER_DB = {
         "Post Scorer",
         "Rebounding Machine"
       ],
-      "popularity": 36
+      "popularity": 36,
+      "rating": 18
     },
     {
       "id": "stoudamire_d_02",
@@ -13716,7 +14524,8 @@ const PLAYER_DB = {
         "Floor General",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 14.5
     }
   ],
   "Blazers_2010s": [
@@ -13735,7 +14544,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Point God"
       ],
-      "popularity": 89
+      "popularity": 89,
+      "rating": 17.6
     },
     {
       "id": "aldridge_la_14",
@@ -13752,7 +14562,8 @@ const PLAYER_DB = {
         "Mid-Range Maestro",
         "Rebounding Machine"
       ],
-      "popularity": 63
+      "popularity": 63,
+      "rating": 21
     },
     {
       "id": "mccollum_cj_16",
@@ -13768,7 +14579,8 @@ const PLAYER_DB = {
         "Mid-Range Maestro",
         "Volume Shooter"
       ],
-      "popularity": 36
+      "popularity": 36,
+      "rating": 14.9
     },
     {
       "id": "nurkic_j_18",
@@ -13784,7 +14596,8 @@ const PLAYER_DB = {
         "Post Scorer",
         "Rebounding Machine"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 18.1
     },
     {
       "id": "batum_n_14",
@@ -13801,7 +14614,8 @@ const PLAYER_DB = {
         "Floor General",
         "Defensive Stopper"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 15.6
     }
   ],
   "Blazers_2020s": [
@@ -13820,7 +14634,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Point God"
       ],
-      "popularity": 89
+      "popularity": 89,
+      "rating": 19.2
     },
     {
       "id": "simons_a_23",
@@ -13837,7 +14652,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "3-and-D"
       ],
-      "popularity": 40
+      "popularity": 40,
+      "rating": 15
     },
     {
       "id": "grant_j_23",
@@ -13854,7 +14670,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Slasher"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 15.6
     },
     {
       "id": "nurkic_j_22",
@@ -13870,7 +14687,8 @@ const PLAYER_DB = {
         "Post Scorer",
         "Rebounding Machine"
       ],
-      "popularity": 36
+      "popularity": 36,
+      "rating": 19.1
     },
     {
       "id": "henderson_s_24",
@@ -13887,7 +14705,8 @@ const PLAYER_DB = {
         "Slasher",
         "Elite Playmaker"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 14.5
     }
   ],
   "Kings_1960s": [
@@ -13906,7 +14725,8 @@ const PLAYER_DB = {
         "Floor General",
         "Volume Shooter"
       ],
-      "popularity": 90
+      "popularity": 90,
+      "rating": 26.9
     },
     {
       "id": "lucas_j_66",
@@ -13922,7 +14742,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Post Scorer"
       ],
-      "popularity": 60
+      "popularity": 60,
+      "rating": 26.3
     },
     {
       "id": "twyman_62",
@@ -13938,7 +14759,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Mid-Range Maestro"
       ],
-      "popularity": 39
+      "popularity": 39,
+      "rating": 16.2
     },
     {
       "id": "embry_63",
@@ -13954,7 +14776,8 @@ const PLAYER_DB = {
         "Post Scorer",
         "Rebounding Machine"
       ],
-      "popularity": 44
+      "popularity": 44,
+      "rating": 18.3
     },
     {
       "id": "smith_a_66",
@@ -13970,7 +14793,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 36
+      "popularity": 36,
+      "rating": 13.8
     }
   ],
   "Kings_1970s": [
@@ -13989,7 +14813,8 @@ const PLAYER_DB = {
         "Floor General",
         "Volume Shooter"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 22.5
     },
     {
       "id": "birdsong_78",
@@ -14005,7 +14830,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Mid-Range Maestro"
       ],
-      "popularity": 38
+      "popularity": 38,
+      "rating": 15.5
     },
     {
       "id": "lacey_75",
@@ -14021,7 +14847,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Rim Protector"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 20.3
     },
     {
       "id": "wedman_77",
@@ -14037,7 +14864,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 41
+      "popularity": 41,
+      "rating": 15.8
     },
     {
       "id": "ford_p_79",
@@ -14053,7 +14881,8 @@ const PLAYER_DB = {
         "Floor General",
         "Elite Playmaker"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 15.4
     }
   ],
   "Kings_1980s": [
@@ -14072,7 +14901,8 @@ const PLAYER_DB = {
         "Floor General",
         "Mid-Range Maestro"
       ],
-      "popularity": 46
+      "popularity": 46,
+      "rating": 17.5
     },
     {
       "id": "johnson_e_87",
@@ -14089,7 +14919,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 13.4
     },
     {
       "id": "birdsong_82",
@@ -14105,7 +14936,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Mid-Range Maestro"
       ],
-      "popularity": 37
+      "popularity": 37,
+      "rating": 14
     },
     {
       "id": "thompson_la_86",
@@ -14121,7 +14953,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Rebounding Machine"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 18.5
     },
     {
       "id": "mccray_r_87",
@@ -14137,7 +14970,8 @@ const PLAYER_DB = {
         "Defensive Stopper",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 14.6
     }
   ],
   "Kings_1990s": [
@@ -14156,7 +14990,8 @@ const PLAYER_DB = {
         "Clutch Assassin",
         "Volume Shooter"
       ],
-      "popularity": 47
+      "popularity": 47,
+      "rating": 16.2
     },
     {
       "id": "divac_v_98",
@@ -14172,7 +15007,8 @@ const PLAYER_DB = {
         "Floor General",
         "Post Scorer"
       ],
-      "popularity": 62
+      "popularity": 62,
+      "rating": 17.4
     },
     {
       "id": "williams_j_99",
@@ -14188,7 +15024,8 @@ const PLAYER_DB = {
         "Floor General",
         "Elite Playmaker"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 14.4
     },
     {
       "id": "grant_b_98",
@@ -14204,7 +15041,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Hustle Player"
       ],
-      "popularity": 44
+      "popularity": 44,
+      "rating": 14.9
     },
     {
       "id": "webb_s_96",
@@ -14220,7 +15058,8 @@ const PLAYER_DB = {
         "Floor General",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 13
     }
   ],
   "Kings_2010s": [
@@ -14239,7 +15078,8 @@ const PLAYER_DB = {
         "Post Scorer",
         "Rebounding Machine"
       ],
-      "popularity": 63
+      "popularity": 63,
+      "rating": 22.7
     },
     {
       "id": "thomas_i_13",
@@ -14256,7 +15096,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Floor General"
       ],
-      "popularity": 36
+      "popularity": 36,
+      "rating": 15.5
     },
     {
       "id": "gay_r_14",
@@ -14273,7 +15114,8 @@ const PLAYER_DB = {
         "Slasher",
         "Mid-Range Maestro"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 16.8
     },
     {
       "id": "cauley_stein_16",
@@ -14289,7 +15131,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Rebounding Machine"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 14.8
     },
     {
       "id": "mclemore_14",
@@ -14305,7 +15148,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "3-and-D"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 9.1
     }
   ],
   "Kings_2020s": [
@@ -14324,7 +15168,8 @@ const PLAYER_DB = {
         "Slasher",
         "Volume Shooter"
       ],
-      "popularity": 48
+      "popularity": 48,
+      "rating": 18.7
     },
     {
       "id": "sabonis_d_23",
@@ -14341,7 +15186,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Post Scorer"
       ],
-      "popularity": 39
+      "popularity": 39,
+      "rating": 21.4
     },
     {
       "id": "monk_m_23",
@@ -14358,7 +15204,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 14.1
     },
     {
       "id": "barnes_h_23",
@@ -14375,7 +15222,8 @@ const PLAYER_DB = {
         "3-and-D",
         "Mid-Range Maestro"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 13.2
     },
     {
       "id": "murray_kg_23",
@@ -14391,7 +15239,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "3-and-D"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 12
     }
   ],
   "Raptors_1990s": [
@@ -14410,7 +15259,8 @@ const PLAYER_DB = {
         "Floor General",
         "Elite Playmaker"
       ],
-      "popularity": 45
+      "popularity": 45,
+      "rating": 17.2
     },
     {
       "id": "raptors_90s_2",
@@ -14426,7 +15276,8 @@ const PLAYER_DB = {
         "Slasher",
         "Clutch"
       ],
-      "popularity": 84
+      "popularity": 84,
+      "rating": 16.4
     },
     {
       "id": "raptors_90s_3",
@@ -14442,7 +15293,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Rebounding Machine"
       ],
-      "popularity": 58
+      "popularity": 58,
+      "rating": 16.6
     },
     {
       "id": "raptors_90s_4",
@@ -14458,7 +15310,8 @@ const PLAYER_DB = {
         "Defensive Stopper",
         "3-and-D"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 14.1
     },
     {
       "id": "raptors_90s_5",
@@ -14474,7 +15327,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 11.4
     },
     {
       "id": "raptors_90s_6",
@@ -14490,7 +15344,8 @@ const PLAYER_DB = {
         "Floor General",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 11.4
     },
     {
       "id": "raptors_90s_7",
@@ -14506,7 +15361,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Hustle Player"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 14.7
     }
   ],
   "Raptors_2000s": [
@@ -14525,7 +15381,8 @@ const PLAYER_DB = {
         "Slasher",
         "Volume Shooter"
       ],
-      "popularity": 39
+      "popularity": 39,
+      "rating": 17.5
     },
     {
       "id": "raptors_00s_2",
@@ -14541,7 +15398,8 @@ const PLAYER_DB = {
         "Post Scorer",
         "Rebounding Machine"
       ],
-      "popularity": 72
+      "popularity": 72,
+      "rating": 19
     },
     {
       "id": "raptors_00s_3",
@@ -14558,7 +15416,8 @@ const PLAYER_DB = {
         "Slasher",
         "Floor Spacer"
       ],
-      "popularity": 84
+      "popularity": 84,
+      "rating": 21.4
     },
     {
       "id": "raptors_00s_4",
@@ -14574,7 +15433,8 @@ const PLAYER_DB = {
         "Floor General",
         "Floor Spacer"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 12.4
     },
     {
       "id": "raptors_00s_5",
@@ -14590,7 +15450,8 @@ const PLAYER_DB = {
         "3-and-D",
         "Floor Spacer"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 9.9
     },
     {
       "id": "raptors_00s_6",
@@ -14606,7 +15467,8 @@ const PLAYER_DB = {
         "Slasher",
         "Mid-Range Maestro"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 12.4
     },
     {
       "id": "raptors_00s_7",
@@ -14622,7 +15484,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Hustle Player"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 14.3
     }
   ],
   "Raptors_2020s": [
@@ -14641,7 +15504,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Clutch"
       ],
-      "popularity": 63
+      "popularity": 63,
+      "rating": 20
     },
     {
       "id": "raptors_20s_2",
@@ -14658,7 +15522,8 @@ const PLAYER_DB = {
         "3-and-D",
         "Defensive Stopper"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 14.9
     },
     {
       "id": "raptors_20s_3",
@@ -14675,7 +15540,8 @@ const PLAYER_DB = {
         "Hustle Player",
         "Floor General"
       ],
-      "popularity": 38
+      "popularity": 38,
+      "rating": 17.2
     },
     {
       "id": "raptors_20s_4",
@@ -14692,7 +15558,8 @@ const PLAYER_DB = {
         "3-and-D",
         "Clutch"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 16.5
     },
     {
       "id": "raptors_20s_5",
@@ -14708,7 +15575,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Rebounding Machine"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 17.8
     },
     {
       "id": "raptors_20s_6",
@@ -14725,7 +15593,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 12
     },
     {
       "id": "raptors_20s_7",
@@ -14742,7 +15611,8 @@ const PLAYER_DB = {
         "Mid-Range Maestro",
         "Clutch"
       ],
-      "popularity": 53
+      "popularity": 53,
+      "rating": 15.8
     }
   ],
   "Grizzlies_1990s": [
@@ -14760,7 +15630,8 @@ const PLAYER_DB = {
         "Post Scorer",
         "Rebounding Machine"
       ],
-      "popularity": 43
+      "popularity": 43,
+      "rating": 18
     },
     {
       "id": "grizzlies_90s_2",
@@ -14776,7 +15647,8 @@ const PLAYER_DB = {
         "Floor General",
         "Clutch"
       ],
-      "popularity": 58
+      "popularity": 58,
+      "rating": 12.6
     },
     {
       "id": "grizzlies_90s_3",
@@ -14792,7 +15664,8 @@ const PLAYER_DB = {
         "Post Scorer",
         "Rebounding Machine"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 14
     },
     {
       "id": "grizzlies_90s_4",
@@ -14808,7 +15681,8 @@ const PLAYER_DB = {
         "Slasher",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 10.6
     },
     {
       "id": "grizzlies_90s_5",
@@ -14824,7 +15698,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 8.5
     },
     {
       "id": "grizzlies_90s_6",
@@ -14840,7 +15715,8 @@ const PLAYER_DB = {
         "Hustle Player",
         "Rebounding Machine"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 10.6
     }
   ],
   "Grizzlies_2000s": [
@@ -14859,7 +15735,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Floor General"
       ],
-      "popularity": 74
+      "popularity": 74,
+      "rating": 19.5
     },
     {
       "id": "grizzlies_00s_2",
@@ -14876,7 +15753,8 @@ const PLAYER_DB = {
         "Defensive Stopper",
         "Lockdown Defender"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 12.4
     },
     {
       "id": "grizzlies_00s_3",
@@ -14892,7 +15770,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "3-and-D"
       ],
-      "popularity": 41
+      "popularity": 41,
+      "rating": 11.9
     },
     {
       "id": "grizzlies_00s_4",
@@ -14908,7 +15787,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor General"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 12.4
     },
     {
       "id": "grizzlies_00s_5",
@@ -14924,7 +15804,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Hustle Player"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 12.7
     },
     {
       "id": "grizzlies_00s_6",
@@ -14940,7 +15821,8 @@ const PLAYER_DB = {
         "Defensive Stopper",
         "3-and-D"
       ],
-      "popularity": 41
+      "popularity": 41,
+      "rating": 10.5
     },
     {
       "id": "grizzlies_00s_7",
@@ -14956,7 +15838,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Slasher"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 14.6
     }
   ],
   "Grizzlies_2010s": [
@@ -14975,7 +15858,8 @@ const PLAYER_DB = {
         "Floor General",
         "Post Scorer"
       ],
-      "popularity": 68
+      "popularity": 68,
+      "rating": 18.4
     },
     {
       "id": "grizzlies_10s_2",
@@ -14992,7 +15876,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Clutch"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 17.9
     },
     {
       "id": "grizzlies_10s_3",
@@ -15009,7 +15894,8 @@ const PLAYER_DB = {
         "Defensive Stopper",
         "Clutch"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 13.7
     },
     {
       "id": "grizzlies_10s_4",
@@ -15026,7 +15912,8 @@ const PLAYER_DB = {
         "Defensive Stopper",
         "Hustle Player"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 10.8
     },
     {
       "id": "grizzlies_10s_5",
@@ -15042,7 +15929,8 @@ const PLAYER_DB = {
         "Slasher",
         "Mid-Range Maestro"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 15.6
     },
     {
       "id": "grizzlies_10s_6",
@@ -15058,7 +15946,8 @@ const PLAYER_DB = {
         "3-and-D",
         "Floor Spacer"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 9.3
     },
     {
       "id": "grizzlies_10s_7",
@@ -15074,7 +15963,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Clutch"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 9.8
     }
   ],
   "Grizzlies_2020s": [
@@ -15093,7 +15983,8 @@ const PLAYER_DB = {
         "Clutch Assassin",
         "Elite Playmaker"
       ],
-      "popularity": 50
+      "popularity": 50,
+      "rating": 19.9
     },
     {
       "id": "grizzlies_20s_2",
@@ -15110,7 +16001,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Defensive Stopper"
       ],
-      "popularity": 42
+      "popularity": 42,
+      "rating": 19.2
     },
     {
       "id": "grizzlies_20s_3",
@@ -15127,7 +16019,8 @@ const PLAYER_DB = {
         "3-and-D",
         "Clutch"
       ],
-      "popularity": 43
+      "popularity": 43,
+      "rating": 15.6
     },
     {
       "id": "grizzlies_20s_4",
@@ -15144,7 +16037,8 @@ const PLAYER_DB = {
         "Defensive Stopper",
         "Slasher"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 11.6
     },
     {
       "id": "grizzlies_20s_5",
@@ -15160,7 +16054,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Hustle Player"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 12.8
     },
     {
       "id": "grizzlies_20s_6",
@@ -15176,7 +16071,8 @@ const PLAYER_DB = {
         "Floor General",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 11.2
     },
     {
       "id": "grizzlies_20s_7",
@@ -15192,7 +16088,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Defensive Stopper"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 11.6
     }
   ],
   "Wizards_1960s": [
@@ -15210,7 +16107,8 @@ const PLAYER_DB = {
         "Mid-Range Maestro",
         "Clutch Assassin"
       ],
-      "popularity": 65
+      "popularity": 65,
+      "rating": 15.7
     },
     {
       "id": "wizards_60s_2",
@@ -15227,7 +16125,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 18.4
     },
     {
       "id": "wizards_60s_3",
@@ -15243,7 +16142,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Hustle Player"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 19.2
     },
     {
       "id": "wizards_60s_4",
@@ -15259,7 +16159,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Mid-Range Maestro"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 12.7
     },
     {
       "id": "wizards_60s_5",
@@ -15275,7 +16176,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 12.7
     }
   ],
   "Wizards_1970s": [
@@ -15294,7 +16196,8 @@ const PLAYER_DB = {
         "Post Scorer",
         "Rim Protector"
       ],
-      "popularity": 75
+      "popularity": 75,
+      "rating": 22.9
     },
     {
       "id": "wizards_70s_2",
@@ -15311,7 +16214,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Floor General"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 17.6
     },
     {
       "id": "wizards_70s_3",
@@ -15327,7 +16231,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Clutch"
       ],
-      "popularity": 38
+      "popularity": 38,
+      "rating": 13.7
     },
     {
       "id": "wizards_70s_4",
@@ -15343,7 +16248,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Floor General"
       ],
-      "popularity": 43
+      "popularity": 43,
+      "rating": 14.2
     },
     {
       "id": "wizards_70s_5",
@@ -15359,7 +16265,8 @@ const PLAYER_DB = {
         "Defensive Stopper",
         "Mid-Range Maestro"
       ],
-      "popularity": 58
+      "popularity": 58,
+      "rating": 16.6
     },
     {
       "id": "wizards_70s_6",
@@ -15375,7 +16282,8 @@ const PLAYER_DB = {
         "Floor General",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 10.9
     }
   ],
   "Wizards_1980s": [
@@ -15393,7 +16301,8 @@ const PLAYER_DB = {
         "Post Scorer",
         "Rebounding Machine"
       ],
-      "popularity": 39
+      "popularity": 39,
+      "rating": 21.8
     },
     {
       "id": "wizards_80s_2",
@@ -15409,7 +16318,8 @@ const PLAYER_DB = {
         "Point God",
         "Slasher"
       ],
-      "popularity": 55
+      "popularity": 55,
+      "rating": 15
     },
     {
       "id": "wizards_80s_3",
@@ -15425,7 +16335,8 @@ const PLAYER_DB = {
         "Floor General",
         "Elite Playmaker"
       ],
-      "popularity": 38
+      "popularity": 38,
+      "rating": 12.3
     },
     {
       "id": "wizards_80s_4",
@@ -15441,7 +16352,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Defensive Stopper"
       ],
-      "popularity": 46
+      "popularity": 46,
+      "rating": 14.6
     },
     {
       "id": "wizards_80s_5",
@@ -15457,7 +16369,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "3-and-D"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 14.6
     },
     {
       "id": "wizards_80s_6",
@@ -15473,7 +16386,8 @@ const PLAYER_DB = {
         "Defensive Stopper",
         "Hustle Player"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 13.5
     }
   ],
   "Wizards_1990s": [
@@ -15492,7 +16406,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Floor General"
       ],
-      "popularity": 76
+      "popularity": 76,
+      "rating": 22.9
     },
     {
       "id": "wizards_90s_2",
@@ -15508,7 +16423,8 @@ const PLAYER_DB = {
         "Post Scorer",
         "Mid-Range Maestro"
       ],
-      "popularity": 42
+      "popularity": 42,
+      "rating": 16.2
     },
     {
       "id": "wizards_90s_3",
@@ -15524,7 +16440,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Point God"
       ],
-      "popularity": 40
+      "popularity": 40,
+      "rating": 17.1
     },
     {
       "id": "wizards_90s_4",
@@ -15540,7 +16457,8 @@ const PLAYER_DB = {
         "Clutch Assassin",
         "Volume Shooter"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 12.6
     },
     {
       "id": "wizards_90s_5",
@@ -15557,7 +16475,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Defensive Stopper"
       ],
-      "popularity": 68
+      "popularity": 68,
+      "rating": 13.5
     },
     {
       "id": "wizards_90s_6",
@@ -15573,7 +16492,8 @@ const PLAYER_DB = {
         "Defensive Stopper",
         "Glue Guy"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 12.6
     }
   ],
   "Wizards_2000s": [
@@ -15592,7 +16512,8 @@ const PLAYER_DB = {
         "Point God",
         "Volume Shooter"
       ],
-      "popularity": 50
+      "popularity": 50,
+      "rating": 20
     },
     {
       "id": "wizards_00s_2",
@@ -15608,7 +16529,8 @@ const PLAYER_DB = {
         "Slasher",
         "Mid-Range Maestro"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 15.7
     },
     {
       "id": "wizards_00s_3",
@@ -15624,7 +16546,8 @@ const PLAYER_DB = {
         "Volume Shooter",
         "Rebounding Machine"
       ],
-      "popularity": 52
+      "popularity": 52,
+      "rating": 17.3
     },
     {
       "id": "wizards_00s_4",
@@ -15640,7 +16563,8 @@ const PLAYER_DB = {
         "Defensive Stopper",
         "Slasher"
       ],
-      "popularity": 42
+      "popularity": 42,
+      "rating": 16.6
     },
     {
       "id": "wizards_00s_5",
@@ -15656,7 +16580,8 @@ const PLAYER_DB = {
         "Rim Protector",
         "Rebounding Machine"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 12.9
     },
     {
       "id": "wizards_00s_6",
@@ -15672,7 +16597,8 @@ const PLAYER_DB = {
         "3-and-D",
         "Defensive Stopper"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 10.5
     }
   ],
   "Wizards_2010s": [
@@ -15691,7 +16617,8 @@ const PLAYER_DB = {
         "Elite Playmaker",
         "Slasher"
       ],
-      "popularity": 45
+      "popularity": 45,
+      "rating": 19.6
     },
     {
       "id": "wizards_10s_2",
@@ -15708,7 +16635,8 @@ const PLAYER_DB = {
         "Clutch Assassin",
         "Floor Spacer"
       ],
-      "popularity": 62
+      "popularity": 62,
+      "rating": 18.3
     },
     {
       "id": "wizards_10s_3",
@@ -15725,7 +16653,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Defensive Stopper"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 13.4
     },
     {
       "id": "wizards_10s_4",
@@ -15741,7 +16670,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Rim Protector"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 15.4
     },
     {
       "id": "wizards_10s_5",
@@ -15757,7 +16687,8 @@ const PLAYER_DB = {
         "Post Scorer",
         "Rim Protector"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 15.7
     },
     {
       "id": "wizards_10s_6",
@@ -15773,7 +16704,8 @@ const PLAYER_DB = {
         "3-and-D",
         "Lockdown Defender"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 14.1
     }
   ],
   "Wizards_2020s": [
@@ -15792,7 +16724,8 @@ const PLAYER_DB = {
         "Clutch Assassin",
         "Mid-Range Maestro"
       ],
-      "popularity": 62
+      "popularity": 62,
+      "rating": 19.2
     },
     {
       "id": "wizards_20s_2",
@@ -15809,7 +16742,8 @@ const PLAYER_DB = {
         "Rebounding Machine",
         "Mid-Range Maestro"
       ],
-      "popularity": 37
+      "popularity": 37,
+      "rating": 18.1
     },
     {
       "id": "wizards_20s_3",
@@ -15825,7 +16759,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "Rim Protector"
       ],
-      "popularity": 65
+      "popularity": 65,
+      "rating": 20.6
     },
     {
       "id": "wizards_20s_4",
@@ -15842,7 +16777,8 @@ const PLAYER_DB = {
         "Clutch",
         "Volume Shooter"
       ],
-      "popularity": 60
+      "popularity": 60,
+      "rating": 12.9
     },
     {
       "id": "wizards_20s_5",
@@ -15859,7 +16795,8 @@ const PLAYER_DB = {
         "Floor General",
         "Clutch"
       ],
-      "popularity": 38
+      "popularity": 38,
+      "rating": 15.6
     },
     {
       "id": "wizards_20s_6",
@@ -15875,7 +16812,8 @@ const PLAYER_DB = {
         "Floor Spacer",
         "3-and-D"
       ],
-      "popularity": 35
+      "popularity": 35,
+      "rating": 8.8
     }
   ]
 };
