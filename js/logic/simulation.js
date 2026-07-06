@@ -310,8 +310,25 @@ export function simulateSeason(starters, coach = null) {
     : 50;
   const popNorm     = Math.max(0, Math.min(1, (avgPop - POP_FLOOR) / (POP_CEIL - POP_FLOOR)));
   const popMul      = MUL_MIN + popNorm * (MUL_MAX - MUL_MIN);
-  const adjustedStrength = baseStrength * popMul;
-  const popEloDelta = +(baseStrength * (popMul - 1)).toFixed(3); // signed delta
+
+  // ── Player-Rating modifier ────────────────────────────────────────────────
+  // The 0–100 `rating` (2K-style overall) feeds the sim as a bounded multiplier
+  // centered on a median roster, so it rewards genuinely high-rated lineups and
+  // penalizes weak ones without disturbing the calibrated additive core.
+  //   median roster (avg 76) → 1.00 · elite (avg 90+) → +RATING_AMP ·
+  //   weak (avg 62-) → -RATING_AMP.
+  const RATING_MID  = 76;   // avg roster rating that maps to a neutral 1.0x
+  const RATING_SPAN = 14;   // ± spread that reaches full amplitude
+  const RATING_AMP  = 0.04; // max ± strength swing (matches the popularity band)
+  const avgRating   = allPlayers.length
+    ? allPlayers.reduce((s, p) => s + (p.rating ?? 70), 0) / allPlayers.length
+    : 70;
+  const ratingNorm  = Math.max(-1, Math.min(1, (avgRating - RATING_MID) / RATING_SPAN));
+  const ratingMul   = 1 + ratingNorm * RATING_AMP;
+
+  const adjustedStrength = baseStrength * popMul * ratingMul;
+  const popEloDelta    = +(baseStrength * (popMul - 1)).toFixed(3);            // signed delta (popularity only)
+  const ratingEloDelta = +(baseStrength * popMul * (ratingMul - 1)).toFixed(3); // signed delta (rating only)
 
   // Fan base size — power curve: 2M (avg=35) → ~20M (avg=70) → 40M (avg=100)
   const fansM = +(Math.pow(popNorm, 1.5) * 38 + 2).toFixed(1);
@@ -343,6 +360,9 @@ export function simulateSeason(starters, coach = null) {
     chemScore, chemReport, lineupAssignment,
     avgPopularity: +avgPop.toFixed(1),
     popEloDelta,
+    avgRating:  +avgRating.toFixed(1),
+    ratingMul:  +ratingMul.toFixed(4),
+    ratingEloDelta,
     fansM,
     coachBoost: +coachBoost.toFixed(3),
     games,

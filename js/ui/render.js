@@ -76,6 +76,25 @@ export function fmtPlayerLine(p) {
   return era ? `${p.name} (${era})` : p.name;
 }
 
+// ── Player rating (0–100 overall) display helpers ─────────────────────────────
+/** 2K-style tier color for a 0–100 rating. */
+export function ovrColor(rating) {
+  const r = rating ?? 0;
+  if (r >= 90) return '#d97706'; // gold — GOAT tier
+  if (r >= 82) return '#2563eb'; // blue — star
+  if (r >= 74) return '#0f766e'; // teal — solid starter
+  return '#64748b';              // slate — role player
+}
+
+/** Compact 2K-style OVR badge used in roster rows. */
+export function ovrBadge(rating) {
+  const val = rating ?? '—';
+  return `<div class="flex-shrink-0 text-center w-9">
+    <div class="text-base font-black leading-none" style="color:${ovrColor(rating)}">${val}</div>
+    <div class="text-[8px] font-bold uppercase tracking-wider text-muted-fg leading-none mt-0.5">OVR</div>
+  </div>`;
+}
+
 export function showToast(msg, duration = 2500) {
   const el = document.createElement('div');
   el.textContent = msg;
@@ -1081,6 +1100,14 @@ function renderResults() {
 
   const winsColor = isPerfect || isHistoric ? '#d97706' : isElite ? '#16a34a' : isPlayoff ? '#2563eb' : '#dc2626';
 
+  // ── Team rating (0–100 overall) display helpers ───────────────────────────
+  const teamOvr     = Math.round(r.avgRating ?? 0);
+  const ratingDelta = r.ratingEloDelta ?? 0;
+  const ratingPct   = ratingDelta / (r.baseStrength || 1) * 100;
+  const ratingImpactLabel = Math.abs(ratingPct) >= 0.1
+    ? ` · ${ratingPct >= 0 ? '+' : ''}${ratingPct.toFixed(1)}% Elo`
+    : '';
+
   // ── Popularity / Fan-Hype display helpers ─────────────────────────────────
   const popDelta    = r.popEloDelta ?? 0;
   const fansM       = r.fansM       ?? 2;
@@ -1146,6 +1173,7 @@ function renderResults() {
           ${p.archetype ? archetypeBadge(p.archetype) : ''}
         </div>
       </div>
+      ${ovrBadge(p.rating)}
       <div class="flex gap-3 text-xs text-muted-fg flex-shrink-0">
         <span><span class="font-semibold text-foreground">${p.ppg}</span> PPG</span>
         <span><span class="font-semibold text-foreground">${p.rpg}</span> RPG</span>
@@ -1188,8 +1216,12 @@ function renderResults() {
             <span class="text-muted-fg">${r.losses}</span>
           </div>
           <span class="inline-block text-sm font-bold px-4 py-1.5 rounded-full mb-2" style="background:${labelBg};color:${labelColor}">${emoji} ${label}</span>
-          <p class="text-xs text-muted-fg mb-2">Win% ${r.winPct}% &nbsp;·&nbsp; Strength Index ${r.strength}</p>
+          <p class="text-xs text-muted-fg mb-2">Win% ${r.winPct}% &nbsp;·&nbsp; Team OVR ${teamOvr} &nbsp;·&nbsp; Strength Index ${r.strength}</p>
           <div class="flex items-center justify-center gap-2 flex-wrap">
+            <span class="inline-flex items-center gap-1 text-[11px] font-black px-2.5 py-1 rounded-full border"
+              style="background:${ovrColor(teamOvr)}12;border-color:${ovrColor(teamOvr)}40;color:${ovrColor(teamOvr)}">
+              🏀 Team OVR ${teamOvr}${ratingImpactLabel}
+            </span>
             ${r.longestStreak >= 5 ? `<span class="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full border" style="background:#fef2f2;border-color:#fecaca;color:#dc2626">🔥 ${r.longestStreak}-game win streak</span>` : ''}
             <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full border border-border bg-slate-50 text-slate-600">
               🌍 Global Fanbase: ${fansLabel}

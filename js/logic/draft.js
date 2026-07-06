@@ -71,15 +71,15 @@ export function getAvailablePlayers(team, decade) {
 }
 
 // ── Player tiers ──────────────────────────────────────────────────────────────
-// Mirrors the popularity brackets already used by salary.js so the whole
-// engine speaks one tier language.
+// Quality tier keyed to the 0–100 player rating (2K-style overall). This is the
+// on-court quality signal the draft steers toward when seeking stars/GOATs.
 const TIER_RANK = { starter: 0, star: 1, goat: 2 };
 
-/** Quality tier derived from the engine's popularity scale. */
+/** Quality tier derived from the player's 0–100 rating. */
 export function playerTier(p) {
-  const pop = p.popularity ?? 50;
-  if (pop >= 95) return 'goat';
-  if (pop >= 85) return 'star';
+  const rating = p.rating ?? 70;
+  if (rating >= 90) return 'goat';
+  if (rating >= 82) return 'star';
   return 'starter';
 }
 
