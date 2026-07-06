@@ -61,6 +61,14 @@ function iconPlus(cls = '') {
 export function archetypeBadge(arch) {
   if (!arch) return '';
   const c = ARCHETYPE_STYLE[arch] || { bg: '#27272a', text: '#a1a1aa' };
+  if (isDark()) {
+    const bright = {
+      'Playmaker': '#93c5fd', 'Sharpshooter': '#fcd34d', 'Lockdown Defender': '#c4b5fd',
+      'Slasher': '#c4b5fd', 'Paint Beast': '#4ade80', 'Two-Way Star': '#fb923c',
+    };
+    const text = bright[arch] || c.text;
+    return `<span class="inline-block text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full mt-0.5" style="background:${text}20;color:${text}">${arch}</span>`;
+  }
   return `<span class="inline-block text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full mt-0.5" style="background:${c.bg};color:${c.text}">${arch}</span>`;
 }
 
@@ -118,11 +126,13 @@ export function withConfetti(fire) {
 export function showToast(msg, duration = 2500) {
   const el = document.createElement('div');
   el.textContent = msg;
+  const bg = isDark() ? '#f1f5f9' : '#0f172a';
+  const fg = isDark() ? '#0f172a' : '#fff';
   el.style.cssText =
-    'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);' +
-    'background:#0f172a;color:#fff;font-family:Fira Sans,sans-serif;font-weight:700;' +
-    'font-size:13px;padding:10px 20px;border-radius:999px;z-index:99999;' +
-    'box-shadow:0 4px 24px rgba(0,0,0,0.2);transition:opacity 0.3s;white-space:nowrap';
+    `position:fixed;bottom:24px;left:50%;transform:translateX(-50%);` +
+    `background:${bg};color:${fg};font-family:Fira Sans,sans-serif;font-weight:700;` +
+    `font-size:13px;padding:10px 20px;border-radius:999px;z-index:99999;` +
+    `box-shadow:0 4px 24px rgba(0,0,0,0.2);transition:opacity 0.3s;white-space:nowrap`;
   document.body.appendChild(el);
   setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 350); }, duration);
 }
@@ -322,10 +332,10 @@ function renderLegends() {
     <div class="rounded-xl border border-border bg-white p-3 card-shadow">
       <div class="flex items-center justify-between mb-1.5">
         <p class="text-sm font-black text-foreground">${decade}${done ? ' <span class="text-[10px]" title="Decade complete">✅</span>' : ''}</p>
-        <span class="text-xs font-bold" style="color:${done ? '#16a34a' : '#6366f1'}">${got.length}/${players.length}</span>
+        <span class="text-xs font-bold" style="color:${done ? (isDark() ? '#4ade80' : '#16a34a') : (isDark() ? '#a5b4fc' : '#6366f1')}">${got.length}/${players.length}</span>
       </div>
-      <div class="h-1.5 rounded-full overflow-hidden mb-2.5" style="background:#eef2ff">
-        <div class="h-full rounded-full" style="width:${dPct}%;background:${done ? '#16a34a' : '#6366f1'}"></div>
+      <div class="h-1.5 rounded-full overflow-hidden mb-2.5" style="background:var(--surface-track)">
+        <div class="h-full rounded-full" style="width:${dPct}%;background:${done ? (isDark() ? '#4ade80' : '#16a34a') : (isDark() ? '#818cf8' : '#6366f1')}"></div>
       </div>
       <div class="leading-tight">
         ${chips}
@@ -336,7 +346,7 @@ function renderLegends() {
 
   return `
   <div class="flex flex-col min-h-screen main-gradient">
-    <header class="sticky top-0 z-50 w-full bg-white border-b border-border" style="box-shadow:0 1px 3px rgba(0,0,0,0.05)">
+    <header class="sticky top-0 z-50 w-full bg-white border-b border-border" style="box-shadow:0 1px 3px var(--header-shadow)">
       <div class="mx-auto flex h-14 max-w-2xl items-center justify-between px-4">
         <button data-action="legends-back" class="text-sm font-bold text-muted-fg hover:text-primary transition-all cursor-pointer">← Back</button>
         <p class="text-sm font-black text-foreground">🃏 Legends</p>
@@ -347,9 +357,9 @@ function renderLegends() {
       <div class="w-full max-w-2xl flex flex-col gap-3 animate-fade-up">
         <div class="rounded-2xl border-2 bg-white p-5 text-center card-shadow" style="border-color:#c7d2fe">
           <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg mb-2">Legends Collected</p>
-          <div class="text-5xl font-black mb-2" style="color:#6366f1">${have}<span class="text-2xl text-muted-fg font-light"> / ${total}</span></div>
-          <div class="h-2 rounded-full overflow-hidden mx-auto max-w-xs" style="background:#eef2ff">
-            <div class="h-full rounded-full stat-bar-fill" style="width:${pct}%;background:#6366f1"></div>
+          <div class="text-5xl font-black mb-2" style="color:${isDark() ? '#a5b4fc' : '#6366f1'}">${have}<span class="text-2xl text-muted-fg font-light"> / ${total}</span></div>
+          <div class="h-2 rounded-full overflow-hidden mx-auto max-w-xs" style="background:var(--surface-track)">
+            <div class="h-full rounded-full stat-bar-fill" style="width:${pct}%;background:${isDark() ? '#818cf8' : '#6366f1'}"></div>
           </div>
           <p class="text-xs text-muted-fg mt-2">${pct}% of every legend across all seven decades${have === 0 ? ' — draft a roster to start collecting.' : have === total ? ' — you collected them all. 🏆' : ''}</p>
         </div>
@@ -419,7 +429,7 @@ function renderColdOpenBanner() {
   const coach = COACHES.find(c => c.id === S.coach);
   return `
   <div class="rounded-2xl p-3.5 flex items-center gap-3 animate-fade-up card-shadow"
-    style="background:#fff7ed;border:1.5px solid #fed7aa">
+    style="background:var(--surface-orange);border:1.5px solid #fed7aa">
     <span class="text-2xl flex-shrink-0">🏀</span>
     <div class="min-w-0">
       <p class="text-sm font-black text-foreground leading-tight">Welcome to 82-0 — your first pick is waiting.</p>
@@ -670,7 +680,7 @@ function renderSlotMachine() {
         ${isDone ? `<span class="mt-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary text-white uppercase tracking-wider">LOCKED</span>` : ''}
       </div>
       <div class="rounded-xl border-2 p-4 flex flex-col items-center justify-center min-h-[88px] transition-all"
-        style="background:${isDone ? '#eff6ff' : 'var(--card2)'};border-color:${isDone ? '#93c5fd' : 'var(--border)'}">
+        style="background:${isDone ? 'var(--surface-blue)' : 'var(--card2)'};border-color:${isDone ? '#93c5fd' : 'var(--border)'}">
         <span class="text-[10px] font-bold uppercase tracking-widest mb-2 text-muted-fg">ERA</span>
         <span class="slot-badge text-xl font-black text-foreground" id="slot-decade">
           ${isDone ? S.currentSpin.decade : isSpin ? (eraLocked ? activeEra : pick(decPool.length ? decPool : DECADES)) : '—'}
@@ -826,9 +836,9 @@ function renderRosterSlot(pos, canPlace) {
     (sp.secondaryPos || []).includes(pos);
   const action       = canDrop ? (hasMoveActive ? `swap-${pos}` : `place-${pos}`) : '';
 
-  const slotBg     = !canDrop ? '#f8fafc' : '#fff1f2';
-  const slotBorder = !canDrop ? '#cbd5e1' : (primaryMatch ? '#86efac' : flexMatch ? '#fde68a' : '#fca5a5');
-  const slotColor  = !canDrop ? '#94a3b8' : (primaryMatch ? '#16a34a' : flexMatch ? '#d97706' : '#dc2626');
+  const slotBg     = !canDrop ? 'var(--card3)' : (isDark() ? 'rgba(239,68,68,0.08)' : '#fff1f2');
+  const slotBorder = !canDrop ? 'var(--border)' : (primaryMatch ? (isDark() ? '#4ade80' : '#86efac') : flexMatch ? (isDark() ? '#fbbf24' : '#fde68a') : (isDark() ? '#f87171' : '#fca5a5'));
+  const slotColor  = !canDrop ? 'var(--muted)' : (primaryMatch ? (isDark() ? '#4ade80' : '#16a34a') : flexMatch ? (isDark() ? '#fbbf24' : '#d97706') : (isDark() ? '#f87171' : '#dc2626'));
   const slotText   = !canDrop ? 'Empty' : (hasMoveActive ? 'Move Here' : primaryMatch ? 'Primary' : flexMatch ? 'Flex' : 'Place');
 
   return `
@@ -849,8 +859,8 @@ function renderChemDashboard() {
     _chemCache.result = calculateChemistry(starters);
   }
   const { chemScore, chemReport } = _chemCache.result;
-  const scoreColor = chemScore >= 60 ? '#16a34a' : chemScore >= 40 ? '#d97706' : '#dc2626';
-  const scoreBg    = chemScore >= 60 ? '#f0fdf4'  : chemScore >= 40 ? '#fffbeb'  : '#fef2f2';
+  const scoreColor = chemScore >= 60 ? (isDark() ? '#4ade80' : '#16a34a') : chemScore >= 40 ? (isDark() ? '#fbbf24' : '#d97706') : (isDark() ? '#f87171' : '#dc2626');
+  const scoreBg    = chemScore >= 60 ? (isDark() ? 'rgba(34,197,94,0.12)' : '#f0fdf4')  : chemScore >= 40 ? (isDark() ? 'rgba(251,191,36,0.12)' : '#fffbeb')  : (isDark() ? 'rgba(239,68,68,0.12)' : '#fef2f2');
   const scoreLabel = chemScore >= 60 ? 'Strong'   : chemScore >= 40 ? 'Neutral'  : 'Weak';
   return `
   <div class="rounded-2xl border border-border bg-card p-4 card-shadow">
@@ -868,7 +878,7 @@ function renderChemDashboard() {
       ${chemReport.map(item => {
         const isGood = item.startsWith('🟢');
         return `<div class="rounded-lg px-2.5 py-1.5 text-xs font-medium border"
-          style="background:${isGood ? '#f0fdf4' : '#fef2f2'};color:${isGood ? '#15803d' : '#dc2626'};border-color:${isGood ? '#bbf7d0' : '#fecaca'}">${item}</div>`;
+          style="background:${isGood ? 'var(--surface-green)' : 'var(--surface-red)'};color:${isGood ? (isDark() ? '#4ade80' : '#15803d') : (isDark() ? '#f87171' : '#dc2626')};border-color:${isGood ? (isDark() ? 'rgba(74,222,128,0.35)' : '#bbf7d0') : (isDark() ? 'rgba(248,113,113,0.35)' : '#fecaca')}">${item}</div>`;
       }).join('')}
     </div>` : `<p class="text-xs text-muted-fg">No synergies yet — keep drafting.</p>`}
   </div>`;
@@ -1064,7 +1074,7 @@ function renderSeasonSim() {
           <p id="sim-record" class="text-5xl font-black text-foreground leading-none" style="font-variant-numeric:tabular-nums">${w}–${l}</p>
           <p id="sim-gp" class="text-xs text-muted-fg mt-2">Game ${played.length} of ${total}</p>
           <p id="sim-streak" class="text-xs font-bold mt-1" style="color:${streakLbl.color}">${streakLbl.text}</p>
-          <p id="sim-beststart" class="text-xs font-bold mt-0.5" style="color:#94a3b8;min-height:1em"></p>
+          <p id="sim-beststart" class="text-xs font-bold mt-0.5 text-muted-fg" style="min-height:1em"></p>
         </div>
 
         <div class="h-2 rounded-full overflow-hidden" style="background:var(--border)">
@@ -1086,7 +1096,7 @@ function renderSeasonSim() {
           <div class="rounded-2xl p-5 text-center card-shadow animate-scale-in" style="background:#0f172a;border:2px solid #f59e0b">
             <p class="text-[10px] font-black uppercase mb-1.5" style="color:#fbbf24;letter-spacing:0.25em">🔥 Rivalry Night</p>
             <p class="text-base font-black text-white">The ${rival ? rival.opp : 'legends'} are in town.</p>
-            <p class="text-[11px] mt-1" style="color:#94a3b8">Statement game. The whole league is watching.</p>
+            <p class="text-[11px] mt-1 text-muted-fg">Statement game. The whole league is watching.</p>
           </div>`;
         })() : ''}
 
@@ -1112,13 +1122,13 @@ function renderResults() {
   const isPlayoff  = r.wins >= 50;
 
   let label, labelColor, labelBg, emoji;
-  if (isPerfect)       { label = 'PERFECT SEASON';        labelColor = '#92400e'; labelBg = '#fef3c7'; emoji = '🏆'; }
-  else if (isHistoric) { label = 'Historic Season';        labelColor = '#b45309'; labelBg = '#fffbeb'; emoji = '🔥'; }
-  else if (isElite)    { label = 'Championship Contender'; labelColor = '#166534'; labelBg = '#f0fdf4'; emoji = '⭐'; }
-  else if (isPlayoff)  { label = 'Playoff Contender';      labelColor = '#1e40af'; labelBg = '#eff6ff'; emoji = '✅'; }
-  else                 { label = 'Rebuild Required';       labelColor = '#991b1b'; labelBg = '#fef2f2'; emoji = '📋'; }
+  if (isPerfect)       { label = 'PERFECT SEASON';        labelColor = isDark() ? '#fcd34d' : '#92400e'; labelBg = isDark() ? 'rgba(251,191,36,0.15)' : '#fef3c7'; emoji = '🏆'; }
+  else if (isHistoric) { label = 'Historic Season';        labelColor = isDark() ? '#fbbf24' : '#b45309'; labelBg = isDark() ? 'rgba(251,191,36,0.12)' : '#fffbeb'; emoji = '🔥'; }
+  else if (isElite)    { label = 'Championship Contender'; labelColor = isDark() ? '#4ade80' : '#166534'; labelBg = isDark() ? 'rgba(34,197,94,0.12)' : '#f0fdf4'; emoji = '⭐'; }
+  else if (isPlayoff)  { label = 'Playoff Contender';      labelColor = isDark() ? '#93c5fd' : '#1e40af'; labelBg = isDark() ? 'rgba(59,130,246,0.12)' : '#eff6ff'; emoji = '✅'; }
+  else                 { label = 'Rebuild Required';       labelColor = isDark() ? '#f87171' : '#991b1b'; labelBg = isDark() ? 'rgba(239,68,68,0.12)' : '#fef2f2'; emoji = '📋'; }
 
-  const winsColor = isPerfect || isHistoric ? '#d97706' : isElite ? '#16a34a' : isPlayoff ? '#2563eb' : '#dc2626';
+  const winsColor = isPerfect || isHistoric ? (isDark() ? '#fbbf24' : '#d97706') : isElite ? (isDark() ? '#4ade80' : '#16a34a') : isPlayoff ? (isDark() ? '#60a5fa' : '#2563eb') : (isDark() ? '#f87171' : '#dc2626');
 
   // ── Team rating (0–100 overall) display helpers ───────────────────────────
   const teamOvr     = Math.round(r.avgRating ?? 0);
@@ -1173,9 +1183,9 @@ function renderResults() {
     const pos    = popDelta >= 0;
     const sign   = pos ? '+' : '';
     const pctImp = (popDelta / (r.baseStrength || 1) * 100).toFixed(1);
-    const bg     = pos ? '#f0fdf4' : '#fef2f2';
-    const border = pos ? '#bbf7d0' : '#fecaca';
-    const color  = pos ? '#15803d' : '#dc2626';
+    const bg     = pos ? (isDark() ? 'rgba(34,197,94,0.12)' : '#f0fdf4') : (isDark() ? 'rgba(239,68,68,0.12)' : '#fef2f2');
+    const border = pos ? (isDark() ? 'rgba(74,222,128,0.35)' : '#bbf7d0') : (isDark() ? 'rgba(248,113,113,0.35)' : '#fecaca');
+    const color  = pos ? (isDark() ? '#4ade80' : '#15803d') : (isDark() ? '#f87171' : '#dc2626');
     const lbl    = pos ? 'Fan Hype' : 'Low Popularity';
     return `<span class="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full border"
       style="background:${bg};border-color:${border};color:${color}">
@@ -1184,13 +1194,13 @@ function renderResults() {
   })();
 
   const popBarPct  = Math.max(0, Math.round(((avgPop - 35) / 65) * 100));
-  const popBarCol  = avgPop >= 80 ? '#2563eb' : avgPop >= 60 ? '#d97706' : '#94a3b8';
+  const popBarCol  = avgPop >= 80 ? (isDark() ? '#60a5fa' : '#2563eb') : avgPop >= 60 ? (isDark() ? '#fbbf24' : '#d97706') : (isDark() ? '#cbd5e1' : '#94a3b8');
   const popTier    = avgPop >= 85 ? 'Superstar Lineup' : avgPop >= 70 ? 'Star Power' : avgPop >= 55 ? 'Solid Roster' : 'Under the Radar';
 
   const maxes = { ppg: 280, rpg: 120, apg: 75, spg: 22, bpg: 18 };
   const statBar = (key, lbl, val) => {
     const pct   = Math.min(100, (val / maxes[key]) * 100);
-    const color = pct >= 70 ? '#2563eb' : pct >= 45 ? '#d97706' : '#94a3b8';
+    const color = pct >= 70 ? (isDark() ? '#60a5fa' : '#2563eb') : pct >= 45 ? (isDark() ? '#fbbf24' : '#d97706') : (isDark() ? '#cbd5e1' : '#94a3b8');
     return `
     <div>
       <div class="flex justify-between text-xs mb-1.5">
@@ -1205,8 +1215,8 @@ function renderResults() {
 
   const rosterRow = (p, posLabel, isStarter, fit = null) => {
     if (!p) return '';
-    const fitBg    = fit === 'primary' ? '#dcfce7' : fit === 'flex' ? '#fef9c3' : fit ? '#fefce8' : null;
-    const fitColor = fit === 'primary' ? '#15803d' : fit === 'flex' ? '#a16207' : fit ? '#d97706' : null;
+    const fitBg    = fit === 'primary' ? (isDark() ? 'rgba(34,197,94,0.15)' : '#dcfce7') : fit === 'flex' ? (isDark() ? 'rgba(234,179,8,0.15)' : '#fef9c3') : fit ? (isDark() ? 'rgba(249,115,22,0.15)' : '#fefce8') : null;
+    const fitColor = fit === 'primary' ? (isDark() ? '#4ade80' : '#15803d') : fit === 'flex' ? (isDark() ? '#fbbf24' : '#a16207') : fit ? (isDark() ? '#fb923c' : '#d97706') : null;
     const fitText  = fit === 'primary' ? '✓' : fit === 'flex' ? '↔' : fit ? '+' : null;
     const fitBadge = fit
       ? `<span class="text-[8px] font-black px-1 py-0.5 rounded leading-none ml-0.5" style="background:${fitBg};color:${fitColor}">${fitText}</span>`
@@ -1239,7 +1249,7 @@ function renderResults() {
     ? r.chemReport.map(item => {
         const isGood = item.startsWith('🟢');
         return `<div class="rounded-lg px-3 py-2 text-sm font-medium border"
-          style="background:${isGood ? '#f0fdf4' : '#fef2f2'};border-color:${isGood ? '#bbf7d0' : '#fecaca'};color:${isGood ? '#15803d' : '#dc2626'}">${item}</div>`;
+          style="background:${isGood ? 'var(--surface-green)' : 'var(--surface-red)'};border-color:${isGood ? (isDark() ? 'rgba(74,222,128,0.35)' : '#bbf7d0') : (isDark() ? 'rgba(248,113,113,0.35)' : '#fecaca')};color:${isGood ? (isDark() ? '#4ade80' : '#15803d') : (isDark() ? '#f87171' : '#dc2626')}">${item}</div>`;
       }).join('')
     : `<p class="text-sm text-muted-fg py-1">No synergies or penalties — balanced roster.</p>`;
 
@@ -1249,8 +1259,8 @@ function renderResults() {
 
   const chemScoreBadge = r.chemScore !== undefined ? (() => {
     const sc      = r.chemScore;
-    const scColor = sc >= 60 ? '#16a34a' : sc >= 40 ? '#d97706' : '#dc2626';
-    const scBg    = sc >= 60 ? '#f0fdf4'  : sc >= 40 ? '#fffbeb'  : '#fef2f2';
+    const scColor = sc >= 60 ? (isDark() ? '#4ade80' : '#16a34a') : sc >= 40 ? (isDark() ? '#fbbf24' : '#d97706') : (isDark() ? '#f87171' : '#dc2626');
+    const scBg    = sc >= 60 ? (isDark() ? 'rgba(34,197,94,0.12)' : '#f0fdf4')  : sc >= 40 ? (isDark() ? 'rgba(251,191,36,0.12)' : '#fffbeb')  : (isDark() ? 'rgba(239,68,68,0.12)' : '#fef2f2');
     const scLabel = sc >= 60 ? 'Strong'   : sc >= 40 ? 'Neutral'  : 'Weak';
     return `<span class="text-xs font-bold px-2 py-0.5 rounded-full border" style="background:${scBg};color:${scColor};border-color:${scColor}30">${scLabel} · ${sc}%</span>`;
   })() : '';
@@ -1317,7 +1327,7 @@ function renderResults() {
               <div class="min-w-0 flex-1">
                 <p class="text-sm font-black text-foreground mb-0.5">${autopsy.title}</p>
                 <p class="text-xs text-muted-fg leading-relaxed">${autopsy.detail}</p>
-                <p class="text-xs font-bold mt-2" style="color:#2563eb">💡 ${autopsy.fix}</p>
+                <p class="text-xs font-bold mt-2" style="color:var(--primary)">💡 ${autopsy.fix}</p>
               </div>
             </div>
             <button data-action="draft-new-roster"
@@ -1338,7 +1348,7 @@ function renderResults() {
           <div class="flex items-center justify-between mb-3">
             <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Fan Popularity</p>
             <span class="text-xs font-bold px-2 py-0.5 rounded-full border"
-              style="background:#f8fafc;color:${popBarCol};border-color:${popBarCol}30">${popTier}</span>
+              style="background:var(--surface-muted);color:${popBarCol};border-color:${popBarCol}30">${popTier}</span>
           </div>
           <!-- Popularity bar -->
           <div class="mb-3">
@@ -1357,9 +1367,9 @@ function renderResults() {
               <p class="text-xl font-black text-foreground">🌍 ${fansLabel}</p>
             </div>
             <div class="flex-1 rounded-xl border px-3 py-2.5 text-center"
-              style="background:${popDelta >= 0 ? '#f0fdf4' : '#fef2f2'};border-color:${popDelta >= 0 ? '#bbf7d0' : '#fecaca'}">
-              <p class="text-[10px] font-bold uppercase tracking-wider mb-1" style="color:${popDelta >= 0 ? '#15803d' : '#dc2626'}">${popDelta >= 0 ? '📈 Hype Boost' : '📉 Hype Penalty'}</p>
-              <p class="text-xl font-black" style="color:${popDelta >= 0 ? '#15803d' : '#dc2626'}">${popDelta >= 0 ? '+' : ''}${(popDelta / (r.baseStrength || 1) * 100).toFixed(1)}% Elo</p>
+              style="background:${popDelta >= 0 ? 'var(--surface-green)' : 'var(--surface-red)'};border-color:${popDelta >= 0 ? (isDark() ? 'rgba(74,222,128,0.35)' : '#bbf7d0') : (isDark() ? 'rgba(248,113,113,0.35)' : '#fecaca')}">
+              <p class="text-[10px] font-bold uppercase tracking-wider mb-1" style="color:${popDelta >= 0 ? (isDark() ? '#4ade80' : '#15803d') : (isDark() ? '#f87171' : '#dc2626')}">${popDelta >= 0 ? '📈 Hype Boost' : '📉 Hype Penalty'}</p>
+              <p class="text-xl font-black" style="color:${popDelta >= 0 ? (isDark() ? '#4ade80' : '#15803d') : (isDark() ? '#f87171' : '#dc2626')}">${popDelta >= 0 ? '+' : ''}${(popDelta / (r.baseStrength || 1) * 100).toFixed(1)}% Elo</p>
             </div>
           </div>
           <!-- Player popularity breakdown -->
@@ -1367,7 +1377,7 @@ function renderResults() {
             ${[...Object.entries(S.roster)].filter(([,p]) => p).map(([pos, p]) => {
               const pop     = p.popularity ?? 50;
               const pct     = Math.max(0, Math.round(((pop - 35) / 65) * 100));
-              const barCol  = pop >= 80 ? '#2563eb' : pop >= 60 ? '#d97706' : '#94a3b8';
+              const barCol  = pop >= 80 ? (isDark() ? '#60a5fa' : '#2563eb') : pop >= 60 ? (isDark() ? '#fbbf24' : '#d97706') : (isDark() ? '#cbd5e1' : '#94a3b8');
               return `<div class="flex items-center gap-2">
                 <span class="text-[10px] font-black w-6 flex-shrink-0 text-muted-fg">${pos}</span>
                 <span class="text-xs font-semibold text-foreground w-28 flex-shrink-0 truncate">${p.name}</span>
@@ -1397,8 +1407,8 @@ function renderResults() {
             ${r.lineupAssignment?.length === 5 ? (() => {
               const allPrimary = r.lineupAssignment.every(a => a.fit === 'primary');
               const hasOOP     = r.lineupAssignment.some(a => a.fit === 'oop');
-              const bg    = allPrimary ? '#f0fdf4' : '#fefce8';
-              const color = allPrimary ? '#15803d' : '#a16207';
+              const bg    = allPrimary ? (isDark() ? 'rgba(34,197,94,0.12)' : '#f0fdf4') : (isDark() ? 'rgba(234,179,8,0.12)' : '#fefce8');
+              const color = allPrimary ? (isDark() ? '#4ade80' : '#15803d') : (isDark() ? '#fbbf24' : '#a16207');
               const label = allPrimary ? '🟢 Flawless' : hasOOP ? '🟡 Versatile' : '🟡 Flex Lineup';
               return `<span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full border" style="background:${bg};color:${color};border-color:${color}30">${label}</span>`;
             })() : ''}
@@ -1460,7 +1470,7 @@ function renderResults() {
           return `
           <button data-action="view-legends"
             class="w-full rounded-2xl border cursor-pointer transition-all hover:bg-indigo-100 card-shadow flex items-center gap-3 px-4 py-3 text-left"
-            style="border-color:#c7d2fe;background:#eef2ff">
+            style="border-color:#c7d2fe;background:var(--surface-indigo)">
             <span class="text-2xl flex-shrink-0">🃏</span>
             <div class="min-w-0 flex-1">
               <p class="text-sm font-black text-indigo-700">+${r.newLegends} new legend${r.newLegends === 1 ? '' : 's'} collected!</p>
@@ -1484,7 +1494,7 @@ function renderGlobalSubmitCard(champion) {
   if (S.globalScoreSubmitted) {
     const record = `${r.wins}–${r.losses}${champion ? ' · 🏆 Champion' : ''}`;
     return `
-    <div class="rounded-2xl border p-4 card-shadow" style="border-color:#bbf7d0;background:#f0fdf4">
+    <div class="rounded-2xl border p-4 card-shadow" style="border-color:${isDark() ? 'rgba(74,222,128,0.35)' : '#bbf7d0'};background:var(--surface-green)">
       <div class="flex items-start gap-3 mb-3">
         <span class="text-2xl flex-shrink-0">🌍</span>
         <div class="flex-1 min-w-0">
@@ -1775,7 +1785,7 @@ function renderTrophyRoom() {
     <div class="rounded-2xl bg-white p-4 card-shadow border border-border">
       <div class="flex items-center justify-between mb-3">
         <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Banners Raised</p>
-        <span class="text-xs font-black" style="color:#d97706">${trophies.length} / ${PEDESTALS}</span>
+        <span class="text-xs font-black" style="color:${isDark() ? '#fbbf24' : '#d97706'}">${trophies.length} / ${PEDESTALS}</span>
       </div>
       <div class="grid grid-cols-4 sm:grid-cols-6 gap-2">
         ${Array.from({ length: PEDESTALS }, (_, i) => {
@@ -1783,14 +1793,14 @@ function renderTrophyRoom() {
           if (!t) return `
           <div class="rounded-xl flex flex-col items-center justify-center py-3 gap-1" style="border:1.5px dashed var(--border)">
             <span class="text-xl" style="opacity:0.15;filter:grayscale(1)">🏆</span>
-            <span class="text-[8px] font-bold uppercase" style="color:#cbd5e1">Empty</span>
+            <span class="text-[8px] font-bold uppercase" style="color:var(--muted)">Empty</span>
           </div>`;
           const perfect = t.wins === 82;
           return `
           <div class="rounded-xl flex flex-col items-center justify-center py-3 gap-1 ${perfect ? 'perfect-glow' : 'card-shadow'}"
             style="background:${perfect ? '#fffbeb' : 'var(--card3)'};border:1.5px solid ${perfect ? '#fcd34d' : 'var(--border)'}">
             <span class="text-xl">🏆</span>
-            <span class="text-[9px] font-black" style="color:${perfect ? '#b45309' : '#334155'}">${t.wins}–${t.losses}</span>
+            <span class="text-[9px] font-black" style="color:${perfect ? (isDark() ? '#fcd34d' : '#b45309') : 'var(--fg)'}">${t.wins}–${t.losses}</span>
           </div>`;
         }).join('')}
       </div>
@@ -1950,7 +1960,7 @@ function renderSeriesResult() {
 
         <!-- Roster comparison -->
         <div class="grid grid-cols-2 gap-3">
-          <div class="rounded-2xl border p-4 card-shadow" style="border-color:#bfdbfe;background:#f8fbff">
+          <div class="rounded-2xl border p-4 card-shadow" style="border-color:#bfdbfe;background:var(--surface-sky)">
             <div class="flex items-center justify-between mb-3">
               <p class="text-xs font-bold uppercase tracking-widest" style="color:#2563eb">Player 1</p>
               ${chemBadge(p1s.chemScore)}
@@ -1959,7 +1969,7 @@ function renderSeriesResult() {
             <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg/60 mb-1">Starting 5</p>
             ${rosterMini(S.p1Roster || S.p1?.roster || {}, ['PG','SG','SF','PF','C'])}
           </div>
-          <div class="rounded-2xl border p-4 card-shadow" style="border-color:#fde68a;background:#fffef8">
+          <div class="rounded-2xl border p-4 card-shadow" style="border-color:#fde68a;background:var(--surface-cream)">
             <div class="flex items-center justify-between mb-3">
               <p class="text-xs font-bold uppercase tracking-widest" style="color:#d97706">Player 2</p>
               ${chemBadge(p2s.chemScore)}

@@ -22,6 +22,18 @@
   --header-bg:   #ffffff;
   --header-shadow: rgba(0,0,0,0.05);
   --input-bg:    #ffffff;
+  /* Tinted surfaces (inline-style backgrounds) */
+  --surface-blue:   #eff6ff;
+  --surface-indigo: #eef2ff;
+  --surface-green:  #f0fdf4;
+  --surface-red:    #fef2f2;
+  --surface-amber:  #fffbeb;
+  --surface-orange: #fff7ed;
+  --surface-yellow: #fefce8;
+  --surface-cream:  #fffef8;
+  --surface-sky:    #f8fbff;
+  --surface-muted:  #f8fafc;
+  --surface-track:  #eef2ff;
 }
 
 [data-theme="dark"] {
@@ -29,19 +41,30 @@
   --card:        #1e293b;
   --card2:       #334155;
   --card3:       #1e293b;
-  --border:      #334155;
-  --border-light:#1e293b;
+  --border:      #475569;
+  --border-light:#334155;
   --fg:          #f1f5f9;
-  --muted:       #64748b;
-  --muted-fg:    #94a3b8;
-  --primary:     #3b82f6;
+  --muted:       #cbd5e1;
+  --muted-fg:    #e2e8f0;
+  --primary:     #60a5fa;
   --primary-fg:  #ffffff;
   --shadow:      rgba(0,0,0,0.25);
   --shadow2:     rgba(0,0,0,0.15);
-  --overlay:     rgba(0,0,0,0.5);
+  --overlay:     rgba(0,0,0,0.6);
   --header-bg:   #1e293b;
   --header-shadow: rgba(0,0,0,0.3);
   --input-bg:    #0f172a;
+  --surface-blue:   rgba(59, 130, 246, 0.14);
+  --surface-indigo: rgba(99, 102, 241, 0.14);
+  --surface-green:  rgba(34, 197, 94, 0.12);
+  --surface-red:    rgba(239, 68, 68, 0.12);
+  --surface-amber:  rgba(251, 191, 36, 0.12);
+  --surface-orange: rgba(249, 115, 22, 0.12);
+  --surface-yellow: rgba(234, 179, 8, 0.12);
+  --surface-cream:  rgba(251, 191, 36, 0.08);
+  --surface-sky:    rgba(59, 130, 246, 0.1);
+  --surface-muted:  #334155;
+  --surface-track:  #334155;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -705,6 +728,114 @@ body {
   color: var(--muted-fg) !important;
 }
 
+[data-theme="dark"] .text-muted {
+  color: var(--muted) !important;
+}
+
+[data-theme="dark"] .text-primary {
+  color: var(--primary) !important;
+}
+
+[data-theme="dark"] .text-indigo-700 {
+  color: #a5b4fc !important;
+}
+
+[data-theme="dark"] .text-indigo-500 {
+  color: #c7d2fe !important;
+}
+
+[data-theme="dark"] .text-indigo-400 {
+  color: #a5b4fc !important;
+}
+
+[data-theme="dark"] .border-indigo-200 {
+  border-color: rgba(165, 180, 252, 0.35) !important;
+}
+
+[data-theme="dark"] .hover\:bg-indigo-100:hover {
+  background-color: rgba(99, 102, 241, 0.18) !important;
+}
+
+[data-theme="dark"] .text-amber-600 {
+  color: #fbbf24 !important;
+}
+
+[data-theme="dark"] .text-emerald-700,
+[data-theme="dark"] .text-emerald-600 {
+  color: #4ade80 !important;
+}
+
+[data-theme="dark"] .border-emerald-300 {
+  border-color: rgba(74, 222, 128, 0.35) !important;
+}
+
+[data-theme="dark"] .hover\:bg-emerald-50:hover {
+  background-color: rgba(74, 222, 128, 0.12) !important;
+}
+
+[data-theme="dark"] .hover\:bg-blue-50:hover {
+  background-color: rgba(59, 130, 246, 0.12) !important;
+}
+
+[data-theme="dark"] .text-slate-600 {
+  color: var(--muted-fg) !important;
+}
+
+[data-theme="dark"] .placeholder\:text-muted-fg::placeholder {
+  color: var(--muted) !important;
+  opacity: 0.8;
+}
+
+[data-theme="dark"] .bracket-team--won {
+  background: rgba(34, 197, 94, 0.15) !important;
+}
+
+[data-theme="dark"] .bracket-team--won .bracket-team__name {
+  color: #4ade80 !important;
+}
+
+[data-theme="dark"] .bracket-team--won .bracket-team__score {
+  color: #86efac !important;
+}
+
+[data-theme="dark"] .bracket-team--player {
+  background: rgba(59, 130, 246, 0.15) !important;
+}
+
+[data-theme="dark"] .bracket-team--player .bracket-team__name {
+  color: #93c5fd !important;
+}
+
+[data-theme="dark"] .bracket-champion--filled {
+  background: linear-gradient(180deg, rgba(251, 191, 36, 0.18) 0%, rgba(251, 191, 36, 0.1) 100%) !important;
+}
+
+[data-theme="dark"] .bracket-champion__name {
+  color: #fcd34d !important;
+}
+
+[data-theme="dark"] .bracket-matchup--live {
+  border-color: #60a5fa !important;
+  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.2) !important;
+}
+
+/* Global leaderboard modal dark overrides */
+[data-theme="dark"] #global-lb-modal-backdrop > div {
+  background: var(--card) !important;
+  border-color: var(--border) !important;
+  color: var(--fg) !important;
+}
+
+[data-theme="dark"] #global-lb-modal-backdrop h2 {
+  color: var(--fg) !important;
+}
+
+[data-theme="dark"] #global-lb-modal-backdrop button {
+  background: var(--card2) !important;
+  border-color: var(--border) !important;
+  color: var(--muted-fg) !important;
+}
+
 [data-theme="dark"] .border-b {
   border-color: var(--border);
 }
@@ -751,6 +882,16 @@ body {
 
 [data-theme="dark"] .hover\:shadow-md:hover {
   box-shadow: 0 4px 6px var(--shadow), 0 2px 4px var(--shadow2) !important;
+}
+
+[data-theme="dark"] .text-muted-fg\/60 {
+  color: var(--muted-fg) !important;
+  opacity: 0.75;
+}
+
+[data-theme="dark"] .text-muted-fg\/40 {
+  color: var(--muted-fg) !important;
+  opacity: 0.55;
 }
 
 /* Dark mode toggle button */
