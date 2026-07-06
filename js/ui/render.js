@@ -95,6 +95,26 @@ export function ovrBadge(rating) {
   </div>`;
 }
 
+// ── Confetti (lazy) ───────────────────────────────────────────────────────────
+// canvas-confetti is only needed on celebration screens, so it's injected on
+// first use instead of shipping in the page-load payload. Degrades silently
+// if the CDN is unreachable — same behavior as the old `typeof confetti`
+// guards this replaces.
+let _confettiLoading = null;
+export function withConfetti(fire) {
+  if (typeof confetti !== 'undefined') { fire(); return; }
+  if (!_confettiLoading) {
+    _confettiLoading = new Promise(resolve => {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js';
+      s.onload  = resolve;
+      s.onerror = resolve; // resolve either way; the typeof check below decides
+      document.head.appendChild(s);
+    });
+  }
+  _confettiLoading.then(() => { if (typeof confetti !== 'undefined') fire(); });
+}
+
 export function showToast(msg, duration = 2500) {
   const el = document.createElement('div');
   el.textContent = msg;
@@ -1899,11 +1919,9 @@ function renderSeriesResult() {
     return `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full border" style="color:${c};background:${bg};border-color:${c}30">Chem ${sc}%</span>`;
   };
 
-  // fire confetti for the winner
+  // fire confetti for the winner (lazy-loads the library on first use)
   setTimeout(() => {
-    if (typeof confetti !== 'undefined') {
-      confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 }, colors: p1Win ? ['#2563eb','#93c5fd','#ffffff'] : ['#d97706','#fde68a','#ffffff'] });
-    }
+    withConfetti(() => confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 }, colors: p1Win ? ['#2563eb','#93c5fd','#ffffff'] : ['#d97706','#fde68a','#ffffff'] }));
   }, 150);
 
   return `

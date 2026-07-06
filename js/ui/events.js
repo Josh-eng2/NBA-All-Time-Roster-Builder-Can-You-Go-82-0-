@@ -28,7 +28,7 @@ import {
 import { submitGlobalScore, logAnalyticsEvent } from '../utils/firebase.js';
 import {
   render, $app, fmtPlayerLine, fmtDecadeShort, showToast, renderSeasonTickerRows,
-  computeAutopsy, liveStreakLabel,
+  computeAutopsy, liveStreakLabel, withConfetti,
 } from '../ui/render.js'; // circular — safe (used only inside function bodies)
 
 // Expose modal close helpers globally — inline onclicks in modal HTML are outside #app
@@ -894,9 +894,7 @@ function onPlayoffChampion() {
     era:   S.selectedEra ?? 'all',
   });
   setTimeout(() => {
-    if (typeof confetti !== 'undefined') {
-      confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#f97316', '#eab308', '#ffffff'] });
-    }
+    withConfetti(() => confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#f97316', '#eab308', '#ffffff'] }));
   }, 200);
 }
 

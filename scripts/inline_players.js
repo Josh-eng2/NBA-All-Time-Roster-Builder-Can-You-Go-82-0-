@@ -18,8 +18,19 @@ const keys = Object.keys(db);
 let playerCount = 0;
 keys.forEach(k => { playerCount += db[k].length; });
 
-// Produce pretty JSON indented with 2 spaces, then wrap in the module scaffold.
-const jsonBody = JSON.stringify(db, null, 2);
+// Strip fields that exist only for the data pipeline, not the game.
+// `ratingRaw` is the intermediate weighted-stat value behind `rating`
+// (see scripts/add_rating.js) — nothing at runtime reads it, so shipping
+// it would cost ~19 KB per page load. It stays in players.json.
+for (const k of keys) {
+  for (const p of db[k]) delete p.ratingRaw;
+}
+
+// Emit compact JSON wrapped in JSON.parse(...): roughly half the bytes of
+// pretty-printed output, and V8 parses a JSON string significantly faster
+// (and with less peak memory) than an equivalent JS object literal.
+// The double JSON.stringify safely escapes the payload as a JS string.
+const jsonBody = `JSON.parse(${JSON.stringify(JSON.stringify(db))})`;
 
 const output = `/**
  * js/data/players.js — Inlined Player Database (auto-generated)
