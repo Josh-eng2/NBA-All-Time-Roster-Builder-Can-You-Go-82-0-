@@ -972,11 +972,11 @@ const PLAYER_DB = {
       "id": "mj_88",
       "name": "Michael Jordan",
       "pos": "SG",
-      "ppg": 40,
+      "ppg": 32.5,
       "rpg": 8,
       "apg": 8,
-      "spg": 4.5,
-      "bpg": 2.5,
+      "spg": 2.9,
+      "bpg": 0.8,
       "archetype": "Two-Way Star",
       "traits": [
         "Clutch",
@@ -984,8 +984,8 @@ const PLAYER_DB = {
         "Volume Shooter"
       ],
       "popularity": 99,
-      "rating": 99,
-      "ratingRaw": 33.1
+      "rating": 96,
+      "ratingRaw": 26.5
     },
     {
       "id": "pippen_88",
