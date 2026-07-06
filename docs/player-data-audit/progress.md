@@ -1,5 +1,15 @@
 # Player data realism audit — progress tracker
 
+> ## ⛔ AUDIT REVERSED (2026-07-06)
+> All player-data changes from **batches 1, 2, and the in-progress batch 3**
+> were **reversed at the user's request**. `players.json` is back at its
+> **pre-audit baseline**. Batches 1–3 are effectively **not started** — the
+> `[x]` checkmarks in their sections below are **stale; ignore them**. The
+> scaffolding (`scripts/audit_stats.js`) and this tracker are kept for a
+> possible future restart. **Retained (NOT part of batch 1/2):** the
+> `mj_88` Michael Jordan stat fix stays in place. If resuming the audit,
+> start fresh from batch 1.
+
 **Read `rubric.md` first** — this file only tracks status, it doesn't
 repeat the methodology.
 
@@ -39,8 +49,8 @@ Squash-merge each after review.
 
 | # | Decade | Players | Buckets | Status | Notes |
 |---|---|---|---|---|---|
-| 1 | 1960s | 35 | `Bucks_1960s`, `Bulls_1960s`, `Celtics_1960s`, `Hawks_1960s`, `Kings_1960s`, `Knicks_1960s`, `Lakers_1960s`, `Pistons_1960s` | **done** | Stats already matched real career/season lines (verified stars vs sources). 2 archetype fixes; popularity gaps logged for batch 27. |
-| 2 | 1960s | 23 | `Rockets_1960s`, `Sixers_1960s`, `Suns_1960s`, `Thunder_1960s`, `Warriors_1960s`, `Wizards_1960s` | **done** | 5 stat fixes (Barry, Goodrich, Hazzard, Rule, Unseld) verified via WebSearch; rest accurate/plausible. Underrated HOFers for batch 27: Unseld & Gus Johnson (pop 35). |
+| 1 | 1960s | 35 | `Bucks_1960s`, `Bulls_1960s`, `Celtics_1960s`, `Hawks_1960s`, `Kings_1960s`, `Knicks_1960s`, `Lakers_1960s`, `Pistons_1960s` | **pending (reversed)** | ⛔ Audit changes REVERSED per user request 2026-07-06 — data at pre-audit baseline (the 2 archetype fixes were undone). Ignore the checkmarks below; re-do from scratch if resumed. |
+| 2 | 1960s | 23 | `Rockets_1960s`, `Sixers_1960s`, `Suns_1960s`, `Thunder_1960s`, `Warriors_1960s`, `Wizards_1960s` | **pending (reversed)** | ⛔ Audit changes REVERSED per user request 2026-07-06 — the 5 stat fixes (Barry, Goodrich, Hazzard, Rule, Unseld) were undone; data at pre-audit baseline. Ignore the checkmarks below. |
 | 3 | 1970s | 37 | `Blazers_1970s`, `Bucks_1970s`, `Bulls_1970s`, `Cavaliers_1970s`, `Celtics_1970s`, `Clippers_1970s`, `Hawks_1970s`, `Jazz_1970s` | pending | |
 | 4 | 1970s | 38 | `Kings_1970s`, `Knicks_1970s`, `Lakers_1970s`, `Nets_1970s`, `Nuggets_1970s`, `Pacers_1970s`, `Pistons_1970s`, `Rockets_1970s` | pending | |
 | 5 | 1970s | 30 | `Sixers_1970s`, `Spurs_1970s`, `Suns_1970s`, `Thunder_1970s`, `Warriors_1970s`, `Wizards_1970s` | pending | |
