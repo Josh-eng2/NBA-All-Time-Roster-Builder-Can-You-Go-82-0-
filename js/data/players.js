@@ -9656,9 +9656,9 @@ const PLAYER_DB = {
       "secondaryPos": [
         "SG"
       ],
-      "ppg": 25.7,
-      "rpg": 8.8,
-      "apg": 4.3,
+      "ppg": 35.6,
+      "rpg": 9.2,
+      "apg": 3.6,
       "spg": 2.5,
       "bpg": 0.6,
       "archetype": "Sharpshooter",
@@ -9668,8 +9668,8 @@ const PLAYER_DB = {
         "Elite Playmaker"
       ],
       "popularity": 82,
-      "rating": 87,
-      "ratingRaw": 22.1
+      "rating": 93,
+      "ratingRaw": 25
     }
   ],
   "Bulls_1960s": [
@@ -9804,7 +9804,7 @@ const PLAYER_DB = {
         "PF"
       ],
       "ppg": 24,
-      "rpg": 14,
+      "rpg": 11.5,
       "apg": 1.6,
       "spg": 0.8,
       "bpg": 1.5,
@@ -9814,16 +9814,16 @@ const PLAYER_DB = {
         "Rebounding Machine"
       ],
       "popularity": 41,
-      "rating": 89,
-      "ratingRaw": 23.2
+      "rating": 85,
+      "ratingRaw": 21.4
     },
     {
       "id": "hazzard_68",
       "name": "Walt Hazzard",
       "pos": "PG",
-      "ppg": 17.2,
-      "rpg": 4.1,
-      "apg": 7.5,
+      "ppg": 24,
+      "rpg": 4.5,
+      "apg": 6.2,
       "spg": 1.5,
       "bpg": 0.2,
       "archetype": "Playmaker",
@@ -9832,8 +9832,8 @@ const PLAYER_DB = {
         "Floor General"
       ],
       "popularity": 46,
-      "rating": 74,
-      "ratingRaw": 16.2
+      "rating": 78,
+      "ratingRaw": 17.9
     },
     {
       "id": "meschery_68",
@@ -9884,9 +9884,9 @@ const PLAYER_DB = {
       "id": "goodrich_69",
       "name": "Gail Goodrich",
       "pos": "SG",
-      "ppg": 18.6,
-      "rpg": 3.8,
-      "apg": 4.7,
+      "ppg": 23.8,
+      "rpg": 4.4,
+      "apg": 4.9,
       "spg": 1.7,
       "bpg": 0.2,
       "archetype": "Sharpshooter",
@@ -9896,8 +9896,8 @@ const PLAYER_DB = {
         "Clutch Assassin"
       ],
       "popularity": 65,
-      "rating": 72,
-      "ratingRaw": 15.1
+      "rating": 76,
+      "ratingRaw": 17.2
     },
     {
       "id": "silas_69",
@@ -17012,9 +17012,9 @@ const PLAYER_DB = {
       "id": "wizards_60s_2",
       "name": "Wes Unseld",
       "pos": "C",
-      "ppg": 10.8,
-      "rpg": 13.8,
-      "apg": 2.5,
+      "ppg": 13.8,
+      "rpg": 18.2,
+      "apg": 2.6,
       "spg": 0.7,
       "bpg": 0.9,
       "archetype": "Paint Beast",
@@ -17024,8 +17024,8 @@ const PLAYER_DB = {
         "Glue Guy"
       ],
       "popularity": 35,
-      "rating": 79,
-      "ratingRaw": 18.4
+      "rating": 88,
+      "ratingRaw": 22.6
     },
     {
       "id": "wizards_60s_3",

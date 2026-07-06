@@ -40,7 +40,7 @@ Squash-merge each after review.
 | # | Decade | Players | Buckets | Status | Notes |
 |---|---|---|---|---|---|
 | 1 | 1960s | 35 | `Bucks_1960s`, `Bulls_1960s`, `Celtics_1960s`, `Hawks_1960s`, `Kings_1960s`, `Knicks_1960s`, `Lakers_1960s`, `Pistons_1960s` | **done** | Stats already matched real career/season lines (verified stars vs sources). 2 archetype fixes; popularity gaps logged for batch 27. |
-| 2 | 1960s | 23 | `Rockets_1960s`, `Sixers_1960s`, `Suns_1960s`, `Thunder_1960s`, `Warriors_1960s`, `Wizards_1960s` | pending | |
+| 2 | 1960s | 23 | `Rockets_1960s`, `Sixers_1960s`, `Suns_1960s`, `Thunder_1960s`, `Warriors_1960s`, `Wizards_1960s` | **done** | 5 stat fixes (Barry, Goodrich, Hazzard, Rule, Unseld) verified via WebSearch; rest accurate/plausible. Underrated HOFers for batch 27: Unseld & Gus Johnson (pop 35). |
 | 3 | 1970s | 37 | `Blazers_1970s`, `Bucks_1970s`, `Bulls_1970s`, `Cavaliers_1970s`, `Celtics_1970s`, `Clippers_1970s`, `Hawks_1970s`, `Jazz_1970s` | pending | |
 | 4 | 1970s | 38 | `Kings_1970s`, `Knicks_1970s`, `Lakers_1970s`, `Nets_1970s`, `Nuggets_1970s`, `Pacers_1970s`, `Pistons_1970s`, `Rockets_1970s` | pending | |
 | 5 | 1970s | 30 | `Sixers_1970s`, `Spurs_1970s`, `Suns_1970s`, `Thunder_1970s`, `Warriors_1970s`, `Wizards_1970s` | pending | |
@@ -132,39 +132,39 @@ was generated directly from `players.json` and re-verified 1:1 against it
 ### Batch 2 — 1960s (23 players)
 
 **Rockets_1960s** (3)
-- [ ] Elvin Hayes (`hayes_69`)
-- [ ] Don Kojis (`kojis_68`)
-- [ ] Art Williams (`awilliams_69`)
+- [x] Elvin Hayes (`hayes_69`)
+- [x] Don Kojis (`kojis_68`)
+- [x] Art Williams (`awilliams_69`)
 
 **Sixers_1960s** (6)
-- [ ] Wilt Chamberlain (`chamberlain_67`)
-- [ ] Hal Greer (`greer_67`)
-- [ ] Chet Walker (`walker_67`)
-- [ ] Wali Jones (`jones_67`)
-- [ ] Billy Cunningham (`cunningham_68`)
-- [ ] Luke Jackson (`jackson_67`)
+- [x] Wilt Chamberlain (`chamberlain_67`)
+- [x] Hal Greer (`greer_67`)
+- [x] Chet Walker (`walker_67`)
+- [x] Wali Jones (`jones_67`)
+- [x] Billy Cunningham (`cunningham_68`)
+- [x] Luke Jackson (`jackson_67`)
 
 **Suns_1960s** (3)
-- [ ] Dick Van Arsdale (`vanarsdale_69`)
-- [ ] Gail Goodrich (`goodrich_69`)
-- [ ] Paul Silas (`silas_69`)
+- [x] Dick Van Arsdale (`vanarsdale_69`)
+- [x] Gail Goodrich (`goodrich_69`) — fixed 18.6→23.8 ppg
+- [x] Paul Silas (`silas_69`)
 
 **Thunder_1960s** (3)
-- [ ] Bob Rule (`rule_69`)
-- [ ] Walt Hazzard (`hazzard_68`)
-- [ ] Tom Meschery (`meschery_68`)
+- [x] Bob Rule (`rule_69`) — fixed 14→11.5 rpg
+- [x] Walt Hazzard (`hazzard_68`) — fixed 17.2→24.0 ppg
+- [x] Tom Meschery (`meschery_68`)
 
 **Warriors_1960s** (3)
-- [ ] Wilt Chamberlain (`chamberlain_war_63`)
-- [ ] Nate Thurmond (`thurmond_67`)
-- [ ] Rick Barry (`rbarry_67`)
+- [x] Wilt Chamberlain (`chamberlain_war_63`)
+- [x] Nate Thurmond (`thurmond_67`)
+- [x] Rick Barry (`rbarry_67`) — fixed 25.7→35.6 ppg
 
 **Wizards_1960s** (5)
-- [ ] Earl Monroe (`wizards_60s_1`)
-- [ ] Wes Unseld (`wizards_60s_2`)
-- [ ] Gus Johnson (`wizards_60s_3`)
-- [ ] Kevin Loughery (`wizards_60s_4`)
-- [ ] Bob Ferry (`wizards_60s_5`)
+- [x] Earl Monroe (`wizards_60s_1`)
+- [x] Wes Unseld (`wizards_60s_2`) — fixed 10.8/13.8→13.8/18.2
+- [x] Gus Johnson (`wizards_60s_3`)
+- [x] Kevin Loughery (`wizards_60s_4`)
+- [x] Bob Ferry (`wizards_60s_5`)
 
 ### Batch 3 — 1970s (37 players)
 
@@ -1497,3 +1497,32 @@ batch 6; the rest of Bulls_1980s and batch 6 remain **pending**.
   steals & blocks were not official stats until 1973-74 — pre-1974 S/B are
   necessarily estimates, don't "correct" them against a box score that doesn't
   exist.
+
+### Batch 2 — 1960s (Rockets, Sixers, Suns, Thunder, Warriors, Wizards)
+
+23 players; 5 stat corrections, all WebSearch-verified against the specific
+real season the entry's id targets:
+- **Rick Barry** (`rbarry_67`): 25.7/8.8/4.3 → **35.6/9.2/3.6**. The entry was
+  his 1965-66 *rookie* line under a `_67` id; 1966-67 was his NBA scoring-title
+  year (35.6 ppg). Corrected to the season the id names.
+- **Gail Goodrich** (`goodrich_69`): 18.6/3.8/4.7 → **23.8/4.4/4.9** (1968-69
+  Phoenix, 6th in league in scoring).
+- **Walt Hazzard** (`hazzard_68`): 17.2/4.1/7.5 → **24.0/4.5/6.2** (1967-68
+  Sonics, his All-Star/career-high year).
+- **Bob Rule** (`rule_69`): rpg 14 → **11.5** (1968-69; ppg 24.0 was already
+  right — only the rebounds were inflated).
+- **Wes Unseld** (`wizards_60s_2`): 10.8/13.8/2.6 → **13.8/18.2/2.6**. Values
+  looked shifted (his real 13.8 ppg was sitting in the rpg slot); restored his
+  1968-69 MVP+ROY rookie line (2nd in NBA in rebounding at 18.2).
+
+Left unchanged (verified accurate or plausible): Elvin Hayes (28.4/17.1 = real
+rookie line), Wilt Chamberlain both entries (Sixers '67 24.1/24.2/7.8 exact;
+Warriors '63 44.8/24.3 exact — **left apg at 2.4, could not verify via WebSearch,
+did not change unconfirmed**), plus the sub-75 role players (Kojis, Art Williams,
+Greer, Walker, Jones, Cunningham, Jackson, Van Arsdale, Silas, Meschery,
+Thurmond, Monroe, Gus Johnson, Loughery, Ferry).
+
+**Batch 27 popularity flags (do NOT hand-edit — add to `NAMED`):** Wes Unseld
+(pop **35**, MVP+ROY+HOF, 5× All-Star) and Gus Johnson (pop **35**, 5× All-Star,
+HOF) are floored as role players. Also lowish: Hal Greer (58, HOF, 10× All-Star),
+Billy Cunningham (68, MVP, HOF), Nate Thurmond (68, HOF), Earl Monroe (65, HOF).
