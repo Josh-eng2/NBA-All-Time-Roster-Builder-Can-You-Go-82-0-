@@ -24,6 +24,21 @@ import { fetchLeaderboard }                        from '../utils/firebase.js';
 
 const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 
+// Compact, wrapping row of the 5 stored stat leaders for a leaderboard entry.
+// Returns '' for entries saved before per-player stats existed.
+function leadersLineHtml(leaders) {
+  if (!leaders) return '';
+  const cats = [
+    ['🏀', leaders.pts], ['🪃', leaders.reb], ['🎯', leaders.ast],
+    ['🧤', leaders.stl], ['🛡️', leaders.blk],
+  ].filter(([, e]) => e && e.name);
+  if (!cats.length) return '';
+  const pills = cats.map(([icon, e]) =>
+    `<span style="font-size:10px;color:var(--muted-fg);white-space:nowrap">${icon} ${esc(e.name)} ${(+e.val).toFixed(1)}</span>`
+  ).join('<span style="color:var(--border)">·</span> ');
+  return `<div style="display:flex;flex-wrap:wrap;gap:4px 8px;margin-top:4px">${pills}</div>`;
+}
+
 // ── First-visit / returning-player flag ───────────────────────────────────────
 // The flag is EARNED, not granted on page load: it's set when the cold-open
 // hook delivers its payoff (season starts) or when the player deliberately
@@ -79,6 +94,18 @@ export function recordLegends(players) {
 
 // ── Save leaderboard entry ────────────────────────────────────────────────────
 
+/**
+ * Compacts the engine's statLeaders into a small, serializable shape for
+ * persistence: { pts:{name,val}, reb, ast, stl, blk }. Returns null if the
+ * result predates per-player stats.
+ */
+export function packLeaders(r) {
+  const L = r?.statLeaders;
+  if (!L) return null;
+  const one = e => (e ? { name: e.name, val: e.val } : null);
+  return { pts: one(L.scoring), reb: one(L.rebounding), ast: one(L.assists), stl: one(L.steals), blk: one(L.blocks) };
+}
+
 export function saveLeaderboard() {
   const r = S.result;
   if (!r) return;
@@ -89,6 +116,7 @@ export function saveLeaderboard() {
     losses:        r.losses,
     starters:      POSITIONS.map(p => S.roster[p]?.name || '—').join(', '),
     avgPopularity: r.avgPopularity ?? 50,
+    leaders:       packLeaders(r),
   };
   let lb = [];
   try { lb = JSON.parse(localStorage.getItem('nba820_lb') || '[]'); } catch (e) {}
@@ -161,6 +189,7 @@ function renderLeaderboardModal() {
               <span style="font-size:11px;color:var(--muted-fg)">${e.date}</span>
             </div>
             <p style="font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:3px 0 0">${esc(e.starters || '')}</p>
+            ${leadersLineHtml(e.leaders)}
           </div>
         </div>`;
       }).join('');

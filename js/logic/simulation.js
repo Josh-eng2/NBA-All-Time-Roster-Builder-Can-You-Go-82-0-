@@ -239,12 +239,85 @@ function buildLossDiagnosis(starters, weakestStat, balancePenalty, sRatio, START
   };
 }
 
+// ── Per-player season stat lines ──────────────────────────────────────────────
+// Believable individual box-score lines for a simulated season. Each starter's
+// line tracks their real per-game averages, perturbed by a per-season "form"
+// roll (a hot/cold year) and gently coupled to team success — so two sims of the
+// same roster differ without drifting away from who the player really is.
+//
+// Generated ONCE inside simulateSeason() and frozen into the result — never in
+// the renderer — so the numbers shown on the end screen are identical to the
+// ones saved to the leaderboard.
+const PLAYER_STAT_KEYS = ['ppg', 'rpg', 'apg', 'spg', 'bpg'];
+// per-game key → season-total key
+const SEASON_TOTAL_KEY = { ppg: 'pts', rpg: 'reb', apg: 'ast', spg: 'stl', bpg: 'blk' };
+
+/** Standard-normal sample via Box–Muller. */
+function gaussian() {
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+
+const clampNum = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+/**
+ * Generates believable per-player season lines + a stat-leader summary.
+ *
+ * @param {object[]} starters
+ * @param {number}   winPct  team per-game win probability (0..1)
+ * @returns {{ playerStats: object[], statLeaders: object, simTotals: object }}
+ */
+function simulatePlayerStats(starters, winPct) {
+  // Team-success coupling: a juggernaut lifts everyone slightly, a cellar team
+  // drags them down — deliberately gentle so it never distorts who the player is.
+  const teamFactor = 1 + (clampNum(winPct, 0, 1) - 0.5) * 0.04; // 0.98 … 1.02
+  const gp = 82;
+
+  const playerStats = starters.map(p => {
+    // One hot/cold roll per season. Season averages over 82 games are stable in
+    // reality, so the swing is tight — a 30-PPG scorer lands ~28–32, not 24–37.
+    const form = clampNum(1 + gaussian() * 0.035, 0.91, 1.09);
+    const line = { id: p.id, name: p.name, pos: p.pos, gp };
+    for (const k of PLAYER_STAT_KEYS) {
+      const perGame = Math.max(0, (p[k] || 0) * form * teamFactor);
+      const rounded = Math.round(perGame * 10) / 10;
+      line[k] = rounded;
+      line[SEASON_TOTAL_KEY[k]] = Math.round(rounded * gp); // season total
+    }
+    return line;
+  });
+
+  // Best starter in each category this season.
+  const leaderFor = k => {
+    let best = null;
+    for (const l of playerStats) if (!best || l[k] > best[k]) best = l;
+    return best ? { id: best.id, name: best.name, val: best[k] } : null;
+  };
+  const statLeaders = {
+    scoring:    leaderFor('ppg'),
+    rebounding: leaderFor('rpg'),
+    assists:    leaderFor('apg'),
+    steals:     leaderFor('spg'),
+    blocks:     leaderFor('bpg'),
+  };
+
+  const simTotals = PLAYER_STAT_KEYS.reduce((acc, k) => {
+    acc[k] = +playerStats.reduce((s, l) => s + l[k], 0).toFixed(1);
+    return acc;
+  }, {});
+
+  return { playerStats, statLeaders, simTotals };
+}
+
 /**
  * Simulates a full 82-game regular season.
  *
  * @param {object[]} starters  5 starting player objects
  * @returns {object}  { wins, losses, winPct, strength, totals, ratio,
- *                      sTotals, chemScore, chemReport, lossDiagnosis }
+ *                      sTotals, chemScore, chemReport, lossDiagnosis,
+ *                      playerStats, statLeaders, simTotals }
  */
 export function simulateSeason(starters, coach = null) {
   const sumStats = arr => arr.reduce(
@@ -349,6 +422,9 @@ export function simulateSeason(starters, coach = null) {
 
   const totals = { ...sTotals };
 
+  // Per-player season lines — generated once, frozen into the result.
+  const { playerStats, statLeaders, simTotals } = simulatePlayerStats(starters, winPct);
+
   return {
     wins,
     losses:     82 - wins,
@@ -363,6 +439,7 @@ export function simulateSeason(starters, coach = null) {
     avgRating:  +avgRating.toFixed(1),
     ratingMul:  +ratingMul.toFixed(4),
     ratingEloDelta,
+    playerStats, statLeaders, simTotals,
     fansM,
     coachBoost: +coachBoost.toFixed(3),
     games,

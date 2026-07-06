@@ -1108,6 +1108,36 @@ function renderResults() {
     ? ` · ${ratingPct >= 0 ? '+' : ''}${ratingPct.toFixed(1)}% Elo`
     : '';
 
+  // ── Per-player season stats (this simulated run) ──────────────────────────
+  // Frozen in r by the engine — the renderer only reads. Look up each starter's
+  // line by id so the roster rows and leaders show the season that was saved.
+  const simById   = Object.fromEntries((r.playerStats || []).map(l => [l.id, l]));
+  const leaders   = r.statLeaders || null;
+  const leaderRows = leaders ? [
+    { icon: '🏀', label: 'Points',   key: 'ppg', e: leaders.scoring    },
+    { icon: '🪃', label: 'Rebounds', key: 'rpg', e: leaders.rebounding },
+    { icon: '🎯', label: 'Assists',  key: 'apg', e: leaders.assists    },
+    { icon: '🧤', label: 'Steals',   key: 'spg', e: leaders.steals     },
+    { icon: '🛡️', label: 'Blocks',   key: 'bpg', e: leaders.blocks     },
+  ].filter(row => row.e) : [];
+  const seasonLeadersCard = leaderRows.length ? `
+    <div class="rounded-2xl border border-border bg-white p-4 card-shadow">
+      <div class="flex items-center justify-between mb-3">
+        <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Season Leaders</p>
+        <span class="text-[10px] font-bold text-muted-fg">82-game averages</span>
+      </div>
+      <div class="flex flex-col gap-1.5">
+        ${leaderRows.map(({ icon, label, key, e }) => `
+          <div class="flex items-center gap-3 py-1">
+            <span class="text-base w-6 flex-shrink-0 text-center">${icon}</span>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-muted-fg w-16 flex-shrink-0">${label}</span>
+            <span class="text-sm font-semibold text-foreground flex-1 min-w-0 truncate">${e.name}</span>
+            <span class="text-sm font-black text-foreground flex-shrink-0">${e.val.toFixed(1)}</span>
+            <span class="text-[10px] font-bold text-muted-fg w-8 flex-shrink-0">${key.toUpperCase()}</span>
+          </div>`).join('')}
+      </div>
+    </div>` : '';
+
   // ── Popularity / Fan-Hype display helpers ─────────────────────────────────
   const popDelta    = r.popEloDelta ?? 0;
   const fansM       = r.fansM       ?? 2;
@@ -1161,6 +1191,9 @@ function renderResults() {
     const fitBadge = fit
       ? `<span class="text-[8px] font-black px-1 py-0.5 rounded leading-none ml-0.5" style="background:${fitBg};color:${fitColor}">${fitText}</span>`
       : '';
+    // Prefer this season's simulated line; fall back to the player's real
+    // averages if stats weren't generated (e.g. an older cached result).
+    const s = simById[p.id] || p;
     return `
     <div class="flex items-center gap-3 py-2.5 border-b border-border last:border-0">
       <div class="flex items-center gap-0 w-12 flex-shrink-0">
@@ -1175,9 +1208,9 @@ function renderResults() {
       </div>
       ${ovrBadge(p.rating)}
       <div class="flex gap-3 text-xs text-muted-fg flex-shrink-0">
-        <span><span class="font-semibold text-foreground">${p.ppg}</span> PPG</span>
-        <span><span class="font-semibold text-foreground">${p.rpg}</span> RPG</span>
-        <span class="hidden sm:inline"><span class="font-semibold text-foreground">${p.apg}</span> APG</span>
+        <span><span class="font-semibold text-foreground">${s.ppg}</span> PPG</span>
+        <span><span class="font-semibold text-foreground">${s.rpg}</span> RPG</span>
+        <span class="hidden sm:inline"><span class="font-semibold text-foreground">${s.apg}</span> APG</span>
       </div>
     </div>`;
   };
@@ -1326,14 +1359,16 @@ function renderResults() {
             }).join('')}
           </div>
         </div>
+        ${seasonLeadersCard}
         <div class="rounded-2xl border border-border bg-white p-4 card-shadow">
           <p class="text-xs font-bold uppercase tracking-widest text-muted-fg mb-4">Team Statistics</p>
           <div class="flex flex-col gap-3">
-            ${statBar('ppg', 'Points Per Game',   r.totals.ppg)}
-            ${statBar('rpg', 'Rebounds Per Game', r.totals.rpg)}
-            ${statBar('apg', 'Assists Per Game',  r.totals.apg)}
-            ${statBar('spg', 'Steals Per Game',   r.totals.spg)}
-            ${statBar('bpg', 'Blocks Per Game',   r.totals.bpg)}
+            ${(() => { const t = r.simTotals || r.totals; return `
+            ${statBar('ppg', 'Points Per Game',   t.ppg)}
+            ${statBar('rpg', 'Rebounds Per Game', t.rpg)}
+            ${statBar('apg', 'Assists Per Game',  t.apg)}
+            ${statBar('spg', 'Steals Per Game',   t.spg)}
+            ${statBar('bpg', 'Blocks Per Game',   t.bpg)}`; })()}
           </div>
         </div>
         <div class="rounded-2xl border border-border bg-white p-4 card-shadow">
