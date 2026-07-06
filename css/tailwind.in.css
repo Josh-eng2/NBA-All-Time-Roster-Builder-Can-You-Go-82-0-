@@ -1,0 +1,5 @@
+/* Input for scripts/build_tailwind.sh — do not link this file in HTML.
+   The generated, committed output is css/tailwind.css. */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

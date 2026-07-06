@@ -84,6 +84,45 @@ export function fmtPlayerLine(p) {
   return era ? `${p.name} (${era})` : p.name;
 }
 
+// ── Player rating (0–100 overall) display helpers ─────────────────────────────
+/** 2K-style tier color for a 0–100 rating. */
+export function ovrColor(rating) {
+  const r = rating ?? 0;
+  if (r >= 90) return '#d97706'; // gold — GOAT tier
+  if (r >= 82) return '#2563eb'; // blue — star
+  if (r >= 74) return '#0f766e'; // teal — solid starter
+  return '#64748b';              // slate — role player
+}
+
+/** Compact 2K-style OVR badge used in roster rows. */
+export function ovrBadge(rating) {
+  const val = rating ?? '—';
+  return `<div class="flex-shrink-0 text-center w-9">
+    <div class="text-base font-black leading-none" style="color:${ovrColor(rating)}">${val}</div>
+    <div class="text-[8px] font-bold uppercase tracking-wider text-muted-fg leading-none mt-0.5">OVR</div>
+  </div>`;
+}
+
+// ── Confetti (lazy) ───────────────────────────────────────────────────────────
+// canvas-confetti is only needed on celebration screens, so it's injected on
+// first use instead of shipping in the page-load payload. Degrades silently
+// if the CDN is unreachable — same behavior as the old `typeof confetti`
+// guards this replaces.
+let _confettiLoading = null;
+export function withConfetti(fire) {
+  if (typeof confetti !== 'undefined') { fire(); return; }
+  if (!_confettiLoading) {
+    _confettiLoading = new Promise(resolve => {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js';
+      s.onload  = resolve;
+      s.onerror = resolve; // resolve either way; the typeof check below decides
+      document.head.appendChild(s);
+    });
+  }
+  _confettiLoading.then(() => { if (typeof confetti !== 'undefined') fire(); });
+}
+
 export function showToast(msg, duration = 2500) {
   const el = document.createElement('div');
   el.textContent = msg;
@@ -1091,6 +1130,44 @@ function renderResults() {
 
   const winsColor = isPerfect || isHistoric ? (isDark() ? '#fbbf24' : '#d97706') : isElite ? (isDark() ? '#4ade80' : '#16a34a') : isPlayoff ? (isDark() ? '#60a5fa' : '#2563eb') : (isDark() ? '#f87171' : '#dc2626');
 
+  // ── Team rating (0–100 overall) display helpers ───────────────────────────
+  const teamOvr     = Math.round(r.avgRating ?? 0);
+  const ratingDelta = r.ratingEloDelta ?? 0;
+  const ratingPct   = ratingDelta / (r.baseStrength || 1) * 100;
+  const ratingImpactLabel = Math.abs(ratingPct) >= 0.1
+    ? ` · ${ratingPct >= 0 ? '+' : ''}${ratingPct.toFixed(1)}% Elo`
+    : '';
+
+  // ── Per-player season stats (this simulated run) ──────────────────────────
+  // Frozen in r by the engine — the renderer only reads. Look up each starter's
+  // line by id so the roster rows and leaders show the season that was saved.
+  const simById   = Object.fromEntries((r.playerStats || []).map(l => [l.id, l]));
+  const leaders   = r.statLeaders || null;
+  const leaderRows = leaders ? [
+    { icon: '🏀', label: 'Points',   key: 'ppg', e: leaders.scoring    },
+    { icon: '🪃', label: 'Rebounds', key: 'rpg', e: leaders.rebounding },
+    { icon: '🎯', label: 'Assists',  key: 'apg', e: leaders.assists    },
+    { icon: '🧤', label: 'Steals',   key: 'spg', e: leaders.steals     },
+    { icon: '🛡️', label: 'Blocks',   key: 'bpg', e: leaders.blocks     },
+  ].filter(row => row.e) : [];
+  const seasonLeadersCard = leaderRows.length ? `
+    <div class="rounded-2xl border border-border bg-white p-4 card-shadow">
+      <div class="flex items-center justify-between mb-3">
+        <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Season Leaders</p>
+        <span class="text-[10px] font-bold text-muted-fg">82-game averages</span>
+      </div>
+      <div class="flex flex-col gap-1.5">
+        ${leaderRows.map(({ icon, label, key, e }) => `
+          <div class="flex items-center gap-3 py-1">
+            <span class="text-base w-6 flex-shrink-0 text-center">${icon}</span>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-muted-fg w-16 flex-shrink-0">${label}</span>
+            <span class="text-sm font-semibold text-foreground flex-1 min-w-0 truncate">${e.name}</span>
+            <span class="text-sm font-black text-foreground flex-shrink-0">${e.val.toFixed(1)}</span>
+            <span class="text-[10px] font-bold text-muted-fg w-8 flex-shrink-0">${key.toUpperCase()}</span>
+          </div>`).join('')}
+      </div>
+    </div>` : '';
+
   // ── Popularity / Fan-Hype display helpers ─────────────────────────────────
   const popDelta    = r.popEloDelta ?? 0;
   const fansM       = r.fansM       ?? 2;
@@ -1144,6 +1221,9 @@ function renderResults() {
     const fitBadge = fit
       ? `<span class="text-[8px] font-black px-1 py-0.5 rounded leading-none ml-0.5" style="background:${fitBg};color:${fitColor}">${fitText}</span>`
       : '';
+    // Prefer this season's simulated line; fall back to the player's real
+    // averages if stats weren't generated (e.g. an older cached result).
+    const s = simById[p.id] || p;
     return `
     <div class="flex items-center gap-3 py-2.5 border-b border-border last:border-0">
       <div class="flex items-center gap-0 w-12 flex-shrink-0">
@@ -1156,10 +1236,11 @@ function renderResults() {
           ${p.archetype ? archetypeBadge(p.archetype) : ''}
         </div>
       </div>
+      ${ovrBadge(p.rating)}
       <div class="flex gap-3 text-xs text-muted-fg flex-shrink-0">
-        <span><span class="font-semibold text-foreground">${p.ppg}</span> PPG</span>
-        <span><span class="font-semibold text-foreground">${p.rpg}</span> RPG</span>
-        <span class="hidden sm:inline"><span class="font-semibold text-foreground">${p.apg}</span> APG</span>
+        <span><span class="font-semibold text-foreground">${s.ppg}</span> PPG</span>
+        <span><span class="font-semibold text-foreground">${s.rpg}</span> RPG</span>
+        <span class="hidden sm:inline"><span class="font-semibold text-foreground">${s.apg}</span> APG</span>
       </div>
     </div>`;
   };
@@ -1198,8 +1279,12 @@ function renderResults() {
             <span class="text-muted-fg">${r.losses}</span>
           </div>
           <span class="inline-block text-sm font-bold px-4 py-1.5 rounded-full mb-2" style="background:${labelBg};color:${labelColor}">${emoji} ${label}</span>
-          <p class="text-xs text-muted-fg mb-2">Win% ${r.winPct}% &nbsp;·&nbsp; Strength Index ${r.strength}</p>
+          <p class="text-xs text-muted-fg mb-2">Win% ${r.winPct}% &nbsp;·&nbsp; Team OVR ${teamOvr} &nbsp;·&nbsp; Strength Index ${r.strength}</p>
           <div class="flex items-center justify-center gap-2 flex-wrap">
+            <span class="inline-flex items-center gap-1 text-[11px] font-black px-2.5 py-1 rounded-full border"
+              style="background:${ovrColor(teamOvr)}12;border-color:${ovrColor(teamOvr)}40;color:${ovrColor(teamOvr)}">
+              🏀 Team OVR ${teamOvr}${ratingImpactLabel}
+            </span>
             ${r.longestStreak >= 5 ? `<span class="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full border" style="background:#fef2f2;border-color:#fecaca;color:#dc2626">🔥 ${r.longestStreak}-game win streak</span>` : ''}
             <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full border border-border bg-slate-50 text-slate-600">
               🌍 Global Fanbase: ${fansLabel}
@@ -1304,14 +1389,16 @@ function renderResults() {
             }).join('')}
           </div>
         </div>
+        ${seasonLeadersCard}
         <div class="rounded-2xl border border-border bg-white p-4 card-shadow">
           <p class="text-xs font-bold uppercase tracking-widest text-muted-fg mb-4">Team Statistics</p>
           <div class="flex flex-col gap-3">
-            ${statBar('ppg', 'Points Per Game',   r.totals.ppg)}
-            ${statBar('rpg', 'Rebounds Per Game', r.totals.rpg)}
-            ${statBar('apg', 'Assists Per Game',  r.totals.apg)}
-            ${statBar('spg', 'Steals Per Game',   r.totals.spg)}
-            ${statBar('bpg', 'Blocks Per Game',   r.totals.bpg)}
+            ${(() => { const t = r.simTotals || r.totals; return `
+            ${statBar('ppg', 'Points Per Game',   t.ppg)}
+            ${statBar('rpg', 'Rebounds Per Game', t.rpg)}
+            ${statBar('apg', 'Assists Per Game',  t.apg)}
+            ${statBar('spg', 'Steals Per Game',   t.spg)}
+            ${statBar('bpg', 'Blocks Per Game',   t.bpg)}`; })()}
           </div>
         </div>
         <div class="rounded-2xl border border-border bg-white p-4 card-shadow">
@@ -1842,11 +1929,9 @@ function renderSeriesResult() {
     return `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full border" style="color:${c};background:${bg};border-color:${c}30">Chem ${sc}%</span>`;
   };
 
-  // fire confetti for the winner
+  // fire confetti for the winner (lazy-loads the library on first use)
   setTimeout(() => {
-    if (typeof confetti !== 'undefined') {
-      confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 }, colors: p1Win ? ['#2563eb','#93c5fd','#ffffff'] : ['#d97706','#fde68a','#ffffff'] });
-    }
+    withConfetti(() => confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 }, colors: p1Win ? ['#2563eb','#93c5fd','#ffffff'] : ['#d97706','#fde68a','#ffffff'] }));
   }, 150);
 
   return `

@@ -138,6 +138,16 @@ export async function submitGlobalScore(entry) {
     starters:     entry.starters    ?? '',
     timestampMs:  entry.timestampMs ?? 0,
     timestamp:    serverTimestamp(),
+    // ── FUTURE: per-run stat leaders on the GLOBAL board ──────────────────
+    // Per-player season stats already persist to the LOCAL leaderboard
+    // (storage.js → packLeaders). To surface leaders globally too, add:
+    //     leaders: entry.leaders ?? null,   // { pts, reb, ast, stl, blk }
+    // BUT the Firestore security rule above validates the document shape and
+    // will REJECT the whole write if it uses hasOnly()/strict field checks.
+    // So publish the rule change FIRST (allow a `leaders` map field in the
+    // Firebase Console → Firestore → Rules), THEN uncomment the line above and
+    // pass `leaders` from the save-run handler. Leaving it out keeps global
+    // submissions working until then.
   });
   return ref.id;
 }
