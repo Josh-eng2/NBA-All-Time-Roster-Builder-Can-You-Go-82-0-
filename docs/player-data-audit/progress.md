@@ -338,7 +338,7 @@ was generated directly from `players.json` and re-verified 1:1 against it
 - [ ] Bob Lanier (`lanier_82`)
 
 **Bulls_1980s** (6)
-- [ ] Michael Jordan (`mj_88`)
+- [x] Michael Jordan (`mj_88`) — fixed out-of-band (see Log)
 - [ ] Scottie Pippen (`pippen_88`)
 - [ ] Horace Grant (`grant_89`)
 - [ ] Bill Cartwright (`cartwright_88`)
@@ -1471,3 +1471,29 @@ the `NAMED` dict in batch 27):**
 (Celtics) as `Paint Beast` for a 10/5 crafty stretch forward; Tom Heinsohn
 (Celtics) as `Slasher` for a volume jump-shooter. Flag only if a future
 pass wants stricter archetype fidelity for the long tail.
+
+### Out-of-band fix — Michael Jordan (`mj_88`, Bulls_1980s, batch 6)
+
+Corrected while building the per-player season-stats feature (the new
+end-screen stat lines surfaced it): the entry had a fabricated
+**40 / 8 / 8 / 4.5 / 2.5** line — no Jordan season had 40 ppg (real career
+high 37.1 in '86-87). Reset to his real **1988-89** line
+**32.5 / 8.0 / 8.0 / 2.9 / 0.8** (the 8/8 already on the entry matched that
+year). Regenerated rating (OVR 99→96) + inlined players.js. Checked off in
+batch 6; the rest of Bulls_1980s and batch 6 remain **pending**.
+
+### Scaffolding added for the remaining batches (2–28)
+
+- **`scripts/audit_stats.js`** — realism triage (copy-paste dupes, self-dupes,
+  era-aware single-stat outliers, "superman" 3-category leaders). Run it per
+  decade (`--decade=1980`) at the start of a batch to target the worst rows
+  first. Current baseline across all 938: 0 dupes, 0 outliers, 3 superman
+  (all real: Jordan '89, Shaq, Wilt) — the *extremes* are clean, so batch work
+  is mostly long-tail plausibility.
+- **Data source for verification:** WebSearch works and returns real
+  per-game lines; **WebFetch is blocked (403) in this sandbox** for
+  Basketball-Reference / StatMuse / Wikipedia, so verify via WebSearch queries
+  (e.g. "<player> <season> stats per game"), not direct page fetches. Note:
+  steals & blocks were not official stats until 1973-74 — pre-1974 S/B are
+  necessarily estimates, don't "correct" them against a box score that doesn't
+  exist.
