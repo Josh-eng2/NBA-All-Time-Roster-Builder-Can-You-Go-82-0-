@@ -3,21 +3,51 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Can You Go 82-0? The Strategic Basketball Roster Builder</title>
-  <meta name="description" content="Draft all-time basketball legends across every era and build the ultimate roster. Deep team chemistry, strategic positional fits, and one goal — can you go 82-0? Pick your coach and find out." />
+  <title>Can You Go 82-0? NBA All-Time Roster Builder &amp; Season Simulator</title>
+  <meta name="description" content="Can you go 82-0? Draft an all-time NBA roster from legends across every era, pick your coach, and run the season simulator to chase a perfect 82-0 record. Free to play in your browser." />
+  <meta name="keywords" content="82-0, can you go 82-0, NBA simulator, NBA season simulator, NBA roster builder, all-time NBA team, basketball simulator, NBA all-time roster, fantasy NBA draft" />
+  <link rel="canonical" href="https://canyougo820.com/" />
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <meta name="google-site-verification" content="tKkqTKtQA1jcn-yFMIPN76kDNvCafVs3FgYTT7YojnY" />
 
   <!-- Open Graph / Social sharing -->
   <meta property="og:type"        content="website" />
+  <meta property="og:site_name"   content="Can You Go 82-0?" />
   <meta property="og:url"         content="https://canyougo820.com" />
-  <meta property="og:title"       content="Can You Go 82-0? The Strategic Basketball Roster Builder" />
-  <meta property="og:description" content="Draft all-time basketball legends across every era and build the ultimate roster. Deep team chemistry, strategic positional fits, and one goal — can you go 82-0?" />
+  <meta property="og:title"       content="Can You Go 82-0? NBA All-Time Roster Builder &amp; Season Simulator" />
+  <meta property="og:description" content="Draft an all-time NBA roster from legends across every era, pick your coach, and run the season simulator — can you go a perfect 82-0?" />
   <meta property="og:image"       content="https://canyougo820.com/og-image.svg" />
   <meta property="og:image:width"  content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card"        content="summary_large_image" />
+  <meta name="twitter:title"       content="Can You Go 82-0? NBA All-Time Roster Builder &amp; Season Simulator" />
+  <meta name="twitter:description" content="Draft an all-time NBA roster, pick your coach, and run the season simulator — can you go a perfect 82-0?" />
   <meta name="twitter:image"       content="https://canyougo820.com/og-image.svg" />
+
+  <!-- Structured data: helps Google identify the game as an entity -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "VideoGame",
+    "name": "Can You Go 82-0?",
+    "alternateName": ["82-0", "NBA All-Time Roster Builder", "NBA Season Simulator"],
+    "url": "https://canyougo820.com/",
+    "description": "A free browser game: draft an all-time NBA roster from legends across every era, build team chemistry, pick your coach, and run the season simulator to chase a perfect 82-0 record.",
+    "image": "https://canyougo820.com/og-image.svg",
+    "genre": ["Sports", "Simulation", "Strategy"],
+    "applicationCategory": "GameApplication",
+    "gamePlatform": "Web Browser",
+    "operatingSystem": "Any (modern web browser)",
+    "browserRequirements": "Requires JavaScript",
+    "keywords": "82-0, NBA simulator, NBA season simulator, NBA roster builder, all-time NBA team, basketball simulator",
+    "inLanguage": "en",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    }
+  }
+  </script>
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -77,12 +107,29 @@
   <div id="loading-overlay" style="
     position:fixed;inset:0;background:var(--bg);
     display:flex;flex-direction:column;align-items:center;justify-content:center;
-    font-family:'Fira Sans',sans-serif;color:var(--fg);z-index:9999">
+    font-family:'Fira Sans',sans-serif;color:var(--fg);z-index:9999;text-align:center;padding:0 20px">
+    <h1 style="font-size:24px;font-weight:900;margin:0 0 6px;letter-spacing:-0.01em">Can You Go 82-0?</h1>
+    <p style="margin:0 0 28px;font-size:14px;line-height:1.5;color:var(--muted-fg);max-width:360px">
+      The NBA all-time roster builder &amp; season simulator — draft legends from every era and chase a perfect 82-0 season.
+    </p>
     <div style="width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--primary);
       border-radius:50%;animation:_spin 0.7s linear infinite"></div>
     <p style="margin-top:16px;font-size:14px;color:var(--muted-fg);letter-spacing:0.02em">Loading players…</p>
     <style>@keyframes _spin { to { transform: rotate(360deg); } }</style>
   </div>
+
+  <!-- Crawlable fallback for search engines / crawlers that do not execute JavaScript -->
+  <noscript>
+    <div style="max-width:640px;margin:48px auto;padding:0 20px;font-family:sans-serif;line-height:1.6">
+      <h1>Can You Go 82-0? — NBA All-Time Roster Builder &amp; Season Simulator</h1>
+      <p>
+        <strong>Can You Go 82-0?</strong> is a free browser game where you draft an all-time NBA roster
+        from legends across every era, build team chemistry, pick your coach, and run a full season
+        simulator to see whether you can finish a perfect <strong>82-0</strong>. Please enable JavaScript to play.
+      </p>
+      <p>Play now at <a href="https://canyougo820.com/">canyougo820.com</a>.</p>
+    </div>
+  </noscript>
 
   <!-- App mount point — all UI is injected here by js/ui/render.js -->
   <div id="app"></div>
