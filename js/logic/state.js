@@ -278,7 +278,6 @@ export function startGame(era = 'all') {
     draftBoard:       [],       // pick board — all available players from the current spin's team/decade
     selectedPlayer:   null,
     movingPos:        null,
-    pendingPlacePos:  null,  // two-tap confirm — first tap arms a slot, second locks it in
     roster: { PG: null, SG: null, SF: null, PF: null, C: null },
     result:  null,
     playoffs: null,
@@ -329,7 +328,6 @@ export function startGame1v1() {
     draftBoard: [],
     selectedPlayer: null,
     movingPos: null,
-    pendingPlacePos: null,
 
     // Solo-mode fields kept to avoid undefined refs
     roster: { PG: null, SG: null, SF: null, PF: null, C: null },
