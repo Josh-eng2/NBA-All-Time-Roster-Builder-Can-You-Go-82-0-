@@ -420,7 +420,7 @@ function renderCoachChip() {
       </button>`).join('')}
     </div>` : '';
 
-  return chip + picker;
+  return `<div class="draft-coach-chip">${chip}${picker}</div>`;
 }
 
 // ── Drafting screen ───────────────────────────────────────────────────────────
@@ -428,7 +428,7 @@ function renderColdOpenBanner() {
   if (!S.coldOpen || S.round > 0) return '';
   const coach = COACHES.find(c => c.id === S.coach);
   return `
-  <div class="rounded-2xl p-3.5 flex items-center gap-3 animate-fade-up card-shadow"
+  <div class="rounded-2xl p-3.5 flex items-center gap-3 animate-fade-up card-shadow draft-cold-open"
     style="background:var(--surface-orange);border:1.5px solid #fed7aa">
     <span class="text-2xl flex-shrink-0">🏀</span>
     <div class="min-w-0">
@@ -442,10 +442,10 @@ function renderDrafting() {
   if (S.mode === '1v1') return renderDrafting1v1();
   const full = rosterFull();
   return `
-  <div class="min-h-screen main-gradient">
+  <div class="min-h-screen main-gradient draft-screen">
     ${renderHeader(true)}
-    <main class="flex flex-col items-center px-4 pt-2 pb-8">
-      <div class="w-full max-w-2xl flex flex-col gap-2">
+    <main class="flex flex-col items-center px-4 pt-2 pb-8 draft-screen__main">
+      <div class="w-full max-w-2xl flex flex-col gap-2 draft-screen__inner">
         ${renderColdOpenBanner()}
         ${full ? renderSimulateCard() : ''}
         ${renderRoundBar()}
@@ -609,14 +609,14 @@ function renderRoundBar() {
   const phase          = DRAFT_PHASES.find(ph => S.round <= ph.max) || DRAFT_PHASES[2];
 
   return `
-  <div class="flex flex-col gap-1.5 py-1">
+  <div class="flex flex-col gap-1.5 py-1 draft-round-bar">
     <div class="flex items-center justify-between">
       <div>
         <p class="text-sm font-bold text-foreground">Round ${displayRound} <span class="text-muted-fg font-normal">of ${TOTAL_ROUNDS}</span>
           <span class="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full ml-1 align-middle"
             style="background:${phase.color}15;color:${phase.color};border:1px solid ${phase.color}30">${phase.label}</span>
         </p>
-        <p class="text-xs text-muted-fg mt-0.5">${filled}/${ALL_POSITIONS.length} starters &nbsp;·&nbsp; <span style="color:${phase.color}">${phase.hint}</span></p>
+        <p class="text-xs text-muted-fg mt-0.5 draft-round-bar__meta">${filled}/${ALL_POSITIONS.length} starters &nbsp;·&nbsp; <span style="color:${phase.color}">${phase.hint}</span></p>
       </div>
       <div class="flex gap-1.5 items-center">
         ${Array.from({ length: TOTAL_ROUNDS }, (_, i) => {
@@ -641,7 +641,7 @@ function renderPopularityBar() {
     : avgPop >= 85 ? 'Superstar Lineup' : avgPop >= 70 ? 'Star Power' : avgPop >= 55 ? 'Solid Roster' : 'Under the Radar';
   const scoreLabel = drafted.length ? ` · ${Math.round(avgPop)}/100` : '';
   return `
-  <div class="rounded-xl border border-border bg-card px-4 py-3 card-shadow">
+  <div class="rounded-xl border border-border bg-card px-4 py-3 card-shadow draft-pop-bar">
     <div class="flex items-center justify-between mb-2">
       <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg">Team Popularity</p>
       <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border" style="color:${barCol};background:${barCol}18;border-color:${barCol}30">${tier}${scoreLabel}</span>
@@ -649,7 +649,7 @@ function renderPopularityBar() {
     <div class="h-1.5 rounded-full overflow-hidden bg-border">
       <div class="h-full rounded-full transition-all stat-bar-fill" style="width:${pct}%;background:${barCol}"></div>
     </div>
-    <p class="text-[10px] mt-1.5 text-muted-fg">High popularity boosts home-court advantage in close games</p>
+    <p class="text-[10px] mt-1.5 text-muted-fg draft-pop-bar__hint">High popularity boosts home-court advantage in close games</p>
   </div>`;
 }
 
@@ -663,15 +663,15 @@ function renderSlotMachine() {
   const eraLocked = activeEra !== 'all';
   const decPool   = availableDecades();
   return `
-  <div class="rounded-2xl border border-border bg-card p-4 animate-scale-in card-shadow">
+  <div class="rounded-2xl border border-border bg-card p-4 animate-scale-in card-shadow draft-slot-machine">
     <div class="flex items-center gap-2 mb-3">
       <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Draft Board — Round ${S.round + 1}</p>
       <div class="ml-auto flex gap-1.5">
         ${isDone && S.teamSkips > 0 ? `<button data-action="skip-team" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">Skip Team (${S.teamSkips})</button>` : ''}
         ${isDone && S.decadeSkips > 0 && !eraLocked ? `<button data-action="skip-decade" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">Skip Era (${S.decadeSkips})</button>` : ''}      </div>
     </div>
-    <div class="grid grid-cols-2 gap-3 mb-4 ${isSpin ? 'slot-spinning' : ''}">
-      <div class="rounded-xl border-2 p-4 flex flex-col items-center justify-center min-h-[88px] transition-all"
+    <div class="grid grid-cols-2 gap-3 mb-4 draft-slot-machine__grid ${isSpin ? 'slot-spinning' : ''}">
+      <div class="rounded-xl border-2 p-4 flex flex-col items-center justify-center draft-slot-machine__cell transition-all"
         style="background:${isDone && tc ? tc.bg + '12' : 'var(--card2)'};border-color:${isDone && tc ? tc.bg + '88' : 'var(--border)'}">
         <span class="text-[10px] font-bold uppercase tracking-widest mb-2 text-muted-fg">TEAM</span>
         <span class="slot-badge text-xl font-black text-foreground" id="slot-team">
@@ -679,7 +679,7 @@ function renderSlotMachine() {
         </span>
         ${isDone ? `<span class="mt-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary text-white uppercase tracking-wider">LOCKED</span>` : ''}
       </div>
-      <div class="rounded-xl border-2 p-4 flex flex-col items-center justify-center min-h-[88px] transition-all"
+      <div class="rounded-xl border-2 p-4 flex flex-col items-center justify-center draft-slot-machine__cell transition-all"
         style="background:${isDone ? 'var(--surface-blue)' : 'var(--card2)'};border-color:${isDone ? '#93c5fd' : 'var(--border)'}">
         <span class="text-[10px] font-bold uppercase tracking-widest mb-2 text-muted-fg">ERA</span>
         <span class="slot-badge text-xl font-black text-foreground" id="slot-decade">
@@ -709,12 +709,12 @@ function renderDraftBoard() {
   const decade = S.currentSpin?.decade;
   const tc     = team ? TEAM_COLORS[team] : null;
   return `
-  <div class="animate-fade-up">
-    <div class="flex items-center gap-2 mb-3">
+  <div class="animate-fade-up draft-board-wrap">
+    <div class="flex items-center gap-2 mb-3 draft-board-wrap__head">
       ${tc ? `<span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${tc.bg}"></span>` : ''}
       <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">${team} · ${decade}</p>
     </div>
-    <div class="overflow-y-auto rounded-xl" style="max-height:24vh">
+    <div class="overflow-y-auto rounded-xl draft-board-scroll">
       <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 pr-1">
         ${S.draftBoard.map((p, i) => renderDraftCard(p, i)).join('')}
       </div>
@@ -734,18 +734,18 @@ function renderDraftCard(p, index) {
   // HoopIQ — name only, no stats or position hints
   if (S.mode === 'blind') {
     return `
-  <div class="rounded-xl border-2 flex flex-col overflow-hidden transition-all card-shadow"
+  <div class="rounded-xl border-2 flex flex-col overflow-hidden transition-all card-shadow draft-card draft-card--blind"
     style="border-color:${cardBorder};background:${cardBg};${cardOpacity}">
-    <div class="p-3 flex-1 flex items-center justify-center" style="min-height:72px">
-      <p class="font-bold text-sm text-foreground leading-tight text-center">${p.name}</p>
+    <div class="p-3 flex-1 flex items-center justify-center draft-card-body draft-card-body--blind">
+      <p class="font-bold text-sm text-foreground leading-tight text-center draft-card__name">${p.name}</p>
     </div>
-    <div class="px-3 pb-3">
+    <div class="px-3 pb-3 draft-card__actions">
       ${alreadyOnRoster
-        ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs" style="background:var(--card2);color:var(--muted);border:1.5px solid var(--border);cursor:not-allowed">Already on Roster</button>`
+        ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs draft-card-btn" style="background:var(--card2);color:var(--muted);border:1.5px solid var(--border);cursor:not-allowed">Already on Roster</button>`
         : takenByP1
-        ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs" style="background:#fef2f2;color:#dc2626;border:1.5px solid #fecaca;cursor:not-allowed">Taken by Player 1</button>`
+        ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs draft-card-btn" style="background:#fef2f2;color:#dc2626;border:1.5px solid #fecaca;cursor:not-allowed">Taken by Player 1</button>`
         : `<button data-action="draft-pick-${index}"
-            class="w-full py-2 rounded-lg font-bold text-xs transition-all cursor-pointer"
+            class="w-full py-2 rounded-lg font-bold text-xs transition-all cursor-pointer draft-card-btn"
             style="background:${isSelected ? 'var(--primary)' : 'var(--card2)'};color:${isSelected ? 'var(--primary-fg)' : 'var(--primary)'};border:1.5px solid ${isSelected ? 'var(--primary)' : '#bfdbfe'}">
             ${isSelected ? '✓ Selected — Tap a Roster Slot' : 'Draft Player'}
           </button>`
@@ -755,31 +755,31 @@ function renderDraftCard(p, index) {
   }
 
   return `
-  <div class="rounded-xl border-2 flex flex-col overflow-hidden transition-all card-shadow"
+  <div class="rounded-xl border-2 flex flex-col overflow-hidden transition-all card-shadow draft-card"
     style="border-color:${cardBorder};background:${cardBg};${cardOpacity}">
-    <div class="p-3 flex-1">
-      <div class="flex items-center gap-1.5 mb-2">
-        <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full border border-border bg-card2 text-muted-fg">${p.secondaryPos?.length ? `${p.pos} / ${p.secondaryPos[0]}` : p.pos}</span>
-        ${archetypeBadge(p.archetype)}
+    <div class="p-3 flex-1 draft-card-body">
+      <div class="flex items-center gap-1.5 mb-2 draft-card__head">
+        <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full border border-border bg-card2 text-muted-fg draft-card__pos">${p.secondaryPos?.length ? `${p.pos} / ${p.secondaryPos[0]}` : p.pos}</span>
+        <span class="draft-card__arch">${archetypeBadge(p.archetype)}</span>
       </div>
-      <p class="font-bold text-sm text-foreground leading-tight mb-1.5">${p.name}</p>
-      <div class="flex flex-wrap gap-x-2 gap-y-0.5">
+      <p class="font-bold text-sm text-foreground leading-tight mb-1.5 draft-card__name">${p.name}</p>
+      <div class="flex flex-wrap gap-x-2 gap-y-0.5 draft-card__stats">
         ${[['PPG', p.ppg], ['RPG', p.rpg], ['APG', p.apg], ['SPG', p.spg], ['BPG', p.bpg]].map(([l, v]) =>
           `<span class="text-[10px] text-muted-fg"><span class="font-semibold text-foreground">${v}</span> ${l}</span>`
         ).join('')}
       </div>
       ${p.traits && p.traits.length ? `
-        <div class="flex flex-wrap gap-1 mt-1.5">
+        <div class="flex flex-wrap gap-1 mt-1.5 draft-card-traits">
           ${p.traits.map(t => `<span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">${t}</span>`).join('')}
         </div>` : ''}
     </div>
-    <div class="px-3 pb-3">
+    <div class="px-3 pb-3 draft-card__actions">
       ${alreadyOnRoster
-        ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs" style="background:var(--card2);color:var(--muted);border:1.5px solid var(--border);cursor:not-allowed">Already on Roster</button>`
+        ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs draft-card-btn" style="background:var(--card2);color:var(--muted);border:1.5px solid var(--border);cursor:not-allowed">Already on Roster</button>`
         : takenByP1
-        ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs" style="background:#fef2f2;color:#dc2626;border:1.5px solid #fecaca;cursor:not-allowed">Taken by Player 1</button>`
+        ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs draft-card-btn" style="background:#fef2f2;color:#dc2626;border:1.5px solid #fecaca;cursor:not-allowed">Taken by Player 1</button>`
         : `<button data-action="draft-pick-${index}"
-            class="w-full py-2 rounded-lg font-bold text-xs transition-all cursor-pointer"
+            class="w-full py-2 rounded-lg font-bold text-xs transition-all cursor-pointer draft-card-btn"
             style="background:${isSelected ? 'var(--primary)' : 'var(--card2)'};color:${isSelected ? 'var(--primary-fg)' : 'var(--primary)'};border:1.5px solid ${isSelected ? 'var(--primary)' : '#bfdbfe'}">
             ${isSelected ? '✓ Selected — Tap a Roster Slot' : 'Draft Player'}
           </button>`
@@ -793,10 +793,10 @@ function renderRoster() {
   const hasSelected = !!S.selectedPlayer;
   const filledCount = ALL_POSITIONS.filter(p => S.roster[p]).length;
   return `
-  <div>
-    <div class="flex items-center justify-between mb-2">
+  <div class="draft-roster">
+    <div class="flex items-center justify-between mb-2 draft-roster__head">
       <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Your Roster <span class="text-primary">${filledCount}/${ALL_POSITIONS.length}</span></p>
-      ${hasSelected ? `<p class="text-xs text-primary animate-fade-up font-medium">Tap an empty slot to place ${S.selectedPlayer.name}</p>` : ''}
+      ${hasSelected ? `<p class="text-xs text-primary animate-fade-up font-medium draft-roster__place-hint">Tap an empty slot to place ${S.selectedPlayer.name}</p>` : ''}
     </div>
     <div class="grid grid-cols-3 sm:grid-cols-5 gap-2">
       ${POSITIONS.map(pos => renderRosterSlot(pos, hasSelected)).join('')}
@@ -819,7 +819,7 @@ function renderRosterSlot(pos, canPlace) {
     const labelColor  = fitColors[fitType];
 
     return `
-    <div class="rounded-xl border bg-white p-2 flex flex-col items-center gap-0.5 text-center overflow-hidden card-shadow locked ${fitClass}"
+    <div class="rounded-xl border bg-white p-2 flex flex-col items-center gap-0.5 text-center overflow-hidden card-shadow locked draft-roster-slot ${fitClass}"
       style="border-color:${borderColor};border-top:${borderTop}"
       title="${p.name} · pick locked">
       <span class="text-[10px] font-black uppercase leading-none" style="color:${labelColor}">${label}</span>
@@ -843,7 +843,7 @@ function renderRosterSlot(pos, canPlace) {
 
   return `
   <div data-action="${action}"
-    class="rounded-xl border-2 border-dashed p-2 flex flex-col items-center gap-1 text-center transition-all ${canDrop ? 'slot-empty droppable' : ''}"
+    class="rounded-xl border-2 border-dashed p-2 flex flex-col items-center gap-1 text-center transition-all draft-roster-slot ${canDrop ? 'slot-empty droppable' : ''}"
     style="background:${slotBg};border-color:${slotBorder}">
     <span class="text-[10px] font-black uppercase" style="color:${slotColor}">${label}</span>
     <span class="text-xs" style="color:${slotColor}">${slotText}</span>
@@ -863,21 +863,21 @@ function renderChemDashboard() {
   const scoreBg    = chemScore >= 60 ? (isDark() ? 'rgba(34,197,94,0.12)' : '#f0fdf4')  : chemScore >= 40 ? (isDark() ? 'rgba(251,191,36,0.12)' : '#fffbeb')  : (isDark() ? 'rgba(239,68,68,0.12)' : '#fef2f2');
   const scoreLabel = chemScore >= 60 ? 'Strong'   : chemScore >= 40 ? 'Neutral'  : 'Weak';
   return `
-  <div class="rounded-2xl border border-border bg-card p-4 card-shadow">
-    <div class="flex items-center justify-between mb-3">
+  <div class="rounded-2xl border border-border bg-card p-4 card-shadow draft-chem-dashboard">
+    <div class="flex items-center justify-between mb-3 draft-chem-dashboard__head">
       <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Live Chemistry</p>
       <span class="text-xs font-bold px-2 py-0.5 rounded-full border" style="background:${scoreBg};color:${scoreColor};border-color:${scoreColor}30">${scoreLabel} · ${chemScore}%</span>
     </div>
-    <div class="flex items-center gap-3 mb-3">
+    <div class="flex items-center gap-3 mb-3 draft-chem-dashboard__meter">
       <div class="flex-1 h-2 rounded-full overflow-hidden bg-border">
         <div class="h-full rounded-full stat-bar-fill" style="width:${chemScore}%;background:${scoreColor}"></div>
       </div>
     </div>
     ${chemReport.length > 0 ? `
-    <div class="flex flex-col gap-1.5">
+    <div class="flex flex-col gap-1.5 draft-chem-report">
       ${chemReport.map(item => {
         const isGood = item.startsWith('🟢');
-        return `<div class="rounded-lg px-2.5 py-1.5 text-xs font-medium border"
+        return `<div class="rounded-lg px-2.5 py-1.5 text-xs font-medium border draft-chem-report__item"
           style="background:${isGood ? 'var(--surface-green)' : 'var(--surface-red)'};color:${isGood ? (isDark() ? '#4ade80' : '#15803d') : (isDark() ? '#f87171' : '#dc2626')};border-color:${isGood ? (isDark() ? 'rgba(74,222,128,0.35)' : '#bbf7d0') : (isDark() ? 'rgba(248,113,113,0.35)' : '#fecaca')}">${item}</div>`;
       }).join('')}
     </div>` : `<p class="text-xs text-muted-fg">No synergies yet — keep drafting.</p>`}
