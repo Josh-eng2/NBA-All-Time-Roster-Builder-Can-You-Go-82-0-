@@ -457,12 +457,15 @@ function renderColdOpenBanner() {
   </div>`;
 }
 
+function shouldShowDraftBoard(full) {
+  if (full || !S.draftBoard?.length) return false;
+  if (S.spinState === 'done') return true;
+  return isMobileViewport() && S.spinState === 'spinning';
+}
+
 function renderDrafting() {
   if (S.mode === '1v1') return renderDrafting1v1();
   const full = rosterFull();
-  const showDraftBoard = !full && S.draftBoard?.length && (
-    S.spinState === 'done' || (isMobileViewport() && S.spinState === 'spinning')
-  );
   return `
   <div class="min-h-screen main-gradient draft-screen">
     ${renderHeader(true)}
@@ -473,7 +476,7 @@ function renderDrafting() {
         ${renderRoundBar()}
         ${renderCoachChip()}
         ${!full ? renderSlotMachine() : ''}
-        ${showDraftBoard ? renderDraftBoard() : ''}
+        ${shouldShowDraftBoard(full) ? renderDraftBoard() : ''}
         ${renderPopularityBar()}
         ${renderChemDashboard()}
         ${renderRoster()}
@@ -731,15 +734,16 @@ function renderSlotMachine() {
 // ── Draft board (full team/decade pool for the current spin) ─────────────────
 function renderDraftBoard() {
   if (!S.draftBoard || !S.draftBoard.length) return '';
-  const team     = S.currentSpin?.team;
-  const decade   = S.currentSpin?.decade;
-  const tc       = team ? TEAM_COLORS[team] : null;
-  const spinning = S.spinState === 'spinning';
+  const team    = S.currentSpin?.team;
+  const decade  = S.currentSpin?.decade;
+  const tc      = team ? TEAM_COLORS[team] : null;
+  const locked  = S.spinState === 'spinning' && isMobileViewport();
+  const fadeIn  = !isMobileViewport();
   return `
-  <div class="animate-fade-up draft-board-wrap${spinning ? ' draft-board-wrap--spinning' : ''}">
+  <div class="${fadeIn ? 'animate-fade-up ' : ''}draft-board-wrap${locked ? ' draft-board-wrap--locked' : ''}">
     <div class="flex items-center gap-2 mb-3 draft-board-wrap__head">
       ${tc ? `<span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${tc.bg}"></span>` : ''}
-      <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">${team || '—'} · ${decade || '—'}</p>
+      <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">${team} · ${decade}</p>
     </div>
     <div class="overflow-y-auto rounded-xl draft-board-scroll">
       <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 pr-1 draft-board-grid">

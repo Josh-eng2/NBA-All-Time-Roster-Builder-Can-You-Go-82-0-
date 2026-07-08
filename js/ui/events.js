@@ -118,6 +118,7 @@ function dispatch(action) {
   if (action === 'skip-team')    { doSkipTeam();   return; }
   if (action === 'skip-decade')  { doSkipDecade(); return; }
   if (action.startsWith('draft-pick-')) {
+    if (S.spinState === 'spinning') return;
     const idx = parseInt(action.slice(11), 10);
     const p   = S.draftBoard[idx];
     if (!p) { render(); return; }
@@ -482,8 +483,8 @@ function placePlayer(pos) {
   logAnalyticsEvent('player_drafted', { player: player.name, pos, round: S.round });
   S.selectedPlayer = null;
 
-  // Keep the prior board visible during the next spin (mobile); doSpin replaces
-  // currentSpin and draftBoard when the new result lands.
+  // Keep the draft board panel populated until the next spin lands — mobile
+  // layout stays stable; doSpin replaces draftBoard when the result resolves.
   if (!rosterFull()) { doSpin(); return; }
 
   S.spinState        = 'idle';
