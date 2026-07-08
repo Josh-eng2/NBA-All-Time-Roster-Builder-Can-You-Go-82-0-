@@ -678,13 +678,13 @@ function renderPopularityBar() {
   return `
   <div class="rounded-xl border border-border bg-card px-4 py-3 card-shadow draft-pop-bar">
     <div class="flex items-center justify-between mb-2">
-      <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg">Team Popularity</p>
+      <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg">Fans</p>
       <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border" style="color:${barCol};background:${barCol}18;border-color:${barCol}30">${tier}${scoreLabel}</span>
     </div>
     <div class="h-1.5 rounded-full overflow-hidden bg-border">
       <div class="h-full rounded-full transition-all stat-bar-fill" style="width:${pct}%;background:${barCol}"></div>
     </div>
-    <p class="text-[10px] mt-1.5 text-muted-fg draft-pop-bar__hint">High popularity boosts home-court advantage in close games</p>
+    <p class="text-[10px] mt-1.5 text-muted-fg draft-pop-bar__hint">More fans boost home-court advantage in close games</p>
   </div>`;
 }
 
@@ -1220,7 +1220,7 @@ function renderResults() {
     const bg     = pos ? (isDark() ? 'rgba(34,197,94,0.12)' : '#f0fdf4') : (isDark() ? 'rgba(239,68,68,0.12)' : '#fef2f2');
     const border = pos ? (isDark() ? 'rgba(74,222,128,0.35)' : '#bbf7d0') : (isDark() ? 'rgba(248,113,113,0.35)' : '#fecaca');
     const color  = pos ? (isDark() ? '#4ade80' : '#15803d') : (isDark() ? '#f87171' : '#dc2626');
-    const lbl    = pos ? 'Fan Hype' : 'Low Popularity';
+    const lbl    = pos ? 'High Fans' : 'Low Fans';
     return `<span class="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full border"
       style="background:${bg};border-color:${border};color:${color}">
       ${pos ? '📈' : '📉'} ${sign}${pctImp}% Elo · ${lbl}
@@ -1324,7 +1324,7 @@ function renderResults() {
             </span>
             ${r.longestStreak >= 5 ? `<span class="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full border" style="background:#fef2f2;border-color:#fecaca;color:#dc2626">🔥 ${r.longestStreak}-game win streak</span>` : ''}
             <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full border border-border bg-slate-50 text-slate-600">
-              🌍 Global Fanbase: ${fansLabel}
+              🌍 Fans: ${fansLabel}
             </span>
             ${(() => {
               if (!r.coachBoost) return '';
@@ -1380,17 +1380,17 @@ function renderResults() {
           </div>
           <div class="flex flex-col gap-2">${chemReportHtml}</div>
         </div>
-        <!-- ── Popularity / Fan-Hype card ───────────────────────────────── -->
+        <!-- ── Fans card ───────────────────────────────────────────────── -->
         <div class="rounded-2xl border border-border bg-white p-4 card-shadow">
           <div class="flex items-center justify-between mb-3">
-            <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Fan Popularity</p>
+            <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Fans</p>
             <span class="text-xs font-bold px-2 py-0.5 rounded-full border"
               style="background:var(--surface-muted);color:${popBarCol};border-color:${popBarCol}30">${popTier}</span>
           </div>
           <!-- Popularity bar -->
           <div class="mb-3">
             <div class="flex justify-between text-xs mb-1.5">
-              <span class="text-muted-fg font-medium">Avg. Roster Popularity</span>
+              <span class="text-muted-fg font-medium">Avg. Fans</span>
               <span class="font-bold text-foreground">${avgPop}/100</span>
             </div>
             <div class="h-2 rounded-full bg-border overflow-hidden">
@@ -1400,7 +1400,7 @@ function renderResults() {
           <!-- Fanbase + Elo impact row -->
           <div class="flex gap-3 flex-wrap">
             <div class="flex-1 rounded-xl border border-border bg-slate-50 px-3 py-2.5 text-center">
-              <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg mb-1">Global Fanbase</p>
+              <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg mb-1">Total Fans</p>
               <p class="text-xl font-black text-foreground">🌍 ${fansLabel}</p>
             </div>
             <div class="flex-1 rounded-xl border px-3 py-2.5 text-center"
