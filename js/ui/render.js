@@ -54,6 +54,33 @@ function isDark() {
 function isMobileViewport() {
   return typeof window !== 'undefined' && window.matchMedia('(max-width: 639px)').matches;
 }
+
+const FANS_TEAM_MAX = 500; // 5 starters × 100 max popularity each
+
+function fansBarCol(avg, dark = isDark()) {
+  if (avg >= 80) return dark ? '#60a5fa' : '#2563eb';
+  if (avg >= 60) return dark ? '#fbbf24' : '#d97706';
+  return dark ? '#cbd5e1' : '#94a3b8';
+}
+
+function fansTierFromAvg(avg) {
+  if (!avg) return { tier: 'Draft players to build star power', barCol: '#cbd5e1' };
+  return {
+    tier:   avg >= 85 ? 'Superstar Lineup' : avg >= 70 ? 'Star Power' : avg >= 55 ? 'Solid Roster' : 'Under the Radar',
+    barCol: fansBarCol(avg, false),
+  };
+}
+
+/** Sum roster popularity for UI (max 500); avg drives tier labels. Sim logic unchanged. */
+function calcTeamFans(players) {
+  const list = players.filter(Boolean);
+  const sum  = list.reduce((s, p) => s + (p.popularity ?? 50), 0);
+  const pct  = Math.min(100, Math.round((sum / FANS_TEAM_MAX) * 100));
+  const avg  = list.length ? sum / list.length : 0;
+  const { tier, barCol } = fansTierFromAvg(avg);
+  return { sum, max: FANS_TEAM_MAX, pct, avg, count: list.length, tier, barCol };
+}
+
 function themeIcon() {
   return isDark() ? '☀️' : '🌙';
 }
@@ -666,23 +693,16 @@ function renderRoundBar() {
 }
 
 function renderPopularityBar() {
-  const drafted = Object.values(S.roster).filter(Boolean);
-  const avgPop  = drafted.length
-    ? drafted.reduce((s, p) => s + (p.popularity || 50), 0) / drafted.length
-    : 0;
-  const pct     = drafted.length ? Math.max(0, Math.round(((avgPop - 35) / 65) * 100)) : 0;
-  const barCol  = !drafted.length ? '#cbd5e1' : avgPop >= 80 ? '#2563eb' : avgPop >= 60 ? '#d97706' : '#94a3b8';
-  const tier    = !drafted.length ? 'Draft players to build star power'
-    : avgPop >= 85 ? 'Superstar Lineup' : avgPop >= 70 ? 'Star Power' : avgPop >= 55 ? 'Solid Roster' : 'Under the Radar';
-  const scoreLabel = drafted.length ? ` · ${Math.round(avgPop)}/100` : '';
+  const fans       = calcTeamFans(Object.values(S.roster));
+  const scoreLabel = fans.count ? ` · ${Math.round(fans.sum)}/${fans.max}` : '';
   return `
   <div class="rounded-xl border border-border bg-card px-4 py-3 card-shadow draft-pop-bar">
     <div class="flex items-center justify-between mb-2">
       <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg">Fans</p>
-      <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border" style="color:${barCol};background:${barCol}18;border-color:${barCol}30">${tier}${scoreLabel}</span>
+      <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border" style="color:${fans.barCol};background:${fans.barCol}18;border-color:${fans.barCol}30">${fans.tier}${scoreLabel}</span>
     </div>
     <div class="h-1.5 rounded-full overflow-hidden bg-border">
-      <div class="h-full rounded-full transition-all stat-bar-fill" style="width:${pct}%;background:${barCol}"></div>
+      <div class="h-full rounded-full transition-all stat-bar-fill" style="width:${fans.pct}%;background:${fans.barCol}"></div>
     </div>
     <p class="text-[10px] mt-1.5 text-muted-fg draft-pop-bar__hint">More fans boost home-court advantage in close games</p>
   </div>`;
@@ -1244,7 +1264,10 @@ function renderResults() {
   // ── Popularity / Fan-Hype display helpers ─────────────────────────────────
   const popDelta    = r.popEloDelta ?? 0;
   const fansM       = r.fansM       ?? 2;
-  const avgPop      = r.avgPopularity ?? 50;
+  const teamFans    = calcTeamFans(POSITIONS.map(p => S.roster[p]));
+  const popBarPct   = teamFans.pct;
+  const popBarCol   = fansBarCol(teamFans.avg);
+  const popTier     = teamFans.tier;
 
   // Threshold at 1M so values like 2.0M don't display as "2000K"
   const fansLabel = fansM >= 1
@@ -1265,10 +1288,6 @@ function renderResults() {
       ${pos ? '📈' : '📉'} ${sign}${pctImp}% Elo · ${lbl}
     </span>`;
   })();
-
-  const popBarPct  = Math.max(0, Math.round(((avgPop - 35) / 65) * 100));
-  const popBarCol  = avgPop >= 80 ? (isDark() ? '#60a5fa' : '#2563eb') : avgPop >= 60 ? (isDark() ? '#fbbf24' : '#d97706') : (isDark() ? '#cbd5e1' : '#94a3b8');
-  const popTier    = avgPop >= 85 ? 'Superstar Lineup' : avgPop >= 70 ? 'Star Power' : avgPop >= 55 ? 'Solid Roster' : 'Under the Radar';
 
   // Scaled to 5-starter sums (an elite roster reads ~85-95%): the theoretical
   // ceilings in this DB are ~187 ppg / 117 rpg / 59 apg / 16 spg / 20 bpg for
@@ -1431,8 +1450,8 @@ function renderResults() {
           <!-- Popularity bar -->
           <div class="mb-3">
             <div class="flex justify-between text-xs mb-1.5">
-              <span class="text-muted-fg font-medium">Avg. Fans</span>
-              <span class="font-bold text-foreground">${avgPop}/100</span>
+              <span class="text-muted-fg font-medium">Team Fans</span>
+              <span class="font-bold text-foreground">${Math.round(teamFans.sum)}/${teamFans.max}</span>
             </div>
             <div class="h-2 rounded-full bg-border overflow-hidden">
               <div class="h-full rounded-full stat-bar-fill" style="width:${popBarPct}%;background:${popBarCol}"></div>
