@@ -266,11 +266,11 @@ function renderModeSelect() {
   try { bestStreak = parseInt(localStorage.getItem('nba820_bestStreak') || '0', 10); } catch (e) {}
   return `
   <div class="flex flex-col min-h-screen main-gradient">
-    <header class="sticky top-0 z-50 w-full bg-white border-b border-border" style="box-shadow:0 1px 3px var(--header-shadow)">
-      <div class="mx-auto flex h-14 max-w-2xl items-center justify-between px-4">
-        <div class="w-20"></div>
-        <img src="logo-badge.svg" alt="82-0" style="height:52px;width:auto;margin-top:2px"/>
-        <div class="flex items-center gap-1.5 justify-end">
+    <header class="sticky top-0 z-50 w-full bg-white border-b border-border mode-header" style="box-shadow:0 1px 3px var(--header-shadow)">
+      <div class="mx-auto flex h-14 max-w-2xl items-center justify-between px-4 mode-header__inner">
+        <div class="w-20 mode-header__spacer"></div>
+        <img src="logo-badge.svg" alt="82-0" class="mode-header__logo" style="height:52px;width:auto;margin-top:2px"/>
+        <div class="flex items-center gap-1.5 justify-end mode-header__actions">
           <button data-action="open-leaderboard" class="text-[11px] px-2 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Personal Best">🏅</button>
           <button data-action="open-global-leaderboard" class="text-[11px] px-2 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Global Leaderboard">🌍</button>
           <button data-action="toggle-theme" class="theme-toggle" title="Toggle Dark Mode">${themeIcon()}</button>

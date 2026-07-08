@@ -280,6 +280,7 @@ body {
   display: none;
 }
 
+/* Mobile: horizontally scroll header actions so every control stays reachable */
 @media (max-width: 639px) {
   .app-header__inner {
     gap: 0.5rem;
@@ -289,6 +290,7 @@ body {
 
   .app-header__brand {
     flex-shrink: 0;
+    min-width: 0;
     font-size: 0.875rem;
   }
 
@@ -316,6 +318,10 @@ body {
 
   .header-pill--restart {
     display: none !important;
+  }
+
+  .header-pill--muted {
+    max-width: 5rem;
   }
 
   .mobile-restart-bar {
