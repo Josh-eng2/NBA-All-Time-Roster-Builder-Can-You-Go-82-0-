@@ -1345,8 +1345,8 @@ function renderResults() {
   <div class="flex flex-col min-h-screen main-gradient">
     ${renderHeader(false)}
     <main class="flex-1 flex flex-col items-center px-4 py-6">
-      <div class="w-full max-w-2xl flex flex-col gap-4 animate-fade-up">
-        <div class="rounded-2xl border-2 bg-white p-6 text-center card-shadow ${isPerfect ? 'perfect-glow' : ''}"
+      <div class="w-full max-w-2xl flex flex-col gap-4 animate-fade-up results-layout">
+        <div class="results-block--record rounded-2xl border-2 bg-white p-6 text-center card-shadow ${isPerfect ? 'perfect-glow' : ''}"
           style="border-color:${isPerfect ? '#fcd34d' : 'var(--border)'}">
           <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg mb-3">Season Record</p>
           <div class="text-7xl sm:text-8xl font-black mb-3 flex items-center justify-center gap-3 leading-none">
@@ -1380,10 +1380,8 @@ function renderResults() {
           </div>
         </div>
 
-        ${renderSaveRunCard()}
-
         <!-- Advance to Playoffs + Autopsy side by side -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="results-block--playoffs grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div class="rounded-2xl border-2 border-primary bg-white p-5 card-shadow flex flex-col justify-between">
             <div class="text-center mb-4">
               <span class="text-4xl mb-2 block">🏆</span>
@@ -1413,6 +1411,8 @@ function renderResults() {
               style="background:#dc2626">🔁 Run It Back — Fix It</button>
           </div>` : `<div></div>`}
         </div>
+
+        <div class="results-block--save">${renderSaveRunCard()}</div>
 
         <div class="rounded-2xl border border-border bg-white p-4 card-shadow">
           <div class="flex items-center justify-between mb-3">

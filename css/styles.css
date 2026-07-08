@@ -1340,3 +1340,37 @@ body {
 [data-theme="dark"] .playoff-bracket__col--f .bracket-matchup-wrap--f::before {
   background: var(--muted);
 }
+
+/* ── Results screen — responsive Submit card placement ───────── */
+.results-layout {
+  display: flex;
+  flex-direction: column;
+}
+
+.results-layout > * {
+  order: 40;
+}
+
+.results-layout > .results-block--record {
+  order: 10;
+}
+
+@media (max-width: 639px) {
+  .results-layout > .results-block--save {
+    order: 20;
+  }
+
+  .results-layout > .results-block--playoffs {
+    order: 30;
+  }
+}
+
+@media (min-width: 640px) {
+  .results-layout > .results-block--playoffs {
+    order: 20;
+  }
+
+  .results-layout > .results-block--save {
+    order: 30;
+  }
+}
