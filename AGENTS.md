@@ -35,3 +35,9 @@ Note: these scripts **mutate committed files** (`players.json`, `js/data/players
 - **Google Fonts** — loaded at runtime; falls back to system fonts if blocked. (Tailwind is no longer a runtime CDN — it's the committed static build `css/tailwind.css`, so the UI styles correctly offline.)
 - **jsDelivr confetti** — lazy-loaded by `withConfetti()` in `js/ui/render.js` only when a celebration fires; silently skipped if unreachable.
 - **Firebase Firestore/Analytics** (`js/utils/firebase.js`) — powers the *optional* global leaderboard and analytics. Every call is guarded by `isFirebaseConfigured()` and wrapped in try/catch; if unreachable it silently no-ops. The local leaderboard and trophy room use `localStorage` and always work.
+
+### Git workflow
+When shipping code changes, **always open a pull request** into `main` (do not push directly to `main`). Push a feature branch, then create the PR with `gh pr create` or the GitHub compare URL.
+
+### Git workflow
+When shipping code changes, **always open a pull request** into `main` (do not push directly to `main`). Push a feature branch, then create the PR with `gh pr create` or the GitHub compare URL.
