@@ -276,6 +276,113 @@ body {
   font-size: 10px;
 }
 
+.mobile-restart-bar {
+  display: none;
+}
+
+@media (max-width: 639px) {
+  .app-header__inner {
+    gap: 0.5rem;
+    padding: 0 0.5rem 0 0.75rem;
+    overflow: hidden;
+  }
+
+  .app-header__brand {
+    flex-shrink: 0;
+    font-size: 0.875rem;
+  }
+
+  .app-header__actions {
+    flex: 1;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+    padding: 0.2rem 0;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  .app-header__actions::-webkit-scrollbar {
+    display: none;
+  }
+
+  .app-header__actions > * {
+    flex-shrink: 0;
+  }
+
+  .header-pill--restart {
+    display: none !important;
+  }
+
+  .mobile-restart-bar {
+    display: flex;
+    justify-content: flex-end;
+    padding: 0.2rem 0.75rem 0.35rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--header-bg);
+  }
+
+  .mobile-restart-bar__btn {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    border: 1px solid var(--border);
+    background: var(--card2);
+    color: var(--muted-fg);
+    cursor: pointer;
+    line-height: 1.2;
+  }
+
+  .mode-header__inner {
+    gap: 0.375rem;
+    padding-left: 0.75rem;
+    padding-right: 0.5rem;
+    overflow: hidden;
+  }
+
+  .mode-header__spacer {
+    width: 2rem !important;
+    flex-shrink: 0;
+  }
+
+  .mode-header__logo {
+    height: 2.5rem !important;
+    margin-top: 0 !important;
+    flex-shrink: 0;
+  }
+
+  .mode-header__actions {
+    flex: 1;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+    padding: 0.2rem 0;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  .mode-header__actions::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mode-header__actions > * {
+    flex-shrink: 0;
+  }
+
+  .era-picker-anchor {
+    top: 4.35rem;
+  }
+}
+
 .era-picker-backdrop {
   position: fixed;
   inset: 0;

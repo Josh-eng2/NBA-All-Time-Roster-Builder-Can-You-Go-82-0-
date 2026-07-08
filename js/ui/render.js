@@ -211,6 +211,10 @@ function renderHeader(showRestart = false) {
       </button>`
     : `<span class="header-pill">${eraLabel}${S.eraLocked ? '<span class="header-pill__lock" aria-hidden="true">🔒</span>' : ''}</span>`;
 
+  const restartBtn = showRestart
+    ? `<button data-action="restart" type="button" class="header-pill header-pill--muted header-pill--restart">Restart</button>`
+    : '';
+
   const eraOverlay = eraPickerOpen ? `
     <div data-action="era-picker-close" class="era-picker-backdrop" aria-hidden="true"></div>
     <div class="era-picker-anchor">
@@ -231,10 +235,14 @@ function renderHeader(showRestart = false) {
           <button data-action="open-leaderboard" type="button" class="header-pill header-pill--icon" title="Personal Best">🏅</button>
           <button data-action="open-global-leaderboard" type="button" class="header-pill header-pill--icon" title="Global Leaderboard">🌍</button>
           <button data-action="toggle-theme" type="button" class="header-pill header-pill--icon" title="Toggle Dark Mode">${themeIcon()}</button>
-          ${showRestart ? `<button data-action="restart" type="button" class="header-pill header-pill--muted">Restart</button>` : ''}
+          ${restartBtn}
         </div>
       </div>
     </header>
+    ${showRestart ? `
+    <div class="mobile-restart-bar">
+      <button data-action="restart" type="button" class="mobile-restart-bar__btn">↩ Restart Run</button>
+    </div>` : ''}
     ${eraOverlay}
   </div>`;
 }
