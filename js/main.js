@@ -35,7 +35,6 @@ async function init() {
       S.mode           = 'solo';
       S.currentPlayer  = 1;
       S.p1             = null;
-      S.takenPlayerIds = new Set();
       // Always Jackson — the most legible system for a zero-context player,
       // and the rigged first GOAT immediately lights up his star meter.
       // No invisible die roll deciding the first impression.
@@ -50,9 +49,20 @@ async function init() {
 
     render();                      // returning players: normal mode-select flow
   } catch (err) {
-    // loadDatabase already updates the overlay with the error + retry button,
-    // so we only need to log here for debugging.
     console.error('[82-0] init failed:', err);
+    // Replace the "Loading players…" spinner with an actual error — otherwise
+    // a failed init leaves the overlay spinning forever with no way out.
+    const overlay = document.getElementById('loading-overlay');
+    if (overlay) {
+      overlay.innerHTML = `
+        <h1 style="font-size:22px;font-weight:900;margin:0 0 8px">Something went wrong</h1>
+        <p style="margin:0 0 20px;font-size:14px;color:var(--muted-fg);max-width:360px">
+          The game failed to start. Check your connection and try again.
+        </p>
+        <button onclick="location.reload()" style="padding:10px 24px;border-radius:12px;border:none;
+          background:var(--primary);color:#fff;font-weight:700;font-size:14px;cursor:pointer;
+          font-family:inherit">Reload</button>`;
+    }
   }
 }
 

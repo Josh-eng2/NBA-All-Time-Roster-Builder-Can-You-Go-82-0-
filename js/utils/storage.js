@@ -265,13 +265,19 @@ function _globalLbRowsHtml(entries) {
   }
   const medals = ['🥇', '🥈', '🥉'];
   return entries.map((e, i) => {
-    const isPerfect  = e.wins === 82;
+    // Firestore documents are written by anyone holding the public config, and
+    // the security rules don't validate every field — coerce all numerics
+    // before they touch innerHTML so a crafted document can't inject markup.
+    const wins       = Number(e.wins)      || 0;
+    const losses     = Number(e.losses)    || 0;
+    const chemScore  = Number(e.chemScore) || 0;
+    const isPerfect  = wins === 82;
     const rowBg      = isPerfect ? 'background:#fffbeb;border-color:#fcd34d' : 'background:var(--card3);border-color:var(--border)';
     const medal      = i < 3
       ? `<span style="font-size:18px">${medals[i]}</span>`
       : `<span style="font-size:12px;font-weight:800;color:var(--muted)">#${i + 1}</span>`;
     const name       = esc((e.teamName || 'Untitled Team').slice(0, 30));
-    const winsColor  = isPerfect ? '#b45309' : e.wins >= 70 ? '#16a34a' : e.wins >= 50 ? 'var(--primary)' : 'var(--fg)';
+    const winsColor  = isPerfect ? '#b45309' : wins >= 70 ? '#16a34a' : wins >= 50 ? 'var(--primary)' : 'var(--fg)';
     const champBadge = e.champion
       ? `<span style="font-size:10px;font-weight:900;padding:2px 7px;border-radius:999px;background:#fef3c7;color:#92400e;border:1px solid #fcd34d;white-space:nowrap">🏆 CHAMP</span>`
       : '';
@@ -287,7 +293,7 @@ function _globalLbRowsHtml(entries) {
           ${champBadge}${perfectBadge}
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          <span style="font-weight:900;font-size:15px;color:${winsColor};font-family:Fira Sans,sans-serif">${e.wins}–${e.losses}</span>
+          <span style="font-weight:900;font-size:15px;color:${winsColor};font-family:Fira Sans,sans-serif">${wins}–${losses}</span>
           ${e.coachName ? `<span style="font-size:11px;color:var(--muted-fg);font-family:Fira Sans,sans-serif">${esc(e.coachName)}</span>` : ''}
           ${e.era && e.era !== 'all' ? `<span style="font-size:11px;color:var(--muted);font-family:Fira Sans,sans-serif">${esc(e.era)}</span>` : ''}
         </div>
@@ -295,7 +301,7 @@ function _globalLbRowsHtml(entries) {
       </div>
       <div style="text-align:right;flex-shrink:0">
         <p style="font-size:10px;color:var(--muted);margin:0 0 2px;font-family:Fira Sans,sans-serif">CHEM</p>
-        <p style="font-size:13px;font-weight:800;color:var(--primary);margin:0;font-family:Fira Sans,sans-serif">${e.chemScore ?? 0}%</p>
+        <p style="font-size:13px;font-weight:800;color:var(--primary);margin:0;font-family:Fira Sans,sans-serif">${chemScore}%</p>
       </div>
     </div>`;
   }).join('');
@@ -362,8 +368,9 @@ window.switchGlobalLbTab = function (tab) {
   GLOBAL_TABS.forEach(t => {
     const btn = document.getElementById(`global-lb-tab-${t.id}`);
     if (!btn) return;
-    btn.style.background = t.id === tab ? '#2563eb' : '#f1f5f9';
-    btn.style.color      = t.id === tab ? '#ffffff' : '#64748b';
+    // CSS vars, not hardcoded hexes — must match the shell HTML in dark mode
+    btn.style.background = t.id === tab ? 'var(--primary)'    : 'var(--card2)';
+    btn.style.color      = t.id === tab ? 'var(--primary-fg)' : 'var(--muted-fg)';
   });
   const tableEl = document.getElementById('global-lb-table');
   if (tableEl) tableEl.innerHTML = _globalLbLoadingHtml();

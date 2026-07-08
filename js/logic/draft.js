@@ -65,9 +65,35 @@ export function getLegendCatalog() {
 export function getAvailablePlayers(team, decade) {
   return getPlayers(team, decade).filter(p =>
     !S.usedPlayerIds.includes(p.id) &&
-    !(S.draftedPlayerNames?.has(p.name)) &&
-    !(S.takenPlayerIds?.has(p.id))
+    !(S.draftedPlayerNames?.has(p.name))
   );
+}
+
+// ── Skip budgets ──────────────────────────────────────────────────────────────
+// Solo/HoopIQ use the shared teamSkips/decadeSkips counters; 1v1 gives each
+// drafter their own budget so one player can't burn the other's skips.
+
+/** Remaining skips for the active drafter: { team, decade }. */
+export function getSkips() {
+  if (S.mode === '1v1') {
+    return S.currentPlayer === 1
+      ? { team: S.p1TeamSkips ?? 0, decade: S.p1DecadeSkips ?? 0 }
+      : { team: S.p2TeamSkips ?? 0, decade: S.p2DecadeSkips ?? 0 };
+  }
+  return { team: S.teamSkips ?? 0, decade: S.decadeSkips ?? 0 };
+}
+
+/** Consumes one skip of the given kind for the active drafter. */
+export function useSkip(kind) {
+  const field = kind === 'team' ? 'TeamSkips' : 'DecadeSkips';
+  if (S.mode === '1v1') {
+    const key = `p${S.currentPlayer}${field}`;
+    S[key] = Math.max(0, (S[key] ?? 0) - 1);
+  } else if (kind === 'team') {
+    S.teamSkips = Math.max(0, (S.teamSkips ?? 0) - 1);
+  } else {
+    S.decadeSkips = Math.max(0, (S.decadeSkips ?? 0) - 1);
+  }
 }
 
 // ── Player tiers ──────────────────────────────────────────────────────────────

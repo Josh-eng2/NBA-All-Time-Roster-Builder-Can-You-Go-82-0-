@@ -179,9 +179,13 @@ function buildLossDiagnosis(starters, weakestStat, balancePenalty, sRatio, START
   const perPlayerBase  = STARTER_BASE[weakestStat] / 5; // expected per-starter contribution
   const rolePriority   = STAT_ROLE_PRIORITY[weakestStat] || ['PG', 'SG', 'SF', 'PF', 'C'];
 
-  // Build a position → player map for fast lookup.
+  // Build a position → player map for fast lookup. Two starters can share a
+  // natural position — keep the weaker one for the weakest stat, since the
+  // culprit search below indicts the worst contributor at each role.
   const byPos = {};
-  for (const p of starters) byPos[p.pos] = p;
+  for (const p of starters) {
+    if (!byPos[p.pos] || p[weakestStat] < byPos[p.pos][weakestStat]) byPos[p.pos] = p;
+  }
 
   // ── Step 1: find the role-priority player whose stat is below per-player baseline.
   // This is the most actionable upgrade: the "responsible" slot is underperforming.

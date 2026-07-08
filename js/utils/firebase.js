@@ -15,8 +15,17 @@
  *            allow create: if request.resource.data.wins is number
  *                          && request.resource.data.wins >= 0
  *                          && request.resource.data.wins <= 82
+ *                          && request.resource.data.losses is number
+ *                          && request.resource.data.losses >= 0
+ *                          && request.resource.data.losses <= 82
  *                          && request.resource.data.teamName is string
  *                          && request.resource.data.teamName.size() <= 30
+ *                          && request.resource.data.coachId is string
+ *                          && request.resource.data.coachId.size() <= 20
+ *                          && request.resource.data.coachName is string
+ *                          && request.resource.data.coachName.size() <= 30
+ *                          && request.resource.data.era is string
+ *                          && request.resource.data.era.size() <= 10
  *                          && request.resource.data.starters is string
  *                          && request.resource.data.starters.size() <= 100
  *                          && request.resource.data.chemScore is number
@@ -29,6 +38,11 @@
  *          }
  *        }
  *      }
+ *
+ *    NOTE: every field the client renders must be validated here — documents
+ *    can be written by anyone holding the public web config, and the modal
+ *    renders them for every visitor. The client also numeric-coerces on read
+ *    (storage.js) as defense in depth.
  *
  * 4. In Firebase Console → Project Settings → Your apps → Add web app.
  *    Copy the firebaseConfig object and paste the values into FIREBASE_CONFIG below.
@@ -135,7 +149,9 @@ export async function submitGlobalScore(entry) {
     coachName:    entry.coachName   ?? '',
     era:          entry.era         ?? 'all',
     chemScore:    entry.chemScore   ?? 0,
-    starters:     entry.starters    ?? '',
+    // Rules cap starters at 100 chars — truncate here too so a long-named
+    // roster can never fail the whole write.
+    starters:    (entry.starters    ?? '').slice(0, 100),
     timestampMs:  entry.timestampMs ?? 0,
     timestamp:    serverTimestamp(),
     // ── FUTURE: per-run stat leaders on the GLOBAL board ──────────────────
@@ -169,8 +185,11 @@ export async function fetchLeaderboard(filter = 'alltime') {
   } else {
     const msInDay = 24 * 60 * 60 * 1000;
     const cutoff  = Date.now() - (filter === '24h' ? msInDay : 7 * msInDay);
-    // Same-field where + orderBy — no composite index required
-    q = query(col, where('timestampMs', '>', cutoff), orderBy('timestampMs', 'desc'), limit(100));
+    // Same-field where + orderBy — no composite index required. The window is
+    // fetched newest-first then re-sorted by wins client-side, so the limit
+    // bounds how many recent entries the top-10 is drawn from; 250 keeps a
+    // busy week from dropping high-win runs off the board.
+    q = query(col, where('timestampMs', '>', cutoff), orderBy('timestampMs', 'desc'), limit(250));
   }
 
   const snap    = await getDocs(q);

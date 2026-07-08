@@ -15,7 +15,7 @@ import {
   COACHES, ERA_DESC, TEAM_COLORS, ARCHETYPE_STYLE, DECADES, TEAMS, pick, SNAKE_ORDER,
 } from '../logic/state.js';
 import { calculateChemistry }                             from '../logic/chemistry.js';
-import { rosterFull, availableDecades, getLegendCatalog } from '../logic/draft.js';
+import { rosterFull, availableDecades, getLegendCatalog, getSkips } from '../logic/draft.js';
 import { coachSystemProgress }                            from '../logic/simulation.js';
 import { getBracketDisplayState }                         from '../logic/playoffs.js';
 import { markReturning, getCollectedLegends }             from '../utils/storage.js';
@@ -123,17 +123,32 @@ export function withConfetti(fire) {
   _confettiLoading.then(() => { if (typeof confetti !== 'undefined') fire(); });
 }
 
+// Toasts live in a shared flex column so simultaneous ones stack instead of
+// overlapping at the same fixed spot (e.g. streak milestone + personal best).
+function toastContainer() {
+  let c = document.getElementById('toast-container');
+  if (!c) {
+    c = document.createElement('div');
+    c.id = 'toast-container';
+    c.style.cssText =
+      'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);' +
+      'display:flex;flex-direction:column-reverse;align-items:center;gap:8px;' +
+      'z-index:99999;pointer-events:none';
+    document.body.appendChild(c);
+  }
+  return c;
+}
+
 export function showToast(msg, duration = 2500) {
   const el = document.createElement('div');
   el.textContent = msg;
   const bg = isDark() ? '#f1f5f9' : '#0f172a';
   const fg = isDark() ? '#0f172a' : '#fff';
   el.style.cssText =
-    `position:fixed;bottom:24px;left:50%;transform:translateX(-50%);` +
     `background:${bg};color:${fg};font-family:Fira Sans,sans-serif;font-weight:700;` +
-    `font-size:13px;padding:10px 20px;border-radius:999px;z-index:99999;` +
+    `font-size:13px;padding:10px 20px;border-radius:999px;` +
     `box-shadow:0 4px 24px rgba(0,0,0,0.2);transition:opacity 0.3s;white-space:nowrap`;
-  document.body.appendChild(el);
+  toastContainer().appendChild(el);
   setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 350); }, duration);
 }
 
@@ -662,13 +677,17 @@ function renderSlotMachine() {
     : (S.selectedEra || 'all');
   const eraLocked = activeEra !== 'all';
   const decPool   = availableDecades();
+  const skips = getSkips();
+  const boardLabel = S.mode === '1v1'
+    ? `Pick ${S.p1Round + S.p2Round + 1} of ${SNAKE_ORDER.length}`
+    : `Round ${S.round + 1}`;
   return `
   <div class="rounded-2xl border border-border bg-card p-4 animate-scale-in card-shadow">
     <div class="flex items-center gap-2 mb-3">
-      <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Draft Board — Round ${S.round + 1}</p>
+      <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Draft Board — ${boardLabel}</p>
       <div class="ml-auto flex gap-1.5">
-        ${isDone && S.teamSkips > 0 ? `<button data-action="skip-team" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">Skip Team (${S.teamSkips})</button>` : ''}
-        ${isDone && S.decadeSkips > 0 && !eraLocked ? `<button data-action="skip-decade" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">Skip Era (${S.decadeSkips})</button>` : ''}      </div>
+        ${isDone && skips.team > 0 ? `<button data-action="skip-team" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">Skip Team (${skips.team})</button>` : ''}
+        ${isDone && skips.decade > 0 && !eraLocked ? `<button data-action="skip-decade" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">Skip Era (${skips.decade})</button>` : ''}      </div>
     </div>
     <div class="grid grid-cols-2 gap-3 mb-4 ${isSpin ? 'slot-spinning' : ''}">
       <div class="rounded-xl border-2 p-4 flex flex-col items-center justify-center min-h-[88px] transition-all"
@@ -724,8 +743,7 @@ function renderDraftBoard() {
 
 function renderDraftCard(p, index) {
   const alreadyOnRoster = S.draftedPlayerNames?.has(p.name) ?? false;
-  const takenByP1       = !alreadyOnRoster && (S.takenPlayerIds?.has(p.id) ?? false);
-  const unavailable     = alreadyOnRoster || takenByP1;
+  const unavailable     = alreadyOnRoster;
   const isSelected      = !unavailable && S.selectedPlayer?.id === p.id;
   const cardBorder      = unavailable ? 'var(--border)' : isSelected ? 'var(--primary)' : 'var(--border)';
   const cardBg          = unavailable ? 'var(--card3)' : isSelected ? 'var(--card2)' : 'var(--card)';
@@ -742,8 +760,6 @@ function renderDraftCard(p, index) {
     <div class="px-3 pb-3">
       ${alreadyOnRoster
         ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs" style="background:var(--card2);color:var(--muted);border:1.5px solid var(--border);cursor:not-allowed">Already on Roster</button>`
-        : takenByP1
-        ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs" style="background:#fef2f2;color:#dc2626;border:1.5px solid #fecaca;cursor:not-allowed">Taken by Player 1</button>`
         : `<button data-action="draft-pick-${index}"
             class="w-full py-2 rounded-lg font-bold text-xs transition-all cursor-pointer"
             style="background:${isSelected ? 'var(--primary)' : 'var(--card2)'};color:${isSelected ? 'var(--primary-fg)' : 'var(--primary)'};border:1.5px solid ${isSelected ? 'var(--primary)' : '#bfdbfe'}">
@@ -776,8 +792,6 @@ function renderDraftCard(p, index) {
     <div class="px-3 pb-3">
       ${alreadyOnRoster
         ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs" style="background:var(--card2);color:var(--muted);border:1.5px solid var(--border);cursor:not-allowed">Already on Roster</button>`
-        : takenByP1
-        ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs" style="background:#fef2f2;color:#dc2626;border:1.5px solid #fecaca;cursor:not-allowed">Taken by Player 1</button>`
         : `<button data-action="draft-pick-${index}"
             class="w-full py-2 rounded-lg font-bold text-xs transition-all cursor-pointer"
             style="background:${isSelected ? 'var(--primary)' : 'var(--card2)'};color:${isSelected ? 'var(--primary-fg)' : 'var(--primary)'};border:1.5px solid ${isSelected ? 'var(--primary)' : '#bfdbfe'}">
@@ -805,10 +819,8 @@ function renderRoster() {
 }
 
 function renderRosterSlot(pos, canPlace) {
-  const p             = S.roster[pos];
-  const isMoveSrc     = S.movingPos === pos;
-  const hasMoveActive = !!S.movingPos;
-  const label         = pos;
+  const p     = S.roster[pos];
+  const label = pos;
 
   if (p) {
     const fitType  = p.pos === pos ? 'primary' : (p.secondaryPos || []).includes(pos) ? 'flex' : 'place';
@@ -828,21 +840,23 @@ function renderRosterSlot(pos, canPlace) {
     </div>`;
   }
 
-  // Empty slot — droppable when placing a draft pick OR moving a roster player
-  const canDrop      = canPlace || hasMoveActive;
+  // Empty slot — droppable when placing a draft pick.
+  // HoopIQ hides the Primary/Flex hints: highlighting the selected player's
+  // natural slots would leak the position the mode asks you to know.
+  const canDrop      = canPlace;
   const sp           = S.selectedPlayer;
-  const primaryMatch = !hasMoveActive && canDrop && sp && sp.pos === pos;
-  const flexMatch    = !hasMoveActive && canDrop && sp && !primaryMatch &&
+  const showFit      = S.mode !== 'blind';
+  const primaryMatch = showFit && canDrop && sp && sp.pos === pos;
+  const flexMatch    = showFit && canDrop && sp && !primaryMatch &&
     (sp.secondaryPos || []).includes(pos);
-  const action       = canDrop ? (hasMoveActive ? `swap-${pos}` : `place-${pos}`) : '';
 
   const slotBg     = !canDrop ? 'var(--card3)' : (isDark() ? 'rgba(239,68,68,0.08)' : '#fff1f2');
   const slotBorder = !canDrop ? 'var(--border)' : (primaryMatch ? (isDark() ? '#4ade80' : '#86efac') : flexMatch ? (isDark() ? '#fbbf24' : '#fde68a') : (isDark() ? '#f87171' : '#fca5a5'));
   const slotColor  = !canDrop ? 'var(--muted)' : (primaryMatch ? (isDark() ? '#4ade80' : '#16a34a') : flexMatch ? (isDark() ? '#fbbf24' : '#d97706') : (isDark() ? '#f87171' : '#dc2626'));
-  const slotText   = !canDrop ? 'Empty' : (hasMoveActive ? 'Move Here' : primaryMatch ? 'Primary' : flexMatch ? 'Flex' : 'Place');
+  const slotText   = !canDrop ? 'Empty' : primaryMatch ? 'Primary' : flexMatch ? 'Flex' : 'Place';
 
   return `
-  <div data-action="${action}"
+  <div ${canDrop ? `data-action="place-${pos}"` : ''}
     class="rounded-xl border-2 border-dashed p-2 flex flex-col items-center gap-1 text-center transition-all ${canDrop ? 'slot-empty droppable' : ''}"
     style="background:${slotBg};border-color:${slotBorder}">
     <span class="text-[10px] font-black uppercase" style="color:${slotColor}">${label}</span>
@@ -853,7 +867,8 @@ function renderRosterSlot(pos, canPlace) {
 // ── Live Chemistry Dashboard ──────────────────────────────────────────────────
 function renderChemDashboard() {
   const starters = POSITIONS.map(p => S.roster[p]).filter(Boolean);
-  const rosterKey = starters.map(p => p.id).join(',');
+  // Coach is part of the key — amplifiers change the report for the same roster.
+  const rosterKey = (S.coach || '') + '|' + starters.map(p => p.id).join(',');
   if (_chemCache.key !== rosterKey) {
     _chemCache.key    = rosterKey;
     _chemCache.result = calculateChemistry(starters);
@@ -896,10 +911,10 @@ function renderSimulateCard() {
   const btnColor = is1v1 && isP1 ? '#d97706' : '#2563eb';
   const btnHover = is1v1 && isP1 ? '#b45309' : '#1d4ed8';
   const subtitle = is1v1 && isP1
-    ? 'All 7 spots locked in. Hand the device to Player 2.'
+    ? 'All 5 spots locked in. Hand the device to Player 2.'
     : is1v1
     ? 'Both rosters set. Time to settle it on the court.'
-    : 'All 7 spots locked in. Ready to run the season.';
+    : 'All 5 spots locked in. Ready to run the season.';
   return `
   <div class="rounded-2xl border-2 border-primary bg-white p-5 text-center animate-scale-in card-shadow" style="border-color:${btnColor}20">
     <div class="flex justify-center mb-3">${iconBall('h-10 w-10 text-primary')}</div>
@@ -916,39 +931,30 @@ function renderSimulateCard() {
 // ── Results screen ────────────────────────────────────────────────────────────
 // ── Loss autopsy ──────────────────────────────────────────────────────────────
 // Attribution priority order:
-//   1. Out-of-position starter   — direct mechanical mismatch
-//   2. Balance penalty (≥ 0.03)  — the engine's primary loss driver, takes
+//   1. Balance penalty (≥ 0.03)  — the engine's primary loss driver, takes
 //      precedence over chemistry so the player gets the real fix signal first
-//   3. Chemistry penalty         — secondary structural issue
-//   4. Balance penalty (< 0.03)  — minor but still real
-//   5. Balanced-but-not-elite    — honest catch-all
+//   2. Chemistry penalty         — secondary structural issue
+//   3. Balance penalty (< 0.03)  — minor but still real
+//   4. Balanced-but-not-elite    — honest catch-all
+//
+// NOTE: roster-slot placement is deliberately NOT diagnosed. The engine
+// auto-optimizes the floor assignment (chemistry.js optimizeLineup), so where
+// the user parked a player has zero effect on the simulation — blaming an
+// "out of position" placement would be advice that changes nothing.
 //
 // The engine packages `S.result.lossDiagnosis` with position-aware culprit
 // selection. This function renders that diagnosis verbatim — no re-derivation.
 export function computeAutopsy() {
   if (!S.result || !S.roster) return null;
 
-  // ── 1. Out-of-position ─────────────────────────────────────────────────────
-  for (const pos of POSITIONS) {
-    const p = S.roster[pos];
-    if (p && p.pos !== pos && !(p.secondaryPos || []).includes(pos)) {
-      return {
-        icon:   '🎯',
-        title:  `${p.name} played out of position all season`,
-        detail: `He's a natural ${p.pos} forced to hold down ${pos} every night. That positional mismatch bled losses from game one.`,
-        fix:    `Draft a true ${pos} next run — one swap closes the gap.`,
-      };
-    }
-  }
-
   const d = S.result.lossDiagnosis;
 
-  // ── 2. Significant balance penalty (≥ 0.03 strength units) ────────────────
+  // ── 1. Significant balance penalty (≥ 0.03 strength units) ────────────────
   // This is the engine's primary loss mechanism. It fires before chemistry so
   // players get the real fix signal, not a secondary structural note.
   if (d && d.penaltyAmount >= 0.03) return _renderBalanceDiagnosis(d);
 
-  // ── 3. Chemistry penalty ───────────────────────────────────────────────────
+  // ── 2. Chemistry penalty ───────────────────────────────────────────────────
   const chemPenalty = (S.result.chemReport || []).find(l => l.startsWith('🔴'));
   if (chemPenalty) {
     return {
@@ -959,10 +965,10 @@ export function computeAutopsy() {
     };
   }
 
-  // ── 4. Minor balance penalty (> 0 but < 0.03) ─────────────────────────────
+  // ── 3. Minor balance penalty (> 0 but < 0.03) ─────────────────────────────
   if (d && d.penaltyAmount > 0) return _renderBalanceDiagnosis(d);
 
-  // ── 5. Balanced but not elite anywhere ────────────────────────────────────
+  // ── 4. Balanced but not elite anywhere ────────────────────────────────────
   return {
     icon:   '📊',
     title:  'No single flaw — just not championship-caliber yet',
@@ -1197,7 +1203,10 @@ function renderResults() {
   const popBarCol  = avgPop >= 80 ? (isDark() ? '#60a5fa' : '#2563eb') : avgPop >= 60 ? (isDark() ? '#fbbf24' : '#d97706') : (isDark() ? '#cbd5e1' : '#94a3b8');
   const popTier    = avgPop >= 85 ? 'Superstar Lineup' : avgPop >= 70 ? 'Star Power' : avgPop >= 55 ? 'Solid Roster' : 'Under the Radar';
 
-  const maxes = { ppg: 280, rpg: 120, apg: 75, spg: 22, bpg: 18 };
+  // Scaled to 5-starter sums (an elite roster reads ~85-95%): the theoretical
+  // ceilings in this DB are ~187 ppg / 117 rpg / 59 apg / 16 spg / 20 bpg for
+  // the five best per category — unreachable simultaneously.
+  const maxes = { ppg: 150, rpg: 65, apg: 40, spg: 10, bpg: 10 };
   const statBar = (key, lbl, val) => {
     const pct   = Math.min(100, (val / maxes[key]) * 100);
     const color = pct >= 70 ? (isDark() ? '#60a5fa' : '#2563eb') : pct >= 45 ? (isDark() ? '#fbbf24' : '#d97706') : (isDark() ? '#cbd5e1' : '#94a3b8');
@@ -1512,7 +1521,7 @@ function renderGlobalSubmitCard(champion) {
   const label    = champion ? 'Submit Championship Run' : 'Submit Season Record';
   const subLabel = champion ? 'Your championship goes on the global board' : 'Share your season results with the world';
   const errorHtml = S.globalSubmitError
-    ? `<p class="text-xs text-red-500 mt-2">⚠️ ${S.globalSubmitError}
+    ? `<p class="text-xs text-red-500 mt-2">⚠️ ${esc(S.globalSubmitError)}
         &nbsp;<button data-action="submit-global" class="underline cursor-pointer font-bold">Retry</button></p>`
     : '';
 
@@ -1929,10 +1938,14 @@ function renderSeriesResult() {
     return `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full border" style="color:${c};background:${bg};border-color:${c}30">Chem ${sc}%</span>`;
   };
 
-  // fire confetti for the winner (lazy-loads the library on first use)
-  setTimeout(() => {
-    withConfetti(() => confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 }, colors: p1Win ? ['#2563eb','#93c5fd','#ffffff'] : ['#d97706','#fde68a','#ffffff'] }));
-  }, 150);
+  // Fire confetti for the winner — once per series, not on every re-render
+  // of this screen (e.g. a theme toggle would otherwise replay it).
+  if (!S.seriesConfettiFired) {
+    S.seriesConfettiFired = true;
+    setTimeout(() => {
+      withConfetti(() => confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 }, colors: p1Win ? ['#2563eb','#93c5fd','#ffffff'] : ['#d97706','#fde68a','#ffffff'] }));
+    }, 150);
+  }
 
   return `
   <div class="flex flex-col min-h-screen main-gradient">
