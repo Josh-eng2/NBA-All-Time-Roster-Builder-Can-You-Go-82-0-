@@ -488,7 +488,7 @@ function renderDrafting() {
         ${!full ? renderSlotMachine() : ''}
         ${shouldShowDraftBoard(full) ? renderDraftBoard() : ''}
         ${renderPopularityBar()}
-        ${renderChemDashboard()}
+        ${!isMobileViewport() ? renderChemDashboard() : ''}
         ${renderRoster()}
       </div>
     </main>
