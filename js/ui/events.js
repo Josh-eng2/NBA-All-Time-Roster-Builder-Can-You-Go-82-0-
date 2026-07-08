@@ -480,15 +480,16 @@ function placePlayer(pos) {
   S.draftedPlayerNames?.add(player.name);
   S.round++;
   logAnalyticsEvent('player_drafted', { player: player.name, pos, round: S.round });
+  S.selectedPlayer = null;
+
+  // Keep the prior board visible during the next spin (mobile); doSpin replaces
+  // currentSpin and draftBoard when the new result lands.
+  if (!rosterFull()) { doSpin(); return; }
+
   S.spinState        = 'idle';
   S.currentSpin      = null;
   S.availablePlayers = [];
   S.draftBoard       = [];
-  S.selectedPlayer   = null;
-
-  // No idle state mid-run: the next wheel starts turning the moment a pick
-  // lands, so there is always a pending decision on screen.
-  if (!rosterFull()) { doSpin(); return; }
   render();
 }
 

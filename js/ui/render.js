@@ -50,6 +50,10 @@ function iconCheck(cls = '') {
 function isDark() {
   return document.documentElement.getAttribute('data-theme') === 'dark';
 }
+
+function isMobileViewport() {
+  return typeof window !== 'undefined' && window.matchMedia('(max-width: 639px)').matches;
+}
 function themeIcon() {
   return isDark() ? '☀️' : '🌙';
 }
@@ -456,6 +460,9 @@ function renderColdOpenBanner() {
 function renderDrafting() {
   if (S.mode === '1v1') return renderDrafting1v1();
   const full = rosterFull();
+  const showDraftBoard = !full && S.draftBoard?.length && (
+    S.spinState === 'done' || (isMobileViewport() && S.spinState === 'spinning')
+  );
   return `
   <div class="min-h-screen main-gradient draft-screen">
     ${renderHeader(true)}
@@ -466,7 +473,7 @@ function renderDrafting() {
         ${renderRoundBar()}
         ${renderCoachChip()}
         ${!full ? renderSlotMachine() : ''}
-        ${!full && S.spinState === 'done' ? renderDraftBoard() : ''}
+        ${showDraftBoard ? renderDraftBoard() : ''}
         ${renderPopularityBar()}
         ${renderChemDashboard()}
         ${renderRoster()}
@@ -724,17 +731,18 @@ function renderSlotMachine() {
 // ── Draft board (full team/decade pool for the current spin) ─────────────────
 function renderDraftBoard() {
   if (!S.draftBoard || !S.draftBoard.length) return '';
-  const team   = S.currentSpin?.team;
-  const decade = S.currentSpin?.decade;
-  const tc     = team ? TEAM_COLORS[team] : null;
+  const team     = S.currentSpin?.team;
+  const decade   = S.currentSpin?.decade;
+  const tc       = team ? TEAM_COLORS[team] : null;
+  const spinning = S.spinState === 'spinning';
   return `
-  <div class="animate-fade-up draft-board-wrap">
+  <div class="animate-fade-up draft-board-wrap${spinning ? ' draft-board-wrap--spinning' : ''}">
     <div class="flex items-center gap-2 mb-3 draft-board-wrap__head">
       ${tc ? `<span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${tc.bg}"></span>` : ''}
-      <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">${team} · ${decade}</p>
+      <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">${team || '—'} · ${decade || '—'}</p>
     </div>
     <div class="overflow-y-auto rounded-xl draft-board-scroll">
-      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 pr-1">
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 pr-1 draft-board-grid">
         ${S.draftBoard.map((p, i) => renderDraftCard(p, i)).join('')}
       </div>
     </div>
@@ -748,6 +756,9 @@ function renderDraftCard(p, index) {
   const cardBorder      = unavailable ? 'var(--border)' : isSelected ? 'var(--primary)' : 'var(--border)';
   const cardBg          = unavailable ? 'var(--card3)' : isSelected ? 'var(--card2)' : 'var(--card)';
   const cardOpacity     = unavailable ? 'opacity:0.5;' : '';
+  const pickLabel       = isMobileViewport()
+    ? (isSelected ? '✓ Selected' : 'Draft')
+    : (isSelected ? '✓ Selected — Tap a Roster Slot' : 'Draft Player');
 
   // HoopIQ — name only, no stats or position hints
   if (S.mode === 'blind') {
@@ -763,7 +774,7 @@ function renderDraftCard(p, index) {
         : `<button data-action="draft-pick-${index}"
             class="w-full py-2 rounded-lg font-bold text-xs transition-all cursor-pointer draft-card-btn"
             style="background:${isSelected ? 'var(--primary)' : 'var(--card2)'};color:${isSelected ? 'var(--primary-fg)' : 'var(--primary)'};border:1.5px solid ${isSelected ? 'var(--primary)' : '#bfdbfe'}">
-            ${isSelected ? '✓ Selected — Tap a Roster Slot' : 'Draft Player'}
+            ${pickLabel}
           </button>`
       }
     </div>
@@ -795,7 +806,7 @@ function renderDraftCard(p, index) {
         : `<button data-action="draft-pick-${index}"
             class="w-full py-2 rounded-lg font-bold text-xs transition-all cursor-pointer draft-card-btn"
             style="background:${isSelected ? 'var(--primary)' : 'var(--card2)'};color:${isSelected ? 'var(--primary-fg)' : 'var(--primary)'};border:1.5px solid ${isSelected ? 'var(--primary)' : '#bfdbfe'}">
-            ${isSelected ? '✓ Selected — Tap a Roster Slot' : 'Draft Player'}
+            ${pickLabel}
           </button>`
       }
     </div>
