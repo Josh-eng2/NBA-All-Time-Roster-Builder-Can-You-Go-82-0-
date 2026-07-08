@@ -810,6 +810,19 @@ body {
     gap: 0.3rem !important;
   }
 
+  .draft-board-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .draft-board-wrap--spinning {
+    opacity: 0.72;
+    pointer-events: none;
+  }
+
+  .draft-board-wrap--spinning .draft-card-btn {
+    cursor: not-allowed !important;
+  }
+
   .draft-card .draft-card-body {
     padding: 0.3rem 0.35rem !important;
   }
