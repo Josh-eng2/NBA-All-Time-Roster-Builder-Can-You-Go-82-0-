@@ -249,7 +249,7 @@ export function confirmLeave(fn) {
 // ── Draft mechanics ───────────────────────────────────────────────────────────
 
 export function doSpin() {
-  if (S.spinState !== 'idle') return;
+  if (S.spinState === 'spinning') return;
 
   // First spin commits the coach — the system is chosen with zero players
   // seen, so the system meter is an objective rather than a post-hoc score.
@@ -266,6 +266,7 @@ export function doSpin() {
 
   S.spinState      = 'spinning';
   S.selectedPlayer = null;
+  S.draftBoard     = [];
   render();
 
   const activeEra  = S.mode === '1v1'
@@ -361,7 +362,9 @@ function updateDryCounter() {
  * @param {boolean} tumbleDecade
  */
 function animateSkipReveal(spin, tumbleTeam, tumbleDecade) {
-  S.spinState = 'spinning';
+  S.spinState      = 'spinning';
+  S.selectedPlayer = null;
+  S.draftBoard     = [];
   render();
   const spinGameId = S.gameId; // guards against a mid-spin restart
   let ticks = 0;
@@ -483,8 +486,6 @@ function placePlayer(pos) {
   logAnalyticsEvent('player_drafted', { player: player.name, pos, round: S.round });
   S.selectedPlayer = null;
 
-  // Keep the draft board panel populated until the next spin lands — mobile
-  // layout stays stable; doSpin replaces draftBoard when the result resolves.
   if (!rosterFull()) { doSpin(); return; }
 
   S.spinState        = 'idle';

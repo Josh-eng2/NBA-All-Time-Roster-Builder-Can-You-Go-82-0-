@@ -458,9 +458,11 @@ function renderColdOpenBanner() {
 }
 
 function shouldShowDraftBoard(full) {
-  if (full || !S.draftBoard?.length) return false;
-  if (S.spinState === 'done') return true;
-  return isMobileViewport() && S.spinState === 'spinning';
+  if (full) return false;
+  if (S.spinState === 'done' && S.draftBoard?.length) return true;
+  // Mobile: keep the empty board frame during spin (after first pick landed)
+  if (isMobileViewport() && S.spinState === 'spinning' && S.round > 0) return true;
+  return false;
 }
 
 function renderDrafting() {
@@ -733,21 +735,24 @@ function renderSlotMachine() {
 
 // ── Draft board (full team/decade pool for the current spin) ─────────────────
 function renderDraftBoard() {
-  if (!S.draftBoard || !S.draftBoard.length) return '';
+  const isShell = isMobileViewport() && S.spinState === 'spinning' && (!S.draftBoard || !S.draftBoard.length);
+  if ((!S.draftBoard || !S.draftBoard.length) && !isShell) return '';
   const team    = S.currentSpin?.team;
   const decade  = S.currentSpin?.decade;
   const tc      = team ? TEAM_COLORS[team] : null;
-  const locked  = S.spinState === 'spinning' && isMobileViewport();
   const fadeIn  = !isMobileViewport();
+  const cards   = S.draftBoard?.length
+    ? S.draftBoard.map((p, i) => renderDraftCard(p, i)).join('')
+    : '';
   return `
-  <div class="${fadeIn ? 'animate-fade-up ' : ''}draft-board-wrap${locked ? ' draft-board-wrap--locked' : ''}">
+  <div class="${fadeIn ? 'animate-fade-up ' : ''}draft-board-wrap">
     <div class="flex items-center gap-2 mb-3 draft-board-wrap__head">
       ${tc ? `<span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${tc.bg}"></span>` : ''}
-      <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">${team} · ${decade}</p>
+      <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">${team || '—'} · ${decade || '—'}</p>
     </div>
-    <div class="overflow-y-auto rounded-xl draft-board-scroll">
+    <div class="overflow-y-auto rounded-xl draft-board-scroll${isShell ? ' draft-board-scroll--shell' : ''}">
       <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 pr-1 draft-board-grid">
-        ${S.draftBoard.map((p, i) => renderDraftCard(p, i)).join('')}
+        ${cards}
       </div>
     </div>
   </div>`;

@@ -895,8 +895,13 @@ body {
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
   }
 
-  .draft-board-wrap--locked {
-    pointer-events: none;
+  .draft-board-scroll {
+    border: 1px solid var(--border);
+    background: var(--card);
+  }
+
+  .draft-board-scroll--shell {
+    min-height: 5.5rem;
   }
 
   .draft-card .draft-card-body {
