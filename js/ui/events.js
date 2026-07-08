@@ -25,7 +25,7 @@ import {
   showLeaderboardModal, closeLeaderboardModal,
   showGlobalLeaderboardModal, closeGlobalLeaderboardModal,
 } from '../utils/storage.js';
-import { submitGlobalScore, logAnalyticsEvent } from '../utils/firebase.js';
+import { submitGlobalScore, logAnalyticsEvent, isFirebaseConfigured } from '../utils/firebase.js';
 import {
   render, $app, fmtPlayerLine, fmtDecadeShort, showToast, renderSeasonTickerRows,
   computeAutopsy, liveStreakLabel, withConfetti,
@@ -767,13 +767,49 @@ function updateSeasonSimDOM() {
   }
 }
 
-function doSaveRun() {
+function buildGlobalScorePayload() {
+  const coachObj = S.coach ? COACHES.find(c => c.id === S.coach) : null;
+  const r        = S.result;
+  return {
+    teamName:    S.teamName,
+    wins:        r.wins,
+    losses:      r.losses,
+    champion:    S.playoffs?.champion ?? false,
+    coachId:     S.coach       ?? '',
+    coachName:   coachObj?.name  ?? '',
+    era:         S.selectedEra ?? 'all',
+    chemScore:   Math.round(r.chemScore ?? 0),
+    starters:    POSITIONS.map(p => S.roster[p]?.name || '—').join(', ').slice(0, 100),
+    timestampMs: Date.now(),
+  };
+}
+
+async function doSaveRun() {
+  if (_submittingGlobal) return;
   const input = document.getElementById('team-name-input');
   const raw   = input ? input.value.trim() : '';
   S.teamName  = raw.slice(0, 20) || 'Untitled Team';
   S.runSaved  = true;
   saveLeaderboard();
-  showToast('✅ Saved to Leaderboard!');
+
+  let globalOk = false;
+  if (isFirebaseConfigured() && !S.globalScoreSubmitted) {
+    _submittingGlobal = true;
+    try {
+      await submitGlobalScore(buildGlobalScorePayload());
+      S.globalScoreSubmitted = true;
+      S.globalSubmitError    = null;
+      globalOk               = true;
+    } catch (err) {
+      S.globalSubmitError = err.message || 'Global submit failed — check your connection.';
+    } finally {
+      _submittingGlobal = false;
+    }
+  }
+
+  if (globalOk)                    showToast('✅ Submitted to personal & global leaderboards!');
+  else if (S.globalSubmitError)    showToast('✅ Saved locally · global submit failed');
+  else                             showToast('✅ Saved to your personal leaderboard!');
   render();
 }
 
@@ -797,25 +833,8 @@ async function doSubmitGlobal() {
     btn.style.cursor     = 'not-allowed';
   }
 
-  const coachObj = S.coach ? COACHES.find(c => c.id === S.coach) : null;
-  const r        = S.result;
-  const isChamp  = S.playoffs?.champion ?? false;
-
   try {
-    await submitGlobalScore({
-      teamName:    S.teamName,
-      wins:        r.wins,
-      losses:      r.losses,
-      champion:    isChamp,
-      coachId:     S.coach         ?? '',
-      coachName:   coachObj?.name  ?? '',
-      era:         S.selectedEra   ?? 'all',
-      chemScore:   Math.round(r.chemScore ?? 0),
-      // Firestore rules cap starters at 100 chars — five long names can
-      // exceed that and the whole write would be rejected.
-      starters:    POSITIONS.map(p => S.roster[p]?.name || '—').join(', ').slice(0, 100),
-      timestampMs: Date.now(),
-    });
+    await submitGlobalScore(buildGlobalScorePayload());
     S.globalScoreSubmitted = true;
     S.globalSubmitError    = null;
     render();

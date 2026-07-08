@@ -515,7 +515,7 @@ function renderDrafting() {
         ${!full ? renderSlotMachine() : ''}
         ${shouldShowDraftBoard(full) ? renderDraftBoard() : ''}
         ${renderPopularityBar()}
-        ${!isMobileViewport() ? renderChemDashboard() : ''}
+        ${renderChemDashboard()}
         ${renderRoster()}
       </div>
     </main>
@@ -943,7 +943,7 @@ function renderChemDashboard() {
         return `<div class="rounded-lg px-2.5 py-1.5 text-xs font-medium border draft-chem-report__item"
           style="background:${isGood ? 'var(--surface-green)' : 'var(--surface-red)'};color:${isGood ? (isDark() ? '#4ade80' : '#15803d') : (isDark() ? '#f87171' : '#dc2626')};border-color:${isGood ? (isDark() ? 'rgba(74,222,128,0.35)' : '#bbf7d0') : (isDark() ? 'rgba(248,113,113,0.35)' : '#fecaca')}">${item}</div>`;
       }).join('')}
-    </div>` : `<p class="text-xs text-muted-fg">No synergies yet — keep drafting.</p>`}
+    </div>` : `<p class="text-xs text-muted-fg draft-chem-report__empty">No synergies yet — keep drafting.</p>`}
   </div>`;
 }
 
@@ -1177,13 +1177,17 @@ function renderSaveRunCard() {
           ${S.runSaved ? `
           <div class="flex items-center gap-3">
             <span class="text-2xl">✅</span>
-            <div>
-              <p class="font-black text-sm text-green-700">Saved to Leaderboard!</p>
+            <div class="min-w-0 flex-1">
+              <p class="font-black text-sm text-green-700">Submitted!</p>
               <p class="text-xs text-green-600 mt-0.5">"${esc(S.teamName)}" &nbsp;·&nbsp; ${r.wins}–${r.losses}</p>
+              <p class="text-[10px] text-green-600 mt-0.5">Personal leaderboard${S.globalScoreSubmitted ? ' · Global board 🌍' : ''}</p>
             </div>
-            <button data-action="open-leaderboard" class="ml-auto text-xs font-bold px-3 py-1.5 rounded-lg border border-green-300 bg-white text-green-700 hover:bg-green-50 transition-all cursor-pointer">
-              View Board
-            </button>
+            <div class="flex flex-col gap-1.5 flex-shrink-0">
+              <button data-action="open-leaderboard" class="text-xs font-bold px-3 py-1.5 rounded-lg border border-green-300 bg-white text-green-700 hover:bg-green-50 transition-all cursor-pointer">
+                Personal
+              </button>
+              ${S.globalScoreSubmitted ? `<button data-action="open-global-leaderboard" class="text-xs font-bold px-3 py-1.5 rounded-lg border border-green-300 bg-white text-green-700 hover:bg-green-50 transition-all cursor-pointer">Global 🌍</button>` : ''}
+            </div>
           </div>` : `
           <p class="text-xs font-bold uppercase tracking-widest text-muted-fg mb-3">Save Your Run</p>
           <div class="flex gap-2">
@@ -1203,7 +1207,7 @@ function renderSaveRunCard() {
               Submit
             </button>
           </div>
-          <p class="text-[10px] text-muted-fg mt-2">Defaults to "Untitled Team" if left blank · max 20 characters</p>`}
+          <p class="text-[10px] text-muted-fg mt-2">Saves to your personal leaderboard and global board · max 20 characters</p>`}
         </div>`;
 }
 

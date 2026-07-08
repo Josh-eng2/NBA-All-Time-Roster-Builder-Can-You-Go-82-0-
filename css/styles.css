@@ -1007,6 +1007,28 @@ body {
   }
 
   .draft-chem-dashboard {
+    flex-shrink: 0;
+    padding: 0.35rem 0.5rem !important;
+  }
+
+  .draft-chem-dashboard__head {
+    margin-bottom: 0.25rem !important;
+  }
+
+  .draft-chem-dashboard__head .text-xs {
+    font-size: 0.5625rem !important;
+  }
+
+  .draft-chem-dashboard__meter {
+    margin-bottom: 0 !important;
+  }
+
+  .draft-chem-dashboard__meter .h-2 {
+    height: 0.3rem !important;
+  }
+
+  .draft-chem-report,
+  .draft-chem-report__empty {
     display: none !important;
   }
 
