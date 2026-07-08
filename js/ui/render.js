@@ -299,7 +299,7 @@ function renderModeSelect() {
           </div>
         </div>` : ''}
 
-        <!-- Classic + HoopIQ side by side -->
+        <!-- Classic + Ball Knowledge side by side -->
         <div class="grid grid-cols-2 gap-3 mb-3">
           <button data-action="mode-solo"
             class="rounded-2xl bg-white p-4 flex flex-col items-center gap-2 cursor-pointer card-shadow hover:shadow-md transition-all border border-slate-100">
@@ -312,9 +312,9 @@ function renderModeSelect() {
           <button data-action="mode-blind"
             class="rounded-2xl bg-white p-4 flex flex-col items-center gap-2 cursor-pointer card-shadow hover:shadow-md transition-all border border-slate-100">
             <span class="text-3xl" style="pointer-events:none">🧠</span>
-            <p class="font-black text-base" style="color:#f97316;pointer-events:none">HoopIQ</p>
+            <p class="font-black text-base" style="color:#f97316;pointer-events:none">Ball Knowledge</p>
             <p class="text-xs text-muted-fg text-center leading-snug flex-1" style="pointer-events:none">Names only — draft by memory and test your ball knowledge.</p>
-            <div class="w-full py-2 rounded-xl font-bold text-sm text-white text-center mt-1" style="background:#f97316;pointer-events:none">Play HoopIQ</div>
+            <div class="w-full py-2 rounded-xl font-bold text-sm text-white text-center mt-1" style="background:#f97316;pointer-events:none">Play Ball Knowledge</div>
           </button>
         </div>
 
