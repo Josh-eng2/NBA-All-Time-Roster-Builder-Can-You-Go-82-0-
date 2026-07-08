@@ -1148,6 +1148,45 @@ function renderSeasonSim() {
   </div>`;
 }
 
+function renderSaveRunCard() {
+  const r = S.result;
+  if (!r) return '';
+  return `
+        <div id="save-run-card" class="rounded-2xl border bg-white p-4 card-shadow"
+          style="border-color:${S.runSaved ? '#bbf7d0' : 'var(--border)'};background:${S.runSaved ? '#f0fdf4' : 'var(--card)'}">
+          ${S.runSaved ? `
+          <div class="flex items-center gap-3">
+            <span class="text-2xl">✅</span>
+            <div>
+              <p class="font-black text-sm text-green-700">Saved to Leaderboard!</p>
+              <p class="text-xs text-green-600 mt-0.5">"${esc(S.teamName)}" &nbsp;·&nbsp; ${r.wins}–${r.losses}</p>
+            </div>
+            <button data-action="open-leaderboard" class="ml-auto text-xs font-bold px-3 py-1.5 rounded-lg border border-green-300 bg-white text-green-700 hover:bg-green-50 transition-all cursor-pointer">
+              View Board
+            </button>
+          </div>` : `
+          <p class="text-xs font-bold uppercase tracking-widest text-muted-fg mb-3">Save Your Run</p>
+          <div class="flex gap-2">
+            <div class="flex-1 relative">
+              <input
+                id="team-name-input"
+                type="text"
+                maxlength="20"
+                value="${esc(S.teamName || '')}"
+                placeholder="Untitled Team"
+                class="w-full rounded-xl border border-border bg-white px-3 py-2.5 text-sm font-semibold text-foreground placeholder:text-muted-fg focus:outline-none focus:border-primary focus:ring-2 focus:ring-blue-100 transition-all"
+              />
+              <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-muted pointer-events-none" id="team-name-counter">20</span>
+            </div>
+            <button data-action="save-run"
+              class="flex-shrink-0 px-4 rounded-xl font-bold text-sm bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer card-shadow">
+              Save to Leaderboard
+            </button>
+          </div>
+          <p class="text-[10px] text-muted-fg mt-2">Defaults to "Untitled Team" if left blank · max 20 characters</p>`}
+        </div>`;
+}
+
 function renderResults() {
   const r          = S.result;
   const isPerfect  = r.wins === 82;
@@ -1307,6 +1346,7 @@ function renderResults() {
     ${renderHeader(false)}
     <main class="flex-1 flex flex-col items-center px-4 py-6">
       <div class="w-full max-w-2xl flex flex-col gap-4 animate-fade-up">
+        ${renderSaveRunCard()}
         <div class="rounded-2xl border-2 bg-white p-6 text-center card-shadow ${isPerfect ? 'perfect-glow' : ''}"
           style="border-color:${isPerfect ? '#fcd34d' : 'var(--border)'}">
           <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg mb-3">Season Record</p>
@@ -1456,40 +1496,6 @@ function renderResults() {
               ? r.lineupAssignment.map(({ slot, player, fit }) => rosterRow(player, slot, true, fit)).join('')
               : POSITIONS.map(pos => rosterRow(S.roster[pos], pos, true)).join('')}
           </div>
-        </div>
-        <!-- ── Save to Leaderboard card ─────────────────────────────── -->
-        <div id="save-run-card" class="rounded-2xl border bg-white p-4 card-shadow"
-          style="border-color:${S.runSaved ? '#bbf7d0' : 'var(--border)'};background:${S.runSaved ? '#f0fdf4' : 'var(--card)'}">
-          ${S.runSaved ? `
-          <div class="flex items-center gap-3">
-            <span class="text-2xl">✅</span>
-            <div>
-              <p class="font-black text-sm text-green-700">Saved to Leaderboard!</p>
-              <p class="text-xs text-green-600 mt-0.5">"${esc(S.teamName)}" &nbsp;·&nbsp; ${r.wins}–${r.losses}</p>
-            </div>
-            <button data-action="open-leaderboard" class="ml-auto text-xs font-bold px-3 py-1.5 rounded-lg border border-green-300 bg-white text-green-700 hover:bg-green-50 transition-all cursor-pointer">
-              View Board
-            </button>
-          </div>` : `
-          <p class="text-xs font-bold uppercase tracking-widest text-muted-fg mb-3">Save Your Run</p>
-          <div class="flex gap-2">
-            <div class="flex-1 relative">
-              <input
-                id="team-name-input"
-                type="text"
-                maxlength="20"
-                value="${esc(S.teamName || '')}"
-                placeholder="Untitled Team"
-                class="w-full rounded-xl border border-border bg-white px-3 py-2.5 text-sm font-semibold text-foreground placeholder:text-muted-fg focus:outline-none focus:border-primary focus:ring-2 focus:ring-blue-100 transition-all"
-              />
-              <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-muted pointer-events-none" id="team-name-counter">20</span>
-            </div>
-            <button data-action="save-run"
-              class="flex-shrink-0 px-4 rounded-xl font-bold text-sm bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer card-shadow">
-              Save
-            </button>
-          </div>
-          <p class="text-[10px] text-muted-fg mt-2">Defaults to "Untitled Team" if left blank · max 20 characters</p>`}
         </div>
         <!-- ── Action buttons ────────────────────────────────────────── -->
         <div class="grid grid-cols-2 gap-3">
