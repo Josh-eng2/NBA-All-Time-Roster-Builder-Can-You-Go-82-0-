@@ -1180,7 +1180,7 @@ function renderSaveRunCard() {
             </div>
             <button data-action="save-run"
               class="flex-shrink-0 px-4 rounded-xl font-bold text-sm bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer card-shadow">
-              Save to Leaderboard
+              Submit
             </button>
           </div>
           <p class="text-[10px] text-muted-fg mt-2">Defaults to "Untitled Team" if left blank · max 20 characters</p>`}
@@ -1346,7 +1346,6 @@ function renderResults() {
     ${renderHeader(false)}
     <main class="flex-1 flex flex-col items-center px-4 py-6">
       <div class="w-full max-w-2xl flex flex-col gap-4 animate-fade-up">
-        ${renderSaveRunCard()}
         <div class="rounded-2xl border-2 bg-white p-6 text-center card-shadow ${isPerfect ? 'perfect-glow' : ''}"
           style="border-color:${isPerfect ? '#fcd34d' : 'var(--border)'}">
           <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg mb-3">Season Record</p>
@@ -1380,6 +1379,8 @@ function renderResults() {
             ${hypeBadge}
           </div>
         </div>
+
+        ${renderSaveRunCard()}
 
         <!-- Advance to Playoffs + Autopsy side by side -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
