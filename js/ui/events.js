@@ -11,12 +11,12 @@
  */
 
 import {
-  S, startGame, startGame1v1, ALL_POSITIONS, POSITIONS,
+  S, startGame, startGame1v1, POSITIONS,
   TEAMS, DECADES, COACHES, CPU_TEAMS, pick, buildBracket, getPlayerSeed, SNAKE_ORDER,
 } from '../logic/state.js';
 import {
   spinResult, spinResultAtLeast, getAvailablePlayers, availableDecades,
-  playerTier, rosterFull,
+  playerTier, rosterFull, getSkips, useSkip,
 } from '../logic/draft.js';
 import { simulateSeason, simulateSeries, simulateHeadToHeadSeries } from '../logic/simulation.js';
 import { applyPlayoffRound } from '../logic/playoffs.js';
@@ -60,17 +60,14 @@ function dispatch(action) {
   // ── Mode selection ─────────────────────────────────────────────────────────
   if (action === 'mode-solo') {
     S.mode = 'solo'; S.currentPlayer = 1; S.p1 = null;
-    S.takenPlayerIds = new Set();
     doStartGame('all'); return;
   }
   if (action === 'mode-1v1') {
     S.mode = '1v1'; S.currentPlayer = 1; S.p1 = null;
-    S.takenPlayerIds = new Set();
     doStartGame('all'); return;
   }
   if (action === 'mode-blind') {
     S.mode = 'blind'; S.currentPlayer = 1; S.p1 = null;
-    S.takenPlayerIds = new Set();
     doStartGame('all'); return;
   }
   // ── Coach (in-draft chip) & Era (header picker) ────────────────────────────
@@ -104,14 +101,14 @@ function dispatch(action) {
 
   // ── Navigation ─────────────────────────────────────────────────────────────
   if (action === 'restart') {
-    confirmLeave(() => { S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; S.takenPlayerIds = new Set(); render(); }); return;
+    confirmLeave(() => { S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; render(); }); return;
   }
-  if (action === 'draft-new-roster') { S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; S.takenPlayerIds = new Set(); render(); return; }
+  if (action === 'draft-new-roster') { S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; render(); return; }
   if (action === 'view-trophies')    { S.phase = 'trophy-room'; render(); return; }
   if (action === 'view-legends')     { S.legendsReturnPhase = S.phase; S.phase = 'legends'; render(); return; }
   if (action === 'legends-back')     { S.phase = S.legendsReturnPhase || 'mode-select'; render(); return; }
-  if (action === 'back-to-menu')     { S.mode = null; S.phase = 'mode-select'; S.p1 = null; S.takenPlayerIds = new Set(); render(); return; }
-  if (action === 'series-play-again') { S.mode = null; S.phase = 'mode-select'; S.p1 = null; S.takenPlayerIds = new Set(); S.seriesResult = null; S.seriesRevealedCount = 0; render(); return; }
+  if (action === 'back-to-menu')     { S.mode = null; S.phase = 'mode-select'; S.p1 = null; render(); return; }
+  if (action === 'series-play-again') { S.mode = null; S.phase = 'mode-select'; S.p1 = null; S.seriesResult = null; S.seriesRevealedCount = 0; render(); return; }
   if (action === 'begin-series') { S.phase = 'series-sim'; S.seriesRevealedCount = 0; render(); return; }
   if (action === 'sim-next-game') { S.seriesRevealedCount = Math.min((S.seriesRevealedCount || 0) + 1, S.seriesResult.games.length); render(); return; }
   if (action === 'series-to-recap') { S.phase = 'series-result'; render(); return; }
@@ -127,22 +124,9 @@ function dispatch(action) {
     S.selectedPlayer = S.selectedPlayer?.id === p.id ? null : p;
     render(); return;
   }
-  if (action.startsWith('pick-')) {
-    const id = action.slice(5);
-    const p  = S.availablePlayers.find(x => x.id === id);
-    if (!p) { render(); return; }
-    S.selectedPlayer = S.selectedPlayer?.id === id ? null : p;
-    render(); return;
-  }
   if (action.startsWith('place-')) {
     const pos = action.slice(6);
     placePlayer(pos);
-    return;
-  }
-  if (action.startsWith('swap-')) {
-    const pos = action.slice(5);
-    if (S.selectedPlayer) placePlayer(pos);
-    else render();
     return;
   }
 
@@ -160,7 +144,14 @@ function dispatch(action) {
   if (action === 'advance-to-playoffs') { doAdvanceToPlayoffs(); return; }
   if (action === 'sim-next-round')      { doSimNextRound();      return; }
   if (action === 'sim-all-playoffs')    { doSimAllPlayoffs();    return; }
-  if (action === 'playoffs-continue')   { S.playoffs.pendingReveal = false; render(); return; }
+  if (action === 'playoffs-continue')   {
+    S.playoffs.pendingReveal = false;
+    render();
+    // Confetti was deferred while the filled bracket was on hold — the
+    // celebration belongs to the champion splash, not the bracket screen.
+    if (S.playoffs.champion) fireChampionConfetti();
+    return;
+  }
 
   // ── UI helpers ─────────────────────────────────────────────────────────────
   if (action === 'share')                  { doShare();                          return; }
@@ -256,17 +247,6 @@ export function confirmLeave(fn) {
 
 // ── Draft mechanics ───────────────────────────────────────────────────────────
 
-function moveRosterPlayer(fromPos, toPos) {
-  S.movingPos = null;
-  if (!ALL_POSITIONS.includes(fromPos) || !ALL_POSITIONS.includes(toPos)) { render(); return; }
-  if (fromPos === toPos) { render(); return; }
-  const a = S.roster[fromPos];
-  const b = S.roster[toPos] || null;
-  S.roster[fromPos] = b;
-  S.roster[toPos]   = a;
-  render();
-}
-
 export function doSpin() {
   if (S.spinState !== 'idle') return;
 
@@ -285,7 +265,6 @@ export function doSpin() {
 
   S.spinState      = 'spinning';
   S.selectedPlayer = null;
-  S.movingPos      = null;
   render();
 
   const activeEra  = S.mode === '1v1'
@@ -296,7 +275,9 @@ export function doSpin() {
   let ticks = 0;
   const total    = 14;
   const interval = setInterval(() => {
-    if (S.gameId !== spinGameId) { clearInterval(interval); return; }
+    // A restart to the menu keeps the same gameId, so also bail when the
+    // draft screen is gone — otherwise the final tick mutates stale state.
+    if (S.gameId !== spinGameId || S.phase !== 'drafting') { clearInterval(interval); return; }
     ticks++;
     const teamEl   = document.getElementById('slot-team');
     const decadeEl = document.getElementById('slot-decade');
@@ -385,7 +366,7 @@ function animateSkipReveal(spin, tumbleTeam, tumbleDecade) {
   let ticks = 0;
   const total = 14;
   const interval = setInterval(() => {
-    if (S.gameId !== spinGameId) { clearInterval(interval); return; }
+    if (S.gameId !== spinGameId || S.phase !== 'drafting') { clearInterval(interval); return; }
     ticks++;
     const teamEl   = document.getElementById('slot-team');
     const decadeEl = document.getElementById('slot-decade');
@@ -406,25 +387,30 @@ function animateSkipReveal(spin, tumbleTeam, tumbleDecade) {
 }
 
 function doSkipTeam() {
-  if (S.teamSkips <= 0 || !S.currentSpin || S.spinState !== 'done') { render(); return; }
-  const spin = spinResult(null, S.currentSpin.decade);
-  if (!spin) { render(); return; }
-  S.teamSkips--;
-  animateSkipReveal(spin, true, false);
+  if (getSkips().team <= 0 || !S.currentSpin || S.spinState !== 'done') { render(); return; }
+  // A skip must actually change the team — exclude the current one.
+  const pool = TEAMS.filter(t =>
+    t !== S.currentSpin.team && getAvailablePlayers(t, S.currentSpin.decade).length > 0
+  );
+  if (!pool.length) { showToast('No other team has players left in this era'); render(); return; }
+  useSkip('team');
+  animateSkipReveal({ team: pick(pool), decade: S.currentSpin.decade }, true, false);
 }
 
 function doSkipDecade() {
   const activeEra = S.mode === '1v1'
     ? (S.currentPlayer === 1 ? (S.p1Era || 'all') : (S.p2Era || 'all'))
     : (S.selectedEra || 'all');
-  if (activeEra !== 'all')                   { render(); return; }
-  if (S.decadeSkips <= 0 || !S.currentSpin)  { render(); return; }
-  const pool = availableDecades().filter(d => d !== S.currentSpin.decade);
-  if (!pool.length) { render(); return; }
-  const spin = spinResult(S.currentSpin.team, pick(pool));
-  if (!spin) { render(); return; }
-  S.decadeSkips--;
-  animateSkipReveal(spin, false, true);
+  if (activeEra !== 'all')                          { render(); return; }
+  if (getSkips().decade <= 0 || !S.currentSpin)     { render(); return; }
+  // A skip keeps the team — only land on eras where THIS team has players,
+  // so the fallback can never silently swap the franchise mid-animation.
+  const pool = availableDecades().filter(d =>
+    d !== S.currentSpin.decade && getAvailablePlayers(S.currentSpin.team, d).length > 0
+  );
+  if (!pool.length) { showToast(`No other era has ${S.currentSpin.team} players left`); render(); return; }
+  useSkip('decade');
+  animateSkipReveal({ team: S.currentSpin.team, decade: pick(pool) }, false, true);
 }
 
 function placePlayer(pos) {
@@ -650,6 +636,13 @@ function runSeasonReveal() {
         S.rivalTease = false;
         S.seasonRevealIdx++;
         render();                 // clears the banner, lands the rival row
+        // This path bypasses the batched reveal below, so fire its dramatic
+        // beats here too: the streak-ended toast and any milestone crossed.
+        const rivalGame = S.seasonGames[S.seasonRevealIdx - 1];
+        if (rivalGame?.isFirstLoss) showToast(`💔 The streak ends at ${rivalGame.streakBroken}`, 3200);
+        let rivalStreak = 0;
+        for (let i = S.seasonRevealIdx - 1; i >= 0 && S.seasonGames[i].won; i--) rivalStreak++;
+        if (STREAK_MILESTONES.includes(rivalStreak)) showToast(`🔥 ${rivalStreak} STRAIGHT WINS!`, 2200);
         setTimeout(step, 1200);   // linger on the result
       }, 1700);
       return;
@@ -815,7 +808,9 @@ async function doSubmitGlobal() {
       coachName:   coachObj?.name  ?? '',
       era:         S.selectedEra   ?? 'all',
       chemScore:   Math.round(r.chemScore ?? 0),
-      starters:    POSITIONS.map(p => S.roster[p]?.name || '—').join(', '),
+      // Firestore rules cap starters at 100 chars — five long names can
+      // exceed that and the whole write would be rejected.
+      starters:    POSITIONS.map(p => S.roster[p]?.name || '—').join(', ').slice(0, 100),
       timestampMs: Date.now(),
     });
     S.globalScoreSubmitted = true;
@@ -862,7 +857,7 @@ function doShare() {
     starterLines,
     chemLine,
     '',
-    'Can you beat it? → 82-0.com',
+    'Can you beat it? → canyougo820.com',
   ].join('\n').replace(/\n{3,}/g, '\n\n').trim();
 
   if (navigator.share) {
@@ -893,6 +888,9 @@ function onPlayoffChampion() {
     coach: S.coach ?? 'none',
     era:   S.selectedEra ?? 'all',
   });
+}
+
+function fireChampionConfetti() {
   setTimeout(() => {
     withConfetti(() => confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#f97316', '#eab308', '#ffffff'] }));
   }, 200);
@@ -948,7 +946,7 @@ function doSimNextRound() {
         const { results: r2 } = po.tickState;
         po.tickState = null;
         const outcome = applyPlayoffRound(po, r2);
-        if (outcome === 'champion') onPlayoffChampion();
+        if (outcome === 'champion') { onPlayoffChampion(); fireChampionConfetti(); }
         render();
       }, 800);
     }

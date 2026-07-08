@@ -227,7 +227,6 @@ export let S = {
   mode:           null,          // 'solo' | '1v1'
   currentPlayer:  1,             // 1 or 2 (1v1 only)
   p1:             null,          // snapshot of P1 after sequential draft (old 1v1 flow — kept for compat)
-  takenPlayerIds: new Set(),
   seriesResult:   null,
   coach:          null,
   selectedEra:    null,
@@ -249,7 +248,6 @@ export function startGame(era = 'all') {
   const mode          = S.mode;
   const currentPlayer = S.currentPlayer;
   const p1            = S.p1;
-  const takenPlayerIds = S.takenPlayerIds;
   S = {
     phase:            'drafting',
     coach,
@@ -260,7 +258,6 @@ export function startGame(era = 'all') {
     mode,
     currentPlayer,
     p1,
-    takenPlayerIds,
     seriesResult:     null,
     selectedEra:      era,
     gameId:           crypto.randomUUID(),
@@ -277,7 +274,6 @@ export function startGame(era = 'all') {
     availablePlayers: [],
     draftBoard:       [],       // pick board — all available players from the current spin's team/decade
     selectedPlayer:   null,
-    movingPos:        null,
     roster: { PG: null, SG: null, SF: null, PF: null, C: null },
     result:  null,
     playoffs: null,
@@ -319,15 +315,15 @@ export function startGame1v1() {
     usedDecades: [],
     usedPlayerIds: [],
     draftedPlayerNames: new Set(),
-    teamSkips:  1,
-    decadeSkips: 1,
+    // Per-player skip budgets — each drafter gets their own team/era skip
+    p1TeamSkips: 1, p1DecadeSkips: 1,
+    p2TeamSkips: 1, p2DecadeSkips: 1,
     drySpins:   0,
     spinState:  'idle',
     currentSpin: null,
     availablePlayers: [],
     draftBoard: [],
     selectedPlayer: null,
-    movingPos: null,
 
     // Solo-mode fields kept to avoid undefined refs
     roster: { PG: null, SG: null, SF: null, PF: null, C: null },
@@ -338,7 +334,8 @@ export function startGame1v1() {
     runSaved: false,
     globalScoreSubmitted: false,
     globalSubmitError: null,
-    takenPlayerIds: new Set(),
+    teamSkips: 0,
+    decadeSkips: 0,
     seriesResult: null,
     p1: null,
     selectedEra: null,

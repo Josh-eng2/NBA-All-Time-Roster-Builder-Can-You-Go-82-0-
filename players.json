@@ -4206,24 +4206,6 @@
       "ratingRaw": 17.5
     },
     {
-      "id": "thomas_05",
-      "name": "Jamal Crawford",
-      "pos": "SG",
-      "ppg": 14.8,
-      "rpg": 2.3,
-      "apg": 3.5,
-      "spg": 0.9,
-      "bpg": 0.2,
-      "archetype": "Slasher",
-      "traits": [
-        "Volume Shooter",
-        "Clutch"
-      ],
-      "popularity": 55,
-      "rating": 64,
-      "ratingRaw": 11.2
-    },
-    {
       "id": "curry_07",
       "name": "Eddy Curry",
       "pos": "C",
@@ -8661,7 +8643,7 @@
       "ratingRaw": 18.1
     },
     {
-      "id": "thompson_16",
+      "id": "thompson_t_16",
       "name": "Tristan Thompson",
       "pos": "C",
       "ppg": 8.1,
@@ -14107,7 +14089,7 @@
       "ratingRaw": 15.4
     },
     {
-      "id": "cassell_s_04",
+      "id": "cassell_s_06",
       "name": "Sam Cassell",
       "pos": "PG",
       "ppg": 17.8,
@@ -15044,7 +15026,7 @@
       "ratingRaw": 20.7
     },
     {
-      "id": "vandeweghe_84",
+      "id": "vandeweghe_88",
       "name": "Kiki Vandeweghe",
       "pos": "SF",
       "ppg": 24.8,
