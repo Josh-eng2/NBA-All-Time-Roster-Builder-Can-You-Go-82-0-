@@ -906,16 +906,15 @@ function renderChemDashboard() {
   const scoreBg    = chemScore >= 60 ? (isDark() ? 'rgba(34,197,94,0.12)' : '#f0fdf4')  : chemScore >= 40 ? (isDark() ? 'rgba(251,191,36,0.12)' : '#fffbeb')  : (isDark() ? 'rgba(239,68,68,0.12)' : '#fef2f2');
   const scoreLabel = chemScore >= 60 ? 'Strong'   : chemScore >= 40 ? 'Neutral'  : 'Weak';
   return `
-  <div class="rounded-2xl border border-border bg-card p-4 card-shadow draft-chem-dashboard">
-    <div class="flex items-center justify-between mb-3 draft-chem-dashboard__head">
-      <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Live Chemistry</p>
-      <span class="text-xs font-bold px-2 py-0.5 rounded-full border" style="background:${scoreBg};color:${scoreColor};border-color:${scoreColor}30">${scoreLabel} · ${chemScore}%</span>
+  <div class="rounded-xl border border-border bg-card px-4 py-3 card-shadow draft-chem-dashboard">
+    <div class="flex items-center justify-between mb-2 draft-chem-dashboard__head">
+      <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg">Live Chemistry</p>
+      <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border" style="background:${scoreBg};color:${scoreColor};border-color:${scoreColor}30">${scoreLabel} · ${chemScore}%</span>
     </div>
-    <div class="flex items-center gap-3 draft-chem-dashboard__meter">
-      <div class="flex-1 h-2 rounded-full overflow-hidden bg-border">
-        <div class="h-full rounded-full stat-bar-fill" style="width:${chemScore}%;background:${scoreColor}"></div>
-      </div>
+    <div class="h-1.5 rounded-full overflow-hidden bg-border draft-chem-dashboard__meter">
+      <div class="h-full rounded-full stat-bar-fill" style="width:${chemScore}%;background:${scoreColor}"></div>
     </div>
+    <p class="text-[10px] mt-1.5 text-muted-fg draft-chem-dashboard__hint">Strong chemistry boosts team strength all season</p>
   </div>`;
 }
 
