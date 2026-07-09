@@ -767,7 +767,7 @@ function updateSeasonSimDOM() {
   }
 }
 
-function doSaveRun() {
+async function doSaveRun() {
   const input = document.getElementById('team-name-input');
   const raw   = input ? input.value.trim() : '';
   S.teamName  = raw.slice(0, 20) || 'Untitled Team';
@@ -775,6 +775,10 @@ function doSaveRun() {
   saveLeaderboard();
   showToast('✅ Saved to Leaderboard!');
   render();
+
+  // Also post this run to the global leaderboard, reusing the same name.
+  await doSubmitGlobal();
+  if (S.globalSubmitError) showToast(`⚠️ Global board: ${S.globalSubmitError}`);
 }
 
 // ── Global leaderboard submit ─────────────────────────────────────────────────
@@ -816,8 +820,9 @@ async function doSubmitGlobal() {
       starters:    POSITIONS.map(p => S.roster[p]?.name || '—').join(', ').slice(0, 100),
       timestampMs: Date.now(),
     });
-    S.globalScoreSubmitted = true;
-    S.globalSubmitError    = null;
+    S.globalScoreSubmitted    = true;
+    S.globalSubmitError       = null;
+    S.globalSubmittedChampion = isChamp;
     render();
     showToast('🌍 You\'re on the global board!');
   } catch (err) {

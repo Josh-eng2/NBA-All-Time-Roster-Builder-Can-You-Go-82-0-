@@ -281,6 +281,7 @@ export function startGame(era = 'all') {
     runSaved: false,
     globalScoreSubmitted: false,
     globalSubmitError:    null,
+    globalSubmittedChampion: false,
 
     // Paced season reveal
     seasonGames:     [],
@@ -334,6 +335,7 @@ export function startGame1v1() {
     runSaved: false,
     globalScoreSubmitted: false,
     globalSubmitError: null,
+    globalSubmittedChampion: false,
     teamSkips: 0,
     decadeSkips: 0,
     seriesResult: null,
