@@ -1150,7 +1150,7 @@ function renderSaveRunCard() {
             <span class="text-2xl">✅</span>
             <div>
               <p class="font-black text-sm text-green-700">Saved to Leaderboard!</p>
-              <p class="text-xs text-green-600 mt-0.5">"${esc(S.teamName)}" &nbsp;·&nbsp; ${r.wins}–${r.losses}</p>
+              <p class="text-xs text-green-600 mt-0.5">"${esc(S.teamName)}" &nbsp;·&nbsp; ${r.wins}–${r.losses}${S.globalScoreSubmitted ? ' &nbsp;·&nbsp; 🌍 on Global Board' : ''}</p>
             </div>
             <button data-action="open-leaderboard" class="ml-auto text-xs font-bold px-3 py-1.5 rounded-lg border border-green-300 bg-white text-green-700 hover:bg-green-50 transition-all cursor-pointer">
               View Board
@@ -1527,7 +1527,7 @@ function renderGlobalSubmitCard(champion) {
   if (!r) return '';
 
   if (S.globalScoreSubmitted) {
-    const record = `${r.wins}–${r.losses}${champion ? ' · 🏆 Champion' : ''}`;
+    const record = `${r.wins}–${r.losses}${S.globalSubmittedChampion ? ' · 🏆 Champion' : ''}`;
     return `
     <div class="rounded-2xl border p-4 card-shadow" style="border-color:${isDark() ? 'rgba(74,222,128,0.35)' : '#bbf7d0'};background:var(--surface-green)">
       <div class="flex items-start gap-3 mb-3">
