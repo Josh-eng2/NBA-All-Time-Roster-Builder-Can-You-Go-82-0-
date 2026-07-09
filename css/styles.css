@@ -799,7 +799,9 @@ body {
   .draft-screen__inner {
     flex: 1;
     min-height: 0;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
     display: flex;
     flex-direction: column;
     gap: 0.3rem !important;
@@ -896,8 +898,7 @@ body {
   }
 
   .draft-board-wrap {
-    flex: 1 1 auto;
-    min-height: 0;
+    flex: 0 0 auto;
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -913,9 +914,8 @@ body {
   }
 
   .draft-board-scroll {
-    flex: 1 1 auto;
-    min-height: 0;
-    max-height: none;
+    flex: 0 0 auto;
+    max-height: 30vh;
     -webkit-overflow-scrolling: touch;
   }
 
