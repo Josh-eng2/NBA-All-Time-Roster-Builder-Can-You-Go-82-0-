@@ -1011,16 +1011,16 @@ body {
     padding: 0.35rem 0.5rem !important;
   }
 
-  .draft-chem-dashboard__head {
+  .draft-chem-dashboard .mb-2 {
     margin-bottom: 0.25rem !important;
   }
 
-  .draft-chem-dashboard__head .text-xs {
-    font-size: 0.5625rem !important;
+  .draft-chem-dashboard__meter {
+    height: 0.25rem !important;
   }
 
-  .draft-chem-dashboard__meter .h-2 {
-    height: 0.3rem !important;
+  .draft-chem-dashboard__hint {
+    display: none;
   }
 
   .draft-roster {
