@@ -901,7 +901,7 @@ function renderChemDashboard() {
     _chemCache.key    = rosterKey;
     _chemCache.result = calculateChemistry(starters);
   }
-  const { chemScore, chemReport } = _chemCache.result;
+  const { chemScore } = _chemCache.result;
   const scoreColor = chemScore >= 60 ? (isDark() ? '#4ade80' : '#16a34a') : chemScore >= 40 ? (isDark() ? '#fbbf24' : '#d97706') : (isDark() ? '#f87171' : '#dc2626');
   const scoreBg    = chemScore >= 60 ? (isDark() ? 'rgba(34,197,94,0.12)' : '#f0fdf4')  : chemScore >= 40 ? (isDark() ? 'rgba(251,191,36,0.12)' : '#fffbeb')  : (isDark() ? 'rgba(239,68,68,0.12)' : '#fef2f2');
   const scoreLabel = chemScore >= 60 ? 'Strong'   : chemScore >= 40 ? 'Neutral'  : 'Weak';
@@ -911,19 +911,11 @@ function renderChemDashboard() {
       <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Live Chemistry</p>
       <span class="text-xs font-bold px-2 py-0.5 rounded-full border" style="background:${scoreBg};color:${scoreColor};border-color:${scoreColor}30">${scoreLabel} · ${chemScore}%</span>
     </div>
-    <div class="flex items-center gap-3 mb-3 draft-chem-dashboard__meter">
+    <div class="flex items-center gap-3 draft-chem-dashboard__meter">
       <div class="flex-1 h-2 rounded-full overflow-hidden bg-border">
         <div class="h-full rounded-full stat-bar-fill" style="width:${chemScore}%;background:${scoreColor}"></div>
       </div>
     </div>
-    ${chemReport.length > 0 ? `
-    <div class="flex flex-col gap-1.5 draft-chem-report">
-      ${chemReport.map(item => {
-        const isGood = item.startsWith('🟢');
-        return `<div class="rounded-lg px-2.5 py-1.5 text-xs font-medium border draft-chem-report__item"
-          style="background:${isGood ? 'var(--surface-green)' : 'var(--surface-red)'};color:${isGood ? (isDark() ? '#4ade80' : '#15803d') : (isDark() ? '#f87171' : '#dc2626')};border-color:${isGood ? (isDark() ? 'rgba(74,222,128,0.35)' : '#bbf7d0') : (isDark() ? 'rgba(248,113,113,0.35)' : '#fecaca')}">${item}</div>`;
-      }).join('')}
-    </div>` : `<p class="text-xs text-muted-fg">No synergies yet — keep drafting.</p>`}
   </div>`;
 }
 
