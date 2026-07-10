@@ -326,7 +326,7 @@ function renderModeSelect() {
           </div>
         </div>` : ''}
 
-        <!-- Classic + Ball Knowledge side by side -->
+        <!-- Classic + Ball IQ side by side -->
         <div class="grid grid-cols-2 gap-3 mb-3">
           <button data-action="mode-solo"
             class="rounded-2xl bg-white p-4 flex flex-col items-center gap-2 cursor-pointer card-shadow hover:shadow-md transition-all border border-slate-100">
@@ -339,9 +339,9 @@ function renderModeSelect() {
           <button data-action="mode-blind"
             class="rounded-2xl bg-white p-4 flex flex-col items-center gap-2 cursor-pointer card-shadow hover:shadow-md transition-all border border-slate-100">
             <span class="text-3xl" style="pointer-events:none">🧠</span>
-            <p class="font-black text-base" style="color:#f97316;pointer-events:none">Ball Knowledge</p>
-            <p class="text-xs text-muted-fg text-center leading-snug flex-1" style="pointer-events:none">Names only — draft by memory and test your ball knowledge.</p>
-            <div class="w-full py-2 rounded-xl font-bold text-sm text-white text-center mt-1" style="background:#f97316;pointer-events:none">Play Ball Knowledge</div>
+            <p class="font-black text-base" style="color:#f97316;pointer-events:none">Ball IQ</p>
+            <p class="text-xs text-muted-fg text-center leading-snug flex-1" style="pointer-events:none">Names only — draft by memory and test your Ball IQ.</p>
+            <div class="w-full py-2 rounded-xl font-bold text-sm text-white text-center mt-1" style="background:#f97316;pointer-events:none">Play Ball IQ</div>
           </button>
         </div>
 
@@ -495,8 +495,8 @@ function renderColdOpenBanner() {
 function shouldShowDraftBoard(full) {
   if (full) return false;
   if (S.spinState === 'done' && S.draftBoard?.length) return true;
-  // Mobile: keep the empty board frame during spin (after first pick landed)
-  if (isMobileViewport() && S.spinState === 'spinning' && S.round > 0) return true;
+  // Keep the empty board frame during spin (after first pick landed)
+  if (S.spinState === 'spinning' && S.round > 0) return true;
   return false;
 }
 
@@ -763,12 +763,12 @@ function renderSlotMachine() {
 
 // ── Draft board (full team/decade pool for the current spin) ─────────────────
 function renderDraftBoard() {
-  const isShell = isMobileViewport() && S.spinState === 'spinning' && (!S.draftBoard || !S.draftBoard.length);
+  const isShell = S.spinState === 'spinning' && (!S.draftBoard || !S.draftBoard.length);
   if ((!S.draftBoard || !S.draftBoard.length) && !isShell) return '';
   const team    = S.currentSpin?.team;
   const decade  = S.currentSpin?.decade;
   const tc      = team ? TEAM_COLORS[team] : null;
-  const fadeIn  = !isMobileViewport();
+  const fadeIn  = !isMobileViewport() && S.spinState === 'done';
   const cards   = S.draftBoard?.length
     ? S.draftBoard.map((p, i) => renderDraftCard(p, i)).join('')
     : '';
@@ -1710,7 +1710,7 @@ function renderPlayoffBracketTree(po) {
 function renderPlayoffs() {
   const po = S.playoffs;
   const r  = S.result;
-  if ((po.champion || po.eliminated) && !po.pendingReveal) {
+  if (po.currentRound >= 3 && !po.pendingReveal) {
     return po.champion ? renderChampionship() : renderEliminated();
   }
 
@@ -1722,8 +1722,18 @@ function renderPlayoffs() {
   const roundName = po.roundNames[Math.min(po.currentRound, po.roundNames.length - 1)];
   const simLabel   = ts ? 'Simulating...' : `Simulate ${roundName}`;
   const headline   = reveal
-    ? (po.champion ? '🏆 World Champions!' : `💔 Eliminated — ${po.eliminatedIn}`)
+    ? (po.champion
+        ? '🏆 World Champions!'
+        : po.championTeam
+          ? `🏆 ${po.championTeam.name} Win the Title`
+          : `💔 Eliminated — ${po.eliminatedIn}`)
     : 'Playoff Bracket';
+  const champBanner = reveal && po.championTeam && !po.champion ? `
+        <div class="rounded-xl border-2 border-amber-300 bg-amber-50 p-4 text-center card-shadow">
+          <p class="text-xs font-bold uppercase tracking-widest text-amber-600 mb-1">NBA Champion</p>
+          <p class="text-xl font-black text-amber-700">🏆 ${po.championTeam.name}</p>
+          <p class="text-xs text-muted-fg mt-1">Your run ended in the ${po.eliminatedIn || 'playoffs'}</p>
+        </div>` : '';
 
   return `
   <div class="min-h-screen flex flex-col main-gradient">
@@ -1738,17 +1748,18 @@ function renderPlayoffs() {
         <div class="rounded-2xl border border-border bg-white p-3 sm:p-4 card-shadow overflow-hidden">
           ${renderPlayoffBracketTree(po)}
         </div>
+        ${champBanner}
         <div class="flex flex-col gap-2">
           ${reveal ? `
           <button data-action="playoffs-continue" type="button"
             class="py-3.5 rounded-xl font-black text-sm transition-all text-center card-shadow bg-primary text-white hover:bg-blue-700 cursor-pointer">
             ${po.champion ? 'Continue to Championship 🏆' : 'Continue →'}
           </button>` : `
-          <button data-action="sim-next-round" type="button" ${ts ? 'disabled' : ''}
-            class="py-3.5 rounded-xl font-black text-sm transition-all text-center card-shadow ${ts ? 'bg-card2 border border-border text-muted-fg cursor-not-allowed' : 'bg-primary text-white hover:bg-blue-700 cursor-pointer'}">
+          <button data-action="sim-next-round" type="button" ${ts || po.currentRound >= 3 ? 'disabled' : ''}
+            class="py-3.5 rounded-xl font-black text-sm transition-all text-center card-shadow ${ts || po.currentRound >= 3 ? 'bg-card2 border border-border text-muted-fg cursor-not-allowed' : 'bg-primary text-white hover:bg-blue-700 cursor-pointer'}">
             ${ts ? 'Simulating...' : `${simLabel} →`}
           </button>
-          <button data-action="sim-all-playoffs" type="button" ${ts ? 'disabled' : ''}
+          <button data-action="sim-all-playoffs" type="button" ${ts || po.currentRound >= 3 ? 'disabled' : ''}
             class="py-3.5 rounded-xl font-bold text-sm transition-all text-center card-shadow border-2 border-primary/30 bg-white text-primary hover:bg-blue-50 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
             Simulate Entire Playoffs →
           </button>`}
@@ -1830,6 +1841,11 @@ function renderEliminated() {
           ${roundSummary}
           <p class="text-sm text-muted-fg mt-3">Regular Season: ${r.wins}–${r.losses} · Seed #${po.playerSeed}</p>
         </div>
+        ${po.championTeam ? `
+        <div class="rounded-2xl border-2 border-amber-300 bg-amber-50 p-5 w-full text-center card-shadow">
+          <p class="text-xs font-bold uppercase tracking-widest text-amber-600 mb-1">NBA Champion</p>
+          <p class="text-xl font-black text-amber-700">🏆 ${po.championTeam.name}</p>
+        </div>` : ''}
         ${renderGlobalSubmitCard(false)}
         <div class="flex flex-col gap-3 w-full">
           <button data-action="draft-new-roster" class="py-3 rounded-xl font-bold text-sm bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer card-shadow">Draft New Roster</button>

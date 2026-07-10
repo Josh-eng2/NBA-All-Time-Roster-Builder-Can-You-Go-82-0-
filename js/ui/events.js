@@ -779,6 +779,8 @@ function buildGlobalScorePayload() {
     coachName:   coachObj?.name  ?? '',
     era:         S.selectedEra ?? 'all',
     chemScore:   Math.round(r.chemScore ?? 0),
+    avgPopularity: r.avgPopularity ?? 50,
+    fansM:       r.fansM ?? 2,
     starters:    POSITIONS.map(p => S.roster[p]?.name || '—').join(', ').slice(0, 100),
     timestampMs: Date.now(),
   };
@@ -932,6 +934,7 @@ function doAdvanceToPlayoffs() {
     bracket,
     eliminated:    false,
     champion:      false,
+    championTeam:  null,
     tickState:     null,
     pendingReveal: false, // true right after "Simulate Entire Playoffs" — holds on the filled bracket before the champion/eliminated splash
     roundNames:   ['Conference Quarterfinals', 'Conference Semifinals', 'NBA Finals'],
@@ -977,19 +980,13 @@ function doSimNextRound() {
 
 function doSimAllPlayoffs() {
   const po = S.playoffs;
-  if (po.tickState || po.champion || po.eliminated) return;
+  if (po.tickState || po.currentRound >= 3) return;
 
-  while (po.currentRound < 3 && !po.eliminated && !po.champion) {
+  while (po.currentRound < 3) {
     const results = computeRoundResults(po.bracket);
-    const outcome = applyPlayoffRound(po, results);
-    if (outcome === 'champion') {
-      onPlayoffChampion();
-      break;
-    }
-    if (outcome === 'eliminated') break;
+    applyPlayoffRound(po, results);
   }
-  // Hold on the fully-filled bracket instead of jumping straight to the
-  // champion/eliminated splash — "Continue" (below) advances from there.
+  if (po.champion) onPlayoffChampion();
   po.pendingReveal = true;
   render();
 }

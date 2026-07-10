@@ -772,6 +772,12 @@ body {
   max-height: 24vh;
 }
 
+.draft-board-scroll--shell {
+  min-height: 10rem;
+  border: 1px solid var(--border);
+  background: var(--card);
+}
+
 .draft-slot-machine__cell {
   min-height: 5.5rem;
 }
@@ -901,6 +907,7 @@ body {
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    zoom: 0.8;
   }
 
   .draft-board-wrap__head {
@@ -1247,6 +1254,22 @@ body {
 }
 
 [data-theme="dark"] #global-lb-modal-backdrop button {
+  background: var(--card2) !important;
+  border-color: var(--border) !important;
+  color: var(--muted-fg) !important;
+}
+
+[data-theme="dark"] #global-lb-detail-backdrop > div {
+  background: var(--card) !important;
+  border-color: var(--border) !important;
+  color: var(--fg) !important;
+}
+
+[data-theme="dark"] #global-lb-detail-backdrop h3 {
+  color: var(--fg) !important;
+}
+
+[data-theme="dark"] #global-lb-detail-backdrop button {
   background: var(--card2) !important;
   border-color: var(--border) !important;
   color: var(--muted-fg) !important;

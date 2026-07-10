@@ -31,6 +31,14 @@
  *                          && request.resource.data.chemScore is number
  *                          && request.resource.data.chemScore >= 0
  *                          && request.resource.data.chemScore <= 100
+ *                          && (!('avgPopularity' in request.resource.data)
+ *                              || (request.resource.data.avgPopularity is number
+ *                                  && request.resource.data.avgPopularity >= 0
+ *                                  && request.resource.data.avgPopularity <= 100))
+ *                          && (!('fansM' in request.resource.data)
+ *                              || (request.resource.data.fansM is number
+ *                                  && request.resource.data.fansM >= 0
+ *                                  && request.resource.data.fansM <= 50))
  *                          && request.resource.data.champion is bool
  *                          && request.resource.data.timestampMs is number
  *                          && request.resource.data.timestampMs <= request.time.toMillis() + 60000;
@@ -129,6 +137,8 @@ export function logAnalyticsEvent(eventName, params = {}) {
  *   coachName:   string,
  *   era:         string,
  *   chemScore:   number,
+ *   avgPopularity?: number,
+ *   fansM?:        number,
  *   starters:    string,
  *   timestampMs: number,
  * }} entry
@@ -149,6 +159,8 @@ export async function submitGlobalScore(entry) {
     coachName:    entry.coachName   ?? '',
     era:          entry.era         ?? 'all',
     chemScore:    entry.chemScore   ?? 0,
+    ...(entry.avgPopularity != null ? { avgPopularity: entry.avgPopularity } : {}),
+    ...(entry.fansM       != null ? { fansM:       entry.fansM       } : {}),
     // Rules cap starters at 100 chars — truncate here too so a long-named
     // roster can never fail the whole write.
     starters:    (entry.starters    ?? '').slice(0, 100),
