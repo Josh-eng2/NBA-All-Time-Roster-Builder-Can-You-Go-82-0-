@@ -25,7 +25,7 @@ import {
   showLeaderboardModal, closeLeaderboardModal,
   showGlobalLeaderboardModal, closeGlobalLeaderboardModal,
 } from '../utils/storage.js';
-import { submitGlobalScore, logAnalyticsEvent } from '../utils/firebase.js';
+import { submitGlobalScore, logAnalyticsEvent, isFirebaseConfigured } from '../utils/firebase.js';
 import {
   render, $app, fmtPlayerLine, fmtDecadeShort, showToast, renderSeasonTickerRows,
   computeAutopsy, liveStreakLabel, withConfetti,
@@ -767,18 +767,38 @@ function updateSeasonSimDOM() {
   }
 }
 
+function buildGlobalScorePayload() {
+  const coachObj = S.coach ? COACHES.find(c => c.id === S.coach) : null;
+  const r        = S.result;
+  return {
+    teamName:    S.teamName,
+    wins:        r.wins,
+    losses:      r.losses,
+    champion:    S.playoffs?.champion ?? false,
+    coachId:     S.coach       ?? '',
+    coachName:   coachObj?.name  ?? '',
+    era:         S.selectedEra ?? 'all',
+    chemScore:   Math.round(r.chemScore ?? 0),
+    avgPopularity: r.avgPopularity ?? 50,
+    fansM:       r.fansM ?? 2,
+    starters:    POSITIONS.map(p => S.roster[p]?.name || '—').join(', ').slice(0, 100),
+    timestampMs: Date.now(),
+  };
+}
+
 async function doSaveRun() {
+  if (_submittingGlobal) return;
   const input = document.getElementById('team-name-input');
   const raw   = input ? input.value.trim() : '';
   S.teamName  = raw.slice(0, 20) || 'Untitled Team';
   S.runSaved  = true;
   saveLeaderboard();
-  showToast('✅ Saved to Leaderboard!');
   render();
 
-  // Also post this run to the global leaderboard, reusing the same name.
   await doSubmitGlobal();
-  if (S.globalSubmitError) showToast(`⚠️ Global board: ${S.globalSubmitError}`);
+  if (!S.globalScoreSubmitted && !S.globalSubmitError) {
+    showToast('✅ Saved to your personal leaderboard!');
+  }
 }
 
 // ── Global leaderboard submit ─────────────────────────────────────────────────
@@ -792,6 +812,11 @@ async function doSubmitGlobal() {
   const raw    = input ? input.value.trim() : '';
   S.teamName   = raw.slice(0, 30) || S.teamName || 'Untitled Team';
 
+  if (!S.runSaved) {
+    S.runSaved = true;
+    saveLeaderboard();
+  }
+
   // Optimistic button feedback
   const btn = document.getElementById('submit-global-btn');
   if (btn) {
@@ -801,33 +826,17 @@ async function doSubmitGlobal() {
     btn.style.cursor     = 'not-allowed';
   }
 
-  const coachObj = S.coach ? COACHES.find(c => c.id === S.coach) : null;
-  const r        = S.result;
-  const isChamp  = S.playoffs?.champion ?? false;
-
   try {
-    await submitGlobalScore({
-      teamName:    S.teamName,
-      wins:        r.wins,
-      losses:      r.losses,
-      champion:    isChamp,
-      coachId:     S.coach         ?? '',
-      coachName:   coachObj?.name  ?? '',
-      era:         S.selectedEra   ?? 'all',
-      chemScore:   Math.round(r.chemScore ?? 0),
-      // Firestore rules cap starters at 100 chars — five long names can
-      // exceed that and the whole write would be rejected.
-      starters:    POSITIONS.map(p => S.roster[p]?.name || '—').join(', ').slice(0, 100),
-      timestampMs: Date.now(),
-    });
+    await submitGlobalScore(buildGlobalScorePayload());
     S.globalScoreSubmitted    = true;
     S.globalSubmitError       = null;
-    S.globalSubmittedChampion = isChamp;
+    S.globalSubmittedChampion = S.playoffs?.champion ?? false;
     render();
-    showToast('🌍 You\'re on the global board!');
+    showToast('✅ Submitted to personal & global leaderboards!');
   } catch (err) {
     S.globalSubmitError = err.message || 'Submission failed — check your connection.';
     render();
+    showToast('✅ Saved to your personal leaderboard · global submit failed');
   } finally {
     _submittingGlobal = false;
   }
@@ -918,6 +927,7 @@ function doAdvanceToPlayoffs() {
     bracket,
     eliminated:    false,
     champion:      false,
+    championTeam:  null,
     tickState:     null,
     pendingReveal: false, // true right after "Simulate Entire Playoffs" — holds on the filled bracket before the champion/eliminated splash
     roundNames:   ['Conference Quarterfinals', 'Conference Semifinals', 'NBA Finals'],
@@ -963,19 +973,13 @@ function doSimNextRound() {
 
 function doSimAllPlayoffs() {
   const po = S.playoffs;
-  if (po.tickState || po.champion || po.eliminated) return;
+  if (po.tickState || po.currentRound >= 3) return;
 
-  while (po.currentRound < 3 && !po.eliminated && !po.champion) {
+  while (po.currentRound < 3) {
     const results = computeRoundResults(po.bracket);
-    const outcome = applyPlayoffRound(po, results);
-    if (outcome === 'champion') {
-      onPlayoffChampion();
-      break;
-    }
-    if (outcome === 'eliminated') break;
+    applyPlayoffRound(po, results);
   }
-  // Hold on the fully-filled bracket instead of jumping straight to the
-  // champion/eliminated splash — "Continue" (below) advances from there.
+  if (po.champion) onPlayoffChampion();
   po.pendingReveal = true;
   render();
 }

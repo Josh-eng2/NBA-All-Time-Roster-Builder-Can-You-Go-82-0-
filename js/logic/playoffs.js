@@ -82,8 +82,10 @@ export function getBracketDisplayState(po) {
   }
 
   let champion = null;
-  if (po.champion && finalsResult) {
+  if (finalsResult && finalsTop && finalsBottom) {
     champion = seriesWinner(finalsResult);
+  } else if (po.championTeam) {
+    champion = po.championTeam;
   }
 
   // Live tick-state overlay for the active round
@@ -106,32 +108,35 @@ export function getBracketDisplayState(po) {
 
 /**
  * Applies a completed round's results and advances bracket state.
- * @returns {'champion'|'eliminated'|'advanced'}
+ * Always simulates the full bracket — player elimination does not halt advancement.
+ * @returns {'champion'|'complete'|'eliminated'|'advanced'}
  */
 export function applyPlayoffRound(po, results) {
   po.rounds.push(results);
 
   const playerResult = results.find(r => r.teamA.isPlayer || r.teamB.isPlayer);
-  const playerWon    = playerResult
-    ? (playerResult.teamA.isPlayer ? playerResult.won : !playerResult.won)
-    : true;
-
-  if (!playerWon) {
-    po.eliminated   = true;
-    po.eliminatedIn = po.roundNames[po.currentRound];
-    return 'eliminated';
-  }
-
-  po.currentRound++;
-  if (po.currentRound === 3) {
-    po.champion = true;
-    return 'champion';
+  if (playerResult && !po.eliminated) {
+    const playerWon = playerResult.teamA.isPlayer ? playerResult.won : !playerResult.won;
+    if (!playerWon) {
+      po.eliminated   = true;
+      po.eliminatedIn = po.roundNames[po.currentRound];
+    }
   }
 
   const winners = results.map(r => (r.won ? r.teamA : r.teamB));
+
+  if (po.currentRound >= 2) {
+    po.championTeam = winners[0] ?? null;
+    po.champion     = !!po.championTeam?.isPlayer;
+    po.currentRound = 3;
+    return po.champion ? 'champion' : 'complete';
+  }
+
+  po.currentRound++;
   po.bracket = [];
   for (let i = 0; i < winners.length; i += 2) {
-    po.bracket.push([winners[i], winners[i + 1]]);
+    if (winners[i + 1]) po.bracket.push([winners[i], winners[i + 1]]);
   }
-  return 'advanced';
+
+  return po.eliminated ? 'eliminated' : 'advanced';
 }

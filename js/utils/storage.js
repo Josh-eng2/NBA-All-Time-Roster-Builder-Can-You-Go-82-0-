@@ -12,14 +12,18 @@
  *   closeLeaderboardModal()       — removes the local modal from the DOM
  *   showGlobalLeaderboardModal()  — renders and mounts the global leaderboard modal
  *   closeGlobalLeaderboardModal() — removes the global modal from the DOM
+ *   showGlobalLbTeamDetail(i)     — popup for a global leaderboard entry's roster
+ *   closeGlobalLbTeamDetail()     — closes the team detail popup
  *
  * Side-effects:
  *   window.closeLeaderboardModal, window.closeGlobalLeaderboardModal,
+ *   window.showGlobalLbTeamDetail, window.closeGlobalLbTeamDetail,
  *   and window.switchGlobalLbTab are set at module load so inline
  *   onclick handlers in modal HTML can call them.
  */
 
 import { S, COACHES, POSITIONS } from '../logic/state.js';
+import { getLegendCatalog }                      from '../logic/draft.js';
 import { fetchLeaderboard }                        from '../utils/firebase.js';
 
 const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
@@ -251,6 +255,201 @@ const GLOBAL_TABS = [
   { id: 'weekly',  label: 'This Week' },
 ];
 
+let _globalLbCache   = [];
+let _playerNameMap   = null;
+
+const FANS_TEAM_MAX  = 500;
+const POP_FLOOR      = 35;
+const POP_CEIL       = 100;
+
+function _fansBarCol(avg) {
+  if (avg >= 80) return '#2563eb';
+  if (avg >= 60) return '#d97706';
+  return '#94a3b8';
+}
+
+function _fansTierFromAvg(avg) {
+  if (!avg) return { tier: 'Unknown', barCol: '#94a3b8' };
+  return {
+    tier:   avg >= 85 ? 'Superstar Lineup' : avg >= 70 ? 'Star Power' : avg >= 55 ? 'Solid Roster' : 'Under the Radar',
+    barCol: _fansBarCol(avg),
+  };
+}
+
+function _formatFansM(fansM) {
+  const n = Number(fansM) || 0;
+  return n >= 1 ? `${n.toFixed(1)}M` : `${(n * 1000).toFixed(0)}K`;
+}
+
+function _fansMFromAvg(avg) {
+  const popNorm = Math.max(0, Math.min(1, (avg - POP_FLOOR) / (POP_CEIL - POP_FLOOR)));
+  return +(Math.pow(popNorm, 1.5) * 38 + 2).toFixed(1);
+}
+
+function _chemStyle(score) {
+  const sc = Number(score) || 0;
+  if (sc >= 60) return { label: 'Strong',  color: '#16a34a', bg: '#f0fdf4' };
+  if (sc >= 40) return { label: 'Neutral', color: '#d97706', bg: '#fffbeb' };
+  return { label: 'Weak', color: '#dc2626', bg: '#fef2f2' };
+}
+
+function _lookupPlayerByName(name) {
+  if (!name || name === '—') return null;
+  if (!_playerNameMap) {
+    _playerNameMap = new Map();
+    const { byDecade, decades } = getLegendCatalog();
+    for (const decade of decades) {
+      for (const p of byDecade[decade] || []) {
+        if (!_playerNameMap.has(p.name)) _playerNameMap.set(p.name, p);
+      }
+    }
+  }
+  return _playerNameMap.get(name) || null;
+}
+
+function _parseStarterNames(startersStr) {
+  if (!startersStr) return [];
+  return String(startersStr).split(', ').map(s => s.trim());
+}
+
+function _resolveStarterLineup(entry) {
+  const names = _parseStarterNames(entry.starters);
+  return POSITIONS.map((pos, i) => {
+    const name   = names[i] || '—';
+    const player = _lookupPlayerByName(name);
+    return { pos, name, player };
+  });
+}
+
+function _teamFansFromEntry(entry, lineup) {
+  const players = lineup.map(l => l.player).filter(Boolean);
+  let avg = Number(entry.avgPopularity) || 0;
+  if (!avg && players.length) {
+    avg = players.reduce((s, p) => s + (p.popularity ?? 50), 0) / players.length;
+  }
+  if (!avg) return null;
+  const sum  = players.length
+    ? players.reduce((s, p) => s + (p.popularity ?? 50), 0)
+    : Math.round(avg * 5);
+  const pct  = Math.min(100, Math.round((sum / FANS_TEAM_MAX) * 100));
+  const fansM = Number(entry.fansM) > 0 ? Number(entry.fansM) : _fansMFromAvg(avg);
+  const { tier, barCol } = _fansTierFromAvg(avg);
+  return { avg, sum, pct, fansM, tier, barCol };
+}
+
+function _ovrColor(rating) {
+  const r = rating ?? 0;
+  if (r >= 90) return '#d97706';
+  if (r >= 82) return '#2563eb';
+  if (r >= 74) return '#0f766e';
+  return '#64748b';
+}
+
+function _globalLbTeamDetailHtml(entry) {
+  const wins      = Number(entry.wins)   || 0;
+  const losses    = Number(entry.losses) || 0;
+  const chemScore = Number(entry.chemScore) || 0;
+  const chem      = _chemStyle(chemScore);
+  const lineup    = _resolveStarterLineup(entry);
+  const fans      = _teamFansFromEntry(entry, lineup);
+  const name      = esc((entry.teamName || 'Untitled Team').slice(0, 30));
+
+  const starterRows = lineup.map(({ pos, name: pName, player }) => {
+    const rating = player?.rating;
+    const era = player
+      ? [player.team, player.decade ? player.decade.replace(/(\d{2})(\d{2})s/, '$2s') : ''].filter(Boolean).join(' ')
+      : '';
+    return `
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:10px;font-weight:900;color:var(--primary);width:24px;flex-shrink:0;font-family:Fira Sans,sans-serif">${pos}</span>
+      <div style="flex:1;min-width:0">
+        <p style="font-weight:700;font-size:14px;color:var(--fg);margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:Fira Sans,sans-serif">${esc(pName)}</p>
+        ${era ? `<p style="font-size:11px;color:var(--muted-fg);margin:2px 0 0;font-family:Fira Sans,sans-serif">${esc(era)}</p>` : ''}
+      </div>
+      ${rating != null ? `<span style="font-size:11px;font-weight:900;color:${_ovrColor(rating)};flex-shrink:0;font-family:Fira Sans,sans-serif">${rating} OVR</span>` : ''}
+    </div>`;
+  }).join('');
+
+  const fansHtml = fans ? `
+    <div style="margin-top:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted-fg);margin:0;font-family:Fira Sans,sans-serif">Fans</p>
+        <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;border:1px solid ${fans.barCol}30;color:${fans.barCol};background:${fans.barCol}18;font-family:Fira Sans,sans-serif">${fans.tier}</span>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px">
+        <span style="font-size:22px;font-weight:900;color:var(--fg);font-family:Fira Sans,sans-serif">🌍 ${_formatFansM(fans.fansM)}</span>
+        <span style="font-size:11px;color:var(--muted-fg);font-family:Fira Sans,sans-serif">${Math.round(fans.sum)}/${FANS_TEAM_MAX} star power</span>
+      </div>
+      <div style="height:6px;border-radius:999px;background:var(--border);overflow:hidden">
+        <div style="height:100%;width:${fans.pct}%;border-radius:999px;background:${fans.barCol}"></div>
+      </div>
+    </div>` : `
+    <div style="margin-top:16px">
+      <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted-fg);margin:0 0 6px;font-family:Fira Sans,sans-serif">Fans</p>
+      <p style="font-size:13px;color:var(--muted-fg);margin:0;font-family:Fira Sans,sans-serif">Not available for this run</p>
+    </div>`;
+
+  return `
+  <div id="global-lb-detail-backdrop" onclick="if(event.target===this)window.closeGlobalLbTeamDetail()"
+    style="position:fixed;inset:0;background:var(--overlay);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px">
+    <div style="background:var(--card);border:1.5px solid var(--border);border-radius:20px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto;padding:22px;font-family:Fira Sans,sans-serif;color:var(--fg);animation:scaleIn 0.2s ease-out;box-shadow:0 20px 60px var(--shadow)">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px">
+        <div style="min-width:0">
+          <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--primary);margin:0 0 4px">Team Breakdown</p>
+          <h3 style="font-size:20px;font-weight:900;margin:0;color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${name}</h3>
+          <p style="font-size:14px;font-weight:800;color:var(--fg);margin:6px 0 0;font-family:Fira Sans,sans-serif">${wins}–${losses}${entry.champion ? ' · 🏆 Champ' : ''}</p>
+          ${entry.coachName ? `<p style="font-size:12px;color:var(--muted-fg);margin:4px 0 0;font-family:Fira Sans,sans-serif">${esc(entry.coachName)}</p>` : ''}
+        </div>
+        <button onclick="window.closeGlobalLbTeamDetail()"
+          style="background:var(--card2);border:1px solid var(--border);color:var(--muted-fg);border-radius:999px;width:32px;height:32px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">✕</button>
+      </div>
+
+      <div style="margin-bottom:4px">
+        <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted-fg);margin:0 0 8px;font-family:Fira Sans,sans-serif">Starting 5</p>
+        <div>${starterRows}</div>
+      </div>
+
+      <div style="margin-top:16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted-fg);margin:0;font-family:Fira Sans,sans-serif">Chemistry</p>
+          <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;border:1px solid ${chem.color}30;color:${chem.color};background:${chem.bg};font-family:Fira Sans,sans-serif">${chem.label} · ${chemScore}%</span>
+        </div>
+        <div style="height:6px;border-radius:999px;background:var(--border);overflow:hidden">
+          <div style="height:100%;width:${chemScore}%;border-radius:999px;background:${chem.color}"></div>
+        </div>
+      </div>
+
+      ${fansHtml}
+    </div>
+  </div>`;
+}
+
+function showGlobalLbTeamDetail(index) {
+  const entry = _globalLbCache[index];
+  if (!entry) return;
+  closeGlobalLbTeamDetail();
+  const div = document.createElement('div');
+  div.id = 'global-lb-detail-root';
+  div.innerHTML = _globalLbTeamDetailHtml(entry);
+  document.body.appendChild(div);
+  const onKey = e => {
+    if (e.key === 'Escape') closeGlobalLbTeamDetail();
+  };
+  document.addEventListener('keydown', onKey);
+  div._removeKey = () => document.removeEventListener('keydown', onKey);
+}
+
+function closeGlobalLbTeamDetail() {
+  const el = document.getElementById('global-lb-detail-root');
+  if (el) {
+    if (el._removeKey) el._removeKey();
+    el.remove();
+  }
+}
+
+window.showGlobalLbTeamDetail = showGlobalLbTeamDetail;
+window.closeGlobalLbTeamDetail = closeGlobalLbTeamDetail;
+
 function _globalLbLoadingHtml() {
   return `
   <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 0;gap:12px">
@@ -285,7 +484,13 @@ function _globalLbRowsHtml(entries) {
       ? `<span style="font-size:10px;font-weight:900;padding:2px 7px;border-radius:999px;background:#fef3c7;color:#92400e;border:1px solid #fcd34d;white-space:nowrap">82–0</span>`
       : '';
     return `
-    <div style="border-radius:12px;border:1.5px solid;padding:10px 12px;display:flex;align-items:center;gap:10px;${rowBg}">
+    <div role="button" tabindex="0" data-global-lb-index="${i}"
+      onclick="window.showGlobalLbTeamDetail(${i})"
+      onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.showGlobalLbTeamDetail(${i})}"
+      title="View starting 5, chemistry & fans"
+      style="border-radius:12px;border:1.5px solid;padding:10px 12px;display:flex;align-items:center;gap:10px;${rowBg};cursor:pointer;transition:box-shadow 0.15s,border-color 0.15s"
+      onmouseover="this.style.boxShadow='0 2px 8px var(--shadow)'"
+      onmouseout="this.style.boxShadow='none'">
       <div style="width:28px;text-align:center;flex-shrink:0">${medal}</div>
       <div style="flex:1;min-width:0">
         <div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;flex-wrap:wrap">
@@ -342,6 +547,7 @@ function _globalModalShellHtml(activeTab) {
       <div id="global-lb-table" style="display:flex;flex-direction:column;gap:8px">
         ${_globalLbLoadingHtml()}
       </div>
+      <p style="text-align:center;font-size:11px;color:var(--muted-fg);margin:12px 0 0;font-family:Fira Sans,sans-serif">Tap a team to view starting 5, chemistry &amp; fans</p>
     </div>
   </div>`;
 }
@@ -349,6 +555,7 @@ function _globalModalShellHtml(activeTab) {
 async function _loadGlobalLb(tab) {
   try {
     const entries  = await fetchLeaderboard(tab);
+    _globalLbCache = entries;
     const tableEl  = document.getElementById('global-lb-table');
     if (tableEl) tableEl.innerHTML = _globalLbRowsHtml(entries);
   } catch (err) {
@@ -383,7 +590,12 @@ export function showGlobalLeaderboardModal(tab = 'alltime') {
   div.id     = 'global-lb-modal-root';
   div.innerHTML = _globalModalShellHtml(tab);
   document.body.appendChild(div);
-  const onKey = e => { if (e.key === 'Escape') closeGlobalLeaderboardModal(); };
+  const onKey = e => {
+    if (e.key === 'Escape') {
+      if (document.getElementById('global-lb-detail-root')) closeGlobalLbTeamDetail();
+      else closeGlobalLeaderboardModal();
+    }
+  };
   document.addEventListener('keydown', onKey);
   div._removeKey = () => document.removeEventListener('keydown', onKey);
   const focusable = div.querySelectorAll('button, [tabindex]:not([tabindex="-1"])');
@@ -400,6 +612,7 @@ export function showGlobalLeaderboardModal(tab = 'alltime') {
 }
 
 export function closeGlobalLeaderboardModal() {
+  closeGlobalLbTeamDetail();
   const el = document.getElementById('global-lb-modal-root');
   if (el) {
     if (el._removeKey) el._removeKey();
