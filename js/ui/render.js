@@ -921,7 +921,7 @@ function renderChemDashboard() {
     _chemCache.key    = rosterKey;
     _chemCache.result = calculateChemistry(starters);
   }
-  const { chemScore } = _chemCache.result;
+  const { chemScore, chemReport } = _chemCache.result;
   const scoreColor = chemScore >= 60 ? (isDark() ? '#4ade80' : '#16a34a') : chemScore >= 40 ? (isDark() ? '#fbbf24' : '#d97706') : (isDark() ? '#f87171' : '#dc2626');
   const scoreBg    = chemScore >= 60 ? (isDark() ? 'rgba(34,197,94,0.12)' : '#f0fdf4')  : chemScore >= 40 ? (isDark() ? 'rgba(251,191,36,0.12)' : '#fffbeb')  : (isDark() ? 'rgba(239,68,68,0.12)' : '#fef2f2');
   const scoreLabel = chemScore >= 60 ? 'Strong'   : chemScore >= 40 ? 'Neutral'  : 'Weak';
