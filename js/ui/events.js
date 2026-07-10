@@ -826,6 +826,11 @@ async function doSubmitGlobal() {
   const raw    = input ? input.value.trim() : '';
   S.teamName   = raw.slice(0, 30) || S.teamName || 'Untitled Team';
 
+  if (!S.runSaved) {
+    S.runSaved = true;
+    saveLeaderboard();
+  }
+
   // Optimistic button feedback
   const btn = document.getElementById('submit-global-btn');
   if (btn) {
@@ -840,10 +845,11 @@ async function doSubmitGlobal() {
     S.globalScoreSubmitted = true;
     S.globalSubmitError    = null;
     render();
-    showToast('🌍 You\'re on the global board!');
+    showToast('✅ Submitted to personal & global leaderboards!');
   } catch (err) {
     S.globalSubmitError = err.message || 'Submission failed — check your connection.';
     render();
+    showToast('✅ Saved to your personal leaderboard · global submit failed');
   } finally {
     _submittingGlobal = false;
   }

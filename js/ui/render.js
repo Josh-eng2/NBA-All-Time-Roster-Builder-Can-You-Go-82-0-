@@ -1218,6 +1218,17 @@ function renderResults() {
   const isElite    = r.wins >= 65;
   const isPlayoff  = r.wins >= 50;
 
+  // Fire confetti for 82-0 — once per results screen, not on every re-render.
+  if (isPerfect && !S.perfectConfettiFired) {
+    S.perfectConfettiFired = true;
+    setTimeout(() => {
+      withConfetti(() => {
+        confetti({ particleCount: 180, spread: 90, origin: { y: 0.55 }, colors: ['#f97316', '#eab308', '#fcd34d', '#ffffff'] });
+        setTimeout(() => confetti({ particleCount: 100, spread: 120, origin: { y: 0.7 }, colors: ['#fbbf24', '#fde68a', '#ffffff'] }), 250);
+      });
+    }, 200);
+  }
+
   let label, labelColor, labelBg, emoji;
   if (isPerfect)       { label = 'PERFECT SEASON';        labelColor = isDark() ? '#fcd34d' : '#92400e'; labelBg = isDark() ? 'rgba(251,191,36,0.15)' : '#fef3c7'; emoji = '🏆'; }
   else if (isHistoric) { label = 'Historic Season';        labelColor = isDark() ? '#fbbf24' : '#b45309'; labelBg = isDark() ? 'rgba(251,191,36,0.12)' : '#fffbeb'; emoji = '🔥'; }
@@ -1352,8 +1363,7 @@ function renderResults() {
       }).join('')
     : `<p class="text-sm text-muted-fg py-1">No synergies or penalties — balanced roster.</p>`;
 
-  // Hoisted once — used both for the autopsy card and to decide whether the
-  // "Advance to Playoffs" button needs a standalone home at the bottom.
+  // Hoisted once — autopsy for imperfect seasons; congrats card uses isPerfect inline.
   const autopsy = !isPerfect ? computeAutopsy() : null;
 
   const chemScoreBadge = r.chemScore !== undefined ? (() => {
@@ -1432,6 +1442,19 @@ function renderResults() {
             <button data-action="draft-new-roster"
               class="w-full mt-3 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest text-white cursor-pointer transition-all hover:opacity-90"
               style="background:#dc2626">🔁 Run It Back — Fix It</button>
+          </div>` : isPerfect ? `
+          <div class="rounded-2xl p-4 card-shadow flex flex-col perfect-glow" style="border:1.5px solid #fcd34d;background:${isDark() ? 'rgba(251,191,36,0.08)' : '#fffbeb'}">
+            <p class="text-xs font-bold uppercase tracking-widest mb-2.5" style="color:${isDark() ? '#fcd34d' : '#b45309'}">
+              Congratulations — 82-0
+            </p>
+            <div class="flex items-start gap-3 flex-1">
+              <span class="text-2xl flex-shrink-0">🏆</span>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-black mb-0.5" style="color:${isDark() ? '#fcd34d' : '#92400e'}">You went undefeated!</p>
+                <p class="text-xs leading-relaxed" style="color:${isDark() ? '#fde68a' : '#b45309'}">No losses to dissect — you drafted an all-time roster, nailed the chemistry, and ran the table. Only one team in history has ever done this. Now take the #1 seed into the playoffs and finish the job.</p>
+                <p class="text-xs font-bold mt-2" style="color:${isDark() ? '#fbbf24' : '#d97706'}">🎉 Immortality is one playoff run away.</p>
+              </div>
+            </div>
           </div>` : `<div></div>`}
         </div>
 
@@ -1563,16 +1586,23 @@ function renderGlobalSubmitCard(champion) {
     return `
     <div class="rounded-2xl border p-4 card-shadow" style="border-color:${isDark() ? 'rgba(74,222,128,0.35)' : '#bbf7d0'};background:var(--surface-green)">
       <div class="flex items-start gap-3 mb-3">
-        <span class="text-2xl flex-shrink-0">🌍</span>
+        <span class="text-2xl flex-shrink-0">✅</span>
         <div class="flex-1 min-w-0">
-          <p class="font-black text-sm text-green-700">You're on the Global Board!</p>
+          <p class="font-black text-sm text-green-700">Submitted!</p>
           <p class="text-xs text-green-600 mt-0.5">"${esc(S.teamName)}" &nbsp;·&nbsp; ${record}</p>
+          <p class="text-[10px] text-green-600 mt-0.5">Personal leaderboard · Global board 🌍</p>
         </div>
       </div>
-      <button data-action="open-global-leaderboard"
-        class="w-full py-2.5 rounded-xl font-bold text-sm border border-emerald-300 bg-white text-green-700 hover:bg-emerald-50 transition-all cursor-pointer">
-        View Global Leaderboard 🌍
-      </button>
+      <div class="grid grid-cols-2 gap-2">
+        <button data-action="open-leaderboard"
+          class="py-2.5 rounded-xl font-bold text-sm border border-emerald-300 bg-white text-green-700 hover:bg-emerald-50 transition-all cursor-pointer">
+          Personal 🏅
+        </button>
+        <button data-action="open-global-leaderboard"
+          class="py-2.5 rounded-xl font-bold text-sm border border-emerald-300 bg-white text-green-700 hover:bg-emerald-50 transition-all cursor-pointer">
+          Global 🌍
+        </button>
+      </div>
     </div>`;
   }
 
@@ -1610,7 +1640,7 @@ function renderGlobalSubmitCard(champion) {
       </button>
     </div>
     ${errorHtml}
-    <p class="text-[10px] text-muted-fg mt-2">Compete against players worldwide · max 30 characters</p>
+    <p class="text-[10px] text-muted-fg mt-2">Saves to your personal leaderboard and global board · max 30 characters</p>
   </div>`;
 }
 
