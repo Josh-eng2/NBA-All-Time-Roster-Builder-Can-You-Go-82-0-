@@ -23,9 +23,9 @@
       "id": "baylor_68",
       "name": "Elgin Baylor",
       "pos": "SF",
-      "ppg": 27.1,
-      "rpg": 13.5,
-      "apg": 4.7,
+      "ppg": 26,
+      "rpg": 12.2,
+      "apg": 4.6,
       "spg": 0.8,
       "bpg": 0.5,
       "archetype": "Slasher",
@@ -35,16 +35,16 @@
         "Slasher"
       ],
       "popularity": 82,
-      "rating": 91,
-      "ratingRaw": 24
+      "rating": 88,
+      "ratingRaw": 22.7
     },
     {
       "id": "chamberlain_68",
       "name": "Wilt Chamberlain",
       "pos": "C",
-      "ppg": 24.3,
-      "rpg": 23.8,
-      "apg": 4.4,
+      "ppg": 20.5,
+      "rpg": 21.1,
+      "apg": 4.5,
       "spg": 0.7,
       "bpg": 2.5,
       "archetype": "Paint Beast",
@@ -55,7 +55,7 @@
       ],
       "popularity": 92,
       "rating": 99,
-      "ratingRaw": 33.2
+      "ratingRaw": 30.1
     },
     {
       "id": "larusso_67",
@@ -118,10 +118,10 @@
       "name": "Kareem Abdul-Jabbar",
       "pos": "C",
       "ppg": 27.7,
-      "rpg": 14.5,
-      "apg": 3.8,
-      "spg": 1.4,
-      "bpg": 3.2,
+      "rpg": 16.9,
+      "apg": 5,
+      "spg": 1.5,
+      "bpg": 4.1,
       "archetype": "Paint Beast",
       "traits": [
         "Rim Protector",
@@ -130,7 +130,7 @@
       ],
       "popularity": 90,
       "rating": 99,
-      "ratingRaw": 29.1
+      "ratingRaw": 32.9
     },
     {
       "id": "goodrich_74",
@@ -247,10 +247,10 @@
       "id": "magic_87",
       "name": "Magic Johnson",
       "pos": "PG",
-      "ppg": 22,
+      "ppg": 23.9,
       "rpg": 6.3,
-      "apg": 11.2,
-      "spg": 1.9,
+      "apg": 12.2,
+      "spg": 1.7,
       "bpg": 0.4,
       "archetype": "Playmaker",
       "traits": [
@@ -259,16 +259,16 @@
         "Floor Spacer"
       ],
       "popularity": 98,
-      "rating": 87,
-      "ratingRaw": 22.1
+      "rating": 89,
+      "ratingRaw": 23
     },
     {
       "id": "kareem_87",
       "name": "Kareem Abdul-Jabbar",
       "pos": "C",
-      "ppg": 23.4,
-      "rpg": 9.5,
-      "apg": 2.9,
+      "ppg": 23.9,
+      "rpg": 8.7,
+      "apg": 3,
       "spg": 0.9,
       "bpg": 2.5,
       "archetype": "Paint Beast",
@@ -278,8 +278,8 @@
         "Volume Shooter"
       ],
       "popularity": 90,
-      "rating": 87,
-      "ratingRaw": 22.1
+      "rating": 86,
+      "ratingRaw": 21.7
     },
     {
       "id": "worthy_88",
@@ -340,8 +340,8 @@
       "id": "mcadoo_82",
       "name": "Bob McAdoo",
       "pos": "C",
-      "ppg": 16.3,
-      "rpg": 7.2,
+      "ppg": 9.6,
+      "rpg": 3.9,
       "apg": 1.7,
       "spg": 0.8,
       "bpg": 1,
@@ -351,8 +351,8 @@
         "Rim Protector"
       ],
       "popularity": 63,
-      "rating": 73,
-      "ratingRaw": 15.3
+      "rating": 63,
+      "ratingRaw": 10.8
     },
     {
       "id": "acgreen_88",
@@ -397,10 +397,10 @@
       "name": "Shaquille O'Neal",
       "pos": "C",
       "ppg": 26.3,
-      "rpg": 12.5,
-      "apg": 2.5,
-      "spg": 0.6,
-      "bpg": 2.4,
+      "rpg": 10.7,
+      "apg": 2.4,
+      "spg": 0.5,
+      "bpg": 1.7,
       "archetype": "Paint Beast",
       "traits": [
         "Rim Protector",
@@ -408,16 +408,16 @@
         "Clutch"
       ],
       "popularity": 97,
-      "rating": 91,
-      "ratingRaw": 24.4
+      "rating": 86,
+      "ratingRaw": 21.9
     },
     {
       "id": "kobe_99",
       "name": "Kobe Bryant",
       "pos": "SG",
       "ppg": 19.9,
-      "rpg": 5.5,
-      "apg": 4.9,
+      "rpg": 5.3,
+      "apg": 3.8,
       "spg": 1.4,
       "bpg": 0.5,
       "archetype": "Slasher",
@@ -426,8 +426,8 @@
         "Volume Shooter"
       ],
       "popularity": 98,
-      "rating": 76,
-      "ratingRaw": 16.9
+      "rating": 74,
+      "ratingRaw": 16.1
     },
     {
       "id": "vanexel_97",
@@ -545,9 +545,9 @@
       "id": "shaq_02",
       "name": "Shaquille O'Neal",
       "pos": "C",
-      "ppg": 27.5,
-      "rpg": 11.8,
-      "apg": 3.1,
+      "ppg": 27.2,
+      "rpg": 10.7,
+      "apg": 3,
       "spg": 0.7,
       "bpg": 2.3,
       "archetype": "Paint Beast",
@@ -557,18 +557,18 @@
         "Clutch"
       ],
       "popularity": 97,
-      "rating": 92,
-      "ratingRaw": 24.6
+      "rating": 90,
+      "ratingRaw": 23.6
     },
     {
       "id": "gasol_09",
       "name": "Pau Gasol",
       "pos": "PF",
-      "ppg": 18.3,
+      "ppg": 18.9,
       "rpg": 9.6,
       "apg": 3.5,
       "spg": 0.7,
-      "bpg": 1.9,
+      "bpg": 1,
       "archetype": "Two-Way Star",
       "traits": [
         "Elite Playmaker",
@@ -576,8 +576,8 @@
         "Glue Guy"
       ],
       "popularity": 74,
-      "rating": 82,
-      "ratingRaw": 19.8
+      "rating": 80,
+      "ratingRaw": 18.7
     },
     {
       "id": "odom_04",
@@ -697,11 +697,11 @@
       "id": "lebron_18",
       "name": "LeBron James",
       "pos": "SF",
-      "ppg": 35.5,
-      "rpg": 9.5,
-      "apg": 11,
-      "spg": 2.2,
-      "bpg": 1.5,
+      "ppg": 27.4,
+      "rpg": 8.5,
+      "apg": 8.3,
+      "spg": 1.3,
+      "bpg": 0.6,
       "archetype": "Playmaker",
       "traits": [
         "Clutch",
@@ -709,18 +709,18 @@
         "Lockdown Defender"
       ],
       "popularity": 99,
-      "rating": 99,
-      "ratingRaw": 30.4
+      "rating": 89,
+      "ratingRaw": 23.3
     },
     {
       "id": "davis_19",
       "name": "Anthony Davis",
       "pos": "C",
-      "ppg": 23.8,
-      "rpg": 10.3,
-      "apg": 2.3,
-      "spg": 1.1,
-      "bpg": 2.4,
+      "ppg": 26.1,
+      "rpg": 9.3,
+      "apg": 3.2,
+      "spg": 1.5,
+      "bpg": 2.3,
       "archetype": "Two-Way Star",
       "traits": [
         "Rim Protector",
@@ -728,8 +728,8 @@
         "Volume Shooter"
       ],
       "popularity": 80,
-      "rating": 88,
-      "ratingRaw": 22.5
+      "rating": 89,
+      "ratingRaw": 23.3
     },
     {
       "id": "dwight_13",
@@ -753,9 +753,9 @@
       "id": "gasol_14",
       "name": "Pau Gasol",
       "pos": "PF",
-      "ppg": 17.4,
-      "rpg": 9.7,
-      "apg": 3.7,
+      "ppg": 17,
+      "rpg": 9.2,
+      "apg": 3.2,
       "spg": 0.5,
       "bpg": 1.5,
       "archetype": "Two-Way Star",
@@ -765,8 +765,8 @@
         "Glue Guy"
       ],
       "popularity": 74,
-      "rating": 80,
-      "ratingRaw": 18.9
+      "rating": 78,
+      "ratingRaw": 18.1
     },
     {
       "id": "nash_13",
@@ -792,7 +792,7 @@
       "pos": "PF",
       "ppg": 11.3,
       "rpg": 10.2,
-      "apg": 2.2,
+      "apg": 1.8,
       "spg": 0.5,
       "bpg": 0.3,
       "archetype": "Paint Beast",
@@ -802,7 +802,7 @@
       ],
       "popularity": 57,
       "rating": 71,
-      "ratingRaw": 14.8
+      "ratingRaw": 14.5
     },
     {
       "id": "ingram_18",
@@ -828,11 +828,11 @@
       "id": "lebron_23",
       "name": "LeBron James",
       "pos": "SF",
-      "ppg": 34,
-      "rpg": 9,
-      "apg": 9.5,
-      "spg": 2,
-      "bpg": 1.2,
+      "ppg": 28.9,
+      "rpg": 8.3,
+      "apg": 6.8,
+      "spg": 0.9,
+      "bpg": 0.6,
       "archetype": "Playmaker",
       "traits": [
         "Clutch",
@@ -840,8 +840,8 @@
         "Lockdown Defender"
       ],
       "popularity": 99,
-      "rating": 99,
-      "ratingRaw": 28
+      "rating": 87,
+      "ratingRaw": 22.3
     },
     {
       "id": "davis_23",
@@ -866,10 +866,10 @@
       "id": "russ_22",
       "name": "Russell Westbrook",
       "pos": "PG",
-      "ppg": 19.3,
-      "rpg": 8.1,
-      "apg": 7.4,
-      "spg": 1.1,
+      "ppg": 18.5,
+      "rpg": 7.4,
+      "apg": 7.1,
+      "spg": 0.9,
       "bpg": 0.3,
       "archetype": "Slasher",
       "traits": [
@@ -877,8 +877,8 @@
         "Clutch"
       ],
       "popularity": 93,
-      "rating": 81,
-      "ratingRaw": 19.3
+      "rating": 79,
+      "ratingRaw": 18.2
     },
     {
       "id": "reaves_24",
@@ -960,9 +960,9 @@
       "id": "pippen_88",
       "name": "Scottie Pippen",
       "pos": "SF",
-      "ppg": 10,
-      "rpg": 5,
-      "apg": 3.5,
+      "ppg": 7.9,
+      "rpg": 3.8,
+      "apg": 2.1,
       "spg": 1.5,
       "bpg": 0.7,
       "archetype": "Lockdown Defender",
@@ -971,8 +971,8 @@
         "Glue Guy"
       ],
       "popularity": 92,
-      "rating": 68,
-      "ratingRaw": 13.1
+      "rating": 63,
+      "ratingRaw": 10.8
     },
     {
       "id": "grant_89",
@@ -1052,10 +1052,10 @@
       "id": "mj_96",
       "name": "Michael Jordan",
       "pos": "SG",
-      "ppg": 33.5,
-      "rpg": 7,
-      "apg": 7,
-      "spg": 2.5,
+      "ppg": 33.6,
+      "rpg": 6.9,
+      "apg": 6.3,
+      "spg": 2.8,
       "bpg": 1,
       "archetype": "Two-Way Star",
       "traits": [
@@ -1065,16 +1065,16 @@
       ],
       "popularity": 99,
       "rating": 93,
-      "ratingRaw": 25.3
+      "ratingRaw": 25.2
     },
     {
       "id": "pippen_96",
       "name": "Scottie Pippen",
       "pos": "SF",
       "ppg": 19.4,
-      "rpg": 8,
+      "rpg": 6.4,
       "apg": 5.9,
-      "spg": 2,
+      "spg": 1.7,
       "bpg": 0.8,
       "archetype": "Two-Way Star",
       "traits": [
@@ -1083,8 +1083,8 @@
         "Elite Playmaker"
       ],
       "popularity": 92,
-      "rating": 83,
-      "ratingRaw": 20.2
+      "rating": 80,
+      "ratingRaw": 18.7
     },
     {
       "id": "rodman_96",
@@ -1278,17 +1278,17 @@
       "pos": "PF",
       "ppg": 20.1,
       "rpg": 10.1,
-      "apg": 2.6,
-      "spg": 1,
-      "bpg": 2,
+      "apg": 1.9,
+      "spg": 0.8,
+      "bpg": 1.6,
       "archetype": "Two-Way Star",
       "traits": [
         "Rim Protector",
         "Volume Shooter"
       ],
       "popularity": 55,
-      "rating": 84,
-      "ratingRaw": 20.7
+      "rating": 81,
+      "ratingRaw": 19.5
     },
     {
       "id": "chandler_02",
@@ -1371,8 +1371,8 @@
       "ppg": 12.6,
       "rpg": 11.3,
       "apg": 5.4,
-      "spg": 1,
-      "bpg": 1.6,
+      "spg": 1.2,
+      "bpg": 1.5,
       "archetype": "Playmaker",
       "traits": [
         "Elite Playmaker",
@@ -1380,7 +1380,7 @@
       ],
       "popularity": 62,
       "rating": 83,
-      "ratingRaw": 20.2
+      "ratingRaw": 20.3
     },
     {
       "id": "boozer_11",
@@ -1441,10 +1441,10 @@
       "name": "Pau Gasol",
       "pos": "C",
       "ppg": 16.5,
-      "rpg": 11.8,
+      "rpg": 11,
       "apg": 4.1,
-      "spg": 0.6,
-      "bpg": 1.7,
+      "spg": 0.7,
+      "bpg": 2,
       "archetype": "Two-Way Star",
       "traits": [
         "Elite Playmaker",
@@ -1453,7 +1453,7 @@
       ],
       "popularity": 74,
       "rating": 84,
-      "ratingRaw": 20.8
+      "ratingRaw": 20.7
     },
     {
       "id": "dunleavy_14",
@@ -1479,7 +1479,7 @@
       "id": "hardaway_92",
       "name": "Tim Hardaway",
       "pos": "PG",
-      "ppg": 22,
+      "ppg": 23.4,
       "rpg": 4,
       "apg": 10,
       "spg": 2.1,
@@ -1490,8 +1490,8 @@
         "Floor Spacer"
       ],
       "popularity": 68,
-      "rating": 82,
-      "ratingRaw": 19.7
+      "rating": 83,
+      "ratingRaw": 20.1
     },
     {
       "id": "mullin_92",
@@ -1758,7 +1758,7 @@
       "rpg": 6.8,
       "apg": 5.4,
       "spg": 0.7,
-      "bpg": 1.8,
+      "bpg": 1.6,
       "archetype": "Sharpshooter",
       "traits": [
         "Clutch",
@@ -1766,8 +1766,8 @@
         "Floor Spacer"
       ],
       "popularity": 91,
-      "rating": 85,
-      "ratingRaw": 21.2
+      "rating": 84,
+      "ratingRaw": 20.9
     },
     {
       "id": "thompson_16",
@@ -1886,7 +1886,7 @@
       "ppg": 16.3,
       "rpg": 8.2,
       "apg": 3.6,
-      "spg": 1.2,
+      "spg": 1.3,
       "bpg": 1.5,
       "archetype": "Two-Way Star",
       "traits": [
@@ -1895,7 +1895,7 @@
       ],
       "popularity": 63,
       "rating": 79,
-      "ratingRaw": 18.2
+      "ratingRaw": 18.3
     }
   ],
   "Warriors_2020s": [
@@ -1903,7 +1903,7 @@
       "id": "curry_22",
       "name": "Stephen Curry",
       "pos": "PG",
-      "ppg": 29.5,
+      "ppg": 29.4,
       "rpg": 6.1,
       "apg": 6.3,
       "spg": 1.3,
@@ -2013,9 +2013,9 @@
       "id": "russell_65",
       "name": "Bill Russell",
       "pos": "C",
-      "ppg": 15.1,
-      "rpg": 22.5,
-      "apg": 4.7,
+      "ppg": 14.1,
+      "rpg": 24.1,
+      "apg": 5.3,
       "spg": 0.7,
       "bpg": 4.5,
       "archetype": "Lockdown Defender",
@@ -2026,7 +2026,7 @@
       ],
       "popularity": 87,
       "rating": 99,
-      "ratingRaw": 32.5
+      "ratingRaw": 33.7
     },
     {
       "id": "havlicek_68",
@@ -2144,11 +2144,11 @@
       "id": "cowens_74",
       "name": "Dave Cowens",
       "pos": "C",
-      "ppg": 20,
+      "ppg": 19,
       "rpg": 15.7,
-      "apg": 4.1,
+      "apg": 4.4,
       "spg": 1,
-      "bpg": 1.1,
+      "bpg": 1.3,
       "archetype": "Paint Beast",
       "traits": [
         "Rim Protector",
@@ -2156,7 +2156,7 @@
       ],
       "popularity": 70,
       "rating": 91,
-      "ratingRaw": 24.2
+      "ratingRaw": 24.3
     },
     {
       "id": "havlicek_74",
@@ -2255,7 +2255,7 @@
       "name": "Larry Bird",
       "pos": "SF",
       "ppg": 25.8,
-      "rpg": 10,
+      "rpg": 9.8,
       "apg": 6.8,
       "spg": 1.8,
       "bpg": 0.9,
@@ -2266,15 +2266,15 @@
         "Elite Playmaker"
       ],
       "popularity": 96,
-      "rating": 91,
-      "ratingRaw": 24
+      "rating": 90,
+      "ratingRaw": 23.9
     },
     {
       "id": "mchale_87",
       "name": "Kevin McHale",
       "pos": "PF",
-      "ppg": 22.3,
-      "rpg": 8.7,
+      "ppg": 22.6,
+      "rpg": 8.4,
       "apg": 2.6,
       "spg": 0.6,
       "bpg": 2,
@@ -2286,7 +2286,7 @@
       ],
       "popularity": 78,
       "rating": 82,
-      "ratingRaw": 19.9
+      "ratingRaw": 19.8
     },
     {
       "id": "parish_86",
@@ -2349,7 +2349,7 @@
       "ppg": 7.6,
       "rpg": 6.8,
       "apg": 2.1,
-      "spg": 0.7,
+      "spg": 0.5,
       "bpg": 1.3,
       "archetype": "Two-Way Star",
       "traits": [
@@ -2358,7 +2358,7 @@
       ],
       "popularity": 80,
       "rating": 67,
-      "ratingRaw": 12.8
+      "ratingRaw": 12.6
     },
     {
       "id": "wedman_86",
@@ -2439,10 +2439,10 @@
       "name": "Antoine Walker",
       "pos": "PF",
       "ppg": 22.4,
-      "rpg": 10.1,
-      "apg": 4.5,
-      "spg": 1.4,
-      "bpg": 0.7,
+      "rpg": 10.2,
+      "apg": 3.4,
+      "spg": 1.7,
+      "bpg": 0.6,
       "archetype": "Paint Beast",
       "traits": [
         "Rim Protector",
@@ -2450,7 +2450,7 @@
       ],
       "popularity": 62,
       "rating": 84,
-      "ratingRaw": 21
+      "ratingRaw": 20.7
     },
     {
       "id": "douglas_92",
@@ -2497,8 +2497,8 @@
       "ppg": 26.8,
       "rpg": 6.7,
       "apg": 4.7,
-      "spg": 1.3,
-      "bpg": 0.7,
+      "spg": 1.4,
+      "bpg": 0.5,
       "archetype": "Slasher",
       "traits": [
         "Clutch",
@@ -2506,7 +2506,7 @@
       ],
       "popularity": 85,
       "rating": 82,
-      "ratingRaw": 19.9
+      "ratingRaw": 19.8
     },
     {
       "id": "garnett_08",
@@ -2515,7 +2515,7 @@
       "ppg": 18.8,
       "rpg": 9.2,
       "apg": 3.4,
-      "spg": 1.1,
+      "spg": 1.4,
       "bpg": 1.3,
       "archetype": "Two-Way Star",
       "traits": [
@@ -2524,7 +2524,7 @@
       ],
       "popularity": 88,
       "rating": 81,
-      "ratingRaw": 19.2
+      "ratingRaw": 19.5
     },
     {
       "id": "allen_08",
@@ -2808,7 +2808,7 @@
       "pos": "C",
       "ppg": 20.1,
       "rpg": 7.2,
-      "apg": 1.9,
+      "apg": 2,
       "spg": 0.7,
       "bpg": 1.9,
       "archetype": "Sharpshooter",
@@ -2882,19 +2882,19 @@
       "id": "mourning_97",
       "name": "Alonzo Mourning",
       "pos": "C",
-      "ppg": 23.9,
-      "rpg": 9.7,
-      "apg": 1.2,
-      "spg": 0.7,
-      "bpg": 3.9,
+      "ppg": 23.2,
+      "rpg": 10.4,
+      "apg": 2.3,
+      "spg": 1,
+      "bpg": 2.7,
       "archetype": "Lockdown Defender",
       "traits": [
         "Lockdown Defender",
         "Glue Guy"
       ],
       "popularity": 75,
-      "rating": 89,
-      "ratingRaw": 23.3
+      "rating": 88,
+      "ratingRaw": 22.7
     },
     {
       "id": "hardaway_97",
@@ -2902,7 +2902,7 @@
       "pos": "PG",
       "ppg": 20.3,
       "rpg": 3.6,
-      "apg": 8,
+      "apg": 8.6,
       "spg": 1.9,
       "bpg": 0.2,
       "archetype": "Playmaker",
@@ -2911,8 +2911,8 @@
         "Floor Spacer"
       ],
       "popularity": 68,
-      "rating": 77,
-      "ratingRaw": 17.5
+      "rating": 78,
+      "ratingRaw": 17.9
     },
     {
       "id": "mashburn_99",
@@ -3065,10 +3065,10 @@
       "name": "Alonzo Mourning",
       "pos": "C",
       "ppg": 7.8,
-      "rpg": 6.1,
-      "apg": 0.6,
-      "spg": 0.5,
-      "bpg": 2.4,
+      "rpg": 5.5,
+      "apg": 0.5,
+      "spg": 0.4,
+      "bpg": 2.7,
       "archetype": "Lockdown Defender",
       "traits": [
         "Rim Protector",
@@ -3076,8 +3076,8 @@
         "Clutch"
       ],
       "popularity": 75,
-      "rating": 68,
-      "ratingRaw": 13
+      "rating": 67,
+      "ratingRaw": 12.8
     },
     {
       "id": "posey_06",
@@ -3102,9 +3102,9 @@
       "id": "payton_06",
       "name": "Gary Payton",
       "pos": "PG",
-      "ppg": 10.3,
-      "rpg": 2.7,
-      "apg": 4.7,
+      "ppg": 7.7,
+      "rpg": 2.9,
+      "apg": 3.2,
       "spg": 1.1,
       "bpg": 0.2,
       "archetype": "Two-Way Star",
@@ -3113,8 +3113,8 @@
         "Glue Guy"
       ],
       "popularity": 78,
-      "rating": 64,
-      "ratingRaw": 11
+      "rating": 60,
+      "ratingRaw": 9.5
     }
   ],
   "Heat_2010s": [
@@ -3122,11 +3122,11 @@
       "id": "lebron_13",
       "name": "LeBron James",
       "pos": "SF",
-      "ppg": 32,
-      "rpg": 9,
-      "apg": 8,
-      "spg": 2,
-      "bpg": 1,
+      "ppg": 26.8,
+      "rpg": 8,
+      "apg": 7.3,
+      "spg": 1.7,
+      "bpg": 0.9,
       "archetype": "Two-Way Star",
       "traits": [
         "Clutch",
@@ -3134,16 +3134,16 @@
         "Lockdown Defender"
       ],
       "popularity": 99,
-      "rating": 95,
-      "ratingRaw": 26.3
+      "rating": 89,
+      "ratingRaw": 23.1
     },
     {
       "id": "wade_13",
       "name": "Dwyane Wade",
       "pos": "SG",
       "ppg": 21.2,
-      "rpg": 4.8,
-      "apg": 4.9,
+      "rpg": 5,
+      "apg": 5.1,
       "spg": 1.7,
       "bpg": 0.8,
       "archetype": "Slasher",
@@ -3152,8 +3152,8 @@
         "Volume Shooter"
       ],
       "popularity": 95,
-      "rating": 77,
-      "ratingRaw": 17.6
+      "rating": 78,
+      "ratingRaw": 17.8
     },
     {
       "id": "bosh_13",
@@ -3452,19 +3452,19 @@
       "id": "gilmore_83",
       "name": "Artis Gilmore",
       "pos": "C",
-      "ppg": 17.3,
-      "rpg": 10.4,
+      "ppg": 18,
+      "rpg": 12,
       "apg": 1.8,
       "spg": 0.9,
-      "bpg": 2.8,
+      "bpg": 2.3,
       "archetype": "Paint Beast",
       "traits": [
         "Rim Protector",
         "Volume Shooter"
       ],
       "popularity": 72,
-      "rating": 84,
-      "ratingRaw": 20.7
+      "rating": 85,
+      "ratingRaw": 21.3
     },
     {
       "id": "johnson_85",
@@ -3492,17 +3492,17 @@
       "pos": "C",
       "ppg": 27.6,
       "rpg": 10.8,
-      "apg": 2.6,
-      "spg": 1.7,
-      "bpg": 3.4,
+      "apg": 2.9,
+      "spg": 1.6,
+      "bpg": 3.2,
       "archetype": "Two-Way Star",
       "traits": [
         "Clutch",
         "Lockdown Defender"
       ],
       "popularity": 88,
-      "rating": 96,
-      "ratingRaw": 26.4
+      "rating": 95,
+      "ratingRaw": 26.1
     },
     {
       "id": "elliott_95",
@@ -3526,8 +3526,8 @@
       "id": "duncan_99",
       "name": "Tim Duncan",
       "pos": "PF",
-      "ppg": 21.1,
-      "rpg": 11.9,
+      "ppg": 21.7,
+      "rpg": 11.4,
       "apg": 2.4,
       "spg": 0.8,
       "bpg": 2.5,
@@ -3538,7 +3538,7 @@
       ],
       "popularity": 92,
       "rating": 88,
-      "ratingRaw": 22.7
+      "ratingRaw": 22.5
     },
     {
       "id": "avery_96",
@@ -3734,7 +3734,7 @@
       "rpg": 6.8,
       "apg": 2.6,
       "spg": 1.8,
-      "bpg": 0.7,
+      "bpg": 1,
       "archetype": "Two-Way Star",
       "traits": [
         "Clutch",
@@ -3743,15 +3743,15 @@
       ],
       "popularity": 80,
       "rating": 78,
-      "ratingRaw": 17.7
+      "ratingRaw": 18.1
     },
     {
       "id": "aldridge_16",
       "name": "LaMarcus Aldridge",
       "pos": "PF",
-      "ppg": 21.9,
-      "rpg": 9,
-      "apg": 2.2,
+      "ppg": 21.3,
+      "rpg": 9.2,
+      "apg": 1.1,
       "spg": 0.6,
       "bpg": 1.3,
       "archetype": "Paint Beast",
@@ -3760,8 +3760,8 @@
         "Glue Guy"
       ],
       "popularity": 63,
-      "rating": 80,
-      "ratingRaw": 18.8
+      "rating": 78,
+      "ratingRaw": 18.1
     },
     {
       "id": "parker_12",
@@ -3788,16 +3788,16 @@
       "ppg": 15.1,
       "rpg": 9.7,
       "apg": 3,
-      "spg": 0.7,
-      "bpg": 2,
+      "spg": 0.6,
+      "bpg": 1.9,
       "archetype": "Two-Way Star",
       "traits": [
         "Clutch",
         "Lockdown Defender"
       ],
       "popularity": 92,
-      "rating": 80,
-      "ratingRaw": 18.8
+      "rating": 79,
+      "ratingRaw": 18.5
     },
     {
       "id": "mills_14",
@@ -3899,9 +3899,9 @@
       "id": "frazier_72",
       "name": "Walt Frazier",
       "pos": "PG",
-      "ppg": 21.5,
-      "rpg": 7,
-      "apg": 7.1,
+      "ppg": 23.2,
+      "rpg": 6.7,
+      "apg": 6.9,
       "spg": 2.5,
       "bpg": 0.5,
       "archetype": "Two-Way Star",
@@ -3910,16 +3910,16 @@
         "Lockdown Defender"
       ],
       "popularity": 78,
-      "rating": 84,
-      "ratingRaw": 21
+      "rating": 85,
+      "ratingRaw": 21.1
     },
     {
       "id": "reed_70",
       "name": "Willis Reed",
       "pos": "C",
       "ppg": 21.7,
-      "rpg": 13.7,
-      "apg": 1.8,
+      "rpg": 13.9,
+      "apg": 2,
       "spg": 0.8,
       "bpg": 1.4,
       "archetype": "Paint Beast",
@@ -3929,7 +3929,7 @@
       ],
       "popularity": 72,
       "rating": 87,
-      "ratingRaw": 22.2
+      "ratingRaw": 22.4
     },
     {
       "id": "bradley_72",
@@ -3990,8 +3990,8 @@
       "name": "Jerry Lucas",
       "pos": "PF",
       "ppg": 16.7,
-      "rpg": 11,
-      "apg": 2.6,
+      "rpg": 13.1,
+      "apg": 4.1,
       "spg": 0.6,
       "bpg": 0.5,
       "archetype": "Paint Beast",
@@ -4000,8 +4000,8 @@
         "Floor Spacer"
       ],
       "popularity": 60,
-      "rating": 77,
-      "ratingRaw": 17.6
+      "rating": 82,
+      "ratingRaw": 20
     },
     {
       "id": "barnett_72",
@@ -4031,15 +4031,15 @@
       "rpg": 11.2,
       "apg": 2.3,
       "spg": 1,
-      "bpg": 2.5,
+      "bpg": 2.7,
       "archetype": "Paint Beast",
       "traits": [
         "Rim Protector",
         "Glue Guy"
       ],
       "popularity": 80,
-      "rating": 89,
-      "ratingRaw": 23.4
+      "rating": 90,
+      "ratingRaw": 23.7
     },
     {
       "id": "starks_94",
@@ -4266,18 +4266,18 @@
       "name": "Amar'e Stoudemire",
       "pos": "PF",
       "ppg": 25.3,
-      "rpg": 8.8,
-      "apg": 2.2,
-      "spg": 0.8,
-      "bpg": 1,
+      "rpg": 8.2,
+      "apg": 2.6,
+      "spg": 1,
+      "bpg": 1.9,
       "archetype": "Slasher",
       "traits": [
         "Clutch",
         "Volume Shooter"
       ],
       "popularity": 72,
-      "rating": 81,
-      "ratingRaw": 19.4
+      "rating": 84,
+      "ratingRaw": 20.8
     },
     {
       "id": "chandler_12",
@@ -4359,7 +4359,7 @@
       "name": "Karl Malone",
       "pos": "PF",
       "ppg": 27.7,
-      "rpg": 10.3,
+      "rpg": 12,
       "apg": 2.9,
       "spg": 1.4,
       "bpg": 0.8,
@@ -4369,8 +4369,8 @@
         "Glue Guy"
       ],
       "popularity": 70,
-      "rating": 86,
-      "ratingRaw": 22
+      "rating": 89,
+      "ratingRaw": 23.2
     },
     {
       "id": "stockton_88",
@@ -4379,7 +4379,7 @@
       "ppg": 14.7,
       "rpg": 2.8,
       "apg": 13.8,
-      "spg": 3.2,
+      "spg": 3,
       "bpg": 0.2,
       "archetype": "Playmaker",
       "traits": [
@@ -4388,7 +4388,7 @@
       ],
       "popularity": 78,
       "rating": 82,
-      "ratingRaw": 20
+      "ratingRaw": 19.8
     },
     {
       "id": "griffith_85",
@@ -4487,10 +4487,10 @@
       "id": "stockton_97",
       "name": "John Stockton",
       "pos": "PG",
-      "ppg": 14.1,
+      "ppg": 14.4,
       "rpg": 2.7,
       "apg": 10.5,
-      "spg": 2.6,
+      "spg": 2,
       "bpg": 0.2,
       "archetype": "Playmaker",
       "traits": [
@@ -4498,8 +4498,8 @@
         "Floor Spacer"
       ],
       "popularity": 78,
-      "rating": 76,
-      "ratingRaw": 17.2
+      "rating": 75,
+      "ratingRaw": 16.6
     },
     {
       "id": "hornacek_96",
@@ -4652,11 +4652,11 @@
       "id": "kirilenko_07",
       "name": "Andrei Kirilenko",
       "pos": "SF",
-      "ppg": 15.6,
-      "rpg": 7.9,
-      "apg": 3.4,
-      "spg": 2.1,
-      "bpg": 2.9,
+      "ppg": 16.5,
+      "rpg": 8.1,
+      "apg": 3.1,
+      "spg": 1.9,
+      "bpg": 2.8,
       "archetype": "Two-Way Star",
       "traits": [
         "Lockdown Defender",
@@ -4665,7 +4665,7 @@
       ],
       "popularity": 63,
       "rating": 84,
-      "ratingRaw": 20.8
+      "ratingRaw": 20.7
     },
     {
       "id": "harpring_07",
@@ -4984,10 +4984,10 @@
       "id": "hill_96",
       "name": "Grant Hill",
       "pos": "SF",
-      "ppg": 21.6,
-      "rpg": 7.9,
-      "apg": 6.3,
-      "spg": 1.6,
+      "ppg": 21.1,
+      "rpg": 7.7,
+      "apg": 6.8,
+      "spg": 1.8,
       "bpg": 0.7,
       "archetype": "Two-Way Star",
       "traits": [
@@ -4995,8 +4995,8 @@
         "Lockdown Defender"
       ],
       "popularity": 78,
-      "rating": 83,
-      "ratingRaw": 20.4
+      "rating": 84,
+      "ratingRaw": 20.7
     },
     {
       "id": "stackhouse_97",
@@ -5149,9 +5149,9 @@
       "name": "Ben Wallace",
       "pos": "C",
       "ppg": 9.5,
-      "rpg": 13.2,
-      "apg": 1.9,
-      "spg": 1.5,
+      "rpg": 12.4,
+      "apg": 1.3,
+      "spg": 1.8,
       "bpg": 3,
       "archetype": "Lockdown Defender",
       "traits": [
@@ -5159,8 +5159,8 @@
         "Glue Guy"
       ],
       "popularity": 68,
-      "rating": 85,
-      "ratingRaw": 21.3
+      "rating": 84,
+      "ratingRaw": 20.7
     },
     {
       "id": "hunter_04",
@@ -5206,9 +5206,9 @@
       "pos": "C",
       "ppg": 29.3,
       "rpg": 13.2,
-      "apg": 3.4,
+      "apg": 2.4,
       "spg": 0.9,
-      "bpg": 2.5,
+      "bpg": 2.9,
       "archetype": "Paint Beast",
       "traits": [
         "Rim Protector",
@@ -5216,26 +5216,26 @@
         "Clutch"
       ],
       "popularity": 97,
-      "rating": 96,
-      "ratingRaw": 26.8
+      "rating": 97,
+      "ratingRaw": 26.9
     },
     {
       "id": "penny_95",
       "name": "Anfernee Hardaway",
       "pos": "PG",
-      "ppg": 22.9,
-      "rpg": 7.2,
+      "ppg": 20.9,
+      "rpg": 4.4,
       "apg": 7.2,
-      "spg": 2,
-      "bpg": 0.8,
+      "spg": 1.7,
+      "bpg": 0.4,
       "archetype": "Playmaker",
       "traits": [
         "Elite Playmaker",
         "Clutch"
       ],
       "popularity": 72,
-      "rating": 85,
-      "ratingRaw": 21.5
+      "rating": 78,
+      "ratingRaw": 17.9
     },
     {
       "id": "anderson_95",
@@ -5405,9 +5405,9 @@
       "id": "arenas_04",
       "name": "Grant Hill",
       "pos": "SF",
-      "ppg": 14.6,
+      "ppg": 19.7,
       "rpg": 4.7,
-      "apg": 3.5,
+      "apg": 3.3,
       "spg": 0.9,
       "bpg": 0.5,
       "archetype": "Two-Way Star",
@@ -5416,8 +5416,8 @@
         "Lockdown Defender"
       ],
       "popularity": 78,
-      "rating": 68,
-      "ratingRaw": 13.3
+      "rating": 71,
+      "ratingRaw": 14.8
     },
     {
       "id": "bogans_09",
@@ -5463,9 +5463,9 @@
       "pos": "C",
       "ppg": 22.9,
       "rpg": 14.1,
-      "apg": 1.9,
-      "spg": 0.8,
-      "bpg": 2.5,
+      "apg": 1.3,
+      "spg": 1.3,
+      "bpg": 2.4,
       "archetype": "Lockdown Defender",
       "traits": [
         "Lockdown Defender",
@@ -5473,7 +5473,7 @@
       ],
       "popularity": 75,
       "rating": 92,
-      "ratingRaw": 24.5
+      "ratingRaw": 24.6
     },
     {
       "id": "vucevic_14",
@@ -5571,9 +5571,9 @@
       "id": "adams_76",
       "name": "Alvan Adams",
       "pos": "C",
-      "ppg": 19.2,
-      "rpg": 9.2,
-      "apg": 5.2,
+      "ppg": 19,
+      "rpg": 9.1,
+      "apg": 5.6,
       "spg": 1.5,
       "bpg": 1.5,
       "archetype": "Two-Way Star",
@@ -5583,7 +5583,7 @@
       ],
       "popularity": 52,
       "rating": 85,
-      "ratingRaw": 21.1
+      "ratingRaw": 21.2
     },
     {
       "id": "scott_76",
@@ -5792,8 +5792,8 @@
       "name": "Amar'e Stoudemire",
       "pos": "PF",
       "ppg": 26,
-      "rpg": 9,
-      "apg": 1.9,
+      "rpg": 8.9,
+      "apg": 1.6,
       "spg": 0.9,
       "bpg": 1.6,
       "archetype": "Slasher",
@@ -5802,17 +5802,17 @@
         "Volume Shooter"
       ],
       "popularity": 72,
-      "rating": 84,
-      "ratingRaw": 20.6
+      "rating": 83,
+      "ratingRaw": 20.4
     },
     {
       "id": "marion_06",
       "name": "Shawn Marion",
       "pos": "SF",
-      "ppg": 19,
-      "rpg": 11.2,
-      "apg": 2.5,
-      "spg": 1.9,
+      "ppg": 19.4,
+      "rpg": 11.3,
+      "apg": 1.9,
+      "spg": 2,
       "bpg": 1.5,
       "archetype": "Two-Way Star",
       "traits": [
@@ -5821,7 +5821,7 @@
       ],
       "popularity": 68,
       "rating": 85,
-      "ratingRaw": 21.4
+      "ratingRaw": 21.3
     },
     {
       "id": "barbosa_07",
@@ -5920,19 +5920,19 @@
       "id": "durant_23",
       "name": "Kevin Durant",
       "pos": "SF",
-      "ppg": 29.1,
-      "rpg": 6.7,
+      "ppg": 27.1,
+      "rpg": 6.6,
       "apg": 5,
-      "spg": 0.8,
-      "bpg": 1.4,
+      "spg": 0.9,
+      "bpg": 1.2,
       "archetype": "Sharpshooter",
       "traits": [
         "Floor Spacer",
         "Volume Shooter"
       ],
       "popularity": 91,
-      "rating": 85,
-      "ratingRaw": 21.3
+      "rating": 83,
+      "ratingRaw": 20.4
     },
     {
       "id": "beal_23",
@@ -5993,9 +5993,9 @@
       "name": "Chris Paul",
       "pos": "PG",
       "ppg": 14.7,
-      "rpg": 4.5,
-      "apg": 8.9,
-      "spg": 1.4,
+      "rpg": 4.4,
+      "apg": 10.8,
+      "spg": 1.9,
       "bpg": 0.2,
       "archetype": "Playmaker",
       "traits": [
@@ -6004,8 +6004,8 @@
         "Floor Spacer"
       ],
       "popularity": 78,
-      "rating": 75,
-      "ratingRaw": 16.4
+      "rating": 78,
+      "ratingRaw": 18
     }
   ],
   "Nuggets_1980s": [
@@ -6031,19 +6031,19 @@
       "id": "lever_88",
       "name": "Fat Lever",
       "pos": "PG",
-      "ppg": 19.7,
-      "rpg": 8.9,
-      "apg": 8,
-      "spg": 3.1,
-      "bpg": 0.4,
+      "ppg": 18.9,
+      "rpg": 8.1,
+      "apg": 7.8,
+      "spg": 2.7,
+      "bpg": 0.3,
       "archetype": "Two-Way Star",
       "traits": [
         "Clutch",
         "Lockdown Defender"
       ],
       "popularity": 45,
-      "rating": 88,
-      "ratingRaw": 22.8
+      "rating": 85,
+      "ratingRaw": 21.3
     },
     {
       "id": "rasmussen_88",
@@ -6142,9 +6142,9 @@
       "name": "Allen Iverson",
       "pos": "PG",
       "ppg": 26.4,
-      "rpg": 3.8,
-      "apg": 7.4,
-      "spg": 1.8,
+      "rpg": 3,
+      "apg": 7.1,
+      "spg": 2,
       "bpg": 0.1,
       "archetype": "Slasher",
       "traits": [
@@ -6152,16 +6152,16 @@
         "Volume Shooter"
       ],
       "popularity": 98,
-      "rating": 80,
-      "ratingRaw": 19
+      "rating": 79,
+      "ratingRaw": 18.5
     },
     {
       "id": "camby_07",
       "name": "Marcus Camby",
       "pos": "C",
-      "ppg": 11,
-      "rpg": 12.8,
-      "apg": 1.9,
+      "ppg": 11.2,
+      "rpg": 11.7,
+      "apg": 3.2,
       "spg": 1.2,
       "bpg": 3.3,
       "archetype": "Lockdown Defender",
@@ -6253,7 +6253,7 @@
       "pos": "C",
       "ppg": 20.1,
       "rpg": 10.8,
-      "apg": 6.9,
+      "apg": 7.3,
       "spg": 1.4,
       "bpg": 0.7,
       "archetype": "Playmaker",
@@ -6263,7 +6263,7 @@
       ],
       "popularity": 80,
       "rating": 87,
-      "ratingRaw": 22.2
+      "ratingRaw": 22.4
     },
     {
       "id": "murray_19",
@@ -6565,19 +6565,19 @@
       "id": "erving_83",
       "name": "Julius Erving",
       "pos": "SF",
-      "ppg": 22.4,
+      "ppg": 21.4,
       "rpg": 6.8,
-      "apg": 5,
-      "spg": 1.9,
-      "bpg": 1.4,
+      "apg": 3.7,
+      "spg": 1.6,
+      "bpg": 1.8,
       "archetype": "Two-Way Star",
       "traits": [
         "Clutch",
         "Lockdown Defender"
       ],
       "popularity": 92,
-      "rating": 84,
-      "ratingRaw": 20.6
+      "rating": 82,
+      "ratingRaw": 19.8
     },
     {
       "id": "malone_83",
@@ -6587,15 +6587,15 @@
       "rpg": 15.3,
       "apg": 1.3,
       "spg": 1.1,
-      "bpg": 1.5,
+      "bpg": 2,
       "archetype": "Paint Beast",
       "traits": [
         "Rim Protector",
         "Glue Guy"
       ],
       "popularity": 85,
-      "rating": 91,
-      "ratingRaw": 24.4
+      "rating": 93,
+      "ratingRaw": 25.1
     },
     {
       "id": "cheeks_87",
@@ -6694,9 +6694,9 @@
       "name": "Charles Barkley",
       "pos": "PF",
       "ppg": 27.6,
-      "rpg": 11.1,
-      "apg": 4.4,
-      "spg": 1.8,
+      "rpg": 10.1,
+      "apg": 4.2,
+      "spg": 1.6,
       "bpg": 0.8,
       "archetype": "Two-Way Star",
       "traits": [
@@ -6704,8 +6704,8 @@
         "Lockdown Defender"
       ],
       "popularity": 91,
-      "rating": 90,
-      "ratingRaw": 23.9
+      "rating": 88,
+      "ratingRaw": 22.8
     },
     {
       "id": "iverson_99",
@@ -6713,7 +6713,7 @@
       "pos": "PG",
       "ppg": 26.8,
       "rpg": 4.9,
-      "apg": 6.1,
+      "apg": 4.6,
       "spg": 2.3,
       "bpg": 0.2,
       "archetype": "Slasher",
@@ -6722,26 +6722,26 @@
         "Volume Shooter"
       ],
       "popularity": 98,
-      "rating": 82,
-      "ratingRaw": 19.9
+      "rating": 80,
+      "ratingRaw": 19
     },
     {
       "id": "coleman_93",
       "name": "Derrick Coleman",
       "pos": "PF",
-      "ppg": 20.2,
-      "rpg": 10.7,
-      "apg": 3.7,
+      "ppg": 20.7,
+      "rpg": 11.2,
+      "apg": 3.6,
       "spg": 1.1,
-      "bpg": 1,
+      "bpg": 1.7,
       "archetype": "Paint Beast",
       "traits": [
         "Rim Protector",
         "Glue Guy"
       ],
       "popularity": 55,
-      "rating": 83,
-      "ratingRaw": 20.4
+      "rating": 86,
+      "ratingRaw": 21.9
     },
     {
       "id": "weatherspoon_95",
@@ -6786,7 +6786,7 @@
       "name": "Allen Iverson",
       "pos": "PG",
       "ppg": 31.1,
-      "rpg": 4.6,
+      "rpg": 3.8,
       "apg": 4.6,
       "spg": 2.5,
       "bpg": 0.3,
@@ -6796,15 +6796,15 @@
         "Volume Shooter"
       ],
       "popularity": 98,
-      "rating": 83,
-      "ratingRaw": 20.5
+      "rating": 82,
+      "ratingRaw": 19.9
     },
     {
       "id": "webber_05",
       "name": "Chris Webber",
       "pos": "PF",
-      "ppg": 20.2,
-      "rpg": 9.7,
+      "ppg": 20,
+      "rpg": 9.9,
       "apg": 4.5,
       "spg": 1.2,
       "bpg": 0.9,
@@ -6815,7 +6815,7 @@
       ],
       "popularity": 76,
       "rating": 83,
-      "ratingRaw": 20.1
+      "ratingRaw": 20.2
     },
     {
       "id": "iguodala_09",
@@ -6881,16 +6881,16 @@
       "ppg": 27.5,
       "rpg": 13.6,
       "apg": 3.7,
-      "spg": 0.9,
-      "bpg": 3.7,
+      "spg": 0.7,
+      "bpg": 1.9,
       "archetype": "Paint Beast",
       "traits": [
         "Rim Protector",
         "Glue Guy"
       ],
       "popularity": 65,
-      "rating": 99,
-      "ratingRaw": 28.5
+      "rating": 94,
+      "ratingRaw": 25.6
     },
     {
       "id": "simmons_19",
@@ -6898,7 +6898,7 @@
       "pos": "PG",
       "ppg": 16.9,
       "rpg": 8.8,
-      "apg": 8.2,
+      "apg": 7.7,
       "spg": 1.8,
       "bpg": 0.8,
       "archetype": "Playmaker",
@@ -6907,8 +6907,8 @@
         "Floor Spacer"
       ],
       "popularity": 68,
-      "rating": 85,
-      "ratingRaw": 21.1
+      "rating": 84,
+      "ratingRaw": 20.8
     },
     {
       "id": "harris_19",
@@ -7010,7 +7010,7 @@
       "ppg": 21.4,
       "rpg": 7,
       "apg": 4.4,
-      "spg": 1.6,
+      "spg": 1.7,
       "bpg": 0.4,
       "archetype": "Slasher",
       "traits": [
@@ -7019,7 +7019,7 @@
       ],
       "popularity": 78,
       "rating": 79,
-      "ratingRaw": 18.2
+      "ratingRaw": 18.3
     },
     {
       "id": "horry_95",
@@ -7082,27 +7082,27 @@
       "id": "yao_06",
       "name": "Yao Ming",
       "pos": "C",
-      "ppg": 25,
-      "rpg": 9.4,
-      "apg": 2.5,
-      "spg": 0.6,
-      "bpg": 2,
+      "ppg": 22.3,
+      "rpg": 10.2,
+      "apg": 2,
+      "spg": 0.7,
+      "bpg": 1.9,
       "archetype": "Paint Beast",
       "traits": [
         "Rim Protector",
         "Glue Guy"
       ],
       "popularity": 90,
-      "rating": 85,
-      "ratingRaw": 21.2
+      "rating": 84,
+      "ratingRaw": 20.6
     },
     {
       "id": "tmac_04",
       "name": "Tracy McGrady",
       "pos": "SF",
       "ppg": 24.4,
-      "rpg": 5.3,
-      "apg": 6.5,
+      "rpg": 6.5,
+      "apg": 4.8,
       "spg": 1.5,
       "bpg": 0.9,
       "archetype": "Two-Way Star",
@@ -7111,8 +7111,8 @@
         "Lockdown Defender"
       ],
       "popularity": 84,
-      "rating": 82,
-      "ratingRaw": 19.7
+      "rating": 81,
+      "ratingRaw": 19.6
     },
     {
       "id": "scola_07",
@@ -7363,16 +7363,16 @@
       "ppg": 24.2,
       "rpg": 6.5,
       "apg": 8.9,
-      "spg": 2.2,
-      "bpg": 0.3,
+      "spg": 1.9,
+      "bpg": 0.2,
       "archetype": "Two-Way Star",
       "traits": [
         "Clutch",
         "Lockdown Defender"
       ],
       "popularity": 78,
-      "rating": 86,
-      "ratingRaw": 21.8
+      "rating": 85,
+      "ratingRaw": 21.3
     },
     {
       "id": "kemp_96",
@@ -7380,17 +7380,17 @@
       "pos": "PF",
       "ppg": 19.6,
       "rpg": 11.4,
-      "apg": 2.4,
+      "apg": 2.2,
       "spg": 1.2,
-      "bpg": 1.8,
+      "bpg": 1.6,
       "archetype": "Paint Beast",
       "traits": [
         "Rim Protector",
         "Glue Guy"
       ],
       "popularity": 72,
-      "rating": 85,
-      "ratingRaw": 21.3
+      "rating": 84,
+      "ratingRaw": 20.9
     },
     {
       "id": "schrempf_96",
@@ -7457,7 +7457,7 @@
       "rpg": 7.4,
       "apg": 5.5,
       "spg": 1.3,
-      "bpg": 1.1,
+      "bpg": 0.7,
       "archetype": "Sharpshooter",
       "traits": [
         "Clutch",
@@ -7465,8 +7465,8 @@
         "Floor Spacer"
       ],
       "popularity": 91,
-      "rating": 89,
-      "ratingRaw": 23.1
+      "rating": 88,
+      "ratingRaw": 22.5
     },
     {
       "id": "russ_17",
@@ -7549,19 +7549,19 @@
       "id": "sga_24",
       "name": "Shai Gilgeous-Alexander",
       "pos": "PG",
-      "ppg": 31.1,
+      "ppg": 30.1,
       "rpg": 5.5,
       "apg": 6.2,
       "spg": 2,
-      "bpg": 1.1,
+      "bpg": 0.8,
       "archetype": "Two-Way Star",
       "traits": [
         "Clutch",
         "Lockdown Defender"
       ],
       "popularity": 68,
-      "rating": 88,
-      "ratingRaw": 22.7
+      "rating": 86,
+      "ratingRaw": 21.9
     },
     {
       "id": "williams_24",
@@ -7789,19 +7789,19 @@
       "id": "lanier_82",
       "name": "Bob Lanier",
       "pos": "C",
-      "ppg": 14.4,
-      "rpg": 7.6,
-      "apg": 2.9,
-      "spg": 1.1,
-      "bpg": 1.8,
+      "ppg": 13.5,
+      "rpg": 5.2,
+      "apg": 2.7,
+      "spg": 0.8,
+      "bpg": 1,
       "archetype": "Paint Beast",
       "traits": [
         "Rim Protector",
         "Volume Shooter"
       ],
       "popularity": 68,
-      "rating": 76,
-      "ratingRaw": 17.2
+      "rating": 69,
+      "ratingRaw": 13.5
     }
   ],
   "Bucks_2000s": [
@@ -7904,8 +7904,8 @@
       "ppg": 31.1,
       "rpg": 11.8,
       "apg": 5.7,
-      "spg": 1,
-      "bpg": 1.4,
+      "spg": 0.8,
+      "bpg": 0.8,
       "archetype": "Two-Way Star",
       "traits": [
         "Clutch",
@@ -7913,8 +7913,8 @@
         "Volume Shooter"
       ],
       "popularity": 92,
-      "rating": 95,
-      "ratingRaw": 26.2
+      "rating": 93,
+      "ratingRaw": 25
     },
     {
       "id": "dame_23",
@@ -8165,8 +8165,8 @@
       "pos": "PF",
       "ppg": 23,
       "rpg": 7,
-      "apg": 2.2,
-      "spg": 0.7,
+      "apg": 2.6,
+      "spg": 0.5,
       "bpg": 0.6,
       "archetype": "Sharpshooter",
       "traits": [
@@ -8174,8 +8174,8 @@
         "Volume Shooter"
       ],
       "popularity": 94,
-      "rating": 76,
-      "ratingRaw": 16.8
+      "rating": 75,
+      "ratingRaw": 16.7
     },
     {
       "id": "kidd_12",
@@ -8478,10 +8478,10 @@
       "id": "kemp_97",
       "name": "Shawn Kemp",
       "pos": "PF",
-      "ppg": 17.8,
+      "ppg": 18,
       "rpg": 9.3,
       "apg": 2.1,
-      "spg": 1.3,
+      "spg": 1.4,
       "bpg": 1.6,
       "archetype": "Paint Beast",
       "traits": [
@@ -8490,7 +8490,7 @@
       ],
       "popularity": 72,
       "rating": 80,
-      "ratingRaw": 18.9
+      "ratingRaw": 19.1
     },
     {
       "id": "ilgauskas_99",
@@ -8594,7 +8594,7 @@
       "rpg": 8.6,
       "apg": 9.1,
       "spg": 1.9,
-      "bpg": 1,
+      "bpg": 0.9,
       "archetype": "Playmaker",
       "traits": [
         "Clutch",
@@ -8603,7 +8603,7 @@
       ],
       "popularity": 99,
       "rating": 93,
-      "ratingRaw": 25.1
+      "ratingRaw": 25
     },
     {
       "id": "kyrie_16",
@@ -8629,7 +8629,7 @@
       "pos": "PF",
       "ppg": 19,
       "rpg": 11.1,
-      "apg": 2.4,
+      "apg": 1.9,
       "spg": 0.6,
       "bpg": 0.4,
       "archetype": "Sharpshooter",
@@ -8640,7 +8640,7 @@
       ],
       "popularity": 68,
       "rating": 78,
-      "ratingRaw": 18.1
+      "ratingRaw": 17.9
     },
     {
       "id": "thompson_t_16",
@@ -8779,8 +8779,8 @@
       "pos": "C",
       "ppg": 18.6,
       "rpg": 14.4,
-      "apg": 5,
-      "spg": 0.8,
+      "apg": 3.8,
+      "spg": 1,
       "bpg": 3.2,
       "archetype": "Two-Way Star",
       "traits": [
@@ -8788,8 +8788,8 @@
         "Lockdown Defender"
       ],
       "popularity": 80,
-      "rating": 95,
-      "ratingRaw": 26.2
+      "rating": 94,
+      "ratingRaw": 25.8
     },
     {
       "id": "lucas_77",
@@ -8906,7 +8906,7 @@
       "name": "Rick Barry",
       "pos": "SF",
       "ppg": 30.6,
-      "rpg": 6.2,
+      "rpg": 5.7,
       "apg": 6.2,
       "spg": 2.9,
       "bpg": 0.5,
@@ -8916,8 +8916,8 @@
         "Lockdown Defender"
       ],
       "popularity": 82,
-      "rating": 89,
-      "ratingRaw": 23.1
+      "rating": 88,
+      "ratingRaw": 22.8
     },
     {
       "id": "jwilkes_75",
@@ -9295,18 +9295,18 @@
       "name": "Chris Webber",
       "pos": "PF",
       "ppg": 24.5,
-      "rpg": 10.5,
+      "rpg": 10.1,
       "apg": 4.8,
-      "spg": 1.5,
-      "bpg": 1,
+      "spg": 1.7,
+      "bpg": 1.4,
       "archetype": "Two-Way Star",
       "traits": [
         "Clutch",
         "Lockdown Defender"
       ],
       "popularity": 76,
-      "rating": 88,
-      "ratingRaw": 22.7
+      "rating": 89,
+      "ratingRaw": 23.2
     },
     {
       "id": "peja_02",
@@ -9441,7 +9441,7 @@
       "name": "Willis Reed",
       "pos": "C",
       "ppg": 21.1,
-      "rpg": 13.9,
+      "rpg": 14.5,
       "apg": 1.8,
       "spg": 0.7,
       "bpg": 1.5,
@@ -9452,16 +9452,16 @@
         "Rebounding Machine"
       ],
       "popularity": 72,
-      "rating": 87,
-      "ratingRaw": 22.2
+      "rating": 88,
+      "ratingRaw": 22.6
     },
     {
       "id": "frazier_69",
       "name": "Walt Frazier",
       "pos": "PG",
       "ppg": 17.5,
-      "rpg": 5.9,
-      "apg": 7,
+      "rpg": 6.2,
+      "apg": 7.9,
       "spg": 2.1,
       "bpg": 0.4,
       "archetype": "Two-Way Star",
@@ -9471,8 +9471,8 @@
         "Lockdown Defender"
       ],
       "popularity": 78,
-      "rating": 79,
-      "ratingRaw": 18.3
+      "rating": 80,
+      "ratingRaw": 19
     },
     {
       "id": "debusschere_knk_69",
@@ -9566,7 +9566,7 @@
       "pos": "C",
       "ppg": 44.8,
       "rpg": 24.3,
-      "apg": 2.4,
+      "apg": 3.4,
       "spg": 0.7,
       "bpg": 3,
       "archetype": "Paint Beast",
@@ -9577,7 +9577,7 @@
       ],
       "popularity": 92,
       "rating": 99,
-      "ratingRaw": 39.4
+      "ratingRaw": 40
     },
     {
       "id": "thurmond_67",
@@ -9586,7 +9586,7 @@
       "secondaryPos": [
         "PF"
       ],
-      "ppg": 20.4,
+      "ppg": 18.7,
       "rpg": 22,
       "apg": 2.8,
       "spg": 1,
@@ -9598,7 +9598,7 @@
       ],
       "popularity": 68,
       "rating": 99,
-      "ratingRaw": 32.3
+      "ratingRaw": 31.8
     },
     {
       "id": "rbarry_67",
@@ -9608,8 +9608,8 @@
         "SG"
       ],
       "ppg": 25.7,
-      "rpg": 8.8,
-      "apg": 4.3,
+      "rpg": 10.6,
+      "apg": 2.2,
       "spg": 2.5,
       "bpg": 0.6,
       "archetype": "Sharpshooter",
@@ -9620,7 +9620,7 @@
       ],
       "popularity": 82,
       "rating": 87,
-      "ratingRaw": 22.1
+      "ratingRaw": 22.2
     }
   ],
   "Bulls_1960s": [
@@ -9693,7 +9693,7 @@
       ],
       "ppg": 28.4,
       "rpg": 17.1,
-      "apg": 1.5,
+      "apg": 1.4,
       "spg": 0.8,
       "bpg": 1.8,
       "archetype": "Paint Beast",
@@ -9704,7 +9704,7 @@
       ],
       "popularity": 75,
       "rating": 97,
-      "ratingRaw": 27.1
+      "ratingRaw": 27
     },
     {
       "id": "kojis_68",
@@ -9755,7 +9755,7 @@
         "PF"
       ],
       "ppg": 24,
-      "rpg": 14,
+      "rpg": 11.5,
       "apg": 1.6,
       "spg": 0.8,
       "bpg": 1.5,
@@ -9765,8 +9765,8 @@
         "Rebounding Machine"
       ],
       "popularity": 41,
-      "rating": 89,
-      "ratingRaw": 23.2
+      "rating": 85,
+      "ratingRaw": 21.4
     },
     {
       "id": "hazzard_68",
@@ -9977,18 +9977,18 @@
       "name": "Artis Gilmore",
       "pos": "C",
       "ppg": 23.7,
-      "rpg": 16.7,
+      "rpg": 12.7,
       "apg": 2,
       "spg": 1,
-      "bpg": 3,
+      "bpg": 1.9,
       "archetype": "Paint Beast",
       "traits": [
         "Rim Protector",
         "Rebounding Machine"
       ],
       "popularity": 72,
-      "rating": 98,
-      "ratingRaw": 27.7
+      "rating": 89,
+      "ratingRaw": 23.2
     }
   ],
   "Spurs_1970s": [
@@ -10084,9 +10084,9 @@
       "secondaryPos": [
         "C"
       ],
-      "ppg": 24.2,
+      "ppg": 22.7,
       "rpg": 15.7,
-      "apg": 2.8,
+      "apg": 2.1,
       "spg": 0.9,
       "bpg": 0.7,
       "archetype": "Paint Beast",
@@ -10095,8 +10095,8 @@
         "Volume Shooter"
       ],
       "popularity": 44,
-      "rating": 91,
-      "ratingRaw": 24
+      "rating": 89,
+      "ratingRaw": 23.2
     },
     {
       "id": "goodrich_jaz_77",
@@ -10123,11 +10123,11 @@
       "id": "lanier_74",
       "name": "Bob Lanier",
       "pos": "C",
-      "ppg": 24.5,
-      "rpg": 14.4,
-      "apg": 3.3,
+      "ppg": 22.5,
+      "rpg": 13.3,
+      "apg": 4.2,
       "spg": 0.9,
-      "bpg": 2.1,
+      "bpg": 3,
       "archetype": "Paint Beast",
       "traits": [
         "Rim Protector",
@@ -10135,8 +10135,8 @@
         "Rebounding Machine"
       ],
       "popularity": 68,
-      "rating": 94,
-      "ratingRaw": 25.5
+      "rating": 95,
+      "ratingRaw": 26
     },
     {
       "id": "bing_73",
@@ -10187,9 +10187,9 @@
       "secondaryPos": [
         "SG"
       ],
-      "ppg": 24.2,
+      "ppg": 21.6,
       "rpg": 8.5,
-      "apg": 4.1,
+      "apg": 3.7,
       "spg": 2,
       "bpg": 1.6,
       "archetype": "Slasher",
@@ -10199,8 +10199,8 @@
         "Slasher"
       ],
       "popularity": 92,
-      "rating": 87,
-      "ratingRaw": 22.2
+      "rating": 85,
+      "ratingRaw": 21.2
     },
     {
       "id": "dcollins_77",
@@ -10228,19 +10228,19 @@
       "secondaryPos": [
         "C"
       ],
-      "ppg": 22,
-      "rpg": 12.7,
-      "apg": 3.6,
+      "ppg": 21.4,
+      "rpg": 11.5,
+      "apg": 3.8,
       "spg": 2.1,
-      "bpg": 0.6,
+      "bpg": 0.5,
       "archetype": "Two-Way Star",
       "traits": [
         "Volume Shooter",
         "Rebounding Machine"
       ],
       "popularity": 58,
-      "rating": 88,
-      "ratingRaw": 22.9
+      "rating": 86,
+      "ratingRaw": 21.8
     }
   ],
   "Rockets_1970s": [
@@ -10292,19 +10292,19 @@
       "id": "mmalone_79",
       "name": "Moses Malone",
       "pos": "C",
-      "ppg": 17.8,
+      "ppg": 13.2,
       "rpg": 13.1,
       "apg": 1.2,
       "spg": 0.9,
-      "bpg": 1.8,
+      "bpg": 2.2,
       "archetype": "Paint Beast",
       "traits": [
         "Rebounding Machine",
         "Rim Protector"
       ],
       "popularity": 85,
-      "rating": 84,
-      "ratingRaw": 20.9
+      "rating": 83,
+      "ratingRaw": 20.1
     }
   ],
   "Nuggets_1970s": [
@@ -10518,11 +10518,11 @@
       "id": "ewing_89",
       "name": "Patrick Ewing",
       "pos": "C",
-      "ppg": 22,
-      "rpg": 10.5,
-      "apg": 2.5,
-      "spg": 0.9,
-      "bpg": 2.7,
+      "ppg": 22.7,
+      "rpg": 9.3,
+      "apg": 2.2,
+      "spg": 1,
+      "bpg": 3.5,
       "archetype": "Paint Beast",
       "traits": [
         "Rim Protector",
@@ -10530,8 +10530,8 @@
         "Volume Shooter"
       ],
       "popularity": 80,
-      "rating": 87,
-      "ratingRaw": 22.4
+      "rating": 88,
+      "ratingRaw": 22.9
     },
     {
       "id": "mjackson_88",
@@ -10618,11 +10618,11 @@
       "id": "hakeem_89",
       "name": "Hakeem Olajuwon",
       "pos": "C",
-      "ppg": 23.5,
-      "rpg": 13,
-      "apg": 2.5,
-      "spg": 2.1,
-      "bpg": 3.3,
+      "ppg": 24.8,
+      "rpg": 13.5,
+      "apg": 1.8,
+      "spg": 2.6,
+      "bpg": 3.4,
       "archetype": "Two-Way Star",
       "traits": [
         "Rim Protector",
@@ -10630,8 +10630,8 @@
         "Clutch Assassin"
       ],
       "popularity": 88,
-      "rating": 97,
-      "ratingRaw": 26.9
+      "rating": 99,
+      "ratingRaw": 28
     },
     {
       "id": "rsampson_86",
@@ -10641,7 +10641,7 @@
         "PF"
       ],
       "ppg": 21,
-      "rpg": 10.9,
+      "rpg": 11.1,
       "apg": 2.8,
       "spg": 0.8,
       "bpg": 2.4,
@@ -10652,8 +10652,8 @@
         "Volume Shooter"
       ],
       "popularity": 58,
-      "rating": 86,
-      "ratingRaw": 22
+      "rating": 87,
+      "ratingRaw": 22.2
     },
     {
       "id": "rreid_84",
@@ -10740,8 +10740,8 @@
       "id": "mutombo_95",
       "name": "Dikembe Mutombo",
       "pos": "C",
-      "ppg": 12,
-      "rpg": 12.3,
+      "ppg": 11.5,
+      "rpg": 12.5,
       "apg": 1.2,
       "spg": 0.9,
       "bpg": 3.9,
@@ -10986,19 +10986,19 @@
       "id": "drummond_16",
       "name": "Andre Drummond",
       "pos": "C",
-      "ppg": 15.4,
-      "rpg": 15.8,
-      "apg": 1.6,
-      "spg": 0.8,
-      "bpg": 1.6,
+      "ppg": 16.2,
+      "rpg": 14.8,
+      "apg": 0.9,
+      "spg": 0.7,
+      "bpg": 1.5,
       "archetype": "Paint Beast",
       "traits": [
         "Rebounding Machine",
         "Rim Protector"
       ],
       "popularity": 55,
-      "rating": 86,
-      "ratingRaw": 21.9
+      "rating": 84,
+      "ratingRaw": 20.8
     },
     {
       "id": "bgriffin_pis_18",
@@ -11392,10 +11392,10 @@
       "id": "rgobert_21",
       "name": "Rudy Gobert",
       "pos": "C",
-      "ppg": 15.1,
+      "ppg": 15.6,
       "rpg": 14.7,
-      "apg": 1.3,
-      "spg": 0.8,
+      "apg": 1.1,
+      "spg": 0.7,
       "bpg": 2.1,
       "archetype": "Lockdown Defender",
       "traits": [
@@ -11652,7 +11652,7 @@
       "ppg": 21.1,
       "rpg": 9.3,
       "apg": 5,
-      "spg": 1.3,
+      "spg": 1.2,
       "bpg": 0.9,
       "archetype": "Two-Way Star",
       "traits": [
@@ -11662,7 +11662,7 @@
       ],
       "popularity": 42,
       "rating": 83,
-      "ratingRaw": 20.5
+      "ratingRaw": 20.4
     },
     {
       "id": "jsmith_23",
@@ -11692,8 +11692,8 @@
       "id": "pettit_63",
       "name": "Bob Pettit",
       "pos": "PF",
-      "ppg": 26.4,
-      "rpg": 16.2,
+      "ppg": 28.4,
+      "rpg": 15.1,
       "apg": 3,
       "spg": 0.8,
       "bpg": 1,
@@ -11704,8 +11704,8 @@
         "Clutch"
       ],
       "popularity": 52,
-      "rating": 94,
-      "ratingRaw": 25.5
+      "rating": 93,
+      "ratingRaw": 25.3
     },
     {
       "id": "hagan_63",
@@ -12010,9 +12010,9 @@
       "id": "mutombo_97",
       "name": "Dikembe Mutombo",
       "pos": "C",
-      "ppg": 12.8,
-      "rpg": 12.1,
-      "apg": 1.2,
+      "ppg": 13.3,
+      "rpg": 11.6,
+      "apg": 1.4,
       "spg": 0.5,
       "bpg": 3.3,
       "archetype": "Lockdown Defender",
@@ -12276,8 +12276,8 @@
       "id": "murray_d_23",
       "name": "Dejounte Murray",
       "pos": "SG",
-      "ppg": 21.2,
-      "rpg": 5.4,
+      "ppg": 20.5,
+      "rpg": 5.3,
       "apg": 6.1,
       "spg": 1.5,
       "bpg": 0.4,
@@ -12288,8 +12288,8 @@
         "Slasher"
       ],
       "popularity": 57,
-      "rating": 78,
-      "ratingRaw": 17.9
+      "rating": 77,
+      "ratingRaw": 17.6
     },
     {
       "id": "capela_22",
@@ -12353,9 +12353,9 @@
       "id": "erving_75",
       "name": "Julius Erving",
       "pos": "SF",
-      "ppg": 28.7,
-      "rpg": 12.1,
-      "apg": 4.8,
+      "ppg": 27.9,
+      "rpg": 10.9,
+      "apg": 5.5,
       "spg": 1.8,
       "bpg": 1.8,
       "archetype": "Slasher",
@@ -12365,8 +12365,8 @@
         "Volume Shooter"
       ],
       "popularity": 92,
-      "rating": 96,
-      "ratingRaw": 26.6
+      "rating": 95,
+      "ratingRaw": 25.9
     },
     {
       "id": "paultz_75",
@@ -12559,11 +12559,11 @@
       "id": "coleman_d_93",
       "name": "Derrick Coleman",
       "pos": "PF",
-      "ppg": 20.2,
-      "rpg": 10.3,
-      "apg": 3,
+      "ppg": 20.7,
+      "rpg": 11.2,
+      "apg": 3.6,
       "spg": 0.9,
-      "bpg": 1.2,
+      "bpg": 1.7,
       "archetype": "Paint Beast",
       "traits": [
         "Rebounding Machine",
@@ -12571,8 +12571,8 @@
         "Post Scorer"
       ],
       "popularity": 55,
-      "rating": 82,
-      "ratingRaw": 19.8
+      "rating": 86,
+      "ratingRaw": 21.7
     },
     {
       "id": "anderson_k_95",
@@ -12672,11 +12672,11 @@
       "id": "pierce_p_14",
       "name": "Paul Pierce",
       "pos": "SF",
-      "ppg": 15.8,
-      "rpg": 5.6,
-      "apg": 3.4,
-      "spg": 0.9,
-      "bpg": 0.5,
+      "ppg": 13.5,
+      "rpg": 4.6,
+      "apg": 2.4,
+      "spg": 1.2,
+      "bpg": 0.4,
       "archetype": "Sharpshooter",
       "traits": [
         "Clutch Assassin",
@@ -12684,18 +12684,18 @@
         "Post Scorer"
       ],
       "popularity": 85,
-      "rating": 70,
-      "ratingRaw": 14.3
+      "rating": 67,
+      "ratingRaw": 12.5
     },
     {
       "id": "garnett_k_14",
       "name": "Kevin Garnett",
       "pos": "PF",
-      "ppg": 13.8,
-      "rpg": 8.2,
-      "apg": 3.2,
-      "spg": 1,
-      "bpg": 1.4,
+      "ppg": 6.5,
+      "rpg": 6.6,
+      "apg": 1.5,
+      "spg": 0.8,
+      "bpg": 0.7,
       "archetype": "Two-Way Star",
       "traits": [
         "Defensive Stopper",
@@ -12703,8 +12703,8 @@
         "Hustle Player"
       ],
       "popularity": 88,
-      "rating": 76,
-      "ratingRaw": 16.9
+      "rating": 64,
+      "ratingRaw": 11.3
     },
     {
       "id": "johnson_jo_14",
@@ -12769,8 +12769,8 @@
       "name": "James Harden",
       "pos": "PG",
       "ppg": 24.6,
-      "rpg": 7.8,
-      "apg": 10.4,
+      "rpg": 8.5,
+      "apg": 10.9,
       "spg": 1.2,
       "bpg": 0.6,
       "archetype": "Playmaker",
@@ -12780,8 +12780,8 @@
         "Floor General"
       ],
       "popularity": 65,
-      "rating": 89,
-      "ratingRaw": 23
+      "rating": 90,
+      "ratingRaw": 23.8
     },
     {
       "id": "bridges_mi_23",
@@ -12829,7 +12829,7 @@
       "pos": "C",
       "ppg": 21,
       "rpg": 10.3,
-      "apg": 1.8,
+      "apg": 1.4,
       "spg": 0.9,
       "bpg": 3.5,
       "archetype": "Lockdown Defender",
@@ -12840,7 +12840,7 @@
       ],
       "popularity": 75,
       "rating": 88,
-      "ratingRaw": 22.8
+      "ratingRaw": 22.6
     },
     {
       "id": "johnson_l_93",
@@ -13206,9 +13206,9 @@
       "id": "daniels_m_71",
       "name": "Mel Daniels",
       "pos": "C",
-      "ppg": 20.1,
-      "rpg": 15,
-      "apg": 2.4,
+      "ppg": 21,
+      "rpg": 18,
+      "apg": 2.2,
       "spg": 0.7,
       "bpg": 1.5,
       "archetype": "Paint Beast",
@@ -13217,8 +13217,8 @@
         "Post Scorer"
       ],
       "popularity": 41,
-      "rating": 89,
-      "ratingRaw": 23
+      "rating": 93,
+      "ratingRaw": 25.3
     },
     {
       "id": "brown_r_71",
@@ -13486,10 +13486,10 @@
       "name": "Jermaine O'Neal",
       "pos": "C",
       "ppg": 20.8,
-      "rpg": 10,
+      "rpg": 10.3,
       "apg": 2.2,
       "spg": 0.8,
-      "bpg": 2.4,
+      "bpg": 2.3,
       "archetype": "Paint Beast",
       "traits": [
         "Rim Protector",
@@ -13497,8 +13497,8 @@
         "Rebounding Machine"
       ],
       "popularity": 40,
-      "rating": 84,
-      "ratingRaw": 21
+      "rating": 85,
+      "ratingRaw": 21.1
     },
     {
       "id": "miller_r_03",
@@ -13775,10 +13775,10 @@
       "name": "Bob McAdoo",
       "pos": "PF",
       "ppg": 30.6,
-      "rpg": 13.2,
-      "apg": 2.8,
-      "spg": 0.8,
-      "bpg": 2,
+      "rpg": 15.1,
+      "apg": 2.3,
+      "spg": 1,
+      "bpg": 3.3,
       "archetype": "Slasher",
       "traits": [
         "Volume Shooter",
@@ -13786,8 +13786,8 @@
         "Rebounding Machine"
       ],
       "popularity": 63,
-      "rating": 95,
-      "ratingRaw": 26
+      "rating": 99,
+      "ratingRaw": 29.3
     },
     {
       "id": "smith_r_75",
@@ -13811,9 +13811,9 @@
       "id": "smith_el_73",
       "name": "Elmore Smith",
       "pos": "C",
-      "ppg": 14.8,
+      "ppg": 18.3,
       "rpg": 12.4,
-      "apg": 1.8,
+      "apg": 2.5,
       "spg": 0.6,
       "bpg": 3,
       "archetype": "Lockdown Defender",
@@ -13822,8 +13822,8 @@
         "Rebounding Machine"
       ],
       "popularity": 35,
-      "rating": 85,
-      "ratingRaw": 21.3
+      "rating": 88,
+      "ratingRaw": 22.8
     },
     {
       "id": "mcmillian_74",
@@ -14055,11 +14055,11 @@
       "id": "brand_e_03",
       "name": "Elton Brand",
       "pos": "PF",
-      "ppg": 20.4,
-      "rpg": 10,
-      "apg": 2.8,
-      "spg": 0.8,
-      "bpg": 2,
+      "ppg": 18.5,
+      "rpg": 11.3,
+      "apg": 2.5,
+      "spg": 0.9,
+      "bpg": 2.5,
       "archetype": "Paint Beast",
       "traits": [
         "Post Scorer",
@@ -14067,8 +14067,8 @@
         "Rim Protector"
       ],
       "popularity": 55,
-      "rating": 84,
-      "ratingRaw": 20.6
+      "rating": 86,
+      "ratingRaw": 21.6
     },
     {
       "id": "maggette_04",
@@ -14149,10 +14149,10 @@
       "id": "paul_c_13",
       "name": "Chris Paul",
       "pos": "PG",
-      "ppg": 19.2,
-      "rpg": 4.4,
-      "apg": 9.8,
-      "spg": 2.4,
+      "ppg": 19.1,
+      "rpg": 4.3,
+      "apg": 10.7,
+      "spg": 2.5,
       "bpg": 0.2,
       "archetype": "Playmaker",
       "traits": [
@@ -14161,8 +14161,8 @@
         "Defensive Stopper"
       ],
       "popularity": 78,
-      "rating": 81,
-      "ratingRaw": 19.4
+      "rating": 82,
+      "ratingRaw": 19.9
     },
     {
       "id": "griffin_b_14",
@@ -14187,11 +14187,11 @@
       "id": "jordan_da_14",
       "name": "DeAndre Jordan",
       "pos": "C",
-      "ppg": 12.4,
-      "rpg": 14.5,
+      "ppg": 10.4,
+      "rpg": 13.6,
       "apg": 1.2,
-      "spg": 0.6,
-      "bpg": 2.2,
+      "spg": 1,
+      "bpg": 2.5,
       "archetype": "Lockdown Defender",
       "traits": [
         "Rim Protector",
@@ -14200,7 +14200,7 @@
       ],
       "popularity": 35,
       "rating": 83,
-      "ratingRaw": 20.5
+      "ratingRaw": 20.2
     },
     {
       "id": "redick_14",
@@ -14246,10 +14246,10 @@
       "name": "Kawhi Leonard",
       "pos": "SF",
       "ppg": 24.8,
-      "rpg": 6.4,
-      "apg": 3.8,
-      "spg": 1.8,
-      "bpg": 0.8,
+      "rpg": 6.5,
+      "apg": 5.2,
+      "spg": 1.6,
+      "bpg": 0.6,
       "archetype": "Two-Way Star",
       "traits": [
         "Defensive Stopper",
@@ -14257,8 +14257,8 @@
         "Lockdown Defender"
       ],
       "popularity": 80,
-      "rating": 81,
-      "ratingRaw": 19.3
+      "rating": 82,
+      "ratingRaw": 19.7
     },
     {
       "id": "george_p_21",
@@ -14341,11 +14341,11 @@
       "id": "garnett_k_98",
       "name": "Kevin Garnett",
       "pos": "PF",
-      "ppg": 20.8,
-      "rpg": 10.4,
+      "ppg": 18.5,
+      "rpg": 9.6,
       "apg": 4.2,
-      "spg": 1.6,
-      "bpg": 2,
+      "spg": 1.7,
+      "bpg": 1.8,
       "archetype": "Two-Way Star",
       "traits": [
         "Rim Protector",
@@ -14353,8 +14353,8 @@
         "Rebounding Machine"
       ],
       "popularity": 88,
-      "rating": 88,
-      "ratingRaw": 22.7
+      "rating": 85,
+      "ratingRaw": 21.3
     },
     {
       "id": "marbury_s_98",
@@ -14439,7 +14439,7 @@
       "ppg": 24.2,
       "rpg": 13.9,
       "apg": 5,
-      "spg": 1.6,
+      "spg": 1.5,
       "bpg": 2.2,
       "archetype": "Two-Way Star",
       "traits": [
@@ -14449,7 +14449,7 @@
       ],
       "popularity": 88,
       "rating": 97,
-      "ratingRaw": 27
+      "ratingRaw": 26.9
     },
     {
       "id": "cassell_s_04",
@@ -14531,9 +14531,9 @@
       "id": "love_k_12",
       "name": "Kevin Love",
       "pos": "PF",
-      "ppg": 23.2,
-      "rpg": 12.8,
-      "apg": 2.8,
+      "ppg": 26,
+      "rpg": 13.3,
+      "apg": 2,
       "spg": 0.8,
       "bpg": 0.5,
       "archetype": "Paint Beast",
@@ -14543,8 +14543,8 @@
         "Floor Spacer"
       ],
       "popularity": 68,
-      "rating": 85,
-      "ratingRaw": 21.2
+      "rating": 86,
+      "ratingRaw": 22
     },
     {
       "id": "rubio_r_13",
@@ -14569,9 +14569,9 @@
       "id": "towns_kat_17",
       "name": "Karl-Anthony Towns",
       "pos": "C",
-      "ppg": 21.8,
-      "rpg": 11.8,
-      "apg": 2.8,
+      "ppg": 21.3,
+      "rpg": 12.3,
+      "apg": 2.4,
       "spg": 0.6,
       "bpg": 1.2,
       "archetype": "Paint Beast",
@@ -14646,9 +14646,9 @@
       "id": "towns_kat_23",
       "name": "Karl-Anthony Towns",
       "pos": "C",
-      "ppg": 22.8,
-      "rpg": 10.8,
-      "apg": 3.8,
+      "ppg": 20.8,
+      "rpg": 8.1,
+      "apg": 4.8,
       "spg": 0.8,
       "bpg": 0.8,
       "archetype": "Paint Beast",
@@ -14658,15 +14658,15 @@
         "Post Scorer"
       ],
       "popularity": 49,
-      "rating": 84,
-      "ratingRaw": 20.7
+      "rating": 80,
+      "ratingRaw": 18.7
     },
     {
       "id": "gobert_r_23",
       "name": "Rudy Gobert",
       "pos": "C",
       "ppg": 14,
-      "rpg": 13.2,
+      "rpg": 12.9,
       "apg": 1.4,
       "spg": 0.8,
       "bpg": 2.1,
@@ -14678,7 +14678,7 @@
       ],
       "popularity": 68,
       "rating": 83,
-      "ratingRaw": 20.3
+      "ratingRaw": 20.1
     },
     {
       "id": "conley_m_23",
@@ -14723,11 +14723,11 @@
       "id": "paul_c_08",
       "name": "Chris Paul",
       "pos": "PG",
-      "ppg": 20.4,
-      "rpg": 4.4,
-      "apg": 10.8,
-      "spg": 2.6,
-      "bpg": 0.2,
+      "ppg": 21.1,
+      "rpg": 4,
+      "apg": 11.6,
+      "spg": 2.7,
+      "bpg": 0.1,
       "archetype": "Playmaker",
       "traits": [
         "Point God",
@@ -14735,8 +14735,8 @@
         "Defensive Stopper"
       ],
       "popularity": 78,
-      "rating": 83,
-      "ratingRaw": 20.5
+      "rating": 84,
+      "ratingRaw": 20.9
     },
     {
       "id": "davis_b_03",
@@ -14819,10 +14819,10 @@
       "name": "Anthony Davis",
       "pos": "C",
       "ppg": 24.4,
-      "rpg": 10.8,
-      "apg": 2.4,
-      "spg": 1.4,
-      "bpg": 2.8,
+      "rpg": 10.2,
+      "apg": 2.2,
+      "spg": 1.5,
+      "bpg": 2.9,
       "archetype": "Paint Beast",
       "traits": [
         "Rim Protector",
@@ -14830,18 +14830,18 @@
         "Volume Shooter"
       ],
       "popularity": 80,
-      "rating": 91,
-      "ratingRaw": 24.1
+      "rating": 90,
+      "ratingRaw": 23.8
     },
     {
       "id": "cousins_dm_17",
       "name": "DeMarcus Cousins",
       "pos": "C",
-      "ppg": 25.2,
-      "rpg": 12.9,
-      "apg": 5.4,
+      "ppg": 24.4,
+      "rpg": 12.4,
+      "apg": 3.9,
       "spg": 1.5,
-      "bpg": 1.6,
+      "bpg": 1.1,
       "archetype": "Paint Beast",
       "traits": [
         "Volume Shooter",
@@ -14849,8 +14849,8 @@
         "Rebounding Machine"
       ],
       "popularity": 63,
-      "rating": 94,
-      "ratingRaw": 25.8
+      "rating": 90,
+      "ratingRaw": 23.6
     },
     {
       "id": "holiday_j_16",
@@ -15010,10 +15010,10 @@
       "id": "drexler_87",
       "name": "Clyde Drexler",
       "pos": "SG",
-      "ppg": 23.8,
-      "rpg": 6.2,
-      "apg": 5.8,
-      "spg": 2.4,
+      "ppg": 21.7,
+      "rpg": 6.3,
+      "apg": 6.9,
+      "spg": 2.5,
       "bpg": 0.8,
       "archetype": "Two-Way Star",
       "traits": [
@@ -15023,7 +15023,7 @@
       ],
       "popularity": 78,
       "rating": 84,
-      "ratingRaw": 20.7
+      "ratingRaw": 20.8
     },
     {
       "id": "vandeweghe_88",
@@ -15104,11 +15104,11 @@
       "id": "drexler_92",
       "name": "Clyde Drexler",
       "pos": "SG",
-      "ppg": 22.8,
-      "rpg": 6.8,
-      "apg": 5.4,
-      "spg": 2.2,
-      "bpg": 0.6,
+      "ppg": 25,
+      "rpg": 6.6,
+      "apg": 6.7,
+      "spg": 1.8,
+      "bpg": 0.9,
       "archetype": "Two-Way Star",
       "traits": [
         "Slasher",
@@ -15116,8 +15116,8 @@
         "Clutch Assassin"
       ],
       "popularity": 78,
-      "rating": 83,
-      "ratingRaw": 20.1
+      "rating": 85,
+      "ratingRaw": 21.3
     },
     {
       "id": "sabonis_97",
@@ -15218,9 +15218,9 @@
       "id": "aldridge_la_09",
       "name": "LaMarcus Aldridge",
       "pos": "PF",
-      "ppg": 18,
-      "rpg": 8.4,
-      "apg": 1.8,
+      "ppg": 18.1,
+      "rpg": 7.5,
+      "apg": 1.9,
       "spg": 0.6,
       "bpg": 1.2,
       "archetype": "Paint Beast",
@@ -15229,8 +15229,8 @@
         "Mid-Range Maestro"
       ],
       "popularity": 63,
-      "rating": 76,
-      "ratingRaw": 16.8
+      "rating": 74,
+      "ratingRaw": 16.2
     },
     {
       "id": "pippen_s_01",
@@ -15312,8 +15312,8 @@
       "id": "aldridge_la_14",
       "name": "LaMarcus Aldridge",
       "pos": "PF",
-      "ppg": 22.4,
-      "rpg": 10.8,
+      "ppg": 23.2,
+      "rpg": 11.1,
       "apg": 2.4,
       "spg": 0.6,
       "bpg": 1.8,
@@ -15324,8 +15324,8 @@
         "Rebounding Machine"
       ],
       "popularity": 63,
-      "rating": 84,
-      "ratingRaw": 21
+      "rating": 85,
+      "ratingRaw": 21.5
     },
     {
       "id": "mccollum_cj_16",
@@ -15485,7 +15485,7 @@
       "name": "Oscar Robertson",
       "pos": "PG",
       "ppg": 30.8,
-      "rpg": 10.4,
+      "rpg": 12.5,
       "apg": 11.4,
       "spg": 1.2,
       "bpg": 0.3,
@@ -15496,16 +15496,16 @@
         "Volume Shooter"
       ],
       "popularity": 90,
-      "rating": 97,
-      "ratingRaw": 26.9
+      "rating": 99,
+      "ratingRaw": 28.4
     },
     {
       "id": "lucas_j_66",
       "name": "Jerry Lucas",
       "pos": "PF",
-      "ppg": 19.8,
-      "rpg": 20,
-      "apg": 3.8,
+      "ppg": 21.5,
+      "rpg": 21.1,
+      "apg": 3.3,
       "spg": 0.8,
       "bpg": 0.8,
       "archetype": "Paint Beast",
@@ -15514,8 +15514,8 @@
         "Post Scorer"
       ],
       "popularity": 60,
-      "rating": 95,
-      "ratingRaw": 26.3
+      "rating": 98,
+      "ratingRaw": 27.4
     },
     {
       "id": "twyman_62",
@@ -15577,8 +15577,8 @@
       "id": "archibald_73",
       "name": "Nate Archibald",
       "pos": "PG",
-      "ppg": 28.2,
-      "rpg": 4.6,
+      "ppg": 34,
+      "rpg": 2.8,
       "apg": 11.4,
       "spg": 1.8,
       "bpg": 0.2,
@@ -15589,8 +15589,8 @@
         "Volume Shooter"
       ],
       "popularity": 52,
-      "rating": 88,
-      "ratingRaw": 22.5
+      "rating": 89,
+      "ratingRaw": 23
     },
     {
       "id": "birdsong_78",
@@ -15614,19 +15614,19 @@
       "id": "lacey_75",
       "name": "Sam Lacey",
       "pos": "C",
-      "ppg": 12.8,
-      "rpg": 11.8,
-      "apg": 4.2,
-      "spg": 1,
-      "bpg": 1.8,
+      "ppg": 11.5,
+      "rpg": 14.2,
+      "apg": 5.3,
+      "spg": 1.7,
+      "bpg": 2.1,
       "archetype": "Paint Beast",
       "traits": [
         "Rebounding Machine",
         "Rim Protector"
       ],
       "popularity": 35,
-      "rating": 83,
-      "ratingRaw": 20.3
+      "rating": 89,
+      "ratingRaw": 23.4
     },
     {
       "id": "wedman_77",
@@ -15857,11 +15857,11 @@
       "id": "cousins_dm_15",
       "name": "DeMarcus Cousins",
       "pos": "C",
-      "ppg": 22.8,
-      "rpg": 11.4,
-      "apg": 3.2,
-      "spg": 1.4,
-      "bpg": 1.6,
+      "ppg": 24.1,
+      "rpg": 12.7,
+      "apg": 3.6,
+      "spg": 1.5,
+      "bpg": 1.7,
       "archetype": "Paint Beast",
       "traits": [
         "Volume Shooter",
@@ -15869,8 +15869,8 @@
         "Rebounding Machine"
       ],
       "popularity": 63,
-      "rating": 88,
-      "ratingRaw": 22.7
+      "rating": 92,
+      "ratingRaw": 24.5
     },
     {
       "id": "thomas_i_13",
@@ -15971,11 +15971,11 @@
       "id": "sabonis_d_23",
       "name": "Domantas Sabonis",
       "pos": "C",
-      "ppg": 18.8,
-      "rpg": 12.4,
-      "apg": 6.2,
-      "spg": 0.8,
-      "bpg": 0.4,
+      "ppg": 19.1,
+      "rpg": 12.3,
+      "apg": 7.3,
+      "spg": 0.9,
+      "bpg": 0.5,
       "archetype": "Paint Beast",
       "traits": [
         "Floor General",
@@ -15983,8 +15983,8 @@
         "Post Scorer"
       ],
       "popularity": 39,
-      "rating": 85,
-      "ratingRaw": 21.4
+      "rating": 87,
+      "ratingRaw": 22.3
     },
     {
       "id": "monk_m_23",
@@ -16069,35 +16069,35 @@
       "pos": "SG",
       "ppg": 15.4,
       "rpg": 6.3,
-      "apg": 3,
+      "apg": 3.3,
       "spg": 1.6,
-      "bpg": 1.3,
+      "bpg": 1.9,
       "archetype": "Slasher",
       "traits": [
         "Slasher",
         "Clutch"
       ],
       "popularity": 84,
-      "rating": 75,
-      "ratingRaw": 16.4
+      "rating": 77,
+      "ratingRaw": 17.5
     },
     {
       "id": "raptors_90s_3",
       "name": "Marcus Camby",
       "pos": "C",
-      "ppg": 8.1,
-      "rpg": 8.6,
+      "ppg": 12.1,
+      "rpg": 7.4,
       "apg": 1.1,
       "spg": 1,
-      "bpg": 3,
+      "bpg": 3.7,
       "archetype": "Paint Beast",
       "traits": [
         "Rim Protector",
         "Rebounding Machine"
       ],
       "popularity": 58,
-      "rating": 75,
-      "ratingRaw": 16.6
+      "rating": 78,
+      "ratingRaw": 18
     },
     {
       "id": "raptors_90s_4",
@@ -16214,11 +16214,11 @@
       "id": "raptors_00s_3",
       "name": "Tracy McGrady",
       "pos": "SF",
-      "ppg": 25.6,
-      "rpg": 7.5,
-      "apg": 4.4,
+      "ppg": 15.4,
+      "rpg": 6.3,
+      "apg": 3.3,
       "spg": 1.8,
-      "bpg": 1.3,
+      "bpg": 1.9,
       "archetype": "Two-Way Star",
       "traits": [
         "Clutch Assassin",
@@ -16226,8 +16226,8 @@
         "Floor Spacer"
       ],
       "popularity": 84,
-      "rating": 85,
-      "ratingRaw": 21.4
+      "rating": 78,
+      "ratingRaw": 17.7
     },
     {
       "id": "raptors_00s_4",
@@ -16551,11 +16551,11 @@
       "id": "grizzlies_00s_1",
       "name": "Pau Gasol",
       "pos": "C",
-      "ppg": 19.2,
-      "rpg": 8.9,
-      "apg": 3.1,
+      "ppg": 19,
+      "rpg": 8.8,
+      "apg": 2.8,
       "spg": 0.8,
-      "bpg": 1.9,
+      "bpg": 1.8,
       "archetype": "Two-Way Star",
       "traits": [
         "Post Scorer",
@@ -16563,8 +16563,8 @@
         "Floor General"
       ],
       "popularity": 74,
-      "rating": 81,
-      "ratingRaw": 19.5
+      "rating": 80,
+      "ratingRaw": 19
     },
     {
       "id": "grizzlies_00s_2",
@@ -17038,11 +17038,11 @@
       "id": "wizards_70s_1",
       "name": "Elvin Hayes",
       "pos": "PF",
-      "ppg": 21,
+      "ppg": 23.7,
       "rpg": 12.5,
-      "apg": 1.8,
+      "apg": 1.9,
       "spg": 1.1,
-      "bpg": 2.4,
+      "bpg": 2.7,
       "archetype": "Paint Beast",
       "traits": [
         "Rebounding Machine",
@@ -17050,8 +17050,8 @@
         "Rim Protector"
       ],
       "popularity": 75,
-      "rating": 88,
-      "ratingRaw": 22.9
+      "rating": 91,
+      "ratingRaw": 24.3
     },
     {
       "id": "wizards_70s_2",
@@ -17150,9 +17150,9 @@
       "id": "wizards_80s_1",
       "name": "Jeff Ruland",
       "pos": "C",
-      "ppg": 18.3,
+      "ppg": 22.2,
       "rpg": 12.3,
-      "apg": 3.6,
+      "apg": 4,
       "spg": 0.8,
       "bpg": 1.8,
       "archetype": "Paint Beast",
@@ -17161,8 +17161,8 @@
         "Rebounding Machine"
       ],
       "popularity": 39,
-      "rating": 86,
-      "ratingRaw": 21.8
+      "rating": 89,
+      "ratingRaw": 23.2
     },
     {
       "id": "wizards_80s_2",
@@ -17260,11 +17260,11 @@
       "id": "wizards_90s_1",
       "name": "Chris Webber",
       "pos": "PF",
-      "ppg": 23,
-      "rpg": 9.6,
+      "ppg": 21.9,
+      "rpg": 9.5,
       "apg": 3.8,
-      "spg": 1.7,
-      "bpg": 2.1,
+      "spg": 1.6,
+      "bpg": 1.7,
       "archetype": "Two-Way Star",
       "traits": [
         "Post Scorer",
@@ -17272,8 +17272,8 @@
         "Floor General"
       ],
       "popularity": 76,
-      "rating": 88,
-      "ratingRaw": 22.9
+      "rating": 86,
+      "ratingRaw": 21.7
     },
     {
       "id": "wizards_90s_2",
@@ -17333,11 +17333,11 @@
       "id": "wizards_90s_5",
       "name": "Ben Wallace",
       "pos": "C",
-      "ppg": 4.9,
-      "rpg": 8.2,
+      "ppg": 6,
+      "rpg": 8.3,
       "apg": 0.7,
-      "spg": 1.2,
-      "bpg": 1.8,
+      "spg": 1.1,
+      "bpg": 2,
       "archetype": "Lockdown Defender",
       "traits": [
         "Rim Protector",
@@ -17345,8 +17345,8 @@
         "Defensive Stopper"
       ],
       "popularity": 68,
-      "rating": 69,
-      "ratingRaw": 13.5
+      "rating": 70,
+      "ratingRaw": 14.1
     },
     {
       "id": "wizards_90s_6",
@@ -17634,19 +17634,19 @@
       "id": "wizards_20s_3",
       "name": "Kristaps Porzingis",
       "pos": "C",
-      "ppg": 22.2,
+      "ppg": 23.2,
       "rpg": 8.4,
-      "apg": 2,
-      "spg": 0.8,
-      "bpg": 2.7,
+      "apg": 2.7,
+      "spg": 0.9,
+      "bpg": 1.3,
       "archetype": "Two-Way Star",
       "traits": [
         "Floor Spacer",
         "Rim Protector"
       ],
       "popularity": 65,
-      "rating": 84,
-      "ratingRaw": 20.6
+      "rating": 81,
+      "ratingRaw": 19.4
     },
     {
       "id": "wizards_20s_4",
