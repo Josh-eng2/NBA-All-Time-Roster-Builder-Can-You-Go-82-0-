@@ -4,24 +4,38 @@
       <stop offset="0%" stop-color="#1e293b"/>
       <stop offset="100%" stop-color="#0a1120"/>
     </radialGradient>
-    <clipPath id="clip">
-      <rect width="1200" height="630"/>
-    </clipPath>
+    <radialGradient id="crestBg" cx="50%" cy="36%" r="72%">
+      <stop offset="0%" stop-color="#243357"/>
+      <stop offset="100%" stop-color="#0d1526"/>
+    </radialGradient>
+    <!-- Same bottom-hugging arc formula as logo-badge.svg's crestArc,
+         scaled ×1.7157 and re-centered so the ring clears the canvas edge
+         (right edge at x=1125, 75px margin from x=1200). -->
+    <path id="ogArc" d="M 858.1 392.1 A 120 120 0 0 0 1041.9 392.1" fill="none"/>
   </defs>
 
   <!-- Background -->
   <rect width="1200" height="630" fill="url(#bg)"/>
 
-  <!-- Basketball watermark (right side) -->
-  <g clip-path="url(#clip)" opacity="0.18">
-    <circle cx="970" cy="315" r="300" fill="#f97316"/>
-    <circle cx="970" cy="315" r="300" fill="none" stroke="#7c2d12" stroke-width="6"/>
-    <!-- vertical seam -->
-    <line x1="970" y1="15" x2="970" y2="615" stroke="#7c2d12" stroke-width="5"/>
-    <!-- horizontal seam curves -->
-    <path d="M670 315 Q970 200 1270 315" fill="none" stroke="#7c2d12" stroke-width="5"/>
-    <path d="M670 315 Q970 430 1270 315" fill="none" stroke="#7c2d12" stroke-width="5"/>
+  <!-- Roundel crest (right side) — the app's actual logo, not a watermark -->
+  <g transform="translate(950,315)">
+    <circle r="175" fill="url(#crestBg)" stroke="#f97316" stroke-width="12"/>
+    <circle r="154" fill="none" stroke="#f97316" stroke-width="2.4" opacity="0.32"/>
+    <g transform="translate(0,-69)">
+      <circle r="50" fill="#f97316"/>
+      <circle r="50" fill="none" stroke="#9a3412" stroke-width="3"/>
+      <line x1="-50" y1="0" x2="50" y2="0" stroke="#9a3412" stroke-width="2.7"/>
+      <path d="M0 -50 Q-31 0 0 50" fill="none" stroke="#9a3412" stroke-width="2.7"/>
+      <path d="M0 -50 Q31 0 0 50" fill="none" stroke="#9a3412" stroke-width="2.7"/>
+    </g>
+    <text x="0" y="57" text-anchor="middle"
+      font-family="'Arial Black','Helvetica Neue',Arial,sans-serif"
+      font-weight="900" font-size="79" letter-spacing="-3.5" fill="#f5efe1">82-0</text>
   </g>
+  <text font-family="'Arial Black','Helvetica Neue',Arial,sans-serif"
+    font-weight="700" font-size="21" letter-spacing="6" fill="#f97316">
+    <textPath href="#ogArc" startOffset="50%" text-anchor="middle">EST. 2025</textPath>
+  </text>
 
   <!-- Subtle grid lines for depth -->
   <line x1="0" y1="628" x2="1200" y2="628" stroke="#f97316" stroke-width="3" opacity="0.6"/>
