@@ -1128,7 +1128,11 @@ body {
 
 .draft-screen__inner--desktop {
   width: 100%;
-  max-width: 100rem;
+  /* Covers a full 1920px monitor edge-to-edge (minus the 1rem page gutter
+     from draft-screen__main's px-4) before the rails stop growing — the old
+     100rem/1600px cap left ~320px of dead margin unused on a plain 1080p
+     screen. */
+  max-width: 120rem;
   height: 100%;
   min-height: 0;
   display: grid;
@@ -1179,8 +1183,8 @@ body {
 .draft-pop-bar-vertical__track {
   flex: 1;
   min-height: 0;
-  width: 6rem;
-  max-width: 60%;
+  width: 8rem;
+  max-width: 70%;
   border-radius: 999px;
   background: var(--border);
   overflow: hidden;
@@ -1197,6 +1201,28 @@ body {
 .draft-pop-bar-vertical__value {
   flex-shrink: 0;
   line-height: 1;
+}
+
+/* ── 2xl+ (>=1536px) — the rails have real room to grow on a 1920px+
+   monitor, so scale their content up a notch instead of just stretching
+   into empty space. Laptop/tablet/mobile (below this) are untouched. */
+@media (min-width: 1536px) {
+  .draft-pop-bar-vertical__track {
+    width: 10rem;
+  }
+
+  .draft-pop-bar-vertical__label {
+    font-size: 0.75rem;
+  }
+
+  .draft-chem-report__item {
+    font-size: 0.875rem;
+    padding: 0.625rem 0.875rem;
+  }
+
+  .draft-pop-bar-vertical__value {
+    font-size: 1rem;
+  }
 }
 
 /* Thicker meter to match the rest of the desktop rail's presence. */
