@@ -1433,7 +1433,7 @@ function renderResults() {
             </button>
           </div>
           ${autopsy ? `
-          <div class="rounded-2xl bg-white p-4 card-shadow flex flex-col" style="border:1.5px solid #fecaca">
+          <div class="rounded-2xl bg-white p-5 card-shadow flex flex-col" style="border:1.5px solid #fecaca">
             <p class="text-xs font-bold uppercase tracking-widest mb-2.5" style="color:#dc2626">
               Loss Autopsy — ${r.losses} ${r.losses === 1 ? 'loss' : 'losses'}
             </p>
