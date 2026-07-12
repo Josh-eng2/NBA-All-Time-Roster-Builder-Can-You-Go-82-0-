@@ -55,6 +55,28 @@ function isMobileViewport() {
   return typeof window !== 'undefined' && window.matchMedia('(max-width: 639px)').matches;
 }
 
+// The drafting screen swaps to an entirely different DOM structure (3-column
+// app shell, each column scrolling independently so the whole screen fits in
+// one viewport) at this width — see renderDrafting(). Below it, the screen
+// is the original flat single-column layout untouched.
+function isDesktopDraftLayout() {
+  return typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches;
+}
+
+// Re-render on resize if that swap needs to flip, since nothing else
+// triggers a render when the user just drags the window across the
+// breakpoint without otherwise interacting.
+if (typeof window !== 'undefined') {
+  let _lastIsDesktopDraft = isDesktopDraftLayout();
+  window.addEventListener('resize', () => {
+    const now = isDesktopDraftLayout();
+    if (now !== _lastIsDesktopDraft) {
+      _lastIsDesktopDraft = now;
+      if (S.phase === 'drafting') render();
+    }
+  });
+}
+
 const FANS_TEAM_MAX = 500; // 5 starters × 100 max popularity each
 
 function fansBarCol(avg, dark = isDark()) {
@@ -494,6 +516,33 @@ function shouldShowDraftBoard(full) {
 function renderDrafting() {
   if (S.mode === '1v1') return renderDrafting1v1();
   const full = rosterFull();
+
+  if (isDesktopDraftLayout()) {
+    // 3-column app shell: Live Chemistry is a fixed left rail, the vertical
+    // Fans meter a fixed right rail, and the normal draft flow scrolls on
+    // its own in the center — so the whole screen fits in one viewport with
+    // no page scrollbar. See .draft-screen--desktop in styles.css.
+    return `
+    <div class="min-h-screen main-gradient draft-screen draft-screen--desktop">
+      ${renderHeader(true)}
+      <main class="flex flex-col items-center px-4 pt-2 pb-8 draft-screen__main">
+        <div class="w-full max-w-2xl draft-screen__inner draft-screen__inner--desktop">
+          ${renderChemDashboard()}
+          <div class="draft-screen__center">
+            ${renderColdOpenBanner()}
+            ${full ? renderSimulateCard() : ''}
+            ${renderRoundBar()}
+            ${renderCoachChip()}
+            ${!full ? renderSlotMachine() : ''}
+            ${shouldShowDraftBoard(full) ? renderDraftBoard() : ''}
+            ${renderRoster()}
+          </div>
+          ${renderPopularityBarVertical()}
+        </div>
+      </main>
+    </div>`;
+  }
+
   return `
   <div class="min-h-screen main-gradient draft-screen">
     ${renderHeader(true)}
@@ -506,7 +555,6 @@ function renderDrafting() {
         ${!full ? renderSlotMachine() : ''}
         ${shouldShowDraftBoard(full) ? renderDraftBoard() : ''}
         ${renderPopularityBar()}
-        ${renderPopularityBarVertical()}
         ${renderChemDashboard()}
         ${renderRoster()}
       </div>

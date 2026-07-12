@@ -1101,92 +1101,102 @@ body {
   }
 }
 
-/* The vertical fans meter only exists for the desktop 3-column draft layout
-   below — keep it out of the flow everywhere else. */
-.draft-pop-bar-vertical {
-  display: none;
+/* ── Drafting screen — desktop 3-column, single-viewport layout ─────────
+   renderDrafting() emits this alternate structure only when
+   isDesktopDraftLayout() (>=1024px) is true; below that it emits the
+   original flat, mobile/tablet markup and none of these classes exist in
+   the DOM. Live Chemistry is a fixed left rail, the vertical Fans meter a
+   fixed right rail, and the normal draft flow sits in a center column —
+   all three pinned to the height below the header and scrolling
+   independently, so the whole screen fits without a page scrollbar
+   (mirroring the mobile one-screen layout above). */
+.draft-screen--desktop {
+  height: 100dvh;
+  min-height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
-/* ── Drafting screen — desktop 3-column layout ──────────────────────────
-   Live Chemistry moves to a left rail, the vertical Fans meter to a right
-   rail, and everything else keeps its normal document order in the center
-   column. Mobile/tablet (below this breakpoint) is untouched. */
-@media (min-width: 1024px) {
-  .draft-screen__inner {
-    max-width: 64rem;
-    display: grid;
-    grid-template-columns: 15rem minmax(0, 1fr) 4.5rem;
-    grid-template-areas:
-      "chem coldopen fans"
-      "chem simulate fans"
-      "chem round    fans"
-      "chem coach    fans"
-      "chem slot     fans"
-      "chem board    fans"
-      "chem roster   fans";
-    align-items: start;
-    gap: 1.25rem;
-  }
+.draft-screen--desktop .draft-screen__main {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
 
-  .draft-chem-dashboard {
-    grid-area: chem;
-    position: sticky;
-    top: 1rem;
-  }
+.draft-screen__inner--desktop {
+  max-width: 64rem;
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 15rem minmax(0, 1fr) 4.5rem;
+  grid-template-areas: "chem center fans";
+  gap: 1.25rem;
+}
 
-  .draft-cold-open     { grid-area: coldopen; }
-  .draft-simulate-card { grid-area: simulate; }
-  .draft-round-bar     { grid-area: round; }
-  .draft-coach-chip    { grid-area: coach; }
-  .draft-slot-machine  { grid-area: slot; }
-  .draft-board-wrap    { grid-area: board; }
-  .draft-roster        { grid-area: roster; }
+.draft-screen__inner--desktop .draft-chem-dashboard {
+  grid-area: chem;
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
 
-  .draft-pop-bar {
-    display: none;
-  }
+.draft-screen__center {
+  grid-area: center;
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  /* keeps the last card's shadow/focus ring from being clipped by the
+     scroll container's edge */
+  padding-bottom: 0.25rem;
+}
 
-  .draft-pop-bar-vertical {
-    grid-area: fans;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-    height: 100%;
-    min-height: 22rem;
-    position: sticky;
-    top: 1rem;
-  }
+.draft-pop-bar-vertical {
+  grid-area: fans;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  height: 100%;
+  min-height: 0;
+}
 
-  .draft-pop-bar-vertical__label {
-    flex-shrink: 0;
-  }
+.draft-pop-bar-vertical__label {
+  flex-shrink: 0;
+}
 
-  .draft-pop-bar-vertical__track {
-    flex: 1;
-    width: 1.5rem;
-    border-radius: 999px;
-    background: var(--border);
-    overflow: hidden;
-    display: flex;
-    align-items: flex-end;
-  }
+.draft-pop-bar-vertical__track {
+  flex: 1;
+  min-height: 0;
+  width: 1.5rem;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+}
 
-  .draft-pop-bar-vertical__fill {
-    width: 100%;
-    border-radius: 999px;
-    transition: height 0.2s ease-out;
-  }
+.draft-pop-bar-vertical__fill {
+  width: 100%;
+  border-radius: 999px;
+  transition: height 0.2s ease-out;
+}
 
-  .draft-pop-bar-vertical__value {
-    flex-shrink: 0;
-    line-height: 1;
-  }
+.draft-pop-bar-vertical__value {
+  flex-shrink: 0;
+  line-height: 1;
+}
 
-  .draft-pop-bar-vertical__max {
-    flex-shrink: 0;
-    margin-top: -0.25rem;
-  }
+.draft-pop-bar-vertical__max {
+  flex-shrink: 0;
+  margin-top: -0.25rem;
 }
 
 /* ── Dark mode overrides ──────────────────────────────────── */
