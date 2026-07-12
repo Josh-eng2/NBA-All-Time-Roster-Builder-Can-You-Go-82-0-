@@ -40,8 +40,7 @@
  *                                  && request.resource.data.fansM >= 0
  *                                  && request.resource.data.fansM <= 50))
  *                          && request.resource.data.champion is bool
- *                          && request.resource.data.timestampMs is number
- *                          && request.resource.data.timestampMs <= request.time.toMillis() + 60000;
+ *                          && request.resource.data.timestampMs is number;
  *            allow update, delete: if false;
  *          }
  *        }
@@ -51,6 +50,16 @@
  *    can be written by anyone holding the public web config, and the modal
  *    renders them for every visitor. The client also numeric-coerces on read
  *    (storage.js) as defense in depth.
+ *
+ *    `timestampMs` is client-reported and intentionally NOT compared against
+ *    request.time — an earlier rule did `timestampMs <= request.time.toMillis()
+ *    + 60000`, which rejected writes from any device whose system clock ran
+ *    fast (symptom: submission works on phone, fails on desktop, because
+ *    phones sync time over the cellular network while desktop clocks can
+ *    drift or have a misconfigured timezone). Time-window reads (24h/weekly)
+ *    filter on the `timestamp` field instead, which Firestore stamps via
+ *    serverTimestamp() and is authoritative regardless of the submitting
+ *    client's clock.
  *
  * 4. In Firebase Console → Project Settings → Your apps → Add web app.
  *    Copy the firebaseConfig object and paste the values into FIREBASE_CONFIG below.
@@ -65,7 +74,7 @@
 import { initializeApp, getApps }   from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js';
 import {
   getFirestore, collection, addDoc, getDocs,
-  query, orderBy, limit, where, serverTimestamp,
+  query, orderBy, limit, where, serverTimestamp, Timestamp,
 } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js';
 import { getAnalytics, logEvent } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-analytics.js';
 
@@ -196,12 +205,15 @@ export async function fetchLeaderboard(filter = 'alltime') {
     q = query(col, orderBy('wins', 'desc'), limit(10));
   } else {
     const msInDay = 24 * 60 * 60 * 1000;
-    const cutoff  = Date.now() - (filter === '24h' ? msInDay : 7 * msInDay);
+    // Filter on `timestamp` (server-stamped via serverTimestamp()), not the
+    // client-reported `timestampMs` — this keeps the window authoritative
+    // regardless of the reading device's own clock.
+    const cutoff = Timestamp.fromMillis(Date.now() - (filter === '24h' ? msInDay : 7 * msInDay));
     // Same-field where + orderBy — no composite index required. The window is
     // fetched newest-first then re-sorted by wins client-side, so the limit
     // bounds how many recent entries the top-10 is drawn from; 250 keeps a
     // busy week from dropping high-win runs off the board.
-    q = query(col, where('timestampMs', '>', cutoff), orderBy('timestampMs', 'desc'), limit(250));
+    q = query(col, where('timestamp', '>', cutoff), orderBy('timestamp', 'desc'), limit(250));
   }
 
   const snap    = await getDocs(q);

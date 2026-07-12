@@ -115,7 +115,7 @@ export function fmtPlayerLine(p) {
   return era ? `${p.name} (${era})` : p.name;
 }
 
-// ── Player rating (0–100 overall) display helpers ─────────────────────────────
+// ── Team rating (0–100 overall) display helper ────────────────────────────────
 /** 2K-style tier color for a 0–100 rating. */
 export function ovrColor(rating) {
   const r = rating ?? 0;
@@ -123,15 +123,6 @@ export function ovrColor(rating) {
   if (r >= 82) return '#2563eb'; // blue — star
   if (r >= 74) return '#0f766e'; // teal — solid starter
   return '#64748b';              // slate — role player
-}
-
-/** Compact 2K-style OVR badge used in roster rows. */
-export function ovrBadge(rating) {
-  const val = rating ?? '—';
-  return `<div class="flex-shrink-0 text-center w-9">
-    <div class="text-base font-black leading-none" style="color:${ovrColor(rating)}">${val}</div>
-    <div class="text-[8px] font-bold uppercase tracking-wider text-muted-fg leading-none mt-0.5">OVR</div>
-  </div>`;
 }
 
 // ── Confetti (lazy) ───────────────────────────────────────────────────────────
@@ -1344,7 +1335,6 @@ function renderResults() {
           ${p.archetype ? archetypeBadge(p.archetype) : ''}
         </div>
       </div>
-      ${ovrBadge(p.rating)}
       <div class="flex gap-3 text-xs text-muted-fg flex-shrink-0">
         <span><span class="font-semibold text-foreground">${s.ppg}</span> PPG</span>
         <span><span class="font-semibold text-foreground">${s.rpg}</span> RPG</span>
