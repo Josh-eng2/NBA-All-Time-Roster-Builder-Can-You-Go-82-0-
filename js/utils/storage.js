@@ -337,14 +337,6 @@ function _teamFansFromEntry(entry, lineup) {
   return { avg, sum, pct, fansM, tier, barCol };
 }
 
-function _ovrColor(rating) {
-  const r = rating ?? 0;
-  if (r >= 90) return '#d97706';
-  if (r >= 82) return '#2563eb';
-  if (r >= 74) return '#0f766e';
-  return '#64748b';
-}
-
 function _globalLbTeamDetailHtml(entry) {
   const wins      = Number(entry.wins)   || 0;
   const losses    = Number(entry.losses) || 0;
@@ -355,7 +347,6 @@ function _globalLbTeamDetailHtml(entry) {
   const name      = esc((entry.teamName || 'Untitled Team').slice(0, 30));
 
   const starterRows = lineup.map(({ pos, name: pName, player }) => {
-    const rating = player?.rating;
     const era = player
       ? [player.team, player.decade ? player.decade.replace(/(\d{2})(\d{2})s/, '$2s') : ''].filter(Boolean).join(' ')
       : '';
@@ -366,7 +357,6 @@ function _globalLbTeamDetailHtml(entry) {
         <p style="font-weight:700;font-size:14px;color:var(--fg);margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:Fira Sans,sans-serif">${esc(pName)}</p>
         ${era ? `<p style="font-size:11px;color:var(--muted-fg);margin:2px 0 0;font-family:Fira Sans,sans-serif">${esc(era)}</p>` : ''}
       </div>
-      ${rating != null ? `<span style="font-size:11px;font-weight:900;color:${_ovrColor(rating)};flex-shrink:0;font-family:Fira Sans,sans-serif">${rating} OVR</span>` : ''}
     </div>`;
   }).join('');
 
