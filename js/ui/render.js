@@ -19,6 +19,7 @@ import { rosterFull, availableDecades, getLegendCatalog, getSkips } from '../log
 import { coachSystemProgress }                            from '../logic/simulation.js';
 import { getBracketDisplayState }                         from '../logic/playoffs.js';
 import { markReturning, getCollectedLegends }             from '../utils/storage.js';
+import { cgGameplayStart, cgGameplayStop }                from '../utils/crazygames.js';
 import { bindEvents }                                     from '../ui/events.js'; // circular — safe (called inside functions only)
 
 // ── Mount point ───────────────────────────────────────────────────────────────
@@ -2373,8 +2374,22 @@ function renderSeriesSim() {
   </div>`;
 }
 
+// Phases where the player is actively drafting/simulating, as opposed to a
+// menu or a results/summary screen — drives the CrazyGames gameplayStart/Stop
+// calls so their platform knows when it's safe to show an ad.
+const CG_GAMEPLAY_PHASES = new Set(['drafting', 'season-sim', 'playoffs', 'series-sim']);
+let _cgGameplayActive = null;
+
+function updateCrazyGamesGameplayState() {
+  const active = CG_GAMEPLAY_PHASES.has(S.phase);
+  if (active === _cgGameplayActive) return;
+  _cgGameplayActive = active;
+  if (active) cgGameplayStart(); else cgGameplayStop();
+}
+
 // ── Main render dispatcher ────────────────────────────────────────────────────
 export function render() {
+  updateCrazyGamesGameplayState();
   if      (S.phase === 'mode-select')   $app.innerHTML = renderModeSelect();
   else if (S.phase === 'drafting')      $app.innerHTML = renderDrafting();
   else if (S.phase === 'season-sim')    $app.innerHTML = renderSeasonSim();
