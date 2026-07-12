@@ -988,7 +988,7 @@ function renderChemDashboard() {
       <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg">Live Chemistry</p>
       <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border" style="background:${scoreBg};color:${scoreColor};border-color:${scoreColor}30">${scoreLabel} · ${chemScore}%</span>
     </div>
-    <div class="h-1.5 rounded-full overflow-hidden bg-border draft-chem-dashboard__meter">
+    <div class="h-1.5 rounded-full overflow-hidden bg-border draft-chem-dashboard__meter mb-3">
       <div class="h-full rounded-full stat-bar-fill" style="width:${chemScore}%;background:${scoreColor}"></div>
     </div>
     ${chemReport.length > 0 ? `
