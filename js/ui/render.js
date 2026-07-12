@@ -291,7 +291,10 @@ function renderHeader(showRestart = false) {
 function renderFooter() {
   return `
   <footer class="w-full mt-auto" style="padding:2px 0">
-    <p style="font-size:6px;color:var(--border);text-align:center;user-select:none;letter-spacing:0.02em;line-height:1">82-0.com is an independent fan project not affiliated with the NBA or its teams.</p>
+    <p style="font-size:6px;color:var(--border);text-align:center;user-select:none;letter-spacing:0.02em;line-height:1">
+      82-0.com is an independent fan project not affiliated with the NBA or its teams. ·
+      <a href="privacy.html" target="_blank" rel="noopener noreferrer" style="color:var(--border);text-decoration:underline;user-select:auto">Privacy &amp; Terms</a>
+    </p>
   </footer>`;
 }
 
