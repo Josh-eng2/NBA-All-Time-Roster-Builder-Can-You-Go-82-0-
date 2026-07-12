@@ -25,6 +25,7 @@
 import { S, COACHES, POSITIONS } from '../logic/state.js';
 import { getLegendCatalog }                      from '../logic/draft.js';
 import { fetchLeaderboard }                        from '../utils/firebase.js';
+import { cgGetItem, cgSetItem }                    from '../utils/crazygames.js';
 
 const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 
@@ -54,11 +55,11 @@ const RETURNING_KEY = 'nba820_returning';
 export function isReturningPlayer() {
   // Storage blocked → treat as returning so the app falls back to the
   // normal menu flow instead of an inescapable cold-open loop.
-  try { return !!localStorage.getItem(RETURNING_KEY); } catch (e) { return true; }
+  try { return !!cgGetItem(RETURNING_KEY); } catch (e) { return true; }
 }
 
 export function markReturning() {
-  try { localStorage.setItem(RETURNING_KEY, '1'); } catch (e) {}
+  try { cgSetItem(RETURNING_KEY, '1'); } catch (e) {}
 }
 
 // ── Legends collection ────────────────────────────────────────────────────────
@@ -70,7 +71,7 @@ const LEGENDS_KEY = 'nba820_legends';
 
 /** @returns {Set<string>} the set of collected player ids. */
 export function getCollectedLegends() {
-  try { return new Set(JSON.parse(localStorage.getItem(LEGENDS_KEY) || '[]')); }
+  try { return new Set(JSON.parse(cgGetItem(LEGENDS_KEY) || '[]')); }
   catch (e) { return new Set(); }
 }
 
@@ -90,8 +91,8 @@ export function recordLegends(players) {
     newlyAdded.push(p);
   }
   if (newlyAdded.length) {
-    try { localStorage.setItem(LEGENDS_KEY, JSON.stringify([...collected])); }
-    catch (e) { if (e.name === 'QuotaExceededError') console.warn('[storage] localStorage full — legends not saved'); }
+    try { cgSetItem(LEGENDS_KEY, JSON.stringify([...collected])); }
+    catch (e) { console.warn('[storage] legends not saved', e); }
   }
   return newlyAdded;
 }
@@ -123,7 +124,7 @@ export function saveLeaderboard() {
     leaders:       packLeaders(r),
   };
   let lb = [];
-  try { lb = JSON.parse(localStorage.getItem('nba820_lb') || '[]'); } catch (e) {}
+  try { lb = JSON.parse(cgGetItem('nba820_lb') || '[]'); } catch (e) {}
   lb.push(entry);
   // Tie-breakers: 1° wins  2° Team Popularity
   lb.sort((a, b) => {
@@ -132,9 +133,9 @@ export function saveLeaderboard() {
   });
   if (lb.length > 20) lb = lb.slice(0, 20);
   try {
-    localStorage.setItem('nba820_lb', JSON.stringify(lb));
+    cgSetItem('nba820_lb', JSON.stringify(lb));
   } catch (e) {
-    if (e.name === 'QuotaExceededError') console.warn('[storage] localStorage full — leaderboard not saved');
+    console.warn('[storage] leaderboard not saved', e);
   }
 }
 
@@ -153,13 +154,13 @@ export function saveToTrophyRoom() {
     starters:    POSITIONS.map(p => S.roster[p]?.name || '—').join(', '),
   };
   let trophies = [];
-  try { trophies = JSON.parse(localStorage.getItem('nba820_trophies') || '[]'); } catch (e) {}
+  try { trophies = JSON.parse(cgGetItem('nba820_trophies') || '[]'); } catch (e) {}
   trophies.unshift(entry);
   if (trophies.length > 12) trophies = trophies.slice(0, 12);
   try {
-    localStorage.setItem('nba820_trophies', JSON.stringify(trophies));
+    cgSetItem('nba820_trophies', JSON.stringify(trophies));
   } catch (e) {
-    if (e.name === 'QuotaExceededError') console.warn('[storage] localStorage full — trophy room not saved');
+    console.warn('[storage] trophy room not saved', e);
   }
 }
 
@@ -167,7 +168,7 @@ export function saveToTrophyRoom() {
 
 function renderLeaderboardModal() {
   let lb = [];
-  try { lb = JSON.parse(localStorage.getItem('nba820_lb') || '[]'); } catch (e) {}
+  try { lb = JSON.parse(cgGetItem('nba820_lb') || '[]'); } catch (e) {}
   const top5 = lb.slice(0, 5);
 
   const rows = top5.length === 0

@@ -19,7 +19,7 @@ import { rosterFull, availableDecades, getLegendCatalog, getSkips } from '../log
 import { coachSystemProgress }                            from '../logic/simulation.js';
 import { getBracketDisplayState }                         from '../logic/playoffs.js';
 import { markReturning, getCollectedLegends }             from '../utils/storage.js';
-import { cgGameplayStart, cgGameplayStop }                from '../utils/crazygames.js';
+import { cgGameplayStart, cgGameplayStop, cgGetItem }     from '../utils/crazygames.js';
 import { bindEvents }                                     from '../ui/events.js'; // circular — safe (called inside functions only)
 
 // ── Mount point ───────────────────────────────────────────────────────────────
@@ -301,10 +301,10 @@ function renderModeSelect() {
   // it deliberately — is a returning player from now on. Idempotent.
   markReturning();
   let trophies = [], best = null, lastRun = null, bestStreak = 0;
-  try { trophies   = JSON.parse(localStorage.getItem('nba820_trophies') || '[]'); } catch (e) {}
-  try { best       = JSON.parse(localStorage.getItem('nba820_best')     || 'null'); } catch (e) {}
-  try { lastRun    = JSON.parse(localStorage.getItem('nba820_lastRun')  || 'null'); } catch (e) {}
-  try { bestStreak = parseInt(localStorage.getItem('nba820_bestStreak') || '0', 10); } catch (e) {}
+  try { trophies   = JSON.parse(cgGetItem('nba820_trophies') || '[]'); } catch (e) {}
+  try { best       = JSON.parse(cgGetItem('nba820_best')     || 'null'); } catch (e) {}
+  try { lastRun    = JSON.parse(cgGetItem('nba820_lastRun')  || 'null'); } catch (e) {}
+  try { bestStreak = parseInt(cgGetItem('nba820_bestStreak') || '0', 10); } catch (e) {}
   return `
   <div class="flex flex-col min-h-screen main-gradient">
     <header class="sticky top-0 z-50 w-full bg-white border-b border-border mode-header" style="box-shadow:0 1px 3px var(--header-shadow)">
@@ -1944,7 +1944,7 @@ function renderEliminated() {
 // ── Trophy Room ───────────────────────────────────────────────────────────────
 function renderTrophyRoom() {
   let trophies = [];
-  try { trophies = JSON.parse(localStorage.getItem('nba820_trophies') || '[]'); } catch (e) {}
+  try { trophies = JSON.parse(cgGetItem('nba820_trophies') || '[]'); } catch (e) {}
 
   // Twelve pedestals — the empty ones are the hook.
   const PEDESTALS = 12;

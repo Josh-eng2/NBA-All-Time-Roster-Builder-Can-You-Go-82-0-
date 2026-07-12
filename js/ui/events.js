@@ -26,6 +26,7 @@ import {
   showGlobalLeaderboardModal, closeGlobalLeaderboardModal,
 } from '../utils/storage.js';
 import { submitGlobalScore, logAnalyticsEvent, isFirebaseConfigured } from '../utils/firebase.js';
+import { cgGetItem, cgSetItem } from '../utils/crazygames.js';
 import {
   render, $app, fmtPlayerLine, fmtDecadeShort, showToast, renderSeasonTickerRows,
   computeAutopsy, liveStreakLabel, withConfetti,
@@ -573,23 +574,23 @@ function doSimulate() {
     }
   }
 
-  // Capture personal bests BEFORE overwriting localStorage so the live
+  // Capture personal bests BEFORE overwriting saved progress so the live
   // reveal can fire "tied your streak" and "new personal best" moments.
   let _prevBestSnap = null;
-  try { _prevBestSnap = JSON.parse(localStorage.getItem('nba820_best') || 'null'); } catch (e) {}
+  try { _prevBestSnap = JSON.parse(cgGetItem('nba820_best') || 'null'); } catch (e) {}
   S._prevBestWins   = _prevBestSnap ? _prevBestSnap.wins : 0;
-  S._prevBestStreak = parseInt(localStorage.getItem('nba820_bestStreak') || '0', 10);
+  S._prevBestStreak = parseInt(cgGetItem('nba820_bestStreak') || '0', 10);
 
   // Auto-persist personal best, best streak, and last-run tip — feeds the
   // mode-select greeting without requiring a manual "Save Run".
   try {
-    const prevBest = JSON.parse(localStorage.getItem('nba820_best') || 'null');
+    const prevBest = JSON.parse(cgGetItem('nba820_best') || 'null');
     if (!prevBest || S.result.wins > prevBest.wins) {
-      localStorage.setItem('nba820_best', JSON.stringify({ wins: S.result.wins, losses: S.result.losses }));
+      cgSetItem('nba820_best', JSON.stringify({ wins: S.result.wins, losses: S.result.losses }));
     }
-    const prevStreak = parseInt(localStorage.getItem('nba820_bestStreak') || '0', 10);
-    if (longestStreak > prevStreak) localStorage.setItem('nba820_bestStreak', String(longestStreak));
-    localStorage.setItem('nba820_lastRun', JSON.stringify({
+    const prevStreak = parseInt(cgGetItem('nba820_bestStreak') || '0', 10);
+    if (longestStreak > prevStreak) cgSetItem('nba820_bestStreak', String(longestStreak));
+    cgSetItem('nba820_lastRun', JSON.stringify({
       wins: S.result.wins, losses: S.result.losses,
       tip: computeAutopsy()?.fix || null,
     }));
