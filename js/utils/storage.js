@@ -175,10 +175,10 @@ function renderLeaderboardModal() {
     : top5.map((e, i) => {
         const isPerfect = e.wins === 82;
         const rowBg     = isPerfect
-          ? 'background:#fffbeb;border-color:#fcd34d'
+          ? 'background:var(--surface-amber);border-color:var(--amber-border)'
           : 'background:var(--card3);border-color:var(--border)';
         const medals    = ['🥇','🥈','🥉','4️⃣','5️⃣'];
-        const winsColor = isPerfect ? '#b45309' : 'var(--fg)';
+        const winsColor = isPerfect ? 'var(--amber-strong)' : 'var(--fg)';
         const name      = esc(e.teamName || 'Untitled Team');
         return `
         <div style="border-radius:12px;border:1.5px solid;padding:12px;display:flex;align-items:center;gap:12px;${rowBg}">
@@ -186,7 +186,7 @@ function renderLeaderboardModal() {
           <div style="flex:1;min-width:0">
             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:2px">
               <span style="font-weight:900;font-size:15px;color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px">${name}</span>
-              ${isPerfect ? '<span style="font-size:10px;font-weight:900;padding:2px 8px;border-radius:999px;background:#fef3c7;color:#92400e;border:1px solid #fcd34d">🏆 PERFECT</span>' : ''}
+              ${isPerfect ? '<span style="font-size:10px;font-weight:900;padding:2px 8px;border-radius:999px;background:var(--amber-badge-bg);color:var(--amber-text);border:1px solid var(--amber-border)">🏆 PERFECT</span>' : ''}
             </div>
             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
               <span style="font-weight:900;font-size:16px;color:${winsColor}">${e.wins}–${e.losses}</span>
@@ -461,17 +461,17 @@ function _globalLbRowsHtml(entries) {
     const losses     = Number(e.losses)    || 0;
     const chemScore  = Number(e.chemScore) || 0;
     const isPerfect  = wins === 82;
-    const rowBg      = isPerfect ? 'background:#fffbeb;border-color:#fcd34d' : 'background:var(--card3);border-color:var(--border)';
+    const rowBg      = isPerfect ? 'background:var(--surface-amber);border-color:var(--amber-border)' : 'background:var(--card3);border-color:var(--border)';
     const medal      = i < 3
       ? `<span style="font-size:18px">${medals[i]}</span>`
       : `<span style="font-size:12px;font-weight:800;color:var(--muted)">#${i + 1}</span>`;
     const name       = esc((e.teamName || 'Untitled Team').slice(0, 30));
-    const winsColor  = isPerfect ? '#b45309' : wins >= 70 ? '#16a34a' : wins >= 50 ? 'var(--primary)' : 'var(--fg)';
+    const winsColor  = isPerfect ? 'var(--amber-strong)' : wins >= 70 ? '#16a34a' : wins >= 50 ? 'var(--primary)' : 'var(--fg)';
     const champBadge = e.champion
-      ? `<span style="font-size:10px;font-weight:900;padding:2px 7px;border-radius:999px;background:#fef3c7;color:#92400e;border:1px solid #fcd34d;white-space:nowrap">🏆 CHAMP</span>`
+      ? `<span style="font-size:10px;font-weight:900;padding:2px 7px;border-radius:999px;background:var(--amber-badge-bg);color:var(--amber-text);border:1px solid var(--amber-border);white-space:nowrap">🏆 CHAMP</span>`
       : '';
     const perfectBadge = isPerfect && !e.champion
-      ? `<span style="font-size:10px;font-weight:900;padding:2px 7px;border-radius:999px;background:#fef3c7;color:#92400e;border:1px solid #fcd34d;white-space:nowrap">82–0</span>`
+      ? `<span style="font-size:10px;font-weight:900;padding:2px 7px;border-radius:999px;background:var(--amber-badge-bg);color:var(--amber-text);border:1px solid var(--amber-border);white-space:nowrap">82–0</span>`
       : '';
     return `
     <div role="button" tabindex="0" data-global-lb-index="${i}"
