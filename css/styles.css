@@ -1127,11 +1127,12 @@ body {
 }
 
 .draft-screen__inner--desktop {
-  max-width: 64rem;
+  width: 100%;
+  max-width: 100rem;
   height: 100%;
   min-height: 0;
   display: grid;
-  grid-template-columns: 15rem minmax(0, 1fr) 4.5rem;
+  grid-template-columns: minmax(15rem, 1fr) minmax(0, 46rem) minmax(4.5rem, 1fr);
   grid-template-areas: "chem center fans";
   gap: 1.25rem;
 }
@@ -1156,6 +1157,9 @@ body {
   /* keeps the last card's shadow/focus ring from being clipped by the
      scroll container's edge */
   padding-bottom: 0.25rem;
+  /* pushes content off the scrollbar so it doesn't sit on top of the round
+     dots / other right-aligned content */
+  padding-right: 0.75rem;
 }
 
 .draft-pop-bar-vertical {
