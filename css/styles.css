@@ -1179,7 +1179,8 @@ body {
 .draft-pop-bar-vertical__track {
   flex: 1;
   min-height: 0;
-  width: 1.5rem;
+  width: 6rem;
+  max-width: 60%;
   border-radius: 999px;
   background: var(--border);
   overflow: hidden;
@@ -1198,9 +1199,50 @@ body {
   line-height: 1;
 }
 
-.draft-pop-bar-vertical__max {
-  flex-shrink: 0;
-  margin-top: -0.25rem;
+/* Thicker meter to match the rest of the desktop rail's presence. */
+.draft-screen__inner--desktop .draft-chem-dashboard__meter {
+  height: 0.875rem;
+}
+
+/* ── Desktop — compact the center draft flow ─────────────────────────────
+   Gives the roster grid a real chance to land in view alongside a full
+   3-card draft board, without the mobile treatment's more aggressive cuts
+   (hidden traits stay, just tighter paddings/gaps). */
+.draft-screen__center .draft-slot-machine {
+  padding: 0.75rem;
+}
+
+.draft-screen__center .draft-slot-machine__cell {
+  min-height: 4rem;
+  padding: 0.625rem !important;
+}
+
+.draft-screen__center .draft-slot-machine__grid {
+  margin-bottom: 0.625rem !important;
+}
+
+.draft-screen__center .draft-board-wrap__head {
+  margin-bottom: 0.5rem !important;
+}
+
+.draft-screen__center .draft-card-body {
+  padding: 0.5rem 0.625rem !important;
+}
+
+.draft-screen__center .draft-card__head {
+  margin-bottom: 0.375rem !important;
+}
+
+.draft-screen__center .draft-card__name {
+  margin-bottom: 0.375rem !important;
+}
+
+.draft-screen__center .draft-card-traits {
+  display: none !important;
+}
+
+.draft-screen__center .draft-card__actions {
+  padding: 0 0.625rem 0.625rem !important;
 }
 
 /* ── Dark mode overrides ──────────────────────────────────── */
