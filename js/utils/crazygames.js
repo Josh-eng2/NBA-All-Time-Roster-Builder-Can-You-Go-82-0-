@@ -62,3 +62,39 @@ export async function cgRequestMidgameAd() {
     adStarted:  () => {},
   });
 }
+
+// ── Data module (progress save) ───────────────────────────────────────────
+// Same key/value API as localStorage (getItem/setItem/removeItem, string
+// values), but on CrazyGames it's backed by their account-linked storage
+// instead of the iframe's own localStorage — which browsers increasingly
+// partition or block for third-party iframes. Resolved once at boot via
+// initCrazyGamesData() so every other call below can stay synchronous.
+let _dataEnv = 'disabled';
+
+/** Call once at app boot, before anything reads/writes saved progress. */
+export async function initCrazyGamesData() {
+  _dataEnv = await envPromise;
+}
+
+function usingCgData() {
+  return _dataEnv === 'crazygames' || _dataEnv === 'local';
+}
+
+/** Drop-in replacement for localStorage.getItem — routes through the
+ *  CrazyGames Data Module when embedded there, else plain localStorage. */
+export function cgGetItem(key) {
+  if (usingCgData()) return window.CrazyGames.SDK.data.getItem(key);
+  try { return localStorage.getItem(key); } catch (_) { return null; }
+}
+
+/** Drop-in replacement for localStorage.setItem. */
+export function cgSetItem(key, value) {
+  if (usingCgData()) { window.CrazyGames.SDK.data.setItem(key, value); return; }
+  localStorage.setItem(key, value);
+}
+
+/** Drop-in replacement for localStorage.removeItem. */
+export function cgRemoveItem(key) {
+  if (usingCgData()) { window.CrazyGames.SDK.data.removeItem(key); return; }
+  try { localStorage.removeItem(key); } catch (_) {}
+}

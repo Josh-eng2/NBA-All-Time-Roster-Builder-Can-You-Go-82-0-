@@ -12,7 +12,7 @@ import { render }                     from './ui/render.js';
 import { S, startGame } from './logic/state.js';
 import { logAnalyticsEvent }          from './utils/firebase.js';
 import { isReturningPlayer }          from './utils/storage.js';
-import { cgLoadingStart, cgLoadingStop } from './utils/crazygames.js';
+import { cgLoadingStart, cgLoadingStop, initCrazyGamesData } from './utils/crazygames.js';
 // events.js is imported for its side-effect: attaching window helpers
 // (closeLeaderboardModal) needed by inline onclick in rendered HTML.
 import { doSpin } from './ui/events.js';
@@ -29,6 +29,10 @@ import { doSpin } from './ui/events.js';
  */
 async function init() {
   cgLoadingStart();
+  // Must resolve before anything below reads/writes saved progress (Legends,
+  // Trophy Room, personal bests) — decides whether those go through the
+  // CrazyGames Data Module or plain localStorage.
+  await initCrazyGamesData();
   try {
     await loadDatabase();          // populates DB export
     applySecondaryPositions();     // mutates DB in-memory: adds secondaryPos to every player
