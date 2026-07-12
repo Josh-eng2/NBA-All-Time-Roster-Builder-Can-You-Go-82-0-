@@ -506,6 +506,7 @@ function renderDrafting() {
         ${!full ? renderSlotMachine() : ''}
         ${shouldShowDraftBoard(full) ? renderDraftBoard() : ''}
         ${renderPopularityBar()}
+        ${renderPopularityBarVertical()}
         ${renderChemDashboard()}
         ${renderRoster()}
       </div>
@@ -696,6 +697,23 @@ function renderPopularityBar() {
       <div class="h-full rounded-full transition-all stat-bar-fill" style="width:${fans.pct}%;background:${fans.barCol}"></div>
     </div>
     <p class="text-[10px] mt-1.5 text-muted-fg draft-pop-bar__hint">More fans boost home-court advantage in close games</p>
+  </div>`;
+}
+
+// Desktop-only vertical fans meter — same data as renderPopularityBar(), shown
+// in the right rail instead when the draft screen switches to its 3-column
+// layout (see .draft-pop-bar-vertical in styles.css). Hidden below that
+// breakpoint; the horizontal bar above is what mobile/tablet users see.
+function renderPopularityBarVertical() {
+  const fans = calcTeamFans(Object.values(S.roster));
+  return `
+  <div class="rounded-xl border border-border bg-card px-2 py-3 card-shadow draft-pop-bar-vertical" title="${fans.tier}${fans.count ? ` · ${Math.round(fans.sum)}/${fans.max}` : ''}">
+    <p class="text-[9px] font-bold uppercase tracking-widest text-muted-fg draft-pop-bar-vertical__label">Fans</p>
+    <div class="draft-pop-bar-vertical__track">
+      <div class="draft-pop-bar-vertical__fill" style="height:${fans.pct}%;background:${fans.barCol}"></div>
+    </div>
+    <p class="text-[11px] font-bold draft-pop-bar-vertical__value" style="color:${fans.barCol}">${Math.round(fans.sum)}</p>
+    <p class="text-[9px] text-muted-fg draft-pop-bar-vertical__max">/${fans.max}</p>
   </div>`;
 }
 
@@ -953,7 +971,7 @@ function renderSimulateCard() {
     ? 'Both rosters set. Time to settle it on the court.'
     : 'All 5 spots locked in. Ready to run the season.';
   return `
-  <div class="rounded-2xl border-2 border-primary bg-white p-5 text-center animate-scale-in card-shadow" style="border-color:${btnColor}20">
+  <div class="rounded-2xl border-2 border-primary bg-white p-5 text-center animate-scale-in card-shadow draft-simulate-card" style="border-color:${btnColor}20">
     <div class="flex justify-center mb-3">${iconBall('h-10 w-10 text-primary')}</div>
     ${is1v1 ? `<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-2 text-xs font-bold" style="background:${isP1 ? '#eff6ff' : '#fffbeb'};color:${isP1 ? '#2563eb' : '#d97706'}">⚔️ Player ${S.currentPlayer}</div>` : ''}
     <p class="font-black text-lg text-foreground mb-1">Roster Complete</p>
