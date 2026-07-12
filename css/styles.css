@@ -34,6 +34,11 @@
   --surface-sky:    #f8fbff;
   --surface-muted:  #f8fafc;
   --surface-track:  #eef2ff;
+  /* "Perfect / 82-0" gold accents (leaderboard rows, champ badges) */
+  --amber-badge-bg: #fef3c7;
+  --amber-border:   #fcd34d;
+  --amber-text:     #92400e;
+  --amber-strong:   #b45309;
 }
 
 [data-theme="dark"] {
@@ -65,6 +70,10 @@
   --surface-sky:    rgba(59, 130, 246, 0.1);
   --surface-muted:  #334155;
   --surface-track:  #334155;
+  --amber-badge-bg: rgba(251, 191, 36, 0.18);
+  --amber-border:   rgba(251, 191, 36, 0.4);
+  --amber-text:     #fbbf24;
+  --amber-strong:   #fbbf24;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
