@@ -14,6 +14,7 @@
 import { DB }                  from '../data/players.js';
 import { calculateChemistry } from '../logic/chemistry.js';
 import { TEAMS, pick }         from '../logic/state.js';
+import { eraFactor, eraAdjustedStat, eraAdjustedLine, decadeFromBucketKey } from '../logic/era.js';
 
 // ── Sigmoid tuning knobs ──────────────────────────────────────────────────────
 // SIM_K:      steepness — lower = more gradual spread between good/bad teams
@@ -36,17 +37,25 @@ let _baselinesCache = null;
 /**
  * Derives the dynamic STARTER_BASE from the live DB.
  * Treats the top ~71.4 % of players (by composite score) as the starter tier.
+ * Stats are pace-adjusted to modern tempo (see era.js) before ranking and
+ * averaging, so the tier isn't just "whoever played in the fastest decade" —
+ * a 1960s big's raw 23 rpg and a 2000s big's raw 13 rpg are compared on the
+ * same footing.
  * Memoized — DB never changes after startup so the sort runs at most once.
  */
 function computeSimBaselines() {
   if (_baselinesCache) return _baselinesCache;
-  const all    = Object.values(DB).flat();
+  const STATS = ['ppg', 'rpg', 'apg', 'spg', 'bpg'];
+  const all   = [];
+  for (const [bucketKey, players] of Object.entries(DB)) {
+    const decade = decadeFromBucketKey(bucketKey);
+    for (const p of players) all.push({ ...eraAdjustedLine({ ...p, decade }) });
+  }
   const score  = p => p.ppg * 0.35 + p.rpg * 0.20 + p.apg * 0.20 + p.spg * 0.15 + p.bpg * 0.10;
   const sorted = [...all].sort((a, b) => score(b) - score(a));
   const cut    = Math.round(sorted.length * 5 / 7); // tier cut unchanged — keeps STARTER_BASE identical
   const sTier  = sorted.slice(0, cut);
   const avg    = (arr, stat) => arr.reduce((s, p) => s + p[stat], 0) / arr.length;
-  const STATS  = ['ppg', 'rpg', 'apg', 'spg', 'bpg'];
   _baselinesCache = {
     STARTER_BASE: Object.fromEntries(STATS.map(k => [k, avg(sTier, k) * 5])),
   };
@@ -70,7 +79,7 @@ function statRatioProgress(players, stats, base, slotCount) {
   const frac = players.length / slotCount;
   let sum = 0;
   for (const k of stats) {
-    const tot = players.reduce((s, p) => s + p[k], 0);
+    const tot = players.reduce((s, p) => s + eraAdjustedStat(p, k), 0);
     sum += tot / (base[k] * frac);
   }
   // 1.0 = tier-average roster, 1.3 = elite → full meter
@@ -105,7 +114,7 @@ export function coachSystemProgress(coach, starters) {
     const frac = starters.length / 5;
     let minRatio = Infinity;
     for (const k of ['ppg', 'rpg', 'apg', 'spg', 'bpg']) {
-      const tot = starters.reduce((s, p) => s + p[k], 0);
+      const tot = starters.reduce((s, p) => s + eraAdjustedStat(p, k), 0);
       minRatio = Math.min(minRatio, tot / (STARTER_BASE[k] * frac));
     }
     const p = clamp01((minRatio - 0.70) / 0.25);
@@ -179,12 +188,17 @@ function buildLossDiagnosis(starters, weakestStat, balancePenalty, sRatio, START
   const perPlayerBase  = STARTER_BASE[weakestStat] / 5; // expected per-starter contribution
   const rolePriority   = STAT_ROLE_PRIORITY[weakestStat] || ['PG', 'SG', 'SF', 'PF', 'C'];
 
+  // All comparisons below use pace-adjusted stats (STARTER_BASE is itself
+  // pace-adjusted) so a 1960s starter isn't cleared — or a 2000s starter
+  // isn't indicted — purely because of the possessions their era played with.
+  const adj = p => eraAdjustedStat(p, weakestStat);
+
   // Build a position → player map for fast lookup. Two starters can share a
   // natural position — keep the weaker one for the weakest stat, since the
   // culprit search below indicts the worst contributor at each role.
   const byPos = {};
   for (const p of starters) {
-    if (!byPos[p.pos] || p[weakestStat] < byPos[p.pos][weakestStat]) byPos[p.pos] = p;
+    if (!byPos[p.pos] || adj(p) < adj(byPos[p.pos])) byPos[p.pos] = p;
   }
 
   // ── Step 1: find the role-priority player whose stat is below per-player baseline.
@@ -194,7 +208,7 @@ function buildLossDiagnosis(starters, weakestStat, balancePenalty, sRatio, START
 
   for (const rolePos of rolePriority) {
     const p = byPos[rolePos];
-    if (p && p[weakestStat] < perPlayerBase) {
+    if (p && adj(p) < perPlayerBase) {
       culprit    = p;
       culpritPos = rolePos;
       break;
@@ -208,7 +222,7 @@ function buildLossDiagnosis(starters, weakestStat, balancePenalty, sRatio, START
   if (!culprit) {
     for (const rolePos of rolePriority) {
       const p = byPos[rolePos];
-      if (p && (!culprit || p[weakestStat] < culprit[weakestStat])) {
+      if (p && (!culprit || adj(p) < adj(culprit))) {
         culprit    = p;
         culpritPos = rolePos;
       }
@@ -218,14 +232,14 @@ function buildLossDiagnosis(starters, weakestStat, balancePenalty, sRatio, START
   // ── Step 3: safety net — position not filled; fall back to lowest raw value.
   if (!culprit) {
     for (const p of starters) {
-      if (!culprit || p[weakestStat] < culprit[weakestStat]) culprit = p;
+      if (!culprit || adj(p) < adj(culprit)) culprit = p;
     }
     culpritPos = culprit?.pos ?? null;
   }
 
   // If the culprit is actually at or above the per-player baseline the weakness
   // is genuinely team-wide, not a single-player failure — flag it that way.
-  const culpritBelowBase = culprit ? culprit[weakestStat] < perPlayerBase : false;
+  const culpritBelowBase = culprit ? adj(culprit) < perPlayerBase : false;
 
   return {
     primaryCause:      'balance_penalty',
@@ -236,7 +250,7 @@ function buildLossDiagnosis(starters, weakestStat, balancePenalty, sRatio, START
     culpritId:         culprit?.id          ?? null,
     culpritName:       culprit?.name        ?? null,
     culpritPos,
-    culpritStat:       culprit ? +culprit[weakestStat].toFixed(1) : null,
+    culpritStat:       culprit ? +adj(culprit).toFixed(1) : null,
     perPlayerBase:     +perPlayerBase.toFixed(1),
     culpritBelowBase,
     recommendedFix:    STAT_DRAFT_FIX[weakestStat] ?? `a stronger ${statLabel} contributor`,
@@ -324,14 +338,20 @@ function simulatePlayerStats(starters, winPct) {
  *                      playerStats, statLeaders, simTotals }
  */
 export function simulateSeason(starters, coach = null) {
+  // Pace-adjusted (era-neutral) totals drive the win-probability engine, so a
+  // roster stacked with fast-paced-era players doesn't out-strength an
+  // equally good roster from a slower era just because of possession counts.
   const sumStats = arr => arr.reduce(
-    (acc, p) => ({
-      ppg: acc.ppg + p.ppg,
-      rpg: acc.rpg + p.rpg,
-      apg: acc.apg + p.apg,
-      spg: acc.spg + p.spg,
-      bpg: acc.bpg + p.bpg,
-    }),
+    (acc, p) => {
+      const adj = eraAdjustedLine(p);
+      return {
+        ppg: acc.ppg + adj.ppg,
+        rpg: acc.rpg + adj.rpg,
+        apg: acc.apg + adj.apg,
+        spg: acc.spg + adj.spg,
+        bpg: acc.bpg + adj.bpg,
+      };
+    },
     { ppg: 0, rpg: 0, apg: 0, spg: 0, bpg: 0 }
   );
 
