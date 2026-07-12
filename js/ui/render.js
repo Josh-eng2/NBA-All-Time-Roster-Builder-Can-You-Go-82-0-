@@ -761,7 +761,6 @@ function renderPopularityBarVertical() {
       <div class="draft-pop-bar-vertical__fill" style="height:${fans.pct}%;background:${fans.barCol}"></div>
     </div>
     <p class="text-[11px] font-bold draft-pop-bar-vertical__value" style="color:${fans.barCol}">${Math.round(fans.sum)}</p>
-    <p class="text-[9px] text-muted-fg draft-pop-bar-vertical__max">/${fans.max}</p>
   </div>`;
 }
 
