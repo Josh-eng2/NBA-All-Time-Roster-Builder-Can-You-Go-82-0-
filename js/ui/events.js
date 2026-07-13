@@ -26,9 +26,10 @@ import {
   showLeaderboardModal, closeLeaderboardModal,
   showGlobalLeaderboardModal, closeGlobalLeaderboardModal,
   getDailyStatus, markDailyPlayed, showDailyLeaderboardModal, closeDailyLeaderboardModal,
+  clearDailyLbCache,
 } from '../utils/storage.js';
 import { submitGlobalScore, submitDailyScore, logAnalyticsEvent, isFirebaseConfigured } from '../utils/firebase.js';
-import { cgGetItem, cgSetItem } from '../utils/crazygames.js';
+import { cgGetItem, cgSetItem, cgRequestMidgameAd } from '../utils/crazygames.js';
 import { buildShareCardBlob, buildShareCaption } from './shareCard.js';
 import {
   render, $app, fmtDecadeShort, showToast, renderSeasonTickerRows,
@@ -87,7 +88,26 @@ function dispatch(action) {
     S.eraLocked   = true;
     S.teamSkips   = 0;
     S.decadeSkips = 0;
+    // Precompute all five (team, decade) spins from the PRISTINE pool, then
+    // drop the seed. Live seeded spins would consult usedPlayerIds /
+    // draftedPlayerNames — state that depends on WHICH players this user
+    // drafted — so two players making different picks could diverge onto
+    // different buckets from round 2 despite identical RNG. Deciding the
+    // sequence before any pick exists makes the shared board unconditional,
+    // and means renders during the spin animation (theme toggle, resize)
+    // can't desync anyone by burning seeded draws.
     seedDailyRng(today);
+    S.dailySpins = [];
+    for (let round = 0; round < 5; round++) {
+      const spin = round === 0 ? spinResultAtLeast('goat')
+                 : round <= 2  ? spinResultAtLeast('star')
+                 : spinResult();
+      if (!spin) break; // defensive — impossible with a populated DB
+      S.dailySpins.push(spin);
+      S.usedDecades.push(spin.decade); // consume the decade exactly as the live draft will
+    }
+    S.usedDecades = []; // the real draft re-consumes them pick by pick
+    clearDailyRng();
     render(); return;
   }
   if (action === 'open-daily-leaderboard') { showDailyLeaderboardModal(); return; }
@@ -287,6 +307,15 @@ export function doSpin() {
     S.eraPickerOpen = false;
   }
 
+  // Daily Challenge: the first spin commits the attempt. Without this, a
+  // player could draft through the shared board to scout it, restart, and
+  // re-draft with full knowledge before their one simulate — the day's
+  // whole "everyone gets one shot at the same board" premise.
+  if (S.mode === 'daily' && !S.dailyAttemptUsed) {
+    S.dailyAttemptUsed = true;
+    markDailyPlayed({ date: S.dailyDate }); // no record yet — doSimulate overwrites with the result
+  }
+
   S.spinState      = 'spinning';
   S.selectedPlayer = null;
   S.draftBoard     = [];
@@ -327,8 +356,16 @@ export function doSpin() {
       const rigGoat = solo && S.round === 0;
       const rigStar = solo && !rigGoat && S.round <= 2;
       const pity    = solo && !rigGoat && !rigStar && (S.drySpins ?? 0) >= 1;
-      if (pity) logAnalyticsEvent('pity_spin_triggered', { round: S.round + 1 });
-      const spin = rigGoat ? spinResultAtLeast('goat')
+      if (pity && S.mode !== 'daily') logAnalyticsEvent('pity_spin_triggered', { round: S.round + 1 });
+      // Daily Challenge lands on the day's precomputed sequence (same for
+      // every player — see mode-daily in dispatch). The fallback only fires
+      // if this user's earlier picks emptied the predetermined bucket, which
+      // takes drafting its entire pool — effectively unreachable, but never
+      // strand the player on an empty board.
+      const dailySpin = S.mode === 'daily' ? S.dailySpins?.[S.round] : null;
+      const spin = (dailySpin && getAvailablePlayers(dailySpin.team, dailySpin.decade).length > 0)
+        ? dailySpin
+        : rigGoat ? spinResultAtLeast('goat')
         : (rigStar || pity) ? spinResultAtLeast('star')
         : spinResult();
       if (!spin) {
@@ -618,11 +655,13 @@ function doSimulate() {
     }));
   } catch (e) {}
 
-  // Lock the Daily Challenge the moment the regular season is decided — not
-  // on submit — so re-drafting the (memorized) shared board for a better
-  // simulation roll can't grind the daily leaderboard.
+  // Record the Daily Challenge result the moment the season is decided (the
+  // attempt itself was already consumed on the first spin). Pass the day the
+  // run was DRAFTED on — a run started at 23:58 UTC and simulated at 00:03
+  // belongs to yesterday's board and must not consume today's attempt.
   if (S.mode === 'daily') {
     markDailyPlayed({
+      date: S.dailyDate,
       wins: S.result.wins, losses: S.result.losses,
       chemScore: Math.round(S.result.chemScore ?? 0),
       champion: false,
@@ -631,7 +670,11 @@ function doSimulate() {
 
   S.phase = 'season-sim';
   render();
-  runSeasonReveal();
+  // Midgame ad at the season's natural break point — the roster is locked
+  // and the reveal hasn't started. The reveal is gated on the ad callback so
+  // the montage can never play out hidden underneath an ad overlay; off
+  // CrazyGames the callback fires immediately.
+  cgRequestMidgameAd(() => runSeasonReveal());
 }
 
 const STREAK_MILESTONES = [10, 20, 30, 40, 50, 60, 70, 80];
@@ -801,22 +844,31 @@ function updateSeasonSimDOM() {
   }
 }
 
-function buildGlobalScorePayload() {
+// Fields shared by every leaderboard submission; the global/daily builders
+// layer their collection-specific fields on top.
+function buildScorePayloadBase() {
   const coachObj = S.coach ? COACHES.find(c => c.id === S.coach) : null;
   const r        = S.result;
   return {
     teamName:    S.teamName,
     wins:        r.wins,
     losses:      r.losses,
-    champion:    S.playoffs?.champion ?? false,
     coachId:     S.coach       ?? '',
     coachName:   coachObj?.name  ?? '',
-    era:         S.selectedEra ?? 'all',
     chemScore:   Math.round(r.chemScore ?? 0),
-    avgPopularity: r.avgPopularity ?? 50,
-    fansM:       r.fansM ?? 2,
     starters:    POSITIONS.map(p => S.roster[p]?.name || '—').join(', ').slice(0, 100),
     timestampMs: Date.now(),
+  };
+}
+
+function buildGlobalScorePayload() {
+  const r = S.result;
+  return {
+    ...buildScorePayloadBase(),
+    champion:      S.playoffs?.champion ?? false,
+    era:           S.selectedEra ?? 'all',
+    avgPopularity: r.avgPopularity ?? 50,
+    fansM:         r.fansM ?? 2,
   };
 }
 
@@ -881,19 +933,10 @@ async function doSubmitGlobal() {
 let _submittingDaily = false;
 
 function buildDailyScorePayload() {
-  const coachObj = S.coach ? COACHES.find(c => c.id === S.coach) : null;
-  const r        = S.result;
   return {
-    date:        S.dailyDate || getUtcDateString(),
-    teamName:    S.teamName,
-    wins:        r.wins,
-    losses:      r.losses,
-    champion:    false, // the daily board captures the shared regular-season board only
-    coachId:     S.coach       ?? '',
-    coachName:   coachObj?.name  ?? '',
-    chemScore:   Math.round(r.chemScore ?? 0),
-    starters:    POSITIONS.map(p => S.roster[p]?.name || '—').join(', ').slice(0, 100),
-    timestampMs: Date.now(),
+    ...buildScorePayloadBase(),
+    date:     S.dailyDate || getUtcDateString(),
+    champion: false, // the daily board captures the shared regular-season board only
   };
 }
 
@@ -920,6 +963,7 @@ async function doSubmitDaily() {
     await submitDailyScore(buildDailyScorePayload());
     S.dailyScoreSubmitted = true;
     S.dailySubmitError    = null;
+    clearDailyLbCache(); // so the board shows this run immediately, not a cached pre-submit read
     render();
     showToast('✅ On the daily leaderboard!');
   } catch (err) {

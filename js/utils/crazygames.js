@@ -16,6 +16,21 @@
 
 const envPromise = (async () => {
   try {
+    // The SDK <script> is async so it can't block first paint or hang the
+    // page when its CDN is unreachable (see index.html). That means it may
+    // still be in flight when this module evaluates — wait for its
+    // load/error, with flags for the already-settled cases and a timeout so
+    // the game can never be held hostage by a slow SDK fetch.
+    if (!window.CrazyGames?.SDK && !window.__cgSdkFailed && !window.__cgSdkLoaded) {
+      const tag = document.getElementById('cg-sdk');
+      if (tag) {
+        await new Promise(resolve => {
+          tag.addEventListener('load',  resolve, { once: true });
+          tag.addEventListener('error', resolve, { once: true });
+          setTimeout(resolve, 5000);
+        });
+      }
+    }
     if (!window.CrazyGames?.SDK?.getEnvironment) return 'disabled';
     return await window.CrazyGames.SDK.getEnvironment();
   } catch (_) {
@@ -49,22 +64,25 @@ export async function cgGameplayStop() {
 }
 
 /**
- * Requests a midgame ad at a natural break point (e.g. after simulating a
- * season, before advancing to the playoffs). No-ops outside CrazyGames.
- * Ads stay disabled during Basic Launch review regardless of this call —
- * this just wires the hook up ahead of time for when ads are enabled.
+ * Requests a midgame ad at a natural break point. `onDone` fires when the ad
+ * finishes, errors, or (outside CrazyGames) immediately — callers gate the
+ * next beat of gameplay on it (e.g. doSimulate holds the season reveal until
+ * the ad is out of the way) so an ad never plays over live animation.
+ * Ads stay disabled during Basic Launch review regardless of this call.
  */
-export async function cgRequestMidgameAd() {
-  if (!(await isActive())) return;
-  window.CrazyGames.SDK.ad.requestAd('midgame', {
-    adFinished: () => {},
-    adError:    () => {},
-    adStarted:  () => {},
-  });
+export async function cgRequestMidgameAd(onDone = () => {}) {
+  if (!(await isActive())) { onDone(); return; }
+  try {
+    window.CrazyGames.SDK.ad.requestAd('midgame', {
+      adFinished: onDone,
+      adError:    onDone,
+      adStarted:  () => {},
+    });
+  } catch (_) { onDone(); }
 }
 
 // ── Data module (progress save) ───────────────────────────────────────────
-// Same key/value API as localStorage (getItem/setItem/removeItem, string
+// Same key/value API as localStorage (getItem/setItem, string
 // values), but on CrazyGames it's backed by their account-linked storage
 // instead of the iframe's own localStorage — which browsers increasingly
 // partition or block for third-party iframes. Resolved once at boot via
@@ -91,10 +109,4 @@ export function cgGetItem(key) {
 export function cgSetItem(key, value) {
   if (usingCgData()) { window.CrazyGames.SDK.data.setItem(key, value); return; }
   localStorage.setItem(key, value);
-}
-
-/** Drop-in replacement for localStorage.removeItem. */
-export function cgRemoveItem(key) {
-  if (usingCgData()) { window.CrazyGames.SDK.data.removeItem(key); return; }
-  try { localStorage.removeItem(key); } catch (_) {}
 }

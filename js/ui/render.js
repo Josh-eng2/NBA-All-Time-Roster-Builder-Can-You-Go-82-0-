@@ -6,7 +6,6 @@
  *   $app            — the #app DOM node (shared with events.js)
  *   archetypeBadge  — archetype pill HTML helper
  *   fmtDecadeShort  — "1990s" → "90s"
- *   fmtPlayerLine   — "Jordan (Bulls 90s)"
  *   showToast       — ephemeral bottom toast notification
  */
 
@@ -20,17 +19,11 @@ import { coachSystemProgress }                            from '../logic/simulat
 import { getBracketDisplayState }                         from '../logic/playoffs.js';
 import { markReturning, getCollectedLegends, getDailyStatus } from '../utils/storage.js';
 import { cgGameplayStart, cgGameplayStop, cgGetItem }     from '../utils/crazygames.js';
+import { esc, FANS_TEAM_MAX, fansBarCol, fansTierFromAvg } from '../utils/format.js';
 import { bindEvents }                                     from '../ui/events.js'; // circular — safe (called inside functions only)
 
 // ── Mount point ───────────────────────────────────────────────────────────────
 export const $app = document.getElementById('app');
-
-// ── HTML escaping ─────────────────────────────────────────────────────────────
-// For user-controlled strings (team names) interpolated into innerHTML or
-// attribute values. Player/coach names from the DB are trusted app data.
-const esc = s => String(s)
-  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-  .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
 // ── Chemistry dashboard cache ─────────────────────────────────────────────────
 // Keyed by sorted roster player IDs — recalculates only when the roster changes.
@@ -78,37 +71,18 @@ if (typeof window !== 'undefined') {
   });
 }
 
-const FANS_TEAM_MAX = 500; // 5 starters × 100 max popularity each
-
-function fansBarCol(avg, dark = isDark()) {
-  if (avg >= 80) return dark ? '#60a5fa' : '#2563eb';
-  if (avg >= 60) return dark ? '#fbbf24' : '#d97706';
-  return dark ? '#cbd5e1' : '#94a3b8';
-}
-
-function fansTierFromAvg(avg) {
-  if (!avg) return { tier: 'Draft players to build star power', barCol: '#cbd5e1' };
-  return {
-    tier:   avg >= 85 ? 'Superstar Lineup' : avg >= 70 ? 'Star Power' : avg >= 55 ? 'Solid Roster' : 'Under the Radar',
-    barCol: fansBarCol(avg, false),
-  };
-}
-
 /** Sum roster popularity for UI (max 500); avg drives tier labels. Sim logic unchanged. */
 function calcTeamFans(players) {
   const list = players.filter(Boolean);
   const sum  = list.reduce((s, p) => s + (p.popularity ?? 50), 0);
   const pct  = Math.min(100, Math.round((sum / FANS_TEAM_MAX) * 100));
   const avg  = list.length ? sum / list.length : 0;
-  const { tier, barCol } = fansTierFromAvg(avg);
+  const { tier, barCol } = fansTierFromAvg(avg, 'Draft players to build star power');
   return { sum, max: FANS_TEAM_MAX, pct, avg, count: list.length, tier, barCol };
 }
 
 function themeIcon() {
   return isDark() ? '☀️' : '🌙';
-}
-function iconPlus(cls = '') {
-  return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16m8-8H4"/></svg>`;
 }
 
 // ── Public helpers ────────────────────────────────────────────────────────────
@@ -130,12 +104,6 @@ export function fmtDecadeShort(decade) {
   if (!decade) return '';
   const m = decade.match(/(\d{2})(\d{2})s/);
   return m ? m[2] + 's' : decade;
-}
-
-export function fmtPlayerLine(p) {
-  if (!p) return '—';
-  const era = [p.team, p.decade ? fmtDecadeShort(p.decade) : ''].filter(Boolean).join(' ');
-  return era ? `${p.name} (${era})` : p.name;
 }
 
 // ── Team rating (0–100 overall) display helper ────────────────────────────────
@@ -314,12 +282,18 @@ function renderDailyModeCard() {
   const status = getDailyStatus();
   if (status.playedToday) {
     const r = status.result;
+    // The attempt is consumed on the FIRST SPIN (anti-scouting), so an
+    // abandoned run leaves a lock with no final record — show "attempt used"
+    // instead of a null score.
+    const hasResult = r && Number.isFinite(r.wins);
     return `
     <div class="w-full rounded-2xl bg-white p-4 flex items-center gap-3 mb-3 card-shadow border border-slate-100">
       <span class="text-3xl flex-shrink-0">🗓️</span>
       <div class="flex-1 min-w-0">
-        <p class="font-black text-base text-foreground">Daily Challenge — Done ✅</p>
-        <p class="text-xs text-muted-fg mt-0.5">You went <span style="color:#f97316;font-weight:700">${r.wins}–${r.losses}</span> today · ${dailyResetInLabel()}</p>
+        <p class="font-black text-base text-foreground">Daily Challenge — ${hasResult ? 'Done ✅' : 'Attempt Used'}</p>
+        <p class="text-xs text-muted-fg mt-0.5">${hasResult
+          ? `You went <span style="color:#f97316;font-weight:700">${r.wins}–${r.losses}</span> today`
+          : `Today's attempt was started but not finished`} · ${dailyResetInLabel()}</p>
       </div>
       <button data-action="open-daily-leaderboard" class="text-xs font-bold px-3 py-2 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:#fdba74;background:var(--card);color:${isDark() ? '#fdba74' : '#c2410c'}">Board 🏅</button>
     </div>`;
@@ -777,7 +751,7 @@ function renderPopularityBar() {
     <div class="h-1.5 rounded-full overflow-hidden bg-border">
       <div class="h-full rounded-full transition-all stat-bar-fill" style="width:${fans.pct}%;background:${fans.barCol}"></div>
     </div>
-    <p class="text-[10px] mt-1.5 text-muted-fg draft-pop-bar__hint">More fans boost home-court advantage in close games</p>
+    <p class="text-[10px] mt-1.5 text-muted-fg draft-pop-bar__hint">Star power adds a small boost to your team's strength</p>
   </div>`;
 }
 
@@ -899,7 +873,7 @@ function renderDraftCard(p, index) {
         ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs draft-card-btn" style="background:var(--card2);color:var(--muted);border:1.5px solid var(--border);cursor:not-allowed">Already on Roster</button>`
         : `<button data-action="draft-pick-${index}"
             class="w-full py-2 rounded-lg font-bold text-xs transition-all cursor-pointer draft-card-btn"
-            style="background:${isSelected ? 'var(--primary)' : 'var(--card2)'};color:${isSelected ? 'var(--primary-fg)' : 'var(--primary)'};border:1.5px solid ${isSelected ? 'var(--primary)' : '#bfdbfe'}">
+            style="background:${isSelected ? 'var(--primary)' : 'var(--card2)'};color:${isSelected ? 'var(--primary-fg)' : 'var(--primary)'};border:1.5px solid ${isSelected ? 'var(--primary)' : (isDark() ? 'rgba(96,165,250,0.4)' : '#bfdbfe')}">
             ${pickLabel}
           </button>`
       }
@@ -931,7 +905,7 @@ function renderDraftCard(p, index) {
         ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs draft-card-btn" style="background:var(--card2);color:var(--muted);border:1.5px solid var(--border);cursor:not-allowed">Already on Roster</button>`
         : `<button data-action="draft-pick-${index}"
             class="w-full py-2 rounded-lg font-bold text-xs transition-all cursor-pointer draft-card-btn"
-            style="background:${isSelected ? 'var(--primary)' : 'var(--card2)'};color:${isSelected ? 'var(--primary-fg)' : 'var(--primary)'};border:1.5px solid ${isSelected ? 'var(--primary)' : '#bfdbfe'}">
+            style="background:${isSelected ? 'var(--primary)' : 'var(--card2)'};color:${isSelected ? 'var(--primary-fg)' : 'var(--primary)'};border:1.5px solid ${isSelected ? 'var(--primary)' : (isDark() ? 'rgba(96,165,250,0.4)' : '#bfdbfe')}">
             ${pickLabel}
           </button>`
       }
@@ -1404,7 +1378,7 @@ function renderResults() {
   const fansM       = r.fansM       ?? 2;
   const teamFans    = calcTeamFans(POSITIONS.map(p => S.roster[p]));
   const popBarPct   = teamFans.pct;
-  const popBarCol   = fansBarCol(teamFans.avg);
+  const popBarCol   = fansBarCol(teamFans.avg, isDark());
   const popTier     = teamFans.tier;
 
   // Threshold at 1M so values like 2.0M don't display as "2000K"
@@ -1958,6 +1932,7 @@ function renderChampionship() {
           <p class="text-sm text-muted-fg mt-2">Regular Season: ${r.wins}–${r.losses} · Seed #${po.playerSeed}</p>
         </div>
         ${renderGlobalSubmitCard(true)}
+        ${renderDailySubmitCard()}
         <div class="flex flex-col gap-3 w-full">
           <button data-action="share" class="py-3 rounded-xl font-bold text-sm bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer card-shadow">Share Championship 🏆</button>
           <button data-action="draft-new-roster" class="py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer card-shadow">Draft New Roster</button>
@@ -2000,6 +1975,7 @@ function renderEliminated() {
           <p class="text-xl font-black text-amber-700">🏆 ${po.championTeam.name}</p>
         </div>` : ''}
         ${renderGlobalSubmitCard(false)}
+        ${renderDailySubmitCard()}
         <div class="flex flex-col gap-3 w-full">
           <button data-action="draft-new-roster" class="py-3 rounded-xl font-bold text-sm bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer card-shadow">Draft New Roster</button>
           <button data-action="share" class="py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer card-shadow">Share Result</button>
@@ -2447,7 +2423,9 @@ function renderSeriesSim() {
 // menu or a results/summary screen — drives the CrazyGames gameplayStart/Stop
 // calls so their platform knows when it's safe to show an ad.
 const CG_GAMEPLAY_PHASES = new Set(['drafting', 'season-sim', 'playoffs', 'series-sim']);
-let _cgGameplayActive = null;
+// Starts false (not null) so the boot render of a menu screen doesn't fire a
+// spurious gameplayStop before any gameplayStart has happened.
+let _cgGameplayActive = false;
 
 function updateCrazyGamesGameplayState() {
   const active = CG_GAMEPLAY_PHASES.has(S.phase);

@@ -1,6 +1,18 @@
 /**
  * js/utils/firebase.js — Firebase Firestore Global Leaderboard
  *
+ * LOADING MODEL
+ * ─────────────
+ * The Firebase SDK modules are loaded via dynamic import(), NOT static
+ * imports. This file sits in main.js's static module graph, and an ES module
+ * graph fails ATOMICALLY: if a static import of gstatic.com ever failed to
+ * fetch (privacy extension, regional block, flaky network), main.js would
+ * never execute — not even its error overlay — and the game would hang on
+ * the loading spinner forever. With dynamic imports the game always boots;
+ * leaderboards/analytics degrade to "unavailable" instead. It also takes
+ * ~100KB+ of SDK off the critical startup path: loading kicks off eagerly
+ * but nothing blocks on it until a leaderboard is actually used.
+ *
  * SETUP INSTRUCTIONS
  * ──────────────────
  * 1. Go to https://console.firebase.google.com → create a project.
@@ -40,7 +52,35 @@
  *                                  && request.resource.data.fansM >= 0
  *                                  && request.resource.data.fansM <= 50))
  *                          && request.resource.data.champion is bool
- *                          && request.resource.data.timestampMs is number;
+ *                          && request.resource.data.timestampMs is number
+ *                          && request.resource.data.timestamp == request.time;
+ *            allow update, delete: if false;
+ *          }
+ *
+ *          match /dailyLeaderboard/{docId} {
+ *            allow read: if true;
+ *            allow create: if request.resource.data.date is string
+ *                          && request.resource.data.date.size() == 10
+ *                          && request.resource.data.wins is number
+ *                          && request.resource.data.wins >= 0
+ *                          && request.resource.data.wins <= 82
+ *                          && request.resource.data.losses is number
+ *                          && request.resource.data.losses >= 0
+ *                          && request.resource.data.losses <= 82
+ *                          && request.resource.data.teamName is string
+ *                          && request.resource.data.teamName.size() <= 30
+ *                          && request.resource.data.coachId is string
+ *                          && request.resource.data.coachId.size() <= 20
+ *                          && request.resource.data.coachName is string
+ *                          && request.resource.data.coachName.size() <= 30
+ *                          && request.resource.data.chemScore is number
+ *                          && request.resource.data.chemScore >= 0
+ *                          && request.resource.data.chemScore <= 100
+ *                          && request.resource.data.starters is string
+ *                          && request.resource.data.starters.size() <= 100
+ *                          && request.resource.data.champion is bool
+ *                          && request.resource.data.timestampMs is number
+ *                          && request.resource.data.timestamp == request.time;
  *            allow update, delete: if false;
  *          }
  *        }
@@ -50,6 +90,14 @@
  *    can be written by anyone holding the public web config, and the modal
  *    renders them for every visitor. The client also numeric-coerces on read
  *    (storage.js) as defense in depth.
+ *
+ *    `timestamp == request.time` forces every document to carry an honest
+ *    serverTimestamp() (the sentinel evaluates to request.time in rules).
+ *    Combined with fetchDailyLeaderboard()'s client-side check that each
+ *    entry's server write-time actually falls within its claimed UTC day,
+ *    this closes the "pre-poison tomorrow's daily board today" hole — a
+ *    forged document can claim any `date`, but it cannot forge WHEN it was
+ *    written, so it gets filtered out on read.
  *
  *    `timestampMs` is client-reported and intentionally NOT compared against
  *    request.time — an earlier rule did `timestampMs <= request.time.toMillis()
@@ -61,40 +109,11 @@
  *    serverTimestamp() and is authoritative regardless of the submitting
  *    client's clock.
  *
- *    Also add this second rule block for the Daily Challenge leaderboard
- *    (same file, same `match /databases/{database}/documents {` block):
- *
- *      match /dailyLeaderboard/{docId} {
- *        allow read: if true;
- *        allow create: if request.resource.data.date is string
- *                      && request.resource.data.date.size() == 10
- *                      && request.resource.data.wins is number
- *                      && request.resource.data.wins >= 0
- *                      && request.resource.data.wins <= 82
- *                      && request.resource.data.losses is number
- *                      && request.resource.data.losses >= 0
- *                      && request.resource.data.losses <= 82
- *                      && request.resource.data.teamName is string
- *                      && request.resource.data.teamName.size() <= 30
- *                      && request.resource.data.coachId is string
- *                      && request.resource.data.coachId.size() <= 20
- *                      && request.resource.data.coachName is string
- *                      && request.resource.data.coachName.size() <= 30
- *                      && request.resource.data.chemScore is number
- *                      && request.resource.data.chemScore >= 0
- *                      && request.resource.data.chemScore <= 100
- *                      && request.resource.data.starters is string
- *                      && request.resource.data.starters.size() <= 100
- *                      && request.resource.data.champion is bool
- *                      && request.resource.data.timestampMs is number;
- *        allow update, delete: if false;
- *      }
- *
- *    `date` is the 'YYYY-MM-DD' UTC calendar day (see state.js getUtcDateString)
- *    — reads filter on it with a single equality `where()`, deliberately with
- *    no `orderBy`, so no composite index needs to be created for this
- *    collection; results are sorted by wins client-side instead (same trick
- *    the 24h/weekly windows above use).
+ *    The dailyLeaderboard `date` is the 'YYYY-MM-DD' UTC calendar day (see
+ *    state.js getUtcDateString) — reads filter on it with a single equality
+ *    `where()`, deliberately with no `orderBy`, so no composite index needs
+ *    to be created; results are sorted by wins client-side instead (same
+ *    trick the 24h/weekly windows above use).
  *
  * 4. In Firebase Console → Project Settings → Your apps → Add web app.
  *    Copy the firebaseConfig object and paste the values into FIREBASE_CONFIG below.
@@ -102,18 +121,12 @@
  *
  * Exports:
  *   isFirebaseConfigured()      — true only when real credentials are present
+ *   logAnalyticsEvent(name, p)  — fire-and-forget; queues until the SDK loads
  *   submitGlobalScore(entry)    — writes one document to 'leaderboard'
  *   fetchLeaderboard(filter)    — reads top entries; filter: 'alltime' | '24h' | 'weekly'
  *   submitDailyScore(entry)     — writes one document to 'dailyLeaderboard'
  *   fetchDailyLeaderboard(date) — reads top entries for a 'YYYY-MM-DD' day
  */
-
-import { initializeApp, getApps }   from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js';
-import {
-  getFirestore, collection, addDoc, getDocs,
-  query, orderBy, limit, where, serverTimestamp, Timestamp,
-} from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js';
-import { getAnalytics, logEvent } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-analytics.js';
 
 // ── Firebase project config ────────────────────────────────────────────────────
 const FIREBASE_CONFIG = {
@@ -134,39 +147,64 @@ export function isFirebaseConfigured() {
       && FIREBASE_CONFIG.projectId !== 'YOUR_PROJECT_ID';
 }
 
-// ── Singleton app / Firestore / Analytics instances ───────────────────────────
+// ── Lazy SDK loader ───────────────────────────────────────────────────────────
 
-let _db        = null;
-let _analytics = null;
+const SDK_BASE = 'https://www.gstatic.com/firebasejs/10.12.4';
 
-// Initialize the Firebase app and Analytics eagerly at module load so that
-// session tracking and page-view events fire immediately on page open.
-const _app = (() => {
-  if (!isFirebaseConfigured()) return null;
-  try {
-    const existing = getApps();
-    const app = existing.length ? existing[0] : initializeApp(FIREBASE_CONFIG);
-    try { _analytics = getAnalytics(app); } catch (_) { /* blocked by adblocker */ }
-    return app;
-  } catch (_) { return null; }
-})();
+let _loadPromise = null; // resolves to { fs, db } or null (unavailable)
+let _analytics   = null;
+let _logEvent    = null;
 
-function getDb() {
-  if (_db) return _db;
-  if (!_app) return null;
-  _db = getFirestore(_app);
-  return _db;
+function loadFirebase() {
+  if (_loadPromise) return _loadPromise;
+  _loadPromise = (async () => {
+    if (!isFirebaseConfigured()) return null;
+    let fs, db;
+    try {
+      const [appMod, fsMod] = await Promise.all([
+        import(`${SDK_BASE}/firebase-app.js`),
+        import(`${SDK_BASE}/firebase-firestore.js`),
+      ]);
+      const existing = appMod.getApps();
+      const app = existing.length ? existing[0] : appMod.initializeApp(FIREBASE_CONFIG);
+      fs = fsMod;
+      db = fsMod.getFirestore(app);
+      // Analytics is strictly optional — commonly blocked, never worth failing over.
+      try {
+        const aMod = await import(`${SDK_BASE}/firebase-analytics.js`);
+        _analytics = aMod.getAnalytics(app);
+        _logEvent  = aMod.logEvent;
+      } catch (_) { /* blocked by adblocker / offline */ }
+      return { fs, db };
+    } catch (_) {
+      return null; // SDK unreachable — leaderboards degrade, the game itself is unaffected
+    }
+  })();
+  return _loadPromise;
 }
 
+// Kick the download off eagerly (non-blocking) so analytics session tracking
+// starts near page open and the SDK is usually warm before the first
+// leaderboard call. Failure here is silently absorbed by loadFirebase().
+loadFirebase();
+
 /**
- * Logs a Firebase Analytics event. Silently no-ops if Analytics is blocked.
+ * Logs a Firebase Analytics event. Fire-and-forget: queues behind the SDK
+ * load and silently no-ops if Analytics is blocked or the SDK never loads.
  * @param {string} eventName
  * @param {object} [params]
  */
 export function logAnalyticsEvent(eventName, params = {}) {
-  try {
-    if (_analytics) logEvent(_analytics, eventName, params);
-  } catch (_) { /* silently ignore */ }
+  loadFirebase().then(() => {
+    try { if (_analytics && _logEvent) _logEvent(_analytics, eventName, params); } catch (_) {}
+  });
+}
+
+async function requireFirestore() {
+  if (!isFirebaseConfigured()) throw new Error('Firebase not configured — see js/utils/firebase.js setup instructions');
+  const loaded = await loadFirebase();
+  if (!loaded) throw new Error('Leaderboard unavailable — check your connection.');
+  return loaded;
 }
 
 // ── Public API ────────────────────────────────────────────────────────────────
@@ -191,12 +229,11 @@ export function logAnalyticsEvent(eventName, params = {}) {
  * @returns {Promise<string>} Firestore document ID
  */
 export async function submitGlobalScore(entry) {
-  if (!isFirebaseConfigured()) throw new Error('Firebase not configured — see js/utils/firebase.js setup instructions');
   const wins = entry.wins ?? 0;
   if (wins < 0 || wins > 82) throw new Error('Invalid wins value');
-  const db  = getDb();
-  const col = collection(db, 'leaderboard');
-  const ref = await addDoc(col, {
+  const { fs, db } = await requireFirestore();
+  const col = fs.collection(db, 'leaderboard');
+  const ref = await fs.addDoc(col, {
     teamName:    (entry.teamName || 'Untitled Team').slice(0, 30),
     wins:         entry.wins        ?? 0,
     losses:       entry.losses      ?? 0,
@@ -211,7 +248,7 @@ export async function submitGlobalScore(entry) {
     // roster can never fail the whole write.
     starters:    (entry.starters    ?? '').slice(0, 100),
     timestampMs:  entry.timestampMs ?? 0,
-    timestamp:    serverTimestamp(),
+    timestamp:    fs.serverTimestamp(),
     // ── FUTURE: per-run stat leaders on the GLOBAL board ──────────────────
     // Per-player season stats already persist to the LOCAL leaderboard
     // (storage.js → packLeaders). To surface leaders globally too, add:
@@ -233,27 +270,26 @@ export async function submitGlobalScore(entry) {
  * @returns {Promise<object[]>}
  */
 export async function fetchLeaderboard(filter = 'alltime') {
-  if (!isFirebaseConfigured()) throw new Error('Firebase not configured — see js/utils/firebase.js setup instructions');
-  const db  = getDb();
-  const col = collection(db, 'leaderboard');
+  const { fs, db } = await requireFirestore();
+  const col = fs.collection(db, 'leaderboard');
 
   let q;
   if (filter === 'alltime') {
-    q = query(col, orderBy('wins', 'desc'), limit(10));
+    q = fs.query(col, fs.orderBy('wins', 'desc'), fs.limit(10));
   } else {
     const msInDay = 24 * 60 * 60 * 1000;
     // Filter on `timestamp` (server-stamped via serverTimestamp()), not the
     // client-reported `timestampMs` — this keeps the window authoritative
     // regardless of the reading device's own clock.
-    const cutoff = Timestamp.fromMillis(Date.now() - (filter === '24h' ? msInDay : 7 * msInDay));
+    const cutoff = fs.Timestamp.fromMillis(Date.now() - (filter === '24h' ? msInDay : 7 * msInDay));
     // Same-field where + orderBy — no composite index required. The window is
     // fetched newest-first then re-sorted by wins client-side, so the limit
     // bounds how many recent entries the top-10 is drawn from; 250 keeps a
     // busy week from dropping high-win runs off the board.
-    q = query(col, where('timestamp', '>', cutoff), orderBy('timestamp', 'desc'), limit(250));
+    q = fs.query(col, fs.where('timestamp', '>', cutoff), fs.orderBy('timestamp', 'desc'), fs.limit(250));
   }
 
-  const snap    = await getDocs(q);
+  const snap    = await fs.getDocs(q);
   const entries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   if (filter !== 'alltime') entries.sort((a, b) => b.wins - a.wins);
   return entries.slice(0, 10);
@@ -277,13 +313,12 @@ export async function fetchLeaderboard(filter = 'alltime') {
  * @returns {Promise<string>} Firestore document ID
  */
 export async function submitDailyScore(entry) {
-  if (!isFirebaseConfigured()) throw new Error('Firebase not configured — see js/utils/firebase.js setup instructions');
   const wins = entry.wins ?? 0;
   if (wins < 0 || wins > 82) throw new Error('Invalid wins value');
   if (!/^\d{4}-\d{2}-\d{2}$/.test(entry.date || '')) throw new Error('Invalid date');
-  const db  = getDb();
-  const col = collection(db, 'dailyLeaderboard');
-  const ref = await addDoc(col, {
+  const { fs, db } = await requireFirestore();
+  const col = fs.collection(db, 'dailyLeaderboard');
+  const ref = await fs.addDoc(col, {
     date:         entry.date,
     teamName:    (entry.teamName || 'Untitled Team').slice(0, 30),
     wins:         entry.wins        ?? 0,
@@ -294,7 +329,7 @@ export async function submitDailyScore(entry) {
     chemScore:    entry.chemScore   ?? 0,
     starters:    (entry.starters    ?? '').slice(0, 100),
     timestampMs:  entry.timestampMs ?? 0,
-    timestamp:    serverTimestamp(),
+    timestamp:    fs.serverTimestamp(),
   });
   return ref.id;
 }
@@ -302,18 +337,33 @@ export async function submitDailyScore(entry) {
 /**
  * Fetches up to 10 Daily Challenge entries for one UTC day, sorted by wins.
  *
+ * Anti-poisoning: entries whose SERVER write-time doesn't fall inside their
+ * claimed UTC day (plus a 3h grace window for runs drafted before midnight
+ * and submitted just after) are discarded. A spoofer can claim any `date`
+ * string, but serverTimestamp() is set by Firestore and can't be forged —
+ * so documents written today for a future day never surface on that board.
+ *
  * @param {string} date  'YYYY-MM-DD' — see state.js getUtcDateString()
  * @returns {Promise<object[]>}
  */
 export async function fetchDailyLeaderboard(date) {
-  if (!isFirebaseConfigured()) throw new Error('Firebase not configured — see js/utils/firebase.js setup instructions');
-  const db  = getDb();
-  const col = collection(db, 'dailyLeaderboard');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date || '')) throw new Error('Invalid date');
+  const { fs, db } = await requireFirestore();
+  const col = fs.collection(db, 'dailyLeaderboard');
   // Single equality filter, no orderBy — needs no composite index. Sorted by
   // wins client-side, same pattern fetchLeaderboard() uses for 24h/weekly.
-  const q    = query(col, where('date', '==', date), limit(500));
-  const snap = await getDocs(q);
-  const entries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  // 150 caps the read cost per open (Firestore bills per document read).
+  const q    = fs.query(col, fs.where('date', '==', date), fs.limit(150));
+  const snap = await fs.getDocs(q);
+
+  const dayStart = Date.parse(`${date}T00:00:00Z`);
+  const dayEnd   = dayStart + (24 + 3) * 60 * 60 * 1000; // +3h submit grace
+  const entries  = snap.docs
+    .map(d => ({ id: d.id, ...d.data() }))
+    .filter(e => {
+      const ms = e.timestamp?.toMillis?.();
+      return ms != null && ms >= dayStart && ms <= dayEnd;
+    });
   entries.sort((a, b) => b.wins - a.wins || (a.timestampMs ?? 0) - (b.timestampMs ?? 0));
   return entries.slice(0, 10);
 }
