@@ -321,7 +321,7 @@ function renderDailyModeCard() {
         <p class="font-black text-base text-foreground">Daily Challenge — Done ✅</p>
         <p class="text-xs text-muted-fg mt-0.5">You went <span style="color:#f97316;font-weight:700">${r.wins}–${r.losses}</span> today · ${dailyResetInLabel()}</p>
       </div>
-      <button data-action="open-daily-leaderboard" class="text-xs font-bold px-3 py-2 rounded-lg text-white flex-shrink-0 cursor-pointer" style="background:#f97316">Board 🏅</button>
+      <button data-action="open-daily-leaderboard" class="text-xs font-bold px-3 py-2 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:#fdba74;background:var(--card);color:${isDark() ? '#fdba74' : '#c2410c'}">Board 🏅</button>
     </div>`;
   }
   return `
