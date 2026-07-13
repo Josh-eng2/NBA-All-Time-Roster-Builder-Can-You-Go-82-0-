@@ -1,8 +1,8 @@
 /**
  * js/logic/chemistry.js — Advanced Team Chemistry Engine
  *
- * calculateChemistry(starters)
- *   Reads S.coach for coach-specific amplifiers/suppressors.
+ * calculateChemistry(starters, coach?)
+ *   Coach id drives coach-specific amplifiers/suppressors; defaults to S.coach.
  *   Returns { chemBonus, chemScore, chemReport }.
  *
  *   chemBonus  — raw float added to adjustedStrength in simulation
@@ -97,10 +97,13 @@ function optimizeLineup(starters) {
 
 /**
  * @param {object[]} starters  5 starter player objects (starters-only format)
+ * @param {string|null} [coach]  coach id for amplifier rules. Defaults to the
+ *   active solo-run coach (S.coach) for callers like the live draft dashboard;
+ *   the simulation engine passes its own coach param so per-player coaches
+ *   (1v1) can never silently fall back to the wrong global.
  * @returns {{ chemBonus: number, chemScore: number, chemReport: string[], lineupAssignment: object[] }}
  */
-export function calculateChemistry(starters) {
-  const coach = (typeof S !== 'undefined' && S.coach) ? S.coach : null;
+export function calculateChemistry(starters, coach = (S?.coach ?? null)) {
 
   // Archetype shorthand
   const sA = starters.map(p => p.archetype || '');

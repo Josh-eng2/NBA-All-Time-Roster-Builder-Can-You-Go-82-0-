@@ -364,7 +364,7 @@ export function simulateSeason(starters, coach = null) {
 
   const lossDiagnosis = buildLossDiagnosis(starters, weakestStat, balancePenalty, sRatio, STARTER_BASE);
 
-  const { chemBonus, chemScore, chemReport, lineupAssignment } = calculateChemistry(starters);
+  const { chemBonus, chemScore, chemReport, lineupAssignment } = calculateChemistry(starters, coach);
 
   // Unified coach boost — every coach has the same floor and the same
   // reachable ceiling; only the SYSTEM you must draft toward differs.

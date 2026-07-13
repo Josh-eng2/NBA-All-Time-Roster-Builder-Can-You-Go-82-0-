@@ -30,8 +30,7 @@ import { S, COACHES, POSITIONS, getUtcDateString } from '../logic/state.js';
 import { getLegendCatalog }                      from '../logic/draft.js';
 import { fetchLeaderboard, fetchDailyLeaderboard } from '../utils/firebase.js';
 import { cgGetItem, cgSetItem }                    from '../utils/crazygames.js';
-
-const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+import { esc, FANS_TEAM_MAX, fansTierFromAvg }     from '../utils/format.js';
 
 // Compact, wrapping row of the 5 stored stat leaders for a leaderboard entry.
 // Returns '' for entries saved before per-player stats existed.
@@ -62,7 +61,13 @@ export function isReturningPlayer() {
   try { return !!cgGetItem(RETURNING_KEY); } catch (e) { return true; }
 }
 
+// Write-once per session — renderModeSelect calls this on every render of
+// that screen, and there's no reason to hit storage (or the CrazyGames Data
+// Module) more than the first time.
+let _returningMarked = false;
 export function markReturning() {
+  if (_returningMarked) return;
+  _returningMarked = true;
   try { cgSetItem(RETURNING_KEY, '1'); } catch (e) {}
 }
 
@@ -108,7 +113,7 @@ export function recordLegends(players) {
  * persistence: { pts:{name,val}, reb, ast, stl, blk }. Returns null if the
  * result predates per-player stats.
  */
-export function packLeaders(r) {
+function packLeaders(r) {
   const L = r?.statLeaders;
   if (!L) return null;
   const one = e => (e ? { name: e.name, val: e.val } : null);
@@ -263,23 +268,8 @@ const GLOBAL_TABS = [
 let _globalLbCache   = [];
 let _playerNameMap   = null;
 
-const FANS_TEAM_MAX  = 500;
 const POP_FLOOR      = 35;
 const POP_CEIL       = 100;
-
-function _fansBarCol(avg) {
-  if (avg >= 80) return '#2563eb';
-  if (avg >= 60) return '#d97706';
-  return '#94a3b8';
-}
-
-function _fansTierFromAvg(avg) {
-  if (!avg) return { tier: 'Unknown', barCol: '#94a3b8' };
-  return {
-    tier:   avg >= 85 ? 'Superstar Lineup' : avg >= 70 ? 'Star Power' : avg >= 55 ? 'Solid Roster' : 'Under the Radar',
-    barCol: _fansBarCol(avg),
-  };
-}
 
 function _formatFansM(fansM) {
   const n = Number(fansM) || 0;
@@ -338,7 +328,7 @@ function _teamFansFromEntry(entry, lineup) {
     : Math.round(avg * 5);
   const pct  = Math.min(100, Math.round((sum / FANS_TEAM_MAX) * 100));
   const fansM = Number(entry.fansM) > 0 ? Number(entry.fansM) : _fansMFromAvg(avg);
-  const { tier, barCol } = _fansTierFromAvg(avg);
+  const { tier, barCol } = fansTierFromAvg(avg);
   return { avg, sum, pct, fansM, tier, barCol };
 }
 
@@ -628,11 +618,20 @@ export function getDailyStatus() {
   return { today, playedToday, result: playedToday ? last : null };
 }
 
-/** Locks the Daily Challenge for today and stores a compact recap for the mode-select card. */
-export function markDailyPlayed({ wins, losses, chemScore, champion }) {
+/**
+ * Locks the Daily Challenge and stores a compact recap for the mode-select card.
+ *
+ * `date` must be the challenge day the run was DRAFTED on (S.dailyDate), not
+ * "now" — a run drafted at 23:58 UTC and simulated at 00:03 belongs to
+ * yesterday's board and must not consume today's attempt.
+ *
+ * Called with null wins/losses when the attempt is committed (first spin) and
+ * again with the real record at simulate time — the second write overwrites.
+ */
+export function markDailyPlayed({ date, wins = null, losses = null, chemScore = null, champion = false }) {
   try {
     cgSetItem(DAILY_KEY, JSON.stringify({
-      date: getUtcDateString(), wins, losses, chemScore, champion, at: Date.now(),
+      date: date || getUtcDateString(), wins, losses, chemScore, champion, at: Date.now(),
     }));
   } catch (e) {}
 }
@@ -710,11 +709,27 @@ function _dailyModalShellHtml(dateLabel) {
   </div>`;
 }
 
+// Each open of the daily modal costs one Firestore read per returned document,
+// so reuse a fresh-enough result instead of refetching on every open. Cleared
+// explicitly after the player submits so their own entry shows up immediately.
+let _dailyLbCache = { date: null, at: 0, entries: null };
+const DAILY_LB_CACHE_MS = 60 * 1000;
+
+export function clearDailyLbCache() {
+  _dailyLbCache = { date: null, at: 0, entries: null };
+}
+
 async function _loadDailyLb(date) {
   const tableEl = document.getElementById('daily-lb-table');
+  if (_dailyLbCache.entries && _dailyLbCache.date === date
+      && Date.now() - _dailyLbCache.at < DAILY_LB_CACHE_MS) {
+    if (tableEl) tableEl.innerHTML = _dailyLbRowsHtml(_dailyLbCache.entries);
+    return;
+  }
   if (tableEl) tableEl.innerHTML = _globalLbLoadingHtml();
   try {
     const entries = await fetchDailyLeaderboard(date);
+    _dailyLbCache = { date, at: Date.now(), entries };
     if (tableEl) tableEl.innerHTML = _dailyLbRowsHtml(entries);
   } catch (err) {
     const isPermission = err.message.includes('permission') || err.message.includes('Permission') || err.message.includes('PERMISSION');
