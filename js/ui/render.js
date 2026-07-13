@@ -307,35 +307,33 @@ function dailyResetInLabel() {
 }
 
 function renderDailyModeCard() {
-  // Solid warm-orange gradient — same family as this screen's Classic/Ball IQ/1v1
-  // buttons, so the hero card reads as "part of the brand" instead of a foreign
-  // color dropped on top of it. Fully opaque, so it holds up unchanged in both
-  // light and dark mode rather than needing an isDark() branch.
-  const grad = 'background:linear-gradient(135deg,#fb923c,#c2410c);border:1px solid #9a3412';
+  // Same white-card + orange-accent treatment the old "Best season" callout
+  // used (and that Classic/Ball IQ/1v1 still use below it) — bg-white and
+  // border-slate-100 both already have dark-mode overrides, so this themes
+  // correctly for free instead of needing a bespoke gradient per mode.
   const status = getDailyStatus();
   if (status.playedToday) {
     const r = status.result;
     return `
-    <div class="w-full rounded-2xl p-4 flex items-center gap-3 mb-3 card-shadow" style="${grad}">
+    <div class="w-full rounded-2xl bg-white p-4 flex items-center gap-3 mb-3 card-shadow border border-slate-100">
       <span class="text-3xl flex-shrink-0">🗓️</span>
       <div class="flex-1 min-w-0">
-        <p class="font-black text-base text-white">Daily Challenge — Done ✅</p>
-        <p class="text-xs text-orange-100 mt-0.5">You went <b>${r.wins}–${r.losses}</b> today · ${dailyResetInLabel()}</p>
+        <p class="font-black text-base text-foreground">Daily Challenge — Done ✅</p>
+        <p class="text-xs text-muted-fg mt-0.5">You went <span style="color:#f97316;font-weight:700">${r.wins}–${r.losses}</span> today · ${dailyResetInLabel()}</p>
       </div>
-      <button data-action="open-daily-leaderboard" class="text-xs font-bold px-3 py-2 rounded-lg bg-white text-orange-700 flex-shrink-0 cursor-pointer">Board 🏅</button>
+      <button data-action="open-daily-leaderboard" class="text-xs font-bold px-3 py-2 rounded-lg text-white flex-shrink-0 cursor-pointer" style="background:#f97316">Board 🏅</button>
     </div>`;
   }
   return `
   <div class="mb-3">
     <button data-action="mode-daily"
-      class="w-full rounded-2xl p-4 flex items-center gap-3 cursor-pointer card-shadow hover:shadow-md transition-all text-left"
-      style="${grad}">
+      class="w-full rounded-2xl bg-white p-4 flex items-center gap-3 cursor-pointer card-shadow hover:shadow-md transition-all border border-slate-100 text-left">
       <span class="text-3xl flex-shrink-0" style="pointer-events:none">🗓️</span>
       <div class="flex-1 min-w-0" style="pointer-events:none">
-        <p class="font-black text-base text-white">Daily Challenge</p>
-        <p class="text-xs text-orange-100 leading-snug mt-0.5">Same draft board as every player today — one shot, then compare records.</p>
+        <p class="font-black text-base" style="color:#f97316">Daily Challenge</p>
+        <p class="text-xs text-muted-fg leading-snug mt-0.5">Same draft board as every player today — one shot, then compare records.</p>
       </div>
-      <span class="text-xs font-bold px-3 py-2 rounded-lg bg-white text-orange-700 flex-shrink-0" style="pointer-events:none">Play →</span>
+      <span class="text-xs font-bold px-3 py-2 rounded-lg text-white flex-shrink-0" style="background:#f97316;pointer-events:none">Play →</span>
     </button>
     <button data-action="open-daily-leaderboard" class="w-full text-[11px] font-bold text-center mt-1.5 text-muted-fg hover:text-primary cursor-pointer border-0 bg-transparent">
       View today's leaderboard →
