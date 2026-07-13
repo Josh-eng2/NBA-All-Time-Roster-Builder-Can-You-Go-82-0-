@@ -342,11 +342,8 @@ function renderModeSelect() {
   // Anyone who reaches the menus — by finishing the cold open or escaping
   // it deliberately — is a returning player from now on. Idempotent.
   markReturning();
-  let trophies = [], best = null, lastRun = null, bestStreak = 0;
-  try { trophies   = JSON.parse(cgGetItem('nba820_trophies') || '[]'); } catch (e) {}
-  try { best       = JSON.parse(cgGetItem('nba820_best')     || 'null'); } catch (e) {}
-  try { lastRun    = JSON.parse(cgGetItem('nba820_lastRun')  || 'null'); } catch (e) {}
-  try { bestStreak = parseInt(cgGetItem('nba820_bestStreak') || '0', 10); } catch (e) {}
+  let trophies = [];
+  try { trophies = JSON.parse(cgGetItem('nba820_trophies') || '[]'); } catch (e) {}
   return `
   <div class="flex flex-col min-h-screen main-gradient">
     <header class="sticky top-0 z-50 w-full bg-white border-b border-border mode-header" style="box-shadow:0 1px 3px var(--header-shadow)">
@@ -369,18 +366,6 @@ function renderModeSelect() {
           <h1 class="text-2xl font-black text-foreground mb-1">Choose Your Mode</h1>
           <p class="text-sm text-muted-fg">How do you want to build your all-time team?</p>
         </div>
-
-        ${best ? `
-        <div class="rounded-2xl bg-white px-4 py-3 card-shadow border border-slate-100 flex items-center gap-3 mb-3">
-          <span class="text-xl flex-shrink-0">📊</span>
-          <div class="min-w-0">
-            <p class="text-sm font-bold text-foreground">Best season: <span style="color:#f97316">${best.wins}–${best.losses}</span>${best.wins === 82 ? ' 🏆' : ''}</p>
-            ${lastRun && lastRun.tip && best.wins < 82
-              ? `<p class="text-xs text-muted-fg leading-snug mt-0.5">💡 ${lastRun.tip}</p>`
-              : `<p class="text-xs text-muted-fg mt-0.5">${best.wins === 82 ? 'Perfection achieved. Can you do it twice?' : 'The perfect season is still out there.'}</p>`}
-            ${bestStreak > 0 ? `<p class="text-[11px] font-bold mt-1" style="color:#dc2626">🔥 Best streak: ${bestStreak} straight wins</p>` : ''}
-          </div>
-        </div>` : ''}
 
         ${renderDailyModeCard()}
 
