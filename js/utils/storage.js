@@ -14,17 +14,21 @@
  *   closeGlobalLeaderboardModal() — removes the global modal from the DOM
  *   showGlobalLbTeamDetail(i)     — popup for a global leaderboard entry's roster
  *   closeGlobalLbTeamDetail()     — closes the team detail popup
+ *   getDailyStatus()              — { today, playedToday, result } for the Daily Challenge
+ *   markDailyPlayed(entry)        — locks the Daily Challenge for the current UTC day
+ *   showDailyLeaderboardModal()   — renders and mounts today's Daily Challenge modal
+ *   closeDailyLeaderboardModal()  — removes the daily modal from the DOM
  *
  * Side-effects:
  *   window.closeLeaderboardModal, window.closeGlobalLeaderboardModal,
  *   window.showGlobalLbTeamDetail, window.closeGlobalLbTeamDetail,
- *   and window.switchGlobalLbTab are set at module load so inline
- *   onclick handlers in modal HTML can call them.
+ *   window.switchGlobalLbTab, and window.closeDailyLeaderboardModal are set
+ *   at module load so inline onclick handlers in modal HTML can call them.
  */
 
-import { S, COACHES, POSITIONS } from '../logic/state.js';
+import { S, COACHES, POSITIONS, getUtcDateString } from '../logic/state.js';
 import { getLegendCatalog }                      from '../logic/draft.js';
-import { fetchLeaderboard }                        from '../utils/firebase.js';
+import { fetchLeaderboard, fetchDailyLeaderboard } from '../utils/firebase.js';
 import { cgGetItem, cgSetItem }                    from '../utils/crazygames.js';
 
 const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
@@ -605,6 +609,152 @@ export function showGlobalLeaderboardModal(tab = 'alltime') {
 export function closeGlobalLeaderboardModal() {
   closeGlobalLbTeamDetail();
   const el = document.getElementById('global-lb-modal-root');
+  if (el) {
+    if (el._removeKey) el._removeKey();
+    el.remove();
+  }
+}
+
+// ── Daily Challenge — local lock/recap + leaderboard modal ────────────────────
+
+const DAILY_KEY = 'nba820_daily_last';
+
+/** @returns {{ today: string, playedToday: boolean, result: object|null }} */
+export function getDailyStatus() {
+  const today = getUtcDateString();
+  let last = null;
+  try { last = JSON.parse(cgGetItem(DAILY_KEY) || 'null'); } catch (e) {}
+  const playedToday = !!(last && last.date === today);
+  return { today, playedToday, result: playedToday ? last : null };
+}
+
+/** Locks the Daily Challenge for today and stores a compact recap for the mode-select card. */
+export function markDailyPlayed({ wins, losses, chemScore, champion }) {
+  try {
+    cgSetItem(DAILY_KEY, JSON.stringify({
+      date: getUtcDateString(), wins, losses, chemScore, champion, at: Date.now(),
+    }));
+  } catch (e) {}
+}
+
+function _dailyLbRowsHtml(entries) {
+  if (!entries || entries.length === 0) {
+    return `<p style="font-size:14px;color:var(--muted-fg);text-align:center;padding:28px 0;font-family:Fira Sans,sans-serif">No runs yet — be the first on today's board!</p>`;
+  }
+  const medals = ['🥇', '🥈', '🥉'];
+  return entries.map((e, i) => {
+    // Same defense-in-depth numeric coercion as _globalLbRowsHtml — Firestore
+    // rules validate shape but a crafted document must never reach innerHTML raw.
+    const wins       = Number(e.wins)      || 0;
+    const losses     = Number(e.losses)    || 0;
+    const chemScore  = Number(e.chemScore) || 0;
+    const isPerfect  = wins === 82;
+    const rowBg      = isPerfect ? 'background:var(--surface-amber);border-color:var(--amber-border)' : 'background:var(--card3);border-color:var(--border)';
+    const medal      = i < 3
+      ? `<span style="font-size:18px">${medals[i]}</span>`
+      : `<span style="font-size:12px;font-weight:800;color:var(--muted)">#${i + 1}</span>`;
+    const name       = esc((e.teamName || 'Untitled Team').slice(0, 30));
+    const winsColor  = isPerfect ? 'var(--amber-strong)' : wins >= 70 ? '#16a34a' : wins >= 50 ? 'var(--primary)' : 'var(--fg)';
+    const champBadge = e.champion
+      ? `<span style="font-size:10px;font-weight:900;padding:2px 7px;border-radius:999px;background:var(--amber-badge-bg);color:var(--amber-text);border:1px solid var(--amber-border);white-space:nowrap">🏆 CHAMP</span>`
+      : '';
+    const perfectBadge = isPerfect && !e.champion
+      ? `<span style="font-size:10px;font-weight:900;padding:2px 7px;border-radius:999px;background:var(--amber-badge-bg);color:var(--amber-text);border:1px solid var(--amber-border);white-space:nowrap">82–0</span>`
+      : '';
+    return `
+    <div style="border-radius:12px;border:1.5px solid;padding:10px 12px;display:flex;align-items:center;gap:10px;${rowBg}">
+      <div style="width:28px;text-align:center;flex-shrink:0">${medal}</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;flex-wrap:wrap">
+          <span style="font-weight:900;font-size:14px;color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:150px;font-family:Fira Sans,sans-serif">${name}</span>
+          ${champBadge}${perfectBadge}
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span style="font-weight:900;font-size:15px;color:${winsColor};font-family:Fira Sans,sans-serif">${wins}–${losses}</span>
+          ${e.coachName ? `<span style="font-size:11px;color:var(--muted-fg);font-family:Fira Sans,sans-serif">${esc(e.coachName)}</span>` : ''}
+        </div>
+        ${e.starters ? `<p style="font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:2px 0 0;font-family:Fira Sans,sans-serif">${esc(e.starters)}</p>` : ''}
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <p style="font-size:10px;color:var(--muted);margin:0 0 2px;font-family:Fira Sans,sans-serif">CHEM</p>
+        <p style="font-size:13px;font-weight:800;color:var(--primary);margin:0;font-family:Fira Sans,sans-serif">${chemScore}%</p>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function _dailyModalShellHtml(dateLabel) {
+  return `
+  <div id="daily-lb-modal-backdrop" onclick="if(event.target===this)window.closeDailyLeaderboardModal()"
+    style="position:fixed;inset:0;background:var(--overlay);z-index:9998;display:flex;
+           align-items:center;justify-content:center;padding:16px">
+    <div style="background:var(--card);border:1.5px solid var(--border);border-radius:20px;width:100%;
+                max-width:520px;max-height:90vh;overflow-y:auto;padding:24px;
+                font-family:Fira Sans,sans-serif;color:var(--fg);
+                animation:scaleIn 0.2s ease-out;box-shadow:0 20px 60px var(--shadow)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div>
+          <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--primary);margin:0 0 4px">${dateLabel}</p>
+          <h2 style="font-size:22px;font-weight:900;margin:0;color:var(--fg)">🗓️ Daily Challenge</h2>
+        </div>
+        <button onclick="window.closeDailyLeaderboardModal()"
+          style="background:var(--card2);border:1px solid var(--border);color:var(--muted-fg);border-radius:999px;
+                 width:32px;height:32px;font-size:16px;cursor:pointer;display:flex;
+                 align-items:center;justify-content:center;flex-shrink:0">✕</button>
+      </div>
+      <div id="daily-lb-table" style="display:flex;flex-direction:column;gap:8px">
+        ${_globalLbLoadingHtml()}
+      </div>
+      <p style="text-align:center;font-size:11px;color:var(--muted-fg);margin:12px 0 0;font-family:Fira Sans,sans-serif">Everyone drafts from the same board today — only your picks and your season differ</p>
+    </div>
+  </div>`;
+}
+
+async function _loadDailyLb(date) {
+  const tableEl = document.getElementById('daily-lb-table');
+  if (tableEl) tableEl.innerHTML = _globalLbLoadingHtml();
+  try {
+    const entries = await fetchDailyLeaderboard(date);
+    if (tableEl) tableEl.innerHTML = _dailyLbRowsHtml(entries);
+  } catch (err) {
+    const isPermission = err.message.includes('permission') || err.message.includes('Permission') || err.message.includes('PERMISSION');
+    const msg = err.message.includes('not configured')
+      ? 'Firebase not set up yet — see <code>js/utils/firebase.js</code> for instructions.'
+      : isPermission
+        ? 'Firestore permission denied — open Firebase Console → Firestore → Rules and publish the dailyLeaderboard rule.'
+        : 'Failed to load — check your connection. <button onclick="window._retryDailyLb()" style="text-decoration:underline;cursor:pointer;font-family:Fira Sans,sans-serif">Retry</button>';
+    if (tableEl) tableEl.innerHTML = `<p style="color:#dc2626;font-size:13px;text-align:center;padding:24px 0;font-family:Fira Sans,sans-serif">${msg}</p>`;
+  }
+}
+window._retryDailyLb = () => _loadDailyLb(getUtcDateString());
+
+export function showDailyLeaderboardModal() {
+  closeDailyLeaderboardModal();
+  const today = getUtcDateString();
+  const dateLabel = new Date(today + 'T00:00:00Z')
+    .toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+  const div  = document.createElement('div');
+  div.id     = 'daily-lb-modal-root';
+  div.innerHTML = _dailyModalShellHtml(dateLabel);
+  document.body.appendChild(div);
+  const onKey = e => { if (e.key === 'Escape') closeDailyLeaderboardModal(); };
+  document.addEventListener('keydown', onKey);
+  div._removeKey = () => document.removeEventListener('keydown', onKey);
+  const focusable = div.querySelectorAll('button, [tabindex]:not([tabindex="-1"])');
+  const first = focusable[0], last = focusable[focusable.length - 1];
+  div.addEventListener('keydown', e => {
+    if (e.key !== 'Tab' || !first) return;
+    if (e.shiftKey ? document.activeElement === first : document.activeElement === last) {
+      e.preventDefault();
+      (e.shiftKey ? last : first).focus();
+    }
+  });
+  first?.focus();
+  _loadDailyLb(today);
+}
+
+export function closeDailyLeaderboardModal() {
+  const el = document.getElementById('daily-lb-modal-root');
   if (el) {
     if (el._removeKey) el._removeKey();
     el.remove();

@@ -7,6 +7,7 @@
  *   • `startGame`  — resets / initialises S for a new draft session
  *   • `pick`       — tiny array-random-pick utility used across multiple modules
  *   • `getPlayerSeed` / `buildBracket` — playoff seeding helpers
+ *   • `getUtcDateString` / `seedDailyRng` / `clearDailyRng` — Daily Challenge PRNG
  */
 
 // ── Static configuration ──────────────────────────────────────────────────────
@@ -166,8 +167,51 @@ export const CPU_TEAMS = [
 
 // ── Utility ───────────────────────────────────────────────────────────────────
 
-/** Pick a random element from an array. */
-export const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+// mulberry32 — fast, deterministic 32-bit PRNG. Powers the Daily Challenge:
+// pick() is the single choke point every draft-random call goes through
+// (team/decade spins, skip re-rolls), so seeding just this one generator
+// off the UTC calendar date makes the entire draft sequence identical for
+// every player who plays that day, with no other call site needing to know
+// about it. Real gameplay (Math.random() elsewhere, e.g. season simulation)
+// is untouched — only which teams/decades/players get OFFERED is seeded,
+// not how a season actually plays out.
+function mulberry32(seed) {
+  return function () {
+    seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function hashStringToSeed(str) {
+  let h = 1779033703 ^ str.length;
+  for (let i = 0; i < str.length; i++) {
+    h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
+    h = (h << 13) | (h >>> 19);
+  }
+  return (h ^ (h >>> 16)) >>> 0;
+}
+
+let _seededRng = null;
+
+/** Today's UTC calendar date as 'YYYY-MM-DD' — the Daily Challenge boundary is a global instant, not per-timezone midnight. */
+export function getUtcDateString(d = new Date()) {
+  return d.toISOString().slice(0, 10);
+}
+
+/** Seeds pick() deterministically off a date string — same draft sequence for every player that day. */
+export function seedDailyRng(dateStr) {
+  _seededRng = mulberry32(hashStringToSeed(dateStr));
+}
+
+/** Restores pick() to real randomness. Called on every draft (re)start so a seed never leaks into solo/blind/1v1. */
+export function clearDailyRng() {
+  _seededRng = null;
+}
+
+/** Pick a random element from an array — seeded during the Daily Challenge, real-random otherwise. */
+export const pick = arr => arr[Math.floor((_seededRng ? _seededRng() : Math.random()) * arr.length)];
 
 // ── Playoff helpers ───────────────────────────────────────────────────────────
 
