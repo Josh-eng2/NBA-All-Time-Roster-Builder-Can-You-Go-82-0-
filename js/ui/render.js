@@ -18,7 +18,7 @@ import { calculateChemistry }                             from '../logic/chemist
 import { rosterFull, availableDecades, getLegendCatalog, getSkips } from '../logic/draft.js';
 import { coachSystemProgress }                            from '../logic/simulation.js';
 import { getBracketDisplayState }                         from '../logic/playoffs.js';
-import { markReturning, getCollectedLegends }             from '../utils/storage.js';
+import { markReturning, getCollectedLegends, getDailyStatus } from '../utils/storage.js';
 import { cgGameplayStart, cgGameplayStop, cgGetItem }     from '../utils/crazygames.js';
 import { bindEvents }                                     from '../ui/events.js'; // circular — safe (called inside functions only)
 
@@ -299,6 +299,45 @@ function renderFooter() {
 }
 
 // ── Mode selection ────────────────────────────────────────────────────────────
+function dailyResetInLabel() {
+  const now  = new Date();
+  const next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 0, 0, 0));
+  const hrs  = Math.max(1, Math.round((next - now) / 3600000));
+  return `new board in ~${hrs}h`;
+}
+
+function renderDailyModeCard() {
+  const status = getDailyStatus();
+  if (status.playedToday) {
+    const r = status.result;
+    return `
+    <div class="w-full rounded-2xl p-4 flex items-center gap-3 mb-3 card-shadow" style="background:linear-gradient(135deg,#1d4ed8,#1e3a8a);border:1px solid #1e40af">
+      <span class="text-3xl flex-shrink-0">🗓️</span>
+      <div class="flex-1 min-w-0">
+        <p class="font-black text-base text-white">Daily Challenge — Done ✅</p>
+        <p class="text-xs text-blue-100 mt-0.5">You went <b>${r.wins}–${r.losses}</b> today · ${dailyResetInLabel()}</p>
+      </div>
+      <button data-action="open-daily-leaderboard" class="text-xs font-bold px-3 py-2 rounded-lg bg-white text-blue-700 flex-shrink-0 cursor-pointer">Board 🏅</button>
+    </div>`;
+  }
+  return `
+  <div class="mb-3">
+    <button data-action="mode-daily"
+      class="w-full rounded-2xl p-4 flex items-center gap-3 cursor-pointer card-shadow hover:shadow-md transition-all text-left"
+      style="background:linear-gradient(135deg,#1d4ed8,#1e3a8a);border:1px solid #1e40af">
+      <span class="text-3xl flex-shrink-0" style="pointer-events:none">🗓️</span>
+      <div class="flex-1 min-w-0" style="pointer-events:none">
+        <p class="font-black text-base text-white">Daily Challenge</p>
+        <p class="text-xs text-blue-100 leading-snug mt-0.5">Same draft board as every player today — one shot, then compare records.</p>
+      </div>
+      <span class="text-xs font-bold px-3 py-2 rounded-lg bg-white text-blue-700 flex-shrink-0" style="pointer-events:none">Play →</span>
+    </button>
+    <button data-action="open-daily-leaderboard" class="w-full text-[11px] font-bold text-center mt-1.5 text-muted-fg hover:text-primary cursor-pointer border-0 bg-transparent">
+      View today's leaderboard →
+    </button>
+  </div>`;
+}
+
 function renderModeSelect() {
   // Anyone who reaches the menus — by finishing the cold open or escaping
   // it deliberately — is a returning player from now on. Idempotent.
@@ -342,6 +381,8 @@ function renderModeSelect() {
             ${bestStreak > 0 ? `<p class="text-[11px] font-bold mt-1" style="color:#dc2626">🔥 Best streak: ${bestStreak} straight wins</p>` : ''}
           </div>
         </div>` : ''}
+
+        ${renderDailyModeCard()}
 
         <!-- Classic + Ball IQ side by side -->
         <div class="grid grid-cols-2 gap-3 mb-3">
@@ -1269,6 +1310,42 @@ function renderSaveRunCard() {
         </div>`;
 }
 
+function renderDailySubmitCard() {
+  if (S.mode !== 'daily') return '';
+  const r = S.result;
+  if (!r) return '';
+
+  if (S.dailyScoreSubmitted) {
+    return `
+    <div class="rounded-2xl border p-4 card-shadow" style="border-color:#93c5fd;background:${isDark() ? 'rgba(59,130,246,0.1)' : '#eff6ff'}">
+      <div class="flex items-center gap-3">
+        <span class="text-2xl">✅</span>
+        <div class="min-w-0 flex-1">
+          <p class="font-black text-sm" style="color:${isDark() ? '#93c5fd' : '#1e40af'}">On the daily board!</p>
+          <p class="text-xs mt-0.5" style="color:${isDark() ? '#bfdbfe' : '#1d4ed8'}">${r.wins}–${r.losses} · today's shared draft board</p>
+        </div>
+        <button data-action="open-daily-leaderboard" class="text-xs font-bold px-3 py-1.5 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:#93c5fd;background:var(--card);color:${isDark() ? '#93c5fd' : '#1d4ed8'}">
+          Board 🏅
+        </button>
+      </div>
+    </div>`;
+  }
+
+  const errorHtml = S.dailySubmitError
+    ? `<p class="text-xs text-red-500 mt-2">⚠️ ${esc(S.dailySubmitError)} &nbsp;<button data-action="submit-daily" class="underline cursor-pointer font-bold">Retry</button></p>`
+    : '';
+  return `
+  <div class="rounded-2xl border p-4 card-shadow" style="border-color:#93c5fd;background:${isDark() ? 'rgba(59,130,246,0.07)' : '#f5f9ff'}">
+    <p class="text-xs font-bold uppercase tracking-widest mb-2" style="color:${isDark() ? '#93c5fd' : '#1d4ed8'}">🗓️ Daily Challenge</p>
+    <p class="text-xs mb-3" style="color:${isDark() ? '#cbd5e1' : '#475569'}">Same draft board as every player today — submit your record to the daily leaderboard.</p>
+    <button data-action="submit-daily" id="submit-daily-btn"
+      class="w-full py-2.5 rounded-xl font-bold text-sm text-white hover:opacity-90 transition-all cursor-pointer card-shadow" style="background:#1d4ed8">
+      Submit to Daily Board →
+    </button>
+    ${errorHtml}
+  </div>`;
+}
+
 function renderResults() {
   const r          = S.result;
   const isPerfect  = r.wins === 82;
@@ -1516,6 +1593,7 @@ function renderResults() {
         </div>
 
         <div class="results-block--save">${renderSaveRunCard()}</div>
+        ${renderDailySubmitCard()}
 
         <div class="rounded-2xl border border-border bg-white p-4 card-shadow">
           <div class="flex items-center justify-between mb-3">

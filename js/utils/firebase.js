@@ -61,14 +61,51 @@
  *    serverTimestamp() and is authoritative regardless of the submitting
  *    client's clock.
  *
+ *    Also add this second rule block for the Daily Challenge leaderboard
+ *    (same file, same `match /databases/{database}/documents {` block):
+ *
+ *      match /dailyLeaderboard/{docId} {
+ *        allow read: if true;
+ *        allow create: if request.resource.data.date is string
+ *                      && request.resource.data.date.size() == 10
+ *                      && request.resource.data.wins is number
+ *                      && request.resource.data.wins >= 0
+ *                      && request.resource.data.wins <= 82
+ *                      && request.resource.data.losses is number
+ *                      && request.resource.data.losses >= 0
+ *                      && request.resource.data.losses <= 82
+ *                      && request.resource.data.teamName is string
+ *                      && request.resource.data.teamName.size() <= 30
+ *                      && request.resource.data.coachId is string
+ *                      && request.resource.data.coachId.size() <= 20
+ *                      && request.resource.data.coachName is string
+ *                      && request.resource.data.coachName.size() <= 30
+ *                      && request.resource.data.chemScore is number
+ *                      && request.resource.data.chemScore >= 0
+ *                      && request.resource.data.chemScore <= 100
+ *                      && request.resource.data.starters is string
+ *                      && request.resource.data.starters.size() <= 100
+ *                      && request.resource.data.champion is bool
+ *                      && request.resource.data.timestampMs is number;
+ *        allow update, delete: if false;
+ *      }
+ *
+ *    `date` is the 'YYYY-MM-DD' UTC calendar day (see state.js getUtcDateString)
+ *    — reads filter on it with a single equality `where()`, deliberately with
+ *    no `orderBy`, so no composite index needs to be created for this
+ *    collection; results are sorted by wins client-side instead (same trick
+ *    the 24h/weekly windows above use).
+ *
  * 4. In Firebase Console → Project Settings → Your apps → Add web app.
  *    Copy the firebaseConfig object and paste the values into FIREBASE_CONFIG below.
  * 5. Deploy your site — scores will start flowing in automatically.
  *
  * Exports:
- *   isFirebaseConfigured()   — true only when real credentials are present
- *   submitGlobalScore(entry) — writes one document to 'leaderboard'
- *   fetchLeaderboard(filter) — reads top entries; filter: 'alltime' | '24h' | 'weekly'
+ *   isFirebaseConfigured()      — true only when real credentials are present
+ *   submitGlobalScore(entry)    — writes one document to 'leaderboard'
+ *   fetchLeaderboard(filter)    — reads top entries; filter: 'alltime' | '24h' | 'weekly'
+ *   submitDailyScore(entry)     — writes one document to 'dailyLeaderboard'
+ *   fetchDailyLeaderboard(date) — reads top entries for a 'YYYY-MM-DD' day
  */
 
 import { initializeApp, getApps }   from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js';
@@ -219,5 +256,64 @@ export async function fetchLeaderboard(filter = 'alltime') {
   const snap    = await getDocs(q);
   const entries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   if (filter !== 'alltime') entries.sort((a, b) => b.wins - a.wins);
+  return entries.slice(0, 10);
+}
+
+/**
+ * Submits a score entry to the Daily Challenge leaderboard.
+ *
+ * @param {{
+ *   date:        string,  // 'YYYY-MM-DD' UTC — see state.js getUtcDateString()
+ *   teamName:    string,
+ *   wins:        number,
+ *   losses:      number,
+ *   champion:    boolean,
+ *   coachId:     string,
+ *   coachName:   string,
+ *   chemScore:   number,
+ *   starters:    string,
+ *   timestampMs: number,
+ * }} entry
+ * @returns {Promise<string>} Firestore document ID
+ */
+export async function submitDailyScore(entry) {
+  if (!isFirebaseConfigured()) throw new Error('Firebase not configured — see js/utils/firebase.js setup instructions');
+  const wins = entry.wins ?? 0;
+  if (wins < 0 || wins > 82) throw new Error('Invalid wins value');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(entry.date || '')) throw new Error('Invalid date');
+  const db  = getDb();
+  const col = collection(db, 'dailyLeaderboard');
+  const ref = await addDoc(col, {
+    date:         entry.date,
+    teamName:    (entry.teamName || 'Untitled Team').slice(0, 30),
+    wins:         entry.wins        ?? 0,
+    losses:       entry.losses      ?? 0,
+    champion:     entry.champion    ?? false,
+    coachId:      entry.coachId     ?? '',
+    coachName:    entry.coachName   ?? '',
+    chemScore:    entry.chemScore   ?? 0,
+    starters:    (entry.starters    ?? '').slice(0, 100),
+    timestampMs:  entry.timestampMs ?? 0,
+    timestamp:    serverTimestamp(),
+  });
+  return ref.id;
+}
+
+/**
+ * Fetches up to 10 Daily Challenge entries for one UTC day, sorted by wins.
+ *
+ * @param {string} date  'YYYY-MM-DD' — see state.js getUtcDateString()
+ * @returns {Promise<object[]>}
+ */
+export async function fetchDailyLeaderboard(date) {
+  if (!isFirebaseConfigured()) throw new Error('Firebase not configured — see js/utils/firebase.js setup instructions');
+  const db  = getDb();
+  const col = collection(db, 'dailyLeaderboard');
+  // Single equality filter, no orderBy — needs no composite index. Sorted by
+  // wins client-side, same pattern fetchLeaderboard() uses for 24h/weekly.
+  const q    = query(col, where('date', '==', date), limit(500));
+  const snap = await getDocs(q);
+  const entries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  entries.sort((a, b) => b.wins - a.wins || (a.timestampMs ?? 0) - (b.timestampMs ?? 0));
   return entries.slice(0, 10);
 }
