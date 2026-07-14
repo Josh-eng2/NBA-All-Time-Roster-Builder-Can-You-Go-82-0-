@@ -620,18 +620,6 @@ export function closeGlobalLeaderboardModal() {
 
 const DAILY_KEY = 'nba820_daily_last';
 
-// TEMP — set false before shipping. While true, mode-select shows a "Play again"
-// button after you've finished today's run so you can retest freely.
-export const DAILY_UNLIMITED_FOR_TESTING = true;
-
-// TEMP — when set (and DAILY_UNLIMITED_FOR_TESTING), mode-daily uses this
-// challenge id instead of today's scheduled one. Null = use today's challenge.
-export let dailyTestOverrideId = null;
-
-export function setDailyTestOverrideId(id) {
-  dailyTestOverrideId = id || null;
-}
-
 /** @returns {{ today: string, playedToday: boolean, result: object|null }} */
 export function getDailyStatus() {
   const today = getUtcDateString();

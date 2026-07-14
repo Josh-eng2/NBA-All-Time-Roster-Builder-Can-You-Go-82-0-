@@ -54,13 +54,7 @@ export const CHALLENGES = [
   { id: 'modern-era',     type: 'constraint', emoji: '🚀', title: 'Modern Era',
     desc: 'Only 2010s and 2020s players — win 55+ games.',
     params: { allowedDecades: ['2010s', '2020s'], minWins: 55 } },
-  { id: 'no-superstars',  type: 'constraint', emoji: '🚫', title: 'No Superstars',
-    desc: 'No player rated 85 or higher — win 50+ games.',
-    params: { maxRating: 84, minWins: 50 } },
-  { id: 'bench-mob',      type: 'constraint', emoji: '🪑', title: 'Bench Mob',
-    desc: 'No player rated 80 or higher — win 45+ games.',
-    params: { maxRating: 79, minWins: 45 } },
-  { id: 'budget-ball',    type: 'constraint', emoji: '🛠️', title: 'Role Players',
+  { id: 'budget-ball',    type: 'constraint', emoji: '👎', title: 'Boos Only',
     desc: 'Total roster fans under 300 — win 50+ games.',
     params: { maxPopTotal: 300, minWins: 50 } },
   { id: 'no-la-boston',   type: 'constraint', emoji: '🙅', title: 'Flyover Hoops',
@@ -97,7 +91,7 @@ export const CHALLENGES = [
   { id: 'build-around-magic',   type: 'locked', emoji: '🎩', title: 'Showtime',
     desc: "Magic Johnson ('87 Lakers) is locked at point guard. Win 60+ games.",
     params: { playerId: 'magic_87', pos: 'PG', minWins: 60 } },
-  { id: 'build-around-giannis', type: 'locked', emoji: '🦌', title: 'Freak Show',
+  { id: 'build-around-giannis', type: 'locked', emoji: '🦌', title: 'Greek Freak',
     desc: 'Giannis (\'19 Bucks) is locked at power forward. Win 60+ games.',
     params: { playerId: 'giannis_19', pos: 'PF', minWins: 60 } },
 ];
@@ -154,12 +148,6 @@ export function getDailyChallenge(dateStr = todayUTC()) {
     return ch;
   }
   return CHALLENGES[idx]; // unreachable unless the whole catalog is broken
-}
-
-/** Look up a catalog entry by id (for the TEMP test picker). */
-export function getChallengeById(id) {
-  if (!id) return null;
-  return CHALLENGES.find(c => c.id === id) || null;
 }
 
 // ── Locked-player lookup ──────────────────────────────────────────────────────
