@@ -197,8 +197,12 @@ function hashStringToSeed(str) {
 
 let _seededRng = null;
 
-/** Today's UTC calendar date as 'YYYY-MM-DD' — the Daily Challenge boundary is a global instant, not per-timezone midnight. */
+/** Today's UTC calendar date as 'YYYY-MM-DD' — the Daily Challenge boundary is a global instant, not per-timezone midnight. A `?dailydate=YYYY-MM-DD` query param overrides it (dev/testing — keeps the seeded board AND the day's challenge in sync). */
 export function getUtcDateString(d = new Date()) {
+  try {
+    const o = new URLSearchParams(window.location.search).get('dailydate');
+    if (o && /^\d{4}-\d{2}-\d{2}$/.test(o)) return o;
+  } catch (_) { /* non-browser context */ }
   return d.toISOString().slice(0, 10);
 }
 

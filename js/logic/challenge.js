@@ -74,9 +74,6 @@ export const CHALLENGES = [
   { id: 'win-70',         type: 'objective', emoji: '🏔️', title: 'Air Rare',
     desc: 'Any roster — win at least 70 games.',
     params: { minWins: 70 } },
-  { id: 'ring-or-nothing', type: 'objective', emoji: '💍', title: 'Ring or Nothing',
-    desc: 'Win 50+ games AND the championship. The regular season is just a warm-up.',
-    params: { minWins: 50, champion: true } },
   { id: 'volume-scorer',  type: 'objective', emoji: '🔥', title: 'Bucket Getter',
     desc: 'A starter must average 30+ PPG this season — and win 50+ games.',
     params: { minWins: 50, starterPpg: 30 } },
@@ -249,16 +246,17 @@ export function checkRosterConstraint(challenge, starters) {
 // ── Post-sim evaluation ───────────────────────────────────────────────────────
 
 /**
- * Pass/fail for the day. `pending: true` means the verdict needs the playoffs
- * (championship challenges) — re-call after the bracket resolves.
+ * Pass/fail for the day, decided at the end of the regular season (the
+ * daily board deliberately captures the shared 82-game run only — playoffs
+ * stay out of it, matching markDailyPlayed's lock-at-sim-time rule).
  *
- * Reads S.result (wins, playerStats, simTotals, chemScore, longestStreak),
- * S.roster and S.playoffs.
+ * Reads S.result (wins, playerStats, simTotals, chemScore, longestStreak)
+ * and S.roster.
  */
 export function evaluateObjective(challenge, S) {
   const P = challenge?.params;
   const r = S.result;
-  if (!P || !r) return { pass: false, pending: false, detail: 'No season result' };
+  if (!P || !r) return { pass: false, detail: 'No season result' };
 
   const failures = [];
 
@@ -281,29 +279,16 @@ export function evaluateObjective(challenge, S) {
     failures.push(`Longest streak ${r.longestStreak ?? 0} — needed ${P.minStreak}`);
   }
 
-  if (P.champion) {
-    const po = S.playoffs;
-    if (!po || (!po.champion && !po.eliminated)) {
-      // Season targets may already be dead — no point calling it pending then.
-      if (failures.length) return { pass: false, pending: false, detail: failures[0] };
-      return { pass: false, pending: true, detail: 'Win the championship to complete the challenge' };
-    }
-    if (!po.champion) failures.push('Eliminated in the playoffs — no ring');
-  }
-
   return failures.length
-    ? { pass: false, pending: false, detail: failures[0] }
-    : { pass: true,  pending: false, detail: 'Challenge complete!' };
+    ? { pass: false, detail: failures[0] }
+    : { pass: true,  detail: 'Challenge complete!' };
 }
 
 /**
- * Leaderboard score for the day's run. Wins always count; passing the
- * challenge and winning the title stack bonuses on top.
+ * Leaderboard score for the day's run: wins always count, passing the
+ * challenge stacks a bonus on top.
  */
 export function dailyScore(challenge, S) {
   const wins = S.result?.wins ?? 0;
-  let score  = wins * 10;
-  if (evaluateObjective(challenge, S).pass) score += 200;
-  if (S.playoffs?.champion) score += 100;
-  return score;
+  return wins * 10 + (evaluateObjective(challenge, S).pass ? 200 : 0);
 }
