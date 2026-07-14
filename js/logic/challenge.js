@@ -31,8 +31,20 @@ import { DB }                  from '../data/players.js';
 import { decadeFromBucketKey } from './era.js';
 
 // Cheapest player popularity in the DB — used to prove a budget pick can
-// still be completed with the remaining slots.
-const MIN_POPULARITY = 35;
+// still be completed with the remaining slots. Derived from the live DB
+// (memoized) so a data regeneration can't silently break the feasibility
+// math; 35 is the current floor and the fallback before DB load.
+let _minPopCache = null;
+function minPopularity() {
+  if (_minPopCache != null) return _minPopCache;
+  if (!DB) return 35;
+  let min = Infinity;
+  for (const players of Object.values(DB)) {
+    for (const p of players) if ((p.popularity ?? 50) < min) min = p.popularity ?? 50;
+  }
+  _minPopCache = Number.isFinite(min) ? min : 35;
+  return _minPopCache;
+}
 
 // ── Catalog ───────────────────────────────────────────────────────────────────
 // NOTE on `era` vs `allowedDecades`: `era` locks the header picker to one
@@ -100,12 +112,17 @@ export const CHALLENGES = [
 
 /**
  * Today's UTC date as 'YYYY-MM-DD'. A `?dailydate=YYYY-MM-DD` query param
- * overrides it (dev/testing only — gating and streaks all key off this).
+ * overrides it, but ONLY on a local dev host — in production that override
+ * was a cheat door (scout tomorrow's board/challenge, replay any date,
+ * submit to another day's leaderboard).
  */
 export function todayUTC() {
   try {
-    const o = new URLSearchParams(window.location.search).get('dailydate');
-    if (o && /^\d{4}-\d{2}-\d{2}$/.test(o)) return o;
+    const host = window.location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1' || host === '[::1]') {
+      const o = new URLSearchParams(window.location.search).get('dailydate');
+      if (o && /^\d{4}-\d{2}-\d{2}$/.test(o)) return o;
+    }
   } catch (_) { /* non-browser context */ }
   return new Date().toISOString().slice(0, 10);
 }
@@ -134,20 +151,28 @@ const rawIndex = dateStr => hashStr(dateStr) % CHALLENGES.length;
  * The day's challenge. Deterministic: same date → same entry for everyone.
  * Skips (a) yesterday's challenge, so no back-to-back repeats, and
  * (b) locked entries whose playerId is missing from the DB (data drift).
+ * Memoized per date — render paths call this every frame, and the locked-id
+ * validity check scans the whole player DB.
  */
+const _challengeCache = new Map();
 export function getDailyChallenge(dateStr = todayUTC()) {
+  if (_challengeCache.has(dateStr)) return _challengeCache.get(dateStr);
   const avoid = rawIndex(yesterdayOf(dateStr));
   let idx = rawIndex(dateStr);
   if (idx === avoid) idx = (idx + 1) % CHALLENGES.length;
+  let found = CHALLENGES[idx]; // fallback — unreachable unless the whole catalog is broken
   for (let tries = 0; tries < CHALLENGES.length; tries++) {
     const ch = CHALLENGES[(idx + tries) % CHALLENGES.length];
     if (ch.type === 'locked' && !getLockedPlayer(ch)) {
       console.warn(`[daily] locked player ${ch.params.playerId} missing from DB — skipping ${ch.id}`);
       continue;
     }
-    return ch;
+    found = ch;
+    break;
   }
-  return CHALLENGES[idx]; // unreachable unless the whole catalog is broken
+  // Don't cache pre-DB-load lookups — a locked entry could be wrongly skipped.
+  if (DB) _challengeCache.set(dateStr, found);
+  return found;
 }
 
 // ── Locked-player lookup ──────────────────────────────────────────────────────
@@ -194,7 +219,7 @@ export function checkPickLegal(challenge, player, filled = []) {
     // + this player + a floor-priced player in every remaining slot.
     const sum       = filled.reduce((s, p) => s + (p.popularity ?? 50), 0);
     const remaining = Math.max(0, 5 - filled.length - 1);
-    if (sum + (player.popularity ?? 50) + remaining * MIN_POPULARITY >= P.maxPopTotal) {
+    if (sum + (player.popularity ?? 50) + remaining * minPopularity() >= P.maxPopTotal) {
       return { legal: false, reason: `Too many fans — busts the ${P.maxPopTotal} budget` };
     }
   }

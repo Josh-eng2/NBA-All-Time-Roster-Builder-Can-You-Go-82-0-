@@ -24,6 +24,18 @@ export function availableDecades() {
   return remaining.length > 0 ? remaining : pool.slice();
 }
 
+/**
+ * Teams eligible for the current spin. A Daily Challenge that bans
+ * franchises outright (e.g. Flyover Hoops: no Lakers/Celtics) removes them
+ * from the spin pool entirely — otherwise the seeded wheel can land on a
+ * board where every player is off-limits and the round is a dead spin.
+ * Same filter for everyone, so the shared deterministic sequence holds.
+ */
+export function eligibleTeams() {
+  const banned = S.mode === 'daily' ? S.dailyChallenge?.params?.excludeTeams : null;
+  return banned?.length ? TEAMS.filter(t => !banned.includes(t)) : TEAMS;
+}
+
 /** All players from a given team/decade slot. */
 export function getPlayers(team, decade) {
   return ((DB || {})[`${team}_${decade}`] || []).slice();
@@ -125,7 +137,7 @@ export function spinResultAtLeast(tier, fixedTeam = null, fixedDecade = null) {
   if (!decadePool.length) return null;
 
   const decades = fixedDecade ? [fixedDecade] : decadePool;
-  const teams   = fixedTeam   ? [fixedTeam]   : TEAMS;
+  const teams   = fixedTeam   ? [fixedTeam]   : eligibleTeams();
 
   const valid = [];
   for (const d of decades) {
@@ -150,7 +162,7 @@ export function spinResult(fixedTeam = null, fixedDecade = null) {
   if (!decadePool.length) return null;
 
   const decades = fixedDecade ? [fixedDecade] : decadePool;
-  const teams   = fixedTeam   ? [fixedTeam]   : TEAMS;
+  const teams   = fixedTeam   ? [fixedTeam]   : eligibleTeams();
 
   const valid = [];
   for (const d of decades) {
@@ -163,7 +175,7 @@ export function spinResult(fixedTeam = null, fixedDecade = null) {
   // Constraint exhausted — fall back to any remaining combo
   const fallback = [];
   for (const d of decadePool) {
-    for (const t of TEAMS) {
+    for (const t of eligibleTeams()) {
       if (getAvailablePlayers(t, d).length > 0) fallback.push({ team: t, decade: d });
     }
   }

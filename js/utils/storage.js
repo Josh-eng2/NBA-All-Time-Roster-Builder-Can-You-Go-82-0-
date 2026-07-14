@@ -667,6 +667,24 @@ export function getDailyStreak() {
   catch (e) { return { streak: 0, lastPassDate: null }; }
 }
 
+/** UTC day before the given 'YYYY-MM-DD'. */
+function _dayBefore(dateStr) {
+  return new Date(Date.parse(dateStr + 'T00:00:00Z') - 86400000).toISOString().slice(0, 10);
+}
+
+/**
+ * The streak as it stands RIGHT NOW: the stored value only counts if the
+ * last pass was today or yesterday. Without this, skipping a day kept
+ * showing the old 🔥 count on the mode card until the next play quietly
+ * zeroed it — the display and the math disagreed.
+ * @returns {number}
+ */
+export function currentDailyStreak(today = getUtcDateString()) {
+  const s = getDailyStreak();
+  if (!s.lastPassDate) return 0;
+  return (s.lastPassDate === today || s.lastPassDate === _dayBefore(today)) ? s.streak : 0;
+}
+
 /**
  * Lifetime Daily Challenge stats (Wordle-style).
  * Soft-migrates today's locked result into lifetime totals if stats were
@@ -674,26 +692,27 @@ export function getDailyStreak() {
  * @returns {{ played: number, wins: number, currentStreak: number, maxStreak: number, lastPlayedDate: string|null, distribution: Record<string, number> }}
  */
 export function getDailyStats() {
-  const streak = getDailyStreak();
+  // Live value — a stored streak stops counting once a day has been skipped
+  // (see currentDailyStreak), so the Statistics modal never shows a dead 🔥.
+  const liveStreak = currentDailyStreak();
   let stats = null;
   try { stats = JSON.parse(cgGetItem(DAILY_STATS_KEY) || 'null'); } catch (e) {}
   if (!stats || typeof stats !== 'object') {
     stats = {
       played: 0,
       wins: 0,
-      currentStreak: streak.streak || 0,
-      maxStreak: streak.streak || 0,
+      currentStreak: liveStreak,
+      maxStreak: liveStreak,
       lastPlayedDate: null,
       distribution: _emptyDailyDist(),
     };
   } else {
     const dist = { ..._emptyDailyDist(), ...(stats.distribution || {}) };
-    const storedStreak = Number(stats.currentStreak);
-    const currentStreak = Number.isFinite(storedStreak) ? Math.max(0, storedStreak) : (streak.streak || 0);
+    const currentStreak = liveStreak;
     const storedMax = Number(stats.maxStreak);
     const maxStreak = Math.max(
       Number.isFinite(storedMax) ? Math.max(0, storedMax) : 0,
-      streak.streak || 0,
+      Number(stats.currentStreak) || 0,
       currentStreak,
     );
     stats = {
@@ -715,7 +734,7 @@ export function getDailyStats() {
     const bin = _binKeyForWins(status.result.wins);
     stats.distribution[bin] = (stats.distribution[bin] || 0) + 1;
     stats.lastPlayedDate = status.today;
-    stats.currentStreak = streak.streak || 0;
+    stats.currentStreak = liveStreak;
     if (stats.currentStreak > stats.maxStreak) stats.maxStreak = stats.currentStreak;
     try {
       cgSetItem(DAILY_STATS_KEY, JSON.stringify({
@@ -733,17 +752,24 @@ export function getDailyStats() {
 }
 
 /**
- * Locks the Daily Challenge for today, stores a compact recap for the
- * mode-select card, updates the pass streak (consecutive UTC days
- * passed chain; a failed day resets to 0), and accumulates lifetime stats.
+ * Locks the Daily Challenge for the day the run BELONGS TO, stores a compact
+ * recap for the mode-select card, updates the pass streak (consecutive UTC
+ * days passed chain; a failed day resets to 0), and accumulates lifetime
+ * stats.
+ *
+ * `date` must be the challenge date the run was started/seeded with
+ * (S.dailyDate) — NOT the wall clock at sim time. A run started at 23:50 UTC
+ * that finishes at 00:05 belongs to the old day; stamping the new day here
+ * used to burn the NEXT day's attempt while leaving the played day unlocked,
+ * and credited the streak to the wrong date.
  *
  * @returns {number} the streak after this result
  */
-export function markDailyPlayed({ wins, losses, chemScore, champion, challengeId = null, passed = false, score = 0 }) {
-  const today = getUtcDateString();
+export function markDailyPlayed({ date, wins, losses, chemScore, champion, challengeId = null, passed = false, score = 0 }) {
+  const day = (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) ? date : getUtcDateString();
   try {
     cgSetItem(DAILY_KEY, JSON.stringify({
-      date: today, wins, losses, chemScore, champion, challengeId, passed, score, at: Date.now(),
+      date: day, wins, losses, chemScore, champion, challengeId, passed, score, at: Date.now(),
     }));
   } catch (e) {}
 
@@ -751,10 +777,9 @@ export function markDailyPlayed({ wins, losses, chemScore, champion, challengeId
   try {
     const s = getDailyStreak();
     if (passed) {
-      if (s.lastPassDate !== today) { // idempotent for a same-day double-call
-        const yesterday = new Date(Date.parse(today + 'T00:00:00Z') - 86400000).toISOString().slice(0, 10);
-        s.streak       = s.lastPassDate === yesterday ? s.streak + 1 : 1;
-        s.lastPassDate = today;
+      if (s.lastPassDate !== day) { // idempotent for a same-day double-call
+        s.streak       = s.lastPassDate === _dayBefore(day) ? s.streak + 1 : 1;
+        s.lastPassDate = day;
       }
     } else {
       s.streak = 0;
@@ -765,12 +790,12 @@ export function markDailyPlayed({ wins, losses, chemScore, champion, challengeId
 
   try {
     const stats = getDailyStats();
-    if (stats.lastPlayedDate !== today) {
+    if (stats.lastPlayedDate !== day) {
       stats.played += 1;
       if (passed) stats.wins += 1;
       const bin = _binKeyForWins(wins);
       stats.distribution[bin] = (stats.distribution[bin] || 0) + 1;
-      stats.lastPlayedDate = today;
+      stats.lastPlayedDate = day;
     }
     stats.currentStreak = streakVal;
     if (streakVal > stats.maxStreak) stats.maxStreak = streakVal;

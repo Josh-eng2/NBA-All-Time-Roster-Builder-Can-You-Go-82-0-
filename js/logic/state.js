@@ -10,7 +10,7 @@
  *   • `getUtcDateString` / `seedDailyRng` / `clearDailyRng` — Daily Challenge PRNG
  */
 
-import { getLockedPlayer } from './challenge.js';
+import { getLockedPlayer, todayUTC } from './challenge.js';
 
 // ── Static configuration ──────────────────────────────────────────────────────
 
@@ -197,13 +197,14 @@ function hashStringToSeed(str) {
 
 let _seededRng = null;
 
-/** Today's UTC calendar date as 'YYYY-MM-DD' — the Daily Challenge boundary is a global instant, not per-timezone midnight. A `?dailydate=YYYY-MM-DD` query param overrides it (dev/testing — keeps the seeded board AND the day's challenge in sync). */
-export function getUtcDateString(d = new Date()) {
-  try {
-    const o = new URLSearchParams(window.location.search).get('dailydate');
-    if (o && /^\d{4}-\d{2}-\d{2}$/.test(o)) return o;
-  } catch (_) { /* non-browser context */ }
-  return d.toISOString().slice(0, 10);
+/**
+ * Today's UTC calendar date as 'YYYY-MM-DD' — the Daily Challenge boundary is
+ * a global instant, not per-timezone midnight. Delegates to challenge.js
+ * todayUTC() so the seeded board and the day's challenge can never disagree
+ * about what "today" is (the two implementations drifted apart once before).
+ */
+export function getUtcDateString() {
+  return todayUTC();
 }
 
 /** Seeds pick() deterministically off a date string — same draft sequence for every player that day. */
