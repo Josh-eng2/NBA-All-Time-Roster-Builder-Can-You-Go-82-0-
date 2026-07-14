@@ -26,12 +26,11 @@ import {
   showLeaderboardModal, closeLeaderboardModal,
   showGlobalLeaderboardModal, closeGlobalLeaderboardModal,
   getDailyStatus, markDailyPlayed, showDailyLeaderboardModal, closeDailyLeaderboardModal,
-  DAILY_UNLIMITED_FOR_TESTING, dailyTestOverrideId, setDailyTestOverrideId,
 } from '../utils/storage.js';
 import { submitGlobalScore, submitDailyScore, logAnalyticsEvent, isFirebaseConfigured } from '../utils/firebase.js';
 import { cgGetItem, cgSetItem } from '../utils/crazygames.js';
 import { buildShareCardBlob, buildShareCaption } from './shareCard.js';
-import { getDailyChallenge, checkPickLegal, evaluateObjective, dailyScore, getChallengeById } from '../logic/challenge.js';
+import { getDailyChallenge, checkPickLegal, evaluateObjective, dailyScore } from '../logic/challenge.js';
 import {
   render, $app, fmtDecadeShort, showToast, renderSeasonTickerRows,
   computeAutopsy, liveStreakLabel, withConfetti,
@@ -53,13 +52,6 @@ export function bindEvents() {
   if (_bound) return;
   _bound = true;
   $app.addEventListener('click', handleClick);
-  // TEMP test picker — change event (selects don't fire click actions usefully)
-  $app.addEventListener('change', e => {
-    if (e.target?.id === 'daily-test-challenge-select') {
-      setDailyTestOverrideId(e.target.value);
-      render();
-    }
-  });
 }
 
 function handleClick(e) {
@@ -85,12 +77,9 @@ function dispatch(action) {
     doStartGame('all'); return;
   }
   if (action === 'mode-daily') {
-    if (getDailyStatus().playedToday && !DAILY_UNLIMITED_FOR_TESTING) { render(); return; }
+    if (getDailyStatus().playedToday) { render(); return; } // already played — mode-select shouldn't even show the button
     const today = getUtcDateString();
-    const scheduled = getDailyChallenge(today);
-    const ch = (DAILY_UNLIMITED_FOR_TESTING && dailyTestOverrideId)
-      ? (getChallengeById(dailyTestOverrideId) || scheduled)
-      : scheduled;
+    const ch    = getDailyChallenge(today);
     S.mode = 'daily'; S.currentPlayer = 1; S.p1 = null;
     // The day's challenge must be on S BEFORE startGame runs — locked-player
     // challenges pre-fill their star inside the state reset.
@@ -106,7 +95,7 @@ function dispatch(action) {
     S.teamSkips   = 0;
     S.decadeSkips = 0;
     seedDailyRng(today);
-    logAnalyticsEvent('daily_started', { challenge: ch.id, date: today, testOverride: !!dailyTestOverrideId });
+    logAnalyticsEvent('daily_started', { challenge: ch.id, date: today });
     render(); return;
   }
   if (action === 'open-daily-leaderboard') { showDailyLeaderboardModal(); return; }
