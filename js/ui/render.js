@@ -19,7 +19,7 @@ import { calculateChemistry }                             from '../logic/chemist
 import { rosterFull, availableDecades, getLegendCatalog, getSkips } from '../logic/draft.js';
 import { coachSystemProgress }                            from '../logic/simulation.js';
 import { getBracketDisplayState }                         from '../logic/playoffs.js';
-import { markReturning, getCollectedLegends, getDailyStatus, getDailyStreak } from '../utils/storage.js';
+import { markReturning, getCollectedLegends, getDailyStatus, getDailyStreak, DAILY_UNLIMITED_FOR_TESTING } from '../utils/storage.js';
 import { cgGameplayStart, cgGameplayStop, cgGetItem }     from '../utils/crazygames.js';
 import { getDailyChallenge, checkPickLegal, checkRosterConstraint } from '../logic/challenge.js';
 import { bindEvents }                                     from '../ui/events.js'; // circular — safe (called inside functions only)
@@ -335,7 +335,10 @@ function renderDailyModeCard() {
         <p class="font-black text-base text-foreground flex items-center gap-2">Daily Challenge — ${verdict} ${streakChip}</p>
         <p class="text-xs text-muted-fg mt-0.5">${ch.title}: you went <span style="color:#f97316;font-weight:700">${r.wins}–${r.losses}</span> today · ${dailyResetInLabel()}</p>
       </div>
-      <button data-action="open-daily-leaderboard" class="text-xs font-bold px-3 py-2 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:#fdba74;background:var(--card);color:${isDark() ? '#fdba74' : '#c2410c'}">Board 🏅</button>
+      <div class="flex flex-col gap-1.5 flex-shrink-0">
+        ${DAILY_UNLIMITED_FOR_TESTING ? `<button data-action="mode-daily" class="text-xs font-bold px-3 py-2 rounded-lg border cursor-pointer" style="border-color:#fdba74;background:var(--card);color:${isDark() ? '#fdba74' : '#c2410c'}">Play again →</button>` : ''}
+        <button data-action="open-daily-leaderboard" class="text-xs font-bold px-3 py-2 rounded-lg border cursor-pointer" style="border-color:#fdba74;background:var(--card);color:${isDark() ? '#fdba74' : '#c2410c'}">Board 🏅</button>
+      </div>
     </div>`;
   }
   return `

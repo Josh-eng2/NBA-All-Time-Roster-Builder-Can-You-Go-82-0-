@@ -620,18 +620,15 @@ export function closeGlobalLeaderboardModal() {
 
 const DAILY_KEY = 'nba820_daily_last';
 
-// TEMP — set false before shipping. While true, daily mode ignores the
-// once-per-UTC-day lock so you can replay freely for testing.
-const DAILY_UNLIMITED_FOR_TESTING = true;
+// TEMP — set false before shipping. While true, mode-select shows a "Play again"
+// button after you've finished today's run so you can retest freely.
+export const DAILY_UNLIMITED_FOR_TESTING = true;
 
 /** @returns {{ today: string, playedToday: boolean, result: object|null }} */
 export function getDailyStatus() {
   const today = getUtcDateString();
   let last = null;
   try { last = JSON.parse(cgGetItem(DAILY_KEY) || 'null'); } catch (e) {}
-  if (DAILY_UNLIMITED_FOR_TESTING) {
-    return { today, playedToday: false, result: null };
-  }
   const playedToday = !!(last && last.date === today);
   return { today, playedToday, result: playedToday ? last : null };
 }
