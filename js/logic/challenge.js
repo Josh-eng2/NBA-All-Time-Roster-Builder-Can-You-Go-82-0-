@@ -7,7 +7,7 @@
  * so the day is a shared prompt, not a shared outcome.
  *
  * Challenge types:
- *   constraint — rules on who you may draft (era, rating cap, popularity
+ *   constraint — rules on who you may draft (era, rating cap, fans
  *                budget, excluded franchises). Enforced at pick time.
  *   objective  — a result target beyond the constraint's win floor
  *                (win total, a stat-leader line, the championship).
@@ -61,7 +61,7 @@ export const CHALLENGES = [
     desc: 'No player rated 80 or higher — win 45+ games.',
     params: { maxRating: 79, minWins: 45 } },
   { id: 'budget-ball',    type: 'constraint', emoji: '💸', title: 'Budget Ball',
-    desc: 'Total roster popularity under 300 — win 50+ games.',
+    desc: 'Total roster fans under 300 — win 50+ games.',
     params: { maxPopTotal: 300, minWins: 50 } },
   { id: 'no-la-boston',   type: 'constraint', emoji: '🙅', title: 'Flyover Hoops',
     desc: 'No Lakers, no Celtics — win 60+ games.',
@@ -201,7 +201,7 @@ export function checkPickLegal(challenge, player, filled = []) {
     const sum       = filled.reduce((s, p) => s + (p.popularity ?? 50), 0);
     const remaining = Math.max(0, 5 - filled.length - 1);
     if (sum + (player.popularity ?? 50) + remaining * MIN_POPULARITY >= P.maxPopTotal) {
-      return { legal: false, reason: `Too popular — busts the ${P.maxPopTotal} budget` };
+      return { legal: false, reason: `Too many fans — busts the ${P.maxPopTotal} budget` };
     }
   }
   return { legal: true, reason: null };
@@ -219,8 +219,8 @@ export function checkRosterConstraint(challenge, starters) {
   if (P.maxPopTotal != null) {
     const sum = starters.reduce((s, p) => s + (p.popularity ?? 50), 0);
     return sum < P.maxPopTotal
-      ? { pass: true,  detail: `Popularity ${sum} / ${P.maxPopTotal} budget` }
-      : { pass: false, detail: `Popularity ${sum} — over the ${P.maxPopTotal} budget` };
+      ? { pass: true,  detail: `Fans ${sum} / ${P.maxPopTotal}` }
+      : { pass: false, detail: `Fans ${sum} — over the ${P.maxPopTotal} budget` };
   }
   if (P.maxRating != null) {
     const bad = starters.find(p => (p.rating ?? 70) > P.maxRating);

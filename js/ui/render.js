@@ -80,7 +80,7 @@ if (typeof window !== 'undefined') {
   });
 }
 
-const FANS_TEAM_MAX = 500; // 5 starters × 100 max popularity each
+const FANS_TEAM_MAX = 500; // 5 starters × 100 max fans each
 
 function fansBarCol(avg, dark = isDark()) {
   if (avg >= 80) return dark ? '#60a5fa' : '#2563eb';
@@ -96,14 +96,15 @@ function fansTierFromAvg(avg) {
   };
 }
 
-/** Sum roster popularity for UI (max 500); avg drives tier labels. Sim logic unchanged. */
+/** Sum roster fans for UI. Budget Ball daily caps the meter at maxPopTotal (300). */
 function calcTeamFans(players) {
   const list = players.filter(Boolean);
   const sum  = list.reduce((s, p) => s + (p.popularity ?? 50), 0);
-  const pct  = Math.min(100, Math.round((sum / FANS_TEAM_MAX) * 100));
+  const max  = S.dailyChallenge?.params?.maxPopTotal ?? FANS_TEAM_MAX;
+  const pct  = Math.min(100, Math.round((sum / max) * 100));
   const avg  = list.length ? sum / list.length : 0;
   const { tier, barCol } = fansTierFromAvg(avg);
-  return { sum, max: FANS_TEAM_MAX, pct, avg, count: list.length, tier, barCol };
+  return { sum, max, pct, avg, count: list.length, tier, barCol };
 }
 
 function themeIcon() {
@@ -254,7 +255,10 @@ function renderHeader(showRestart = false) {
       </button>`
     : `<span class="header-pill">${eraLabel}${S.eraLocked ? '<span class="header-pill__lock" aria-hidden="true">🔒</span>' : ''}</span>`;
 
-  const restartBtn = showRestart
+  // Daily Challenge is one attempt — never offer Restart mid-run (or it
+  // would let players abort a shared board and spin again before lock).
+  const canRestart = showRestart && S.mode !== 'daily';
+  const restartBtn = canRestart
     ? `<button data-action="restart" type="button" class="header-pill header-pill--muted header-pill--restart">Restart</button>`
     : '';
 
@@ -282,7 +286,7 @@ function renderHeader(showRestart = false) {
         </div>
       </div>
     </header>
-    ${showRestart ? `
+    ${canRestart ? `
     <div class="mobile-restart-bar">
       <button data-action="restart" type="button" class="mobile-restart-bar__btn">↩ Restart Run</button>
     </div>` : ''}
@@ -826,7 +830,7 @@ function renderRoundBar() {
 
 function renderPopularityBar() {
   const fans       = calcTeamFans(Object.values(S.roster));
-  const scoreLabel = fans.count ? ` · ${Math.round(fans.sum)}/${fans.max}` : '';
+  const scoreLabel = ` · ${Math.round(fans.sum)}/${fans.max}`;
   return `
   <div class="rounded-xl border border-border bg-card px-4 py-3 card-shadow draft-pop-bar">
     <div class="flex items-center justify-between mb-2">
@@ -846,13 +850,14 @@ function renderPopularityBar() {
 // breakpoint; the horizontal bar above is what mobile/tablet users see.
 function renderPopularityBarVertical() {
   const fans = calcTeamFans(Object.values(S.roster));
+  const label = `${Math.round(fans.sum)}/${fans.max}`;
   return `
-  <div class="rounded-xl border border-border bg-card px-2 py-3 card-shadow draft-pop-bar-vertical" title="${fans.tier}${fans.count ? ` · ${Math.round(fans.sum)}/${fans.max}` : ''}">
+  <div class="rounded-xl border border-border bg-card px-2 py-3 card-shadow draft-pop-bar-vertical" title="${fans.tier}${fans.count ? ` · ${label}` : ''}">
     <p class="text-[9px] font-bold uppercase tracking-widest text-muted-fg draft-pop-bar-vertical__label">Fans</p>
     <div class="draft-pop-bar-vertical__track">
       <div class="draft-pop-bar-vertical__fill" style="height:${fans.pct}%;background:${fans.barCol}"></div>
     </div>
-    <p class="text-[11px] font-bold draft-pop-bar-vertical__value" style="color:${fans.barCol}">${Math.round(fans.sum)}</p>
+    <p class="text-[11px] font-bold draft-pop-bar-vertical__value" style="color:${fans.barCol}">${label}</p>
   </div>`;
 }
 
@@ -1666,9 +1671,9 @@ function renderResults() {
                 <p class="text-xs font-bold mt-2" style="color:var(--primary)">💡 ${autopsy.fix}</p>
               </div>
             </div>
-            <button data-action="draft-new-roster"
+            ${S.mode !== 'daily' ? `<button data-action="draft-new-roster"
               class="w-full mt-3 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest text-white cursor-pointer transition-all hover:opacity-90"
-              style="background:#dc2626">🔁 Run It Back — Fix It</button>
+              style="background:#dc2626">🔁 Run It Back — Fix It</button>` : ''}
           </div>` : isPerfect ? `
           <div class="rounded-2xl p-4 card-shadow flex flex-col perfect-glow" style="border:1.5px solid #fcd34d;background:${isDark() ? 'rgba(251,191,36,0.08)' : '#fffbeb'}">
             <p class="text-xs font-bold uppercase tracking-widest mb-2.5" style="color:${isDark() ? '#fcd34d' : '#b45309'}">
@@ -1775,9 +1780,13 @@ function renderResults() {
         </div>
         <!-- ── Action buttons ────────────────────────────────────────── -->
         <div class="grid grid-cols-2 gap-3">
-          <button data-action="restart" class="py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer card-shadow">
+          ${S.mode === 'daily'
+            ? `<button data-action="back-to-menu" class="py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer card-shadow">
+            Back to Menu
+          </button>`
+            : `<button data-action="restart" class="py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer card-shadow">
             Build Another
-          </button>
+          </button>`}
           <button data-action="share" class="py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer card-shadow">
             Share Result
           </button>
