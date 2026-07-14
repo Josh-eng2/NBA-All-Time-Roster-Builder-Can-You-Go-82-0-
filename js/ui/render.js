@@ -96,7 +96,7 @@ function fansTierFromAvg(avg) {
   };
 }
 
-/** Sum roster fans for UI. Budget Ball daily caps the meter at maxPopTotal (300). */
+/** Sum roster fans for UI. Role Players daily caps the meter at maxPopTotal (300). */
 function calcTeamFans(players) {
   const list = players.filter(Boolean);
   const sum  = list.reduce((s, p) => s + (p.popularity ?? 50), 0);

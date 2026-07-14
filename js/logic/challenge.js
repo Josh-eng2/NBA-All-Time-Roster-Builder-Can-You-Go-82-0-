@@ -60,7 +60,7 @@ export const CHALLENGES = [
   { id: 'bench-mob',      type: 'constraint', emoji: '🪑', title: 'Bench Mob',
     desc: 'No player rated 80 or higher — win 45+ games.',
     params: { maxRating: 79, minWins: 45 } },
-  { id: 'budget-ball',    type: 'constraint', emoji: '💸', title: 'Budget Ball',
+  { id: 'budget-ball',    type: 'constraint', emoji: '🛠️', title: 'Role Players',
     desc: 'Total roster fans under 300 — win 50+ games.',
     params: { maxPopTotal: 300, minWins: 50 } },
   { id: 'no-la-boston',   type: 'constraint', emoji: '🙅', title: 'Flyover Hoops',

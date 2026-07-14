@@ -131,10 +131,16 @@ function dispatch(action) {
   if (action.startsWith('era-pick-')) { setEra(action.slice(9)); return; }
 
   // ── Navigation ─────────────────────────────────────────────────────────────
+  // Daily Challenge is one shot — refuse mid-run abandon/re-draft so players
+  // can't throw away a bad board and spin again before the day locks.
   if (action === 'restart') {
+    if (S.mode === 'daily') return;
     confirmLeave(() => { S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; S.dailyChallenge = null; render(); }); return;
   }
-  if (action === 'draft-new-roster') { S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; S.dailyChallenge = null; render(); return; }
+  if (action === 'draft-new-roster') {
+    if (S.mode === 'daily') return;
+    S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; S.dailyChallenge = null; render(); return;
+  }
   if (action === 'view-trophies')    { S.phase = 'trophy-room'; render(); return; }
   if (action === 'view-legends')     { S.legendsReturnPhase = S.phase; S.phase = 'legends'; render(); return; }
   if (action === 'legends-back')     { S.phase = S.legendsReturnPhase || 'mode-select'; render(); return; }
