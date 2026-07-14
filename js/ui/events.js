@@ -463,7 +463,9 @@ function placePlayer(pos) {
   const player = { ...S.selectedPlayer, team: spin?.team, decade: spin?.decade };
 
   // Daily Challenge — today's draft rules are hard: illegal picks never place.
-  if (S.dailyChallenge) {
+  // Mode-gated to match the render-side dimming, so a stray dailyChallenge
+  // left on S can never veto picks in another mode.
+  if (S.mode === 'daily' && S.dailyChallenge) {
     const filled = Object.values(S.roster || {}).filter(Boolean);
     const { legal, reason } = checkPickLegal(S.dailyChallenge, player, filled);
     if (!legal) {
@@ -655,6 +657,9 @@ function doSimulate() {
     const verdict = ch ? evaluateObjective(ch, S) : null;
     const score   = ch ? dailyScore(ch, S) : S.result.wins * 10;
     const streak  = markDailyPlayed({
+      // The day the run was seeded with, NOT the wall clock — a run that
+      // crosses UTC midnight mid-sim still belongs to the day it started.
+      date: S.dailyDate,
       wins: S.result.wins, losses: S.result.losses,
       chemScore: Math.round(S.result.chemScore ?? 0),
       champion: false,
@@ -985,7 +990,13 @@ function formatDailyShareLabel() {
   if (!S.dailyDate) return null;
   const label = new Date(S.dailyDate + 'T00:00:00Z')
     .toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
-  return `Daily Challenge — ${label}`;
+  // Include the day's specific challenge and verdict in the share caption —
+  // "Daily Challenge — Jul 14, 2026 · 👎 Boos Only · PASSED ✅". The share
+  // card itself keeps its fixed-width corner badge (shareCard.js).
+  const ch  = S.dailyChallenge;
+  const chBit = ch ? ` · ${ch.emoji} ${ch.title}` : '';
+  const vBit  = S.dailyResult ? (S.dailyResult.pass ? ' · PASSED ✅' : ' · FAILED ✗') : '';
+  return `Daily Challenge — ${label}${chBit}${vBit}`;
 }
 
 function buildResultCardData() {

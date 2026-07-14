@@ -19,7 +19,7 @@ import { calculateChemistry }                             from '../logic/chemist
 import { rosterFull, availableDecades, getLegendCatalog, getSkips } from '../logic/draft.js';
 import { coachSystemProgress }                            from '../logic/simulation.js';
 import { getBracketDisplayState }                         from '../logic/playoffs.js';
-import { markReturning, getCollectedLegends, getDailyStatus, getDailyStreak } from '../utils/storage.js';
+import { markReturning, getCollectedLegends, getDailyStatus, currentDailyStreak } from '../utils/storage.js';
 import { cgGameplayStart, cgGameplayStop, cgGetItem }     from '../utils/crazygames.js';
 import { getDailyChallenge, checkPickLegal, checkRosterConstraint } from '../logic/challenge.js';
 import { bindEvents }                                     from '../ui/events.js'; // circular — safe (called inside functions only)
@@ -319,7 +319,9 @@ function renderDailyModeCard() {
   // correctly for free instead of needing a bespoke gradient per mode.
   const status = getDailyStatus();
   const ch     = getDailyChallenge(getUtcDateString());
-  const streak = getDailyStreak().streak;
+  // Live streak — 0 the moment a day has been skipped, not just after the
+  // next play writes the reset.
+  const streak = currentDailyStreak(status.today);
   const streakChip = streak > 0
     ? `<span class="text-[10px] font-black px-2 py-0.5 rounded-full flex-shrink-0" style="background:var(--amber-badge-bg,#fef3c7);color:var(--amber-text,#b45309);border:1px solid var(--amber-border,#fcd34d)">🔥 ${streak}</span>`
     : '';

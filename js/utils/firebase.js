@@ -91,10 +91,17 @@
  *                      && request.resource.data.challengeId.size() <= 40
  *                      && request.resource.data.passed is bool
  *                      && request.resource.data.score is number
- *                      && request.resource.data.score >= 0
- *                      && request.resource.data.score <= 2000;
+ *                      && request.resource.data.score ==
+ *                           request.resource.data.wins * 10
+ *                           + (request.resource.data.passed ? 200 : 0);
  *        allow update, delete: if false;
  *      }
+ *
+ *    The score equality check mirrors js/logic/challenge.js dailyScore()
+ *    (wins*10 + 200 pass bonus) — a document whose score doesn't match its
+ *    own wins/passed fields was not written by the game and is rejected at
+ *    the door. fetchDailyLeaderboard() applies the same check client-side
+ *    as defense in depth for documents written before this rule.
  *
  *    `date` is the 'YYYY-MM-DD' UTC calendar day (see state.js getUtcDateString)
  *    — reads filter on it with a single equality `where()`, deliberately with
@@ -327,7 +334,24 @@ export async function fetchDailyLeaderboard(date) {
   // client-side, same pattern fetchLeaderboard() uses for 24h/weekly.
   const q    = query(col, where('date', '==', date), limit(500));
   const snap = await getDocs(q);
-  const entries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  let entries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+  // Defense-in-depth against hand-forged documents (writes only need the
+  // public web config, and rules can't verify a run actually happened):
+  // drop rows whose numbers are internally impossible. The score is fully
+  // determined by wins + passed (wins*10 + 200 pass bonus), so any row
+  // where they disagree was not written by the game. Entries from before
+  // the challenge system (no challengeId) keep the plain wins*10 path.
+  entries = entries.filter(e => {
+    const wins = Number(e.wins);
+    if (!Number.isInteger(wins) || wins < 0 || wins > 82) return false;
+    if (e.challengeId) {
+      const expected = wins * 10 + (e.passed === true ? 200 : 0);
+      if (Number(e.score) !== expected) return false;
+    }
+    return true;
+  });
+
   const scoreOf = e => Number(e.score) || (Number(e.wins) || 0) * 10;
   entries.sort((a, b) => scoreOf(b) - scoreOf(a) || (a.timestampMs ?? 0) - (b.timestampMs ?? 0));
   return entries.slice(0, 10);
