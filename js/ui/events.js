@@ -13,6 +13,7 @@
 import {
   S, startGame, startGame1v1, POSITIONS,
   TEAMS, DECADES, COACHES, CPU_TEAMS, pick, buildBracket, getPlayerSeed, SNAKE_ORDER,
+  getUtcDateString, seedDailyRng, clearDailyRng,
 } from '../logic/state.js';
 import {
   spinResult, spinResultAtLeast, getAvailablePlayers, availableDecades,
@@ -24,20 +25,20 @@ import {
   saveLeaderboard, saveToTrophyRoom, markReturning, recordLegends,
   showLeaderboardModal, closeLeaderboardModal,
   showGlobalLeaderboardModal, closeGlobalLeaderboardModal,
-  getDailyAttempt, markDailyStarted, recordDailyResult, getDailyStreak,
+  getDailyStatus, markDailyPlayed, showDailyLeaderboardModal, closeDailyLeaderboardModal,
 } from '../utils/storage.js';
 import { submitGlobalScore, submitDailyScore, logAnalyticsEvent, isFirebaseConfigured } from '../utils/firebase.js';
+import { cgGetItem, cgSetItem } from '../utils/crazygames.js';
+import { buildShareCardBlob, buildShareCaption } from './shareCard.js';
 import {
-  todayUTC, getDailyChallenge, checkPickLegal, evaluateObjective, dailyScore,
-} from '../logic/challenge.js';
-import {
-  render, $app, fmtPlayerLine, fmtDecadeShort, showToast, renderSeasonTickerRows,
+  render, $app, fmtDecadeShort, showToast, renderSeasonTickerRows,
   computeAutopsy, liveStreakLabel, withConfetti,
 } from '../ui/render.js'; // circular — safe (used only inside function bodies)
 
 // Expose modal close helpers globally — inline onclicks in modal HTML are outside #app
 window.closeLeaderboardModal       = closeLeaderboardModal;
 window.closeGlobalLeaderboardModal = closeGlobalLeaderboardModal;
+window.closeDailyLeaderboardModal  = closeDailyLeaderboardModal;
 
 // ── Event binding ─────────────────────────────────────────────────────────────
 
@@ -63,35 +64,34 @@ function handleClick(e) {
 function dispatch(action) {
   // ── Mode selection ─────────────────────────────────────────────────────────
   if (action === 'mode-solo') {
-    S.mode = 'solo'; S.currentPlayer = 1; S.p1 = null; S.dailyChallenge = null; S.dailyDate = null;
+    S.mode = 'solo'; S.currentPlayer = 1; S.p1 = null;
     doStartGame('all'); return;
   }
   if (action === 'mode-1v1') {
-    S.mode = '1v1'; S.currentPlayer = 1; S.p1 = null; S.dailyChallenge = null; S.dailyDate = null;
+    S.mode = '1v1'; S.currentPlayer = 1; S.p1 = null;
     doStartGame('all'); return;
   }
   if (action === 'mode-blind') {
-    S.mode = 'blind'; S.currentPlayer = 1; S.p1 = null; S.dailyChallenge = null; S.dailyDate = null;
+    S.mode = 'blind'; S.currentPlayer = 1; S.p1 = null;
     doStartGame('all'); return;
   }
   if (action === 'mode-daily') {
-    const date = todayUTC();
-    if (getDailyAttempt(date)?.status === 'done') {
-      showToast('✅ Done for today — new challenge at midnight UTC!');
-      render(); return;
-    }
-    const ch = getDailyChallenge(date);
-    S.mode = 'solo'; S.currentPlayer = 1; S.p1 = null;
-    S.dailyChallenge = ch;
-    S.dailyDate      = date;
-    markDailyStarted(date, ch.id);
-    logAnalyticsEvent('daily_started', { challenge: ch.id, date });
-    // Era-restricted challenges start era-locked (single era or a decade
-    // window) — the header picker must not override today's rules.
-    doStartGame(ch.params.era || 'all');
-    if (ch.params.era || ch.params.allowedDecades) S.eraLocked = true;
+    if (getDailyStatus().playedToday) { render(); return; } // already played — mode-select shouldn't even show the button
+    S.mode = 'daily'; S.currentPlayer = 1; S.p1 = null;
+    doStartGame('all');
+    // Fixed era + zero skips: every player must draw from the identical
+    // decade pool in the identical order for the shared board to hold.
+    const today = getUtcDateString();
+    S.dailyDate   = today;
+    S.selectedEra = 'all';
+    S.eraLocked   = true;
+    S.teamSkips   = 0;
+    S.decadeSkips = 0;
+    seedDailyRng(today);
     render(); return;
   }
+  if (action === 'open-daily-leaderboard') { showDailyLeaderboardModal(); return; }
+  if (action === 'submit-daily')           { doSubmitDaily();             return; }
   // ── Coach (in-draft chip) & Era (header picker) ────────────────────────────
   // Coach lives on the drafting screen; era lives in the header. Both lock on first spin.
   if (action.startsWith('coach-pick-')) {
@@ -123,13 +123,13 @@ function dispatch(action) {
 
   // ── Navigation ─────────────────────────────────────────────────────────────
   if (action === 'restart') {
-    confirmLeave(() => { S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; S.dailyChallenge = null; render(); }); return;
+    confirmLeave(() => { S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; render(); }); return;
   }
-  if (action === 'draft-new-roster') { S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; S.dailyChallenge = null; render(); return; }
+  if (action === 'draft-new-roster') { S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; render(); return; }
   if (action === 'view-trophies')    { S.phase = 'trophy-room'; render(); return; }
   if (action === 'view-legends')     { S.legendsReturnPhase = S.phase; S.phase = 'legends'; render(); return; }
   if (action === 'legends-back')     { S.phase = S.legendsReturnPhase || 'mode-select'; render(); return; }
-  if (action === 'back-to-menu')     { S.mode = null; S.phase = 'mode-select'; S.p1 = null; S.dailyChallenge = null; render(); return; }
+  if (action === 'back-to-menu')     { S.mode = null; S.phase = 'mode-select'; S.p1 = null; render(); return; }
   if (action === 'series-play-again') { S.mode = null; S.phase = 'mode-select'; S.p1 = null; S.seriesResult = null; S.seriesRevealedCount = 0; render(); return; }
   if (action === 'begin-series') { S.phase = 'series-sim'; S.seriesRevealedCount = 0; render(); return; }
   if (action === 'sim-next-game') { S.seriesRevealedCount = Math.min((S.seriesRevealedCount || 0) + 1, S.seriesResult.games.length); render(); return; }
@@ -213,6 +213,7 @@ function setEra(era) {
 }
 
 function doStartGame(era = 'all') {
+  clearDailyRng(); // every draft (re)start begins real-random; mode-daily re-seeds right after this returns
   if (S.mode === '1v1') {
     // Single shared era — no per-player coach selection, launch draft immediately
     S.p1Coach = null;
@@ -444,16 +445,6 @@ function placePlayer(pos) {
   const spin   = S.currentSpin;
   const player = { ...S.selectedPlayer, team: spin?.team, decade: spin?.decade };
 
-  // Daily Challenge — today's draft rules are hard: illegal picks never place.
-  if (S.dailyChallenge) {
-    const filled = Object.values(S.roster || {}).filter(Boolean);
-    const { legal, reason } = checkPickLegal(S.dailyChallenge, player, filled);
-    if (!legal) {
-      showToast(`🚫 ${reason}`);
-      return;
-    }
-  }
-
   // ── 1v1 alternating draft ──────────────────────────────────────────────────
   if (S.mode === '1v1') {
     const activeRoster = S.currentPlayer === 1 ? S.p1Roster : S.p2Roster;
@@ -605,85 +596,42 @@ function doSimulate() {
     }
   }
 
-  // Capture personal bests BEFORE overwriting localStorage so the live
+  // Capture personal bests BEFORE overwriting saved progress so the live
   // reveal can fire "tied your streak" and "new personal best" moments.
   let _prevBestSnap = null;
-  try { _prevBestSnap = JSON.parse(localStorage.getItem('nba820_best') || 'null'); } catch (e) {}
+  try { _prevBestSnap = JSON.parse(cgGetItem('nba820_best') || 'null'); } catch (e) {}
   S._prevBestWins   = _prevBestSnap ? _prevBestSnap.wins : 0;
-  S._prevBestStreak = parseInt(localStorage.getItem('nba820_bestStreak') || '0', 10);
+  S._prevBestStreak = parseInt(cgGetItem('nba820_bestStreak') || '0', 10);
 
   // Auto-persist personal best, best streak, and last-run tip — feeds the
   // mode-select greeting without requiring a manual "Save Run".
   try {
-    const prevBest = JSON.parse(localStorage.getItem('nba820_best') || 'null');
+    const prevBest = JSON.parse(cgGetItem('nba820_best') || 'null');
     if (!prevBest || S.result.wins > prevBest.wins) {
-      localStorage.setItem('nba820_best', JSON.stringify({ wins: S.result.wins, losses: S.result.losses }));
+      cgSetItem('nba820_best', JSON.stringify({ wins: S.result.wins, losses: S.result.losses }));
     }
-    const prevStreak = parseInt(localStorage.getItem('nba820_bestStreak') || '0', 10);
-    if (longestStreak > prevStreak) localStorage.setItem('nba820_bestStreak', String(longestStreak));
-    localStorage.setItem('nba820_lastRun', JSON.stringify({
+    const prevStreak = parseInt(cgGetItem('nba820_bestStreak') || '0', 10);
+    if (longestStreak > prevStreak) cgSetItem('nba820_bestStreak', String(longestStreak));
+    cgSetItem('nba820_lastRun', JSON.stringify({
       wins: S.result.wins, losses: S.result.losses,
       tip: computeAutopsy()?.fix || null,
     }));
   } catch (e) {}
 
-  // Daily Challenge — the attempt burns HERE, the moment the season runs.
-  finalizeDailyResult();
+  // Lock the Daily Challenge the moment the regular season is decided — not
+  // on submit — so re-drafting the (memorized) shared board for a better
+  // simulation roll can't grind the daily leaderboard.
+  if (S.mode === 'daily') {
+    markDailyPlayed({
+      wins: S.result.wins, losses: S.result.losses,
+      chemScore: Math.round(S.result.chemScore ?? 0),
+      champion: false,
+    });
+  }
 
   S.phase = 'season-sim';
   render();
   runSeasonReveal();
-}
-
-// ── Daily Challenge verdict ───────────────────────────────────────────────────
-
-/**
- * Evaluates the day's challenge against the finished season, burns the
- * attempt, updates the streak, and submits to the global daily board.
- * Championship challenges come back `pending` — resolveDailyPending()
- * re-runs this after the playoff bracket decides.
- */
-function finalizeDailyResult() {
-  const ch = S.dailyChallenge;
-  if (!ch || !S.result) return;
-  const verdict = evaluateObjective(ch, S);
-  const score   = dailyScore(ch, S);
-  const streak  = recordDailyResult({
-    date:        S.dailyDate,
-    challengeId: ch.id,
-    passed:      verdict.pass,
-    wins:        S.result.wins,
-    score,
-    pending:     verdict.pending,
-  });
-  S.dailyResult = { ...verdict, streak, score };
-  logAnalyticsEvent('daily_completed', {
-    challenge: ch.id, passed: verdict.pass, pending: verdict.pending, wins: S.result.wins,
-  });
-  // Pending verdicts (ring-or-nothing) submit after the playoffs instead.
-  if (!verdict.pending) submitDailyToGlobal(score, verdict.pass);
-}
-
-/** Re-evaluates a playoffs-dependent daily verdict once the bracket resolves. */
-function resolveDailyPending() {
-  if (S.dailyResult?.pending) finalizeDailyResult();
-}
-
-/** Fire-and-forget global daily-board submission — never blocks the UI. */
-function submitDailyToGlobal(score, passed) {
-  if (S.dailySubmitted) return;
-  S.dailySubmitted = true;
-  let teamName = S.teamName;
-  if (!teamName) { try { teamName = localStorage.getItem('nba820_lastTeamName') || ''; } catch (e) {} }
-  submitDailyScore({
-    challengeDate: S.dailyDate,
-    challengeId:   S.dailyChallenge.id,
-    teamName:      teamName || 'Anonymous',
-    wins:          S.result.wins,
-    passed,
-    score,
-    starters:      POSITIONS.map(p => S.roster[p]?.name || '—').join(', ').slice(0, 100),
-  }).catch(() => { /* daily board is best-effort — local record already saved */ });
 }
 
 const STREAK_MILESTONES = [10, 20, 30, 40, 50, 60, 70, 80];
@@ -877,7 +825,6 @@ async function doSaveRun() {
   const input = document.getElementById('team-name-input');
   const raw   = input ? input.value.trim() : '';
   S.teamName  = raw.slice(0, 20) || 'Untitled Team';
-  try { localStorage.setItem('nba820_lastTeamName', S.teamName); } catch (e) {}
   S.runSaved  = true;
   saveLeaderboard();
   render();
@@ -898,7 +845,6 @@ async function doSubmitGlobal() {
   const input  = document.getElementById('global-team-name-input');
   const raw    = input ? input.value.trim() : '';
   S.teamName   = raw.slice(0, 30) || S.teamName || 'Untitled Team';
-  try { localStorage.setItem('nba820_lastTeamName', S.teamName); } catch (e) {}
 
   if (!S.runSaved) {
     S.runSaved = true;
@@ -930,50 +876,147 @@ async function doSubmitGlobal() {
   }
 }
 
+// ── Daily Challenge leaderboard submit ────────────────────────────────────────
+
+let _submittingDaily = false;
+
+function buildDailyScorePayload() {
+  const coachObj = S.coach ? COACHES.find(c => c.id === S.coach) : null;
+  const r        = S.result;
+  return {
+    date:        S.dailyDate || getUtcDateString(),
+    teamName:    S.teamName,
+    wins:        r.wins,
+    losses:      r.losses,
+    champion:    false, // the daily board captures the shared regular-season board only
+    coachId:     S.coach       ?? '',
+    coachName:   coachObj?.name  ?? '',
+    chemScore:   Math.round(r.chemScore ?? 0),
+    starters:    POSITIONS.map(p => S.roster[p]?.name || '—').join(', ').slice(0, 100),
+    timestampMs: Date.now(),
+  };
+}
+
+async function doSubmitDaily() {
+  if (S.mode !== 'daily' || S.dailyScoreSubmitted || _submittingDaily) return;
+  _submittingDaily = true;
+
+  // Opportunistically reuse whatever name was typed into the Save Run card —
+  // no need to make the player type their team name twice.
+  const input = document.getElementById('team-name-input');
+  const raw   = input ? input.value.trim() : '';
+  if (raw) S.teamName = raw.slice(0, 20);
+  if (!S.teamName) S.teamName = 'Untitled Team';
+
+  const btn = document.getElementById('submit-daily-btn');
+  if (btn) {
+    btn.disabled      = true;
+    btn.textContent   = 'Submitting…';
+    btn.style.opacity = '0.7';
+    btn.style.cursor  = 'not-allowed';
+  }
+
+  try {
+    await submitDailyScore(buildDailyScorePayload());
+    S.dailyScoreSubmitted = true;
+    S.dailySubmitError    = null;
+    render();
+    showToast('✅ On the daily leaderboard!');
+  } catch (err) {
+    S.dailySubmitError = err.message || 'Submission failed — check your connection.';
+    render();
+    showToast('⚠️ Daily submit failed — check your connection');
+  } finally {
+    _submittingDaily = false;
+  }
+}
+
 // ── Share ─────────────────────────────────────────────────────────────────────
 
-function doShare() {
+function formatDailyShareLabel() {
+  if (!S.dailyDate) return null;
+  const label = new Date(S.dailyDate + 'T00:00:00Z')
+    .toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+  return `Daily Challenge — ${label}`;
+}
+
+function buildResultCardData() {
   const r = S.result;
-  if (!r) return;
+  if (!r) return null;
 
   const isPerfect  = r.wins === 82;
   const isHistoric = r.wins >= 75;
   const isElite    = r.wins >= 70;
   const isPlayoff  = r.wins >= 60;
 
-  let tier;
-  if (isPerfect)       tier = '🏆 PERFECT SEASON';
-  else if (isHistoric) tier = '🔥 Historic Season';
-  else if (isElite)    tier = '⚡ Elite Season';
-  else if (isPlayoff)  tier = '✅ Playoff Contender';
-  else                 tier = '😬 Rough Season';
+  let tierLabel, tierEmoji;
+  if (isPerfect)       { tierLabel = 'PERFECT SEASON';   tierEmoji = '🏆'; }
+  else if (isHistoric) { tierLabel = 'Historic Season';  tierEmoji = '🔥'; }
+  else if (isElite)    { tierLabel = 'Elite Season';     tierEmoji = '⚡'; }
+  else if (isPlayoff)  { tierLabel = 'Playoff Contender';tierEmoji = '✅'; }
+  else                 { tierLabel = 'Rough Season';     tierEmoji = '😬'; }
 
-  const starterLines = POSITIONS.map(pos => {
+  const starters = POSITIONS.map(pos => {
     const p = S.roster[pos];
-    return p ? `🌟 ${fmtPlayerLine(p)}` : '';
-  }).filter(Boolean).join('\n');
+    if (!p) return null;
+    return { pos, name: p.name, team: p.team || '', decade: p.decade ? fmtDecadeShort(p.decade) : '' };
+  }).filter(Boolean);
 
-  const chemLine = r.chemScore !== undefined ? `\nChemistry: ${Math.round(r.chemScore)}%` : '';
+  return {
+    wins: r.wins, losses: r.losses, winPct: r.winPct,
+    chemScore: r.chemScore, longestStreak: r.longestStreak,
+    tierLabel, tierEmoji,
+    isChampion: !!S.playoffs?.champion,
+    starters,
+    dailyLabel: S.mode === 'daily' ? formatDailyShareLabel() : null,
+  };
+}
 
-  const text = [
-    `🏀 ${r.wins}-${r.losses} — ${tier}`,
-    '',
-    'Starting 5:',
-    starterLines,
-    chemLine,
-    '',
-    'Can you beat it? → canyougo820.com',
-  ].join('\n').replace(/\n{3,}/g, '\n\n').trim();
+function doShare() {
+  const data = buildResultCardData();
+  if (!data) return;
+  shareResultCard(data);
+}
+
+async function shareResultCard(data) {
+  const caption = buildShareCaption(data);
+  let blob = null;
+  try { blob = await buildShareCardBlob(data); } catch (e) { /* canvas unsupported — degrade to text-only share below */ }
+
+  if (blob) {
+    const file = new File([blob], 'can-you-go-82-0.png', { type: 'image/png' });
+    if (navigator.canShare?.({ files: [file] })) {
+      try { await navigator.share({ title: '82-0', text: caption, files: [file] }); return; }
+      catch (e) { if (e?.name === 'AbortError') return; /* user cancelled — otherwise fall through to download */ }
+    }
+    downloadBlob(blob, 'can-you-go-82-0.png');
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(caption)
+        .then(()  => showToast('🖼️ Card downloaded + caption copied!'))
+        .catch(() => showToast('🖼️ Card downloaded!'));
+    } else {
+      showToast('🖼️ Card downloaded!');
+    }
+    return;
+  }
 
   if (navigator.share) {
-    navigator.share({ title: '82-0', text }).catch(() => {});
+    navigator.share({ title: '82-0', text: caption }).catch(() => {});
   } else if (navigator.clipboard) {
-    navigator.clipboard.writeText(text)
+    navigator.clipboard.writeText(caption)
       .then(()  => showToast('Copied to clipboard! 🏀'))
       .catch(() => showToast('Failed to copy to clipboard'));
   } else {
     showToast('Failed to copy to clipboard');
   }
+}
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
 }
 
 // ── Playoffs ──────────────────────────────────────────────────────────────────
@@ -1053,7 +1096,6 @@ function doSimNextRound() {
         po.tickState = null;
         const outcome = applyPlayoffRound(po, r2);
         if (outcome === 'champion') { onPlayoffChampion(); fireChampionConfetti(); }
-        if (outcome !== 'advanced') resolveDailyPending();
         render();
       }, 800);
     }
@@ -1069,7 +1111,6 @@ function doSimAllPlayoffs() {
     applyPlayoffRound(po, results);
   }
   if (po.champion) onPlayoffChampion();
-  resolveDailyPending();
   po.pendingReveal = true;
   render();
 }

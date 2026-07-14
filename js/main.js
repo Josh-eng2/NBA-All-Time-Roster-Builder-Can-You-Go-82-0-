@@ -12,6 +12,7 @@ import { render }                     from './ui/render.js';
 import { S, startGame } from './logic/state.js';
 import { logAnalyticsEvent }          from './utils/firebase.js';
 import { isReturningPlayer }          from './utils/storage.js';
+import { cgLoadingStart, cgLoadingStop, initCrazyGamesData } from './utils/crazygames.js';
 // events.js is imported for its side-effect: attaching window helpers
 // (closeLeaderboardModal) needed by inline onclick in rendered HTML.
 import { doSpin } from './ui/events.js';
@@ -27,6 +28,11 @@ import { doSpin } from './ui/events.js';
  * mid-draft means the full cold open plays again next visit.
  */
 async function init() {
+  cgLoadingStart();
+  // Must resolve before anything below reads/writes saved progress (Legends,
+  // Trophy Room, personal bests) — decides whether those go through the
+  // CrazyGames Data Module or plain localStorage.
+  await initCrazyGamesData();
   try {
     await loadDatabase();          // populates DB export
     applySecondaryPositions();     // mutates DB in-memory: adds secondaryPos to every player
@@ -43,13 +49,16 @@ async function init() {
       S.coldOpen = true;           // set after startGame — it replaces S
       logAnalyticsEvent('cold_open_start', { coach: S.coach });
       render();
+      cgLoadingStop();
       doSpin();                    // wheel is already turning when they look up
       return;
     }
 
     render();                      // returning players: normal mode-select flow
+    cgLoadingStop();
   } catch (err) {
     console.error('[82-0] init failed:', err);
+    cgLoadingStop();
     // Replace the "Loading players…" spinner with an actual error — otherwise
     // a failed init leaves the overlay spinning forever with no way out.
     const overlay = document.getElementById('loading-overlay');

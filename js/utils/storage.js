@@ -14,18 +14,22 @@
  *   closeGlobalLeaderboardModal() — removes the global modal from the DOM
  *   showGlobalLbTeamDetail(i)     — popup for a global leaderboard entry's roster
  *   closeGlobalLbTeamDetail()     — closes the team detail popup
+ *   getDailyStatus()              — { today, playedToday, result } for the Daily Challenge
+ *   markDailyPlayed(entry)        — locks the Daily Challenge for the current UTC day
+ *   showDailyLeaderboardModal()   — renders and mounts today's Daily Challenge modal
+ *   closeDailyLeaderboardModal()  — removes the daily modal from the DOM
  *
  * Side-effects:
  *   window.closeLeaderboardModal, window.closeGlobalLeaderboardModal,
  *   window.showGlobalLbTeamDetail, window.closeGlobalLbTeamDetail,
- *   and window.switchGlobalLbTab are set at module load so inline
- *   onclick handlers in modal HTML can call them.
+ *   window.switchGlobalLbTab, and window.closeDailyLeaderboardModal are set
+ *   at module load so inline onclick handlers in modal HTML can call them.
  */
 
-import { S, COACHES, POSITIONS } from '../logic/state.js';
+import { S, COACHES, POSITIONS, getUtcDateString } from '../logic/state.js';
 import { getLegendCatalog }                      from '../logic/draft.js';
 import { fetchLeaderboard, fetchDailyLeaderboard } from '../utils/firebase.js';
-import { todayUTC, getDailyChallenge }             from '../logic/challenge.js';
+import { cgGetItem, cgSetItem }                    from '../utils/crazygames.js';
 
 const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 
@@ -55,85 +59,11 @@ const RETURNING_KEY = 'nba820_returning';
 export function isReturningPlayer() {
   // Storage blocked → treat as returning so the app falls back to the
   // normal menu flow instead of an inescapable cold-open loop.
-  try { return !!localStorage.getItem(RETURNING_KEY); } catch (e) { return true; }
+  try { return !!cgGetItem(RETURNING_KEY); } catch (e) { return true; }
 }
 
 export function markReturning() {
-  try { localStorage.setItem(RETURNING_KEY, '1'); } catch (e) {}
-}
-
-// ── Daily Challenge persistence ───────────────────────────────────────────────
-// One attempt per UTC day, Wordle-style. Keys:
-//   nba820_daily        — { date, challengeId, status:'started'|'done', passed, wins, score }
-//   nba820_dailyStreak  — { streak, lastPassDate }
-//   nba820_dailyHistory — last 60 { date, challengeId, passed, wins }
-// The attempt burns when the SIM runs (status:'done'), not when the draft
-// starts — a mid-draft refresh loses the roster anyway, so punishing it
-// would just feel broken.
-
-const DAILY_KEY        = 'nba820_daily';
-const DAILY_STREAK_KEY = 'nba820_dailyStreak';
-const DAILY_HIST_KEY   = 'nba820_dailyHistory';
-
-/** Today's attempt record, or null (missing / from a previous day). */
-export function getDailyAttempt(dateStr) {
-  try {
-    const rec = JSON.parse(localStorage.getItem(DAILY_KEY) || 'null');
-    return rec && rec.date === dateStr ? rec : null;
-  } catch (e) { return null; }
-}
-
-/** Marks today's challenge as entered (not yet burned — sim burns it). */
-export function markDailyStarted(dateStr, challengeId) {
-  try {
-    const rec = getDailyAttempt(dateStr);
-    if (rec?.status === 'done') return; // never downgrade a finished day
-    localStorage.setItem(DAILY_KEY, JSON.stringify({ date: dateStr, challengeId, status: 'started' }));
-  } catch (e) {}
-}
-
-/** { streak, lastPassDate } — streak of consecutive UTC days passed. */
-export function getDailyStreak() {
-  try { return JSON.parse(localStorage.getItem(DAILY_STREAK_KEY) || 'null') || { streak: 0, lastPassDate: null }; }
-  catch (e) { return { streak: 0, lastPassDate: null }; }
-}
-
-/** Last 60 daily results, newest first. */
-export function getDailyHistory() {
-  try { return JSON.parse(localStorage.getItem(DAILY_HIST_KEY) || '[]'); }
-  catch (e) { return []; }
-}
-
-/**
- * Records the day's final outcome: burns the attempt, updates the streak
- * (consecutive-day passes chain; a fail resets to 0), and appends history.
- * Safe to call again when a pending (championship) verdict resolves —
- * the record and history entry are overwritten, and a pass that follows a
- * provisional fail re-runs the streak math for the same day.
- *
- * @returns {number} the streak after this result
- */
-export function recordDailyResult({ date, challengeId, passed, wins, score, pending = false }) {
-  try {
-    localStorage.setItem(DAILY_KEY, JSON.stringify({ date, challengeId, status: 'done', passed, wins, score, pending }));
-
-    const hist = getDailyHistory().filter(h => h.date !== date);
-    hist.unshift({ date, challengeId, passed, wins });
-    localStorage.setItem(DAILY_HIST_KEY, JSON.stringify(hist.slice(0, 60)));
-
-    const s = getDailyStreak();
-    if (passed) {
-      if (s.lastPassDate !== date) { // don't double-count a same-day re-record
-        const yesterday = new Date(Date.parse(date + 'T00:00:00Z') - 86400000).toISOString().slice(0, 10);
-        s.streak       = s.lastPassDate === yesterday ? s.streak + 1 : 1;
-        s.lastPassDate = date;
-      }
-    } else if (!pending) {
-      s.streak = 0;
-    }
-    localStorage.setItem(DAILY_STREAK_KEY, JSON.stringify(s));
-    return s.streak;
-  } catch (e) { return 0; }
+  try { cgSetItem(RETURNING_KEY, '1'); } catch (e) {}
 }
 
 // ── Legends collection ────────────────────────────────────────────────────────
@@ -145,7 +75,7 @@ const LEGENDS_KEY = 'nba820_legends';
 
 /** @returns {Set<string>} the set of collected player ids. */
 export function getCollectedLegends() {
-  try { return new Set(JSON.parse(localStorage.getItem(LEGENDS_KEY) || '[]')); }
+  try { return new Set(JSON.parse(cgGetItem(LEGENDS_KEY) || '[]')); }
   catch (e) { return new Set(); }
 }
 
@@ -165,8 +95,8 @@ export function recordLegends(players) {
     newlyAdded.push(p);
   }
   if (newlyAdded.length) {
-    try { localStorage.setItem(LEGENDS_KEY, JSON.stringify([...collected])); }
-    catch (e) { if (e.name === 'QuotaExceededError') console.warn('[storage] localStorage full — legends not saved'); }
+    try { cgSetItem(LEGENDS_KEY, JSON.stringify([...collected])); }
+    catch (e) { console.warn('[storage] legends not saved', e); }
   }
   return newlyAdded;
 }
@@ -198,7 +128,7 @@ export function saveLeaderboard() {
     leaders:       packLeaders(r),
   };
   let lb = [];
-  try { lb = JSON.parse(localStorage.getItem('nba820_lb') || '[]'); } catch (e) {}
+  try { lb = JSON.parse(cgGetItem('nba820_lb') || '[]'); } catch (e) {}
   lb.push(entry);
   // Tie-breakers: 1° wins  2° Team Popularity
   lb.sort((a, b) => {
@@ -207,9 +137,9 @@ export function saveLeaderboard() {
   });
   if (lb.length > 20) lb = lb.slice(0, 20);
   try {
-    localStorage.setItem('nba820_lb', JSON.stringify(lb));
+    cgSetItem('nba820_lb', JSON.stringify(lb));
   } catch (e) {
-    if (e.name === 'QuotaExceededError') console.warn('[storage] localStorage full — leaderboard not saved');
+    console.warn('[storage] leaderboard not saved', e);
   }
 }
 
@@ -228,13 +158,13 @@ export function saveToTrophyRoom() {
     starters:    POSITIONS.map(p => S.roster[p]?.name || '—').join(', '),
   };
   let trophies = [];
-  try { trophies = JSON.parse(localStorage.getItem('nba820_trophies') || '[]'); } catch (e) {}
+  try { trophies = JSON.parse(cgGetItem('nba820_trophies') || '[]'); } catch (e) {}
   trophies.unshift(entry);
   if (trophies.length > 12) trophies = trophies.slice(0, 12);
   try {
-    localStorage.setItem('nba820_trophies', JSON.stringify(trophies));
+    cgSetItem('nba820_trophies', JSON.stringify(trophies));
   } catch (e) {
-    if (e.name === 'QuotaExceededError') console.warn('[storage] localStorage full — trophy room not saved');
+    console.warn('[storage] trophy room not saved', e);
   }
 }
 
@@ -242,7 +172,7 @@ export function saveToTrophyRoom() {
 
 function renderLeaderboardModal() {
   let lb = [];
-  try { lb = JSON.parse(localStorage.getItem('nba820_lb') || '[]'); } catch (e) {}
+  try { lb = JSON.parse(cgGetItem('nba820_lb') || '[]'); } catch (e) {}
   const top5 = lb.slice(0, 5);
 
   const rows = top5.length === 0
@@ -250,10 +180,10 @@ function renderLeaderboardModal() {
     : top5.map((e, i) => {
         const isPerfect = e.wins === 82;
         const rowBg     = isPerfect
-          ? 'background:#fffbeb;border-color:#fcd34d'
+          ? 'background:var(--surface-amber);border-color:var(--amber-border)'
           : 'background:var(--card3);border-color:var(--border)';
         const medals    = ['🥇','🥈','🥉','4️⃣','5️⃣'];
-        const winsColor = isPerfect ? '#b45309' : 'var(--fg)';
+        const winsColor = isPerfect ? 'var(--amber-strong)' : 'var(--fg)';
         const name      = esc(e.teamName || 'Untitled Team');
         return `
         <div style="border-radius:12px;border:1.5px solid;padding:12px;display:flex;align-items:center;gap:12px;${rowBg}">
@@ -261,7 +191,7 @@ function renderLeaderboardModal() {
           <div style="flex:1;min-width:0">
             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:2px">
               <span style="font-weight:900;font-size:15px;color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px">${name}</span>
-              ${isPerfect ? '<span style="font-size:10px;font-weight:900;padding:2px 8px;border-radius:999px;background:#fef3c7;color:#92400e;border:1px solid #fcd34d">🏆 PERFECT</span>' : ''}
+              ${isPerfect ? '<span style="font-size:10px;font-weight:900;padding:2px 8px;border-radius:999px;background:var(--amber-badge-bg);color:var(--amber-text);border:1px solid var(--amber-border)">🏆 PERFECT</span>' : ''}
             </div>
             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
               <span style="font-weight:900;font-size:16px;color:${winsColor}">${e.wins}–${e.losses}</span>
@@ -328,7 +258,6 @@ const GLOBAL_TABS = [
   { id: 'alltime', label: 'All-Time' },
   { id: '24h',     label: '24 Hours' },
   { id: 'weekly',  label: 'This Week' },
-  { id: 'daily',   label: '🎯 Daily' },
 ];
 
 let _globalLbCache   = [];
@@ -413,14 +342,6 @@ function _teamFansFromEntry(entry, lineup) {
   return { avg, sum, pct, fansM, tier, barCol };
 }
 
-function _ovrColor(rating) {
-  const r = rating ?? 0;
-  if (r >= 90) return '#d97706';
-  if (r >= 82) return '#2563eb';
-  if (r >= 74) return '#0f766e';
-  return '#64748b';
-}
-
 function _globalLbTeamDetailHtml(entry) {
   const wins      = Number(entry.wins)   || 0;
   const losses    = Number(entry.losses) || 0;
@@ -431,7 +352,6 @@ function _globalLbTeamDetailHtml(entry) {
   const name      = esc((entry.teamName || 'Untitled Team').slice(0, 30));
 
   const starterRows = lineup.map(({ pos, name: pName, player }) => {
-    const rating = player?.rating;
     const era = player
       ? [player.team, player.decade ? player.decade.replace(/(\d{2})(\d{2})s/, '$2s') : ''].filter(Boolean).join(' ')
       : '';
@@ -442,7 +362,6 @@ function _globalLbTeamDetailHtml(entry) {
         <p style="font-weight:700;font-size:14px;color:var(--fg);margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:Fira Sans,sans-serif">${esc(pName)}</p>
         ${era ? `<p style="font-size:11px;color:var(--muted-fg);margin:2px 0 0;font-family:Fira Sans,sans-serif">${esc(era)}</p>` : ''}
       </div>
-      ${rating != null ? `<span style="font-size:11px;font-weight:900;color:${_ovrColor(rating)};flex-shrink:0;font-family:Fira Sans,sans-serif">${rating} OVR</span>` : ''}
     </div>`;
   }).join('');
 
@@ -547,17 +466,17 @@ function _globalLbRowsHtml(entries) {
     const losses     = Number(e.losses)    || 0;
     const chemScore  = Number(e.chemScore) || 0;
     const isPerfect  = wins === 82;
-    const rowBg      = isPerfect ? 'background:#fffbeb;border-color:#fcd34d' : 'background:var(--card3);border-color:var(--border)';
+    const rowBg      = isPerfect ? 'background:var(--surface-amber);border-color:var(--amber-border)' : 'background:var(--card3);border-color:var(--border)';
     const medal      = i < 3
       ? `<span style="font-size:18px">${medals[i]}</span>`
       : `<span style="font-size:12px;font-weight:800;color:var(--muted)">#${i + 1}</span>`;
     const name       = esc((e.teamName || 'Untitled Team').slice(0, 30));
-    const winsColor  = isPerfect ? '#b45309' : wins >= 70 ? '#16a34a' : wins >= 50 ? 'var(--primary)' : 'var(--fg)';
+    const winsColor  = isPerfect ? 'var(--amber-strong)' : wins >= 70 ? '#16a34a' : wins >= 50 ? 'var(--primary)' : 'var(--fg)';
     const champBadge = e.champion
-      ? `<span style="font-size:10px;font-weight:900;padding:2px 7px;border-radius:999px;background:#fef3c7;color:#92400e;border:1px solid #fcd34d;white-space:nowrap">🏆 CHAMP</span>`
+      ? `<span style="font-size:10px;font-weight:900;padding:2px 7px;border-radius:999px;background:var(--amber-badge-bg);color:var(--amber-text);border:1px solid var(--amber-border);white-space:nowrap">🏆 CHAMP</span>`
       : '';
     const perfectBadge = isPerfect && !e.champion
-      ? `<span style="font-size:10px;font-weight:900;padding:2px 7px;border-radius:999px;background:#fef3c7;color:#92400e;border:1px solid #fcd34d;white-space:nowrap">82–0</span>`
+      ? `<span style="font-size:10px;font-weight:900;padding:2px 7px;border-radius:999px;background:var(--amber-badge-bg);color:var(--amber-text);border:1px solid var(--amber-border);white-space:nowrap">82–0</span>`
       : '';
     return `
     <div role="button" tabindex="0" data-global-lb-index="${i}"
@@ -628,52 +547,8 @@ function _globalModalShellHtml(activeTab) {
   </div>`;
 }
 
-// Rows for the Daily tab — daily entries carry {score, passed, wins} instead
-// of {losses, chemScore}, so they get their own compact renderer.
-function _dailyLbRowsHtml(entries) {
-  const ch     = getDailyChallenge(todayUTC());
-  const header = `<p style="font-size:12px;font-weight:800;color:var(--muted-fg);text-align:center;margin:0 0 6px;font-family:Fira Sans,sans-serif">${ch.emoji} Today: ${esc(ch.title)}</p>`;
-  if (!entries || entries.length === 0) {
-    return header + `<p style="font-size:14px;color:var(--muted-fg);text-align:center;padding:28px 0;font-family:Fira Sans,sans-serif">No runs yet today — be the first!</p>`;
-  }
-  const medals = ['🥇', '🥈', '🥉'];
-  return header + entries.map((e, i) => {
-    const wins   = Number(e.wins)  || 0;
-    const score  = Number(e.score) || 0;
-    const medal  = i < 3
-      ? `<span style="font-size:18px">${medals[i]}</span>`
-      : `<span style="font-size:12px;font-weight:800;color:var(--muted)">#${i + 1}</span>`;
-    const name   = esc((e.teamName || 'Untitled Team').slice(0, 30));
-    const badge  = e.passed
-      ? `<span style="font-size:10px;font-weight:900;padding:2px 7px;border-radius:999px;background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;white-space:nowrap">✅ PASSED</span>`
-      : `<span style="font-size:10px;font-weight:900;padding:2px 7px;border-radius:999px;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;white-space:nowrap">✗ FAILED</span>`;
-    return `
-    <div style="border-radius:12px;border:1.5px solid var(--border);padding:10px 12px;display:flex;align-items:center;gap:10px;background:var(--card3)">
-      <div style="width:28px;text-align:center;flex-shrink:0">${medal}</div>
-      <div style="flex:1;min-width:0">
-        <div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;flex-wrap:wrap">
-          <span style="font-weight:900;font-size:14px;color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:150px;font-family:Fira Sans,sans-serif">${name}</span>
-          ${badge}
-        </div>
-        <span style="font-weight:800;font-size:13px;color:var(--primary);font-family:Fira Sans,sans-serif">${wins} wins</span>
-        ${e.starters ? `<p style="font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:2px 0 0;font-family:Fira Sans,sans-serif">${esc(e.starters)}</p>` : ''}
-      </div>
-      <div style="text-align:right;flex-shrink:0">
-        <p style="font-size:10px;color:var(--muted);margin:0 0 2px;font-family:Fira Sans,sans-serif">SCORE</p>
-        <p style="font-size:13px;font-weight:800;color:var(--primary);margin:0;font-family:Fira Sans,sans-serif">${score}</p>
-      </div>
-    </div>`;
-  }).join('');
-}
-
 async function _loadGlobalLb(tab) {
   try {
-    if (tab === 'daily') {
-      const entries = await fetchDailyLeaderboard(todayUTC());
-      const tableEl = document.getElementById('global-lb-table');
-      if (tableEl) tableEl.innerHTML = _dailyLbRowsHtml(entries);
-      return;
-    }
     const entries  = await fetchLeaderboard(tab);
     _globalLbCache = entries;
     const tableEl  = document.getElementById('global-lb-table');
@@ -734,6 +609,152 @@ export function showGlobalLeaderboardModal(tab = 'alltime') {
 export function closeGlobalLeaderboardModal() {
   closeGlobalLbTeamDetail();
   const el = document.getElementById('global-lb-modal-root');
+  if (el) {
+    if (el._removeKey) el._removeKey();
+    el.remove();
+  }
+}
+
+// ── Daily Challenge — local lock/recap + leaderboard modal ────────────────────
+
+const DAILY_KEY = 'nba820_daily_last';
+
+/** @returns {{ today: string, playedToday: boolean, result: object|null }} */
+export function getDailyStatus() {
+  const today = getUtcDateString();
+  let last = null;
+  try { last = JSON.parse(cgGetItem(DAILY_KEY) || 'null'); } catch (e) {}
+  const playedToday = !!(last && last.date === today);
+  return { today, playedToday, result: playedToday ? last : null };
+}
+
+/** Locks the Daily Challenge for today and stores a compact recap for the mode-select card. */
+export function markDailyPlayed({ wins, losses, chemScore, champion }) {
+  try {
+    cgSetItem(DAILY_KEY, JSON.stringify({
+      date: getUtcDateString(), wins, losses, chemScore, champion, at: Date.now(),
+    }));
+  } catch (e) {}
+}
+
+function _dailyLbRowsHtml(entries) {
+  if (!entries || entries.length === 0) {
+    return `<p style="font-size:14px;color:var(--muted-fg);text-align:center;padding:28px 0;font-family:Fira Sans,sans-serif">No runs yet — be the first on today's board!</p>`;
+  }
+  const medals = ['🥇', '🥈', '🥉'];
+  return entries.map((e, i) => {
+    // Same defense-in-depth numeric coercion as _globalLbRowsHtml — Firestore
+    // rules validate shape but a crafted document must never reach innerHTML raw.
+    const wins       = Number(e.wins)      || 0;
+    const losses     = Number(e.losses)    || 0;
+    const chemScore  = Number(e.chemScore) || 0;
+    const isPerfect  = wins === 82;
+    const rowBg      = isPerfect ? 'background:var(--surface-amber);border-color:var(--amber-border)' : 'background:var(--card3);border-color:var(--border)';
+    const medal      = i < 3
+      ? `<span style="font-size:18px">${medals[i]}</span>`
+      : `<span style="font-size:12px;font-weight:800;color:var(--muted)">#${i + 1}</span>`;
+    const name       = esc((e.teamName || 'Untitled Team').slice(0, 30));
+    const winsColor  = isPerfect ? 'var(--amber-strong)' : wins >= 70 ? '#16a34a' : wins >= 50 ? 'var(--primary)' : 'var(--fg)';
+    const champBadge = e.champion
+      ? `<span style="font-size:10px;font-weight:900;padding:2px 7px;border-radius:999px;background:var(--amber-badge-bg);color:var(--amber-text);border:1px solid var(--amber-border);white-space:nowrap">🏆 CHAMP</span>`
+      : '';
+    const perfectBadge = isPerfect && !e.champion
+      ? `<span style="font-size:10px;font-weight:900;padding:2px 7px;border-radius:999px;background:var(--amber-badge-bg);color:var(--amber-text);border:1px solid var(--amber-border);white-space:nowrap">82–0</span>`
+      : '';
+    return `
+    <div style="border-radius:12px;border:1.5px solid;padding:10px 12px;display:flex;align-items:center;gap:10px;${rowBg}">
+      <div style="width:28px;text-align:center;flex-shrink:0">${medal}</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;flex-wrap:wrap">
+          <span style="font-weight:900;font-size:14px;color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:150px;font-family:Fira Sans,sans-serif">${name}</span>
+          ${champBadge}${perfectBadge}
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span style="font-weight:900;font-size:15px;color:${winsColor};font-family:Fira Sans,sans-serif">${wins}–${losses}</span>
+          ${e.coachName ? `<span style="font-size:11px;color:var(--muted-fg);font-family:Fira Sans,sans-serif">${esc(e.coachName)}</span>` : ''}
+        </div>
+        ${e.starters ? `<p style="font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:2px 0 0;font-family:Fira Sans,sans-serif">${esc(e.starters)}</p>` : ''}
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <p style="font-size:10px;color:var(--muted);margin:0 0 2px;font-family:Fira Sans,sans-serif">CHEM</p>
+        <p style="font-size:13px;font-weight:800;color:var(--primary);margin:0;font-family:Fira Sans,sans-serif">${chemScore}%</p>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function _dailyModalShellHtml(dateLabel) {
+  return `
+  <div id="daily-lb-modal-backdrop" onclick="if(event.target===this)window.closeDailyLeaderboardModal()"
+    style="position:fixed;inset:0;background:var(--overlay);z-index:9998;display:flex;
+           align-items:center;justify-content:center;padding:16px">
+    <div style="background:var(--card);border:1.5px solid var(--border);border-radius:20px;width:100%;
+                max-width:520px;max-height:90vh;overflow-y:auto;padding:24px;
+                font-family:Fira Sans,sans-serif;color:var(--fg);
+                animation:scaleIn 0.2s ease-out;box-shadow:0 20px 60px var(--shadow)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div>
+          <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--primary);margin:0 0 4px">${dateLabel}</p>
+          <h2 style="font-size:22px;font-weight:900;margin:0;color:var(--fg)">🗓️ Daily Challenge</h2>
+        </div>
+        <button onclick="window.closeDailyLeaderboardModal()"
+          style="background:var(--card2);border:1px solid var(--border);color:var(--muted-fg);border-radius:999px;
+                 width:32px;height:32px;font-size:16px;cursor:pointer;display:flex;
+                 align-items:center;justify-content:center;flex-shrink:0">✕</button>
+      </div>
+      <div id="daily-lb-table" style="display:flex;flex-direction:column;gap:8px">
+        ${_globalLbLoadingHtml()}
+      </div>
+      <p style="text-align:center;font-size:11px;color:var(--muted-fg);margin:12px 0 0;font-family:Fira Sans,sans-serif">Everyone drafts from the same board today — only your picks and your season differ</p>
+    </div>
+  </div>`;
+}
+
+async function _loadDailyLb(date) {
+  const tableEl = document.getElementById('daily-lb-table');
+  if (tableEl) tableEl.innerHTML = _globalLbLoadingHtml();
+  try {
+    const entries = await fetchDailyLeaderboard(date);
+    if (tableEl) tableEl.innerHTML = _dailyLbRowsHtml(entries);
+  } catch (err) {
+    const isPermission = err.message.includes('permission') || err.message.includes('Permission') || err.message.includes('PERMISSION');
+    const msg = err.message.includes('not configured')
+      ? 'Firebase not set up yet — see <code>js/utils/firebase.js</code> for instructions.'
+      : isPermission
+        ? 'Firestore permission denied — open Firebase Console → Firestore → Rules and publish the dailyLeaderboard rule.'
+        : 'Failed to load — check your connection. <button onclick="window._retryDailyLb()" style="text-decoration:underline;cursor:pointer;font-family:Fira Sans,sans-serif">Retry</button>';
+    if (tableEl) tableEl.innerHTML = `<p style="color:#dc2626;font-size:13px;text-align:center;padding:24px 0;font-family:Fira Sans,sans-serif">${msg}</p>`;
+  }
+}
+window._retryDailyLb = () => _loadDailyLb(getUtcDateString());
+
+export function showDailyLeaderboardModal() {
+  closeDailyLeaderboardModal();
+  const today = getUtcDateString();
+  const dateLabel = new Date(today + 'T00:00:00Z')
+    .toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+  const div  = document.createElement('div');
+  div.id     = 'daily-lb-modal-root';
+  div.innerHTML = _dailyModalShellHtml(dateLabel);
+  document.body.appendChild(div);
+  const onKey = e => { if (e.key === 'Escape') closeDailyLeaderboardModal(); };
+  document.addEventListener('keydown', onKey);
+  div._removeKey = () => document.removeEventListener('keydown', onKey);
+  const focusable = div.querySelectorAll('button, [tabindex]:not([tabindex="-1"])');
+  const first = focusable[0], last = focusable[focusable.length - 1];
+  div.addEventListener('keydown', e => {
+    if (e.key !== 'Tab' || !first) return;
+    if (e.shiftKey ? document.activeElement === first : document.activeElement === last) {
+      e.preventDefault();
+      (e.shiftKey ? last : first).focus();
+    }
+  });
+  first?.focus();
+  _loadDailyLb(today);
+}
+
+export function closeDailyLeaderboardModal() {
+  const el = document.getElementById('daily-lb-modal-root');
   if (el) {
     if (el._removeKey) el._removeKey();
     el.remove();

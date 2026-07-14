@@ -18,8 +18,8 @@ import { calculateChemistry }                             from '../logic/chemist
 import { rosterFull, availableDecades, getLegendCatalog, getSkips } from '../logic/draft.js';
 import { coachSystemProgress }                            from '../logic/simulation.js';
 import { getBracketDisplayState }                         from '../logic/playoffs.js';
-import { markReturning, getCollectedLegends, getDailyAttempt, getDailyStreak } from '../utils/storage.js';
-import { todayUTC, getDailyChallenge, checkPickLegal, checkRosterConstraint }  from '../logic/challenge.js';
+import { markReturning, getCollectedLegends, getDailyStatus } from '../utils/storage.js';
+import { cgGameplayStart, cgGameplayStop, cgGetItem }     from '../utils/crazygames.js';
 import { bindEvents }                                     from '../ui/events.js'; // circular — safe (called inside functions only)
 
 // ── Mount point ───────────────────────────────────────────────────────────────
@@ -54,6 +54,28 @@ function isDark() {
 
 function isMobileViewport() {
   return typeof window !== 'undefined' && window.matchMedia('(max-width: 639px)').matches;
+}
+
+// The drafting screen swaps to an entirely different DOM structure (3-column
+// app shell, each column scrolling independently so the whole screen fits in
+// one viewport) at this width — see renderDrafting(). Below it, the screen
+// is the original flat single-column layout untouched.
+function isDesktopDraftLayout() {
+  return typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches;
+}
+
+// Re-render on resize if that swap needs to flip, since nothing else
+// triggers a render when the user just drags the window across the
+// breakpoint without otherwise interacting.
+if (typeof window !== 'undefined') {
+  let _lastIsDesktopDraft = isDesktopDraftLayout();
+  window.addEventListener('resize', () => {
+    const now = isDesktopDraftLayout();
+    if (now !== _lastIsDesktopDraft) {
+      _lastIsDesktopDraft = now;
+      if (S.phase === 'drafting') render();
+    }
+  });
 }
 
 const FANS_TEAM_MAX = 500; // 5 starters × 100 max popularity each
@@ -116,7 +138,7 @@ export function fmtPlayerLine(p) {
   return era ? `${p.name} (${era})` : p.name;
 }
 
-// ── Player rating (0–100 overall) display helpers ─────────────────────────────
+// ── Team rating (0–100 overall) display helper ────────────────────────────────
 /** 2K-style tier color for a 0–100 rating. */
 export function ovrColor(rating) {
   const r = rating ?? 0;
@@ -124,15 +146,6 @@ export function ovrColor(rating) {
   if (r >= 82) return '#2563eb'; // blue — star
   if (r >= 74) return '#0f766e'; // teal — solid starter
   return '#64748b';              // slate — role player
-}
-
-/** Compact 2K-style OVR badge used in roster rows. */
-export function ovrBadge(rating) {
-  const val = rating ?? '—';
-  return `<div class="flex-shrink-0 text-center w-9">
-    <div class="text-base font-black leading-none" style="color:${ovrColor(rating)}">${val}</div>
-    <div class="text-[8px] font-bold uppercase tracking-wider text-muted-fg leading-none mt-0.5">OVR</div>
-  </div>`;
 }
 
 // ── Confetti (lazy) ───────────────────────────────────────────────────────────
@@ -278,64 +291,62 @@ function renderHeader(showRestart = false) {
 function renderFooter() {
   return `
   <footer class="w-full mt-auto" style="padding:2px 0">
-    <p style="font-size:6px;color:var(--border);text-align:center;user-select:none;letter-spacing:0.02em;line-height:1">82-0.com is an independent fan project not affiliated with the NBA or its teams.</p>
+    <p style="font-size:6px;color:var(--border);text-align:center;user-select:none;letter-spacing:0.02em;line-height:1">
+      82-0.com is an independent fan project not affiliated with the NBA or its teams. ·
+      <a href="privacy.html" target="_blank" rel="noopener noreferrer" style="color:var(--border);text-decoration:underline;user-select:auto">Privacy &amp; Terms</a>
+    </p>
   </footer>`;
 }
 
 // ── Mode selection ────────────────────────────────────────────────────────────
-// ── Daily Challenge — mode-select card ────────────────────────────────────────
+function dailyResetInLabel() {
+  const now  = new Date();
+  const next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 0, 0, 0));
+  const hrs  = Math.max(1, Math.round((next - now) / 3600000));
+  return `new board in ~${hrs}h`;
+}
+
 function renderDailyModeCard() {
-  const date    = todayUTC();
-  const ch      = getDailyChallenge(date);
-  const attempt = getDailyAttempt(date);
-  const done    = attempt?.status === 'done';
-  const streak  = getDailyStreak().streak;
-
-  // Static countdown to the next UTC midnight — recomputed on each render.
-  const now      = new Date();
-  const nextMid  = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1);
-  const minsLeft = Math.max(0, Math.floor((nextMid - now.getTime()) / 60000));
-  const resetsIn = `${Math.floor(minsLeft / 60)}h ${minsLeft % 60}m`;
-
-  const streakChip = streak > 0
-    ? `<span class="text-[10px] font-black px-2 py-0.5 rounded-full" style="background:#fef3c7;color:#b45309;border:1px solid #fcd34d">🔥 ${streak}-day streak</span>`
-    : '';
-
-  const statusHtml = done
-    ? (attempt.pending
-        ? `<span class="text-[11px] font-black px-2.5 py-1 rounded-full" style="background:var(--surface-blue);color:#2563eb">⏳ ${attempt.wins} wins — title run pending</span>`
-        : attempt.passed
-          ? `<span class="text-[11px] font-black px-2.5 py-1 rounded-full" style="background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0">✅ PASSED · ${attempt.wins} wins</span>`
-          : `<span class="text-[11px] font-black px-2.5 py-1 rounded-full" style="background:#fef2f2;color:#dc2626;border:1px solid #fecaca">✗ FAILED · ${attempt.wins} wins</span>`)
-    : `<div class="w-full py-2.5 rounded-xl font-bold text-sm text-white text-center" style="background:#7c3aed;pointer-events:none">Play Today's Challenge</div>`;
-
+  // Same white-card + orange-accent treatment the old "Best season" callout
+  // used (and that Classic/Ball IQ/1v1 still use below it) — bg-white and
+  // border-slate-100 both already have dark-mode overrides, so this themes
+  // correctly for free instead of needing a bespoke gradient per mode.
+  const status = getDailyStatus();
+  if (status.playedToday) {
+    const r = status.result;
+    return `
+    <div class="w-full rounded-2xl bg-white p-4 flex items-center gap-3 mb-3 card-shadow border border-slate-100">
+      <span class="text-3xl flex-shrink-0">🗓️</span>
+      <div class="flex-1 min-w-0">
+        <p class="font-black text-base text-foreground">Daily Challenge — Done ✅</p>
+        <p class="text-xs text-muted-fg mt-0.5">You went <span style="color:#f97316;font-weight:700">${r.wins}–${r.losses}</span> today · ${dailyResetInLabel()}</p>
+      </div>
+      <button data-action="open-daily-leaderboard" class="text-xs font-bold px-3 py-2 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:#fdba74;background:var(--card);color:${isDark() ? '#fdba74' : '#c2410c'}">Board 🏅</button>
+    </div>`;
+  }
   return `
-  <button data-action="mode-daily" ${done ? 'disabled' : ''}
-    class="w-full rounded-2xl bg-white px-5 py-4 flex flex-col items-center gap-2 card-shadow transition-all border-2 mb-3 ${done ? '' : 'cursor-pointer hover:shadow-md'}"
-    style="border-color:#c4b5fd">
-    <div class="flex items-center gap-2 flex-wrap justify-center" style="pointer-events:none">
-      <span class="text-2xl">${ch.emoji}</span>
-      <p class="font-black text-base" style="color:#7c3aed">Daily Challenge</p>
-      ${streakChip}
-    </div>
-    <p class="font-bold text-sm text-foreground" style="pointer-events:none">${ch.title}</p>
-    <p class="text-xs text-muted-fg text-center leading-snug" style="pointer-events:none">${ch.desc}</p>
-    <div class="w-full mt-1 flex flex-col items-center gap-1" style="pointer-events:none">
-      ${statusHtml}
-      <p class="text-[10px] text-muted-fg">${done ? 'New challenge' : 'One simulation per day · resets'} in ${resetsIn} (midnight UTC)</p>
-    </div>
-  </button>`;
+  <div class="mb-3">
+    <button data-action="mode-daily"
+      class="w-full rounded-2xl bg-white p-4 flex items-center gap-3 cursor-pointer card-shadow hover:shadow-md transition-all border border-slate-100 text-left">
+      <span class="text-3xl flex-shrink-0" style="pointer-events:none">🗓️</span>
+      <div class="flex-1 min-w-0" style="pointer-events:none">
+        <p class="font-black text-base" style="color:#f97316">Daily Challenge</p>
+        <p class="text-xs text-muted-fg leading-snug mt-0.5">Same draft board as every player today — one shot, then compare records.</p>
+      </div>
+      <span class="text-xs font-bold px-3 py-2 rounded-lg border flex-shrink-0" style="border-color:#fdba74;background:var(--card);color:${isDark() ? '#fdba74' : '#c2410c'};pointer-events:none">Play →</span>
+    </button>
+    <button data-action="open-daily-leaderboard" class="w-full text-[11px] font-bold text-center mt-1.5 text-muted-fg hover:text-primary cursor-pointer border-0 bg-transparent">
+      View today's leaderboard →
+    </button>
+  </div>`;
 }
 
 function renderModeSelect() {
   // Anyone who reaches the menus — by finishing the cold open or escaping
   // it deliberately — is a returning player from now on. Idempotent.
   markReturning();
-  let trophies = [], best = null, lastRun = null, bestStreak = 0;
-  try { trophies   = JSON.parse(localStorage.getItem('nba820_trophies') || '[]'); } catch (e) {}
-  try { best       = JSON.parse(localStorage.getItem('nba820_best')     || 'null'); } catch (e) {}
-  try { lastRun    = JSON.parse(localStorage.getItem('nba820_lastRun')  || 'null'); } catch (e) {}
-  try { bestStreak = parseInt(localStorage.getItem('nba820_bestStreak') || '0', 10); } catch (e) {}
+  let trophies = [];
+  try { trophies = JSON.parse(cgGetItem('nba820_trophies') || '[]'); } catch (e) {}
   return `
   <div class="flex flex-col min-h-screen main-gradient">
     <header class="sticky top-0 z-50 w-full bg-white border-b border-border mode-header" style="box-shadow:0 1px 3px var(--header-shadow)">
@@ -359,17 +370,7 @@ function renderModeSelect() {
           <p class="text-sm text-muted-fg">How do you want to build your all-time team?</p>
         </div>
 
-        ${best ? `
-        <div class="rounded-2xl bg-white px-4 py-3 card-shadow border border-slate-100 flex items-center gap-3 mb-3">
-          <span class="text-xl flex-shrink-0">📊</span>
-          <div class="min-w-0">
-            <p class="text-sm font-bold text-foreground">Best season: <span style="color:#f97316">${best.wins}–${best.losses}</span>${best.wins === 82 ? ' 🏆' : ''}</p>
-            ${lastRun && lastRun.tip && best.wins < 82
-              ? `<p class="text-xs text-muted-fg leading-snug mt-0.5">💡 ${lastRun.tip}</p>`
-              : `<p class="text-xs text-muted-fg mt-0.5">${best.wins === 82 ? 'Perfection achieved. Can you do it twice?' : 'The perfect season is still out there.'}</p>`}
-            ${bestStreak > 0 ? `<p class="text-[11px] font-bold mt-1" style="color:#dc2626">🔥 Best streak: ${bestStreak} straight wins</p>` : ''}
-          </div>
-        </div>` : ''}
+        ${renderDailyModeCard()}
 
         <!-- Classic + Ball IQ side by side -->
         <div class="grid grid-cols-2 gap-3 mb-3">
@@ -389,8 +390,6 @@ function renderModeSelect() {
             <div class="w-full py-2 rounded-xl font-bold text-sm text-white text-center mt-1" style="background:#f97316;pointer-events:none">Play Ball IQ</div>
           </button>
         </div>
-
-        ${renderDailyModeCard()}
 
         <!-- 1v1 full width -->
         <button data-action="mode-1v1"
@@ -550,13 +549,39 @@ function shouldShowDraftBoard(full) {
 function renderDrafting() {
   if (S.mode === '1v1') return renderDrafting1v1();
   const full = rosterFull();
+
+  if (isDesktopDraftLayout()) {
+    // 3-column app shell: Live Chemistry is a fixed left rail, the vertical
+    // Fans meter a fixed right rail, and the normal draft flow scrolls on
+    // its own in the center — so the whole screen fits in one viewport with
+    // no page scrollbar. See .draft-screen--desktop in styles.css.
+    return `
+    <div class="min-h-screen main-gradient draft-screen draft-screen--desktop">
+      ${renderHeader(true)}
+      <main class="flex flex-col items-center px-4 pt-2 pb-8 draft-screen__main">
+        <div class="w-full max-w-2xl draft-screen__inner draft-screen__inner--desktop">
+          ${renderChemDashboard()}
+          <div class="draft-screen__center">
+            ${renderColdOpenBanner()}
+            ${full ? renderSimulateCard() : ''}
+            ${renderRoundBar()}
+            ${renderCoachChip()}
+            ${!full ? renderSlotMachine() : ''}
+            ${shouldShowDraftBoard(full) ? renderDraftBoard() : ''}
+            ${renderRoster()}
+          </div>
+          ${renderPopularityBarVertical()}
+        </div>
+      </main>
+    </div>`;
+  }
+
   return `
   <div class="min-h-screen main-gradient draft-screen">
     ${renderHeader(true)}
     <main class="flex flex-col items-center px-4 pt-2 pb-8 draft-screen__main">
       <div class="w-full max-w-2xl flex flex-col gap-2 draft-screen__inner">
         ${renderColdOpenBanner()}
-        ${renderDailyDraftBanner()}
         ${full ? renderSimulateCard() : ''}
         ${renderRoundBar()}
         ${renderCoachChip()}
@@ -740,30 +765,6 @@ function renderRoundBar() {
   </div>`;
 }
 
-// ── Daily Challenge — drafting banner ─────────────────────────────────────────
-// Persistent reminder of today's rules with a live constraint status chip.
-function renderDailyDraftBanner() {
-  const ch = S.dailyChallenge;
-  if (!ch) return '';
-  const filled = Object.values(S.roster || {}).filter(Boolean);
-  const status = checkRosterConstraint(ch, filled);
-  const chip   = status.detail
-    ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full" style="white-space:nowrap;${status.pass
-        ? 'background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0'
-        : 'background:#fef2f2;color:#dc2626;border:1px solid #fecaca'}">${status.pass ? '✓' : '✗'} ${status.detail}</span>`
-    : '';
-  return `
-  <div class="rounded-xl border-2 px-4 py-3 card-shadow" style="border-color:#c4b5fd;background:var(--card)">
-    <div class="flex items-center gap-2 flex-wrap">
-      <span class="text-lg">${ch.emoji}</span>
-      <p class="text-xs font-black uppercase tracking-widest" style="color:#7c3aed">Daily Challenge</p>
-      <p class="text-xs font-bold text-foreground">${ch.title}</p>
-      <span class="ml-auto">${chip}</span>
-    </div>
-    <p class="text-[11px] text-muted-fg mt-1">${ch.desc}</p>
-  </div>`;
-}
-
 function renderPopularityBar() {
   const fans       = calcTeamFans(Object.values(S.roster));
   const scoreLabel = fans.count ? ` · ${Math.round(fans.sum)}/${fans.max}` : '';
@@ -777,6 +778,22 @@ function renderPopularityBar() {
       <div class="h-full rounded-full transition-all stat-bar-fill" style="width:${fans.pct}%;background:${fans.barCol}"></div>
     </div>
     <p class="text-[10px] mt-1.5 text-muted-fg draft-pop-bar__hint">More fans boost home-court advantage in close games</p>
+  </div>`;
+}
+
+// Desktop-only vertical fans meter — same data as renderPopularityBar(), shown
+// in the right rail instead when the draft screen switches to its 3-column
+// layout (see .draft-pop-bar-vertical in styles.css). Hidden below that
+// breakpoint; the horizontal bar above is what mobile/tablet users see.
+function renderPopularityBarVertical() {
+  const fans = calcTeamFans(Object.values(S.roster));
+  return `
+  <div class="rounded-xl border border-border bg-card px-2 py-3 card-shadow draft-pop-bar-vertical" title="${fans.tier}${fans.count ? ` · ${Math.round(fans.sum)}/${fans.max}` : ''}">
+    <p class="text-[9px] font-bold uppercase tracking-widest text-muted-fg draft-pop-bar-vertical__label">Fans</p>
+    <div class="draft-pop-bar-vertical__track">
+      <div class="draft-pop-bar-vertical__fill" style="height:${fans.pct}%;background:${fans.barCol}"></div>
+    </div>
+    <p class="text-[11px] font-bold draft-pop-bar-vertical__value" style="color:${fans.barCol}">${Math.round(fans.sum)}</p>
   </div>`;
 }
 
@@ -860,15 +877,7 @@ function renderDraftBoard() {
 
 function renderDraftCard(p, index) {
   const alreadyOnRoster = S.draftedPlayerNames?.has(p.name) ?? false;
-  // Daily Challenge — players today's rules forbid render dimmed with the reason.
-  let dailyBlock = null;
-  if (S.dailyChallenge && !alreadyOnRoster) {
-    const filled = Object.values(S.roster || {}).filter(Boolean);
-    const check  = checkPickLegal(S.dailyChallenge,
-      { ...p, team: S.currentSpin?.team, decade: S.currentSpin?.decade }, filled);
-    if (!check.legal) dailyBlock = check.reason;
-  }
-  const unavailable     = alreadyOnRoster || !!dailyBlock;
+  const unavailable     = alreadyOnRoster;
   const isSelected      = !unavailable && S.selectedPlayer?.id === p.id;
   const cardBorder      = unavailable ? 'var(--border)' : isSelected ? 'var(--primary)' : 'var(--border)';
   const cardBg          = unavailable ? 'var(--card3)' : isSelected ? 'var(--card2)' : 'var(--card)';
@@ -886,8 +895,8 @@ function renderDraftCard(p, index) {
       <p class="font-bold text-sm text-foreground leading-tight text-center draft-card__name">${p.name}</p>
     </div>
     <div class="px-3 pb-3 draft-card__actions">
-      ${unavailable
-        ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs draft-card-btn" style="background:var(--card2);color:var(--muted);border:1.5px solid var(--border);cursor:not-allowed" ${dailyBlock ? `title="${dailyBlock}"` : ''}>${alreadyOnRoster ? 'Already on Roster' : '🚫 Off-Limits Today'}</button>`
+      ${alreadyOnRoster
+        ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs draft-card-btn" style="background:var(--card2);color:var(--muted);border:1.5px solid var(--border);cursor:not-allowed">Already on Roster</button>`
         : `<button data-action="draft-pick-${index}"
             class="w-full py-2 rounded-lg font-bold text-xs transition-all cursor-pointer draft-card-btn"
             style="background:${isSelected ? 'var(--primary)' : 'var(--card2)'};color:${isSelected ? 'var(--primary-fg)' : 'var(--primary)'};border:1.5px solid ${isSelected ? 'var(--primary)' : '#bfdbfe'}">
@@ -918,8 +927,8 @@ function renderDraftCard(p, index) {
         </div>` : ''}
     </div>
     <div class="px-3 pb-3 draft-card__actions">
-      ${unavailable
-        ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs draft-card-btn" style="background:var(--card2);color:var(--muted);border:1.5px solid var(--border);cursor:not-allowed" ${dailyBlock ? `title="${dailyBlock}"` : ''}>${alreadyOnRoster ? 'Already on Roster' : '🚫 Off-Limits Today'}</button>`
+      ${alreadyOnRoster
+        ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs draft-card-btn" style="background:var(--card2);color:var(--muted);border:1.5px solid var(--border);cursor:not-allowed">Already on Roster</button>`
         : `<button data-action="draft-pick-${index}"
             class="w-full py-2 rounded-lg font-bold text-xs transition-all cursor-pointer draft-card-btn"
             style="background:${isSelected ? 'var(--primary)' : 'var(--card2)'};color:${isSelected ? 'var(--primary-fg)' : 'var(--primary)'};border:1.5px solid ${isSelected ? 'var(--primary)' : '#bfdbfe'}">
@@ -1011,7 +1020,7 @@ function renderChemDashboard() {
       <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg">Live Chemistry</p>
       <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border" style="background:${scoreBg};color:${scoreColor};border-color:${scoreColor}30">${scoreLabel} · ${chemScore}%</span>
     </div>
-    <div class="h-1.5 rounded-full overflow-hidden bg-border draft-chem-dashboard__meter">
+    <div class="h-1.5 rounded-full overflow-hidden bg-border draft-chem-dashboard__meter mb-3">
       <div class="h-full rounded-full stat-bar-fill" style="width:${chemScore}%;background:${scoreColor}"></div>
     </div>
     ${chemReport.length > 0 ? `
@@ -1042,7 +1051,7 @@ function renderSimulateCard() {
     ? 'Both rosters set. Time to settle it on the court.'
     : 'All 5 spots locked in. Ready to run the season.';
   return `
-  <div class="rounded-2xl border-2 border-primary bg-white p-5 text-center animate-scale-in card-shadow" style="border-color:${btnColor}20">
+  <div class="rounded-2xl border-2 border-primary bg-white p-5 text-center animate-scale-in card-shadow draft-simulate-card" style="border-color:${btnColor}20">
     <div class="flex justify-center mb-3">${iconBall('h-10 w-10 text-primary')}</div>
     ${is1v1 ? `<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-2 text-xs font-bold" style="background:${isP1 ? '#eff6ff' : '#fffbeb'};color:${isP1 ? '#2563eb' : '#d97706'}">⚔️ Player ${S.currentPlayer}</div>` : ''}
     <p class="font-black text-lg text-foreground mb-1">Roster Complete</p>
@@ -1289,26 +1298,39 @@ function renderSaveRunCard() {
         </div>`;
 }
 
-// ── Daily Challenge — results verdict banner ──────────────────────────────────
-// Also shown on the playoffs screen so pending (championship) verdicts have a
-// home when they resolve.
-function renderDailyResultBanner() {
-  const ch = S.dailyChallenge;
-  const dr = S.dailyResult;
-  if (!ch || !dr) return '';
-  const style = dr.pending
-    ? { bg: 'var(--surface-blue)', border: '#93c5fd', color: '#2563eb', icon: '⏳', head: 'Challenge pending' }
-    : dr.pass
-      ? { bg: '#f0fdf4', border: '#86efac', color: '#15803d', icon: '🎉', head: 'Challenge passed!' }
-      : { bg: '#fef2f2', border: '#fca5a5', color: '#dc2626', icon: '💔', head: 'Challenge failed' };
-  const streakLine = !dr.pending && dr.pass && dr.streak > 0
-    ? ` · 🔥 ${dr.streak}-day streak` : '';
+function renderDailySubmitCard() {
+  if (S.mode !== 'daily') return '';
+  const r = S.result;
+  if (!r) return '';
+
+  if (S.dailyScoreSubmitted) {
+    return `
+    <div class="rounded-2xl border p-4 card-shadow" style="border-color:#fdba74;background:${isDark() ? 'rgba(249,115,22,0.1)' : '#fff7ed'}">
+      <div class="flex items-center gap-3">
+        <span class="text-2xl">✅</span>
+        <div class="min-w-0 flex-1">
+          <p class="font-black text-sm" style="color:${isDark() ? '#fdba74' : '#9a3412'}">On the daily board!</p>
+          <p class="text-xs mt-0.5" style="color:${isDark() ? '#fed7aa' : '#c2410c'}">${r.wins}–${r.losses} · today's shared draft board</p>
+        </div>
+        <button data-action="open-daily-leaderboard" class="text-xs font-bold px-3 py-1.5 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:#fdba74;background:var(--card);color:${isDark() ? '#fdba74' : '#c2410c'}">
+          Board 🏅
+        </button>
+      </div>
+    </div>`;
+  }
+
+  const errorHtml = S.dailySubmitError
+    ? `<p class="text-xs text-red-500 mt-2">⚠️ ${esc(S.dailySubmitError)} &nbsp;<button data-action="submit-daily" class="underline cursor-pointer font-bold">Retry</button></p>`
+    : '';
   return `
-  <div class="rounded-2xl border-2 p-4 card-shadow text-center" style="background:${style.bg};border-color:${style.border}">
-    <p class="text-xs font-black uppercase tracking-widest mb-1" style="color:${style.color}">${style.icon} Daily Challenge — ${style.head}</p>
-    <p class="text-sm font-bold text-foreground">${ch.emoji} ${ch.title}</p>
-    <p class="text-xs mt-1" style="color:${style.color}">${dr.detail}${streakLine}</p>
-    ${!dr.pending ? `<p class="text-[10px] text-muted-fg mt-1.5">Score ${dr.score} · submitted to the daily board · come back tomorrow for a new challenge</p>` : ''}
+  <div class="rounded-2xl border p-4 card-shadow" style="border-color:#fdba74;background:${isDark() ? 'rgba(249,115,22,0.07)' : '#fffaf5'}">
+    <p class="text-xs font-bold uppercase tracking-widest mb-2" style="color:${isDark() ? '#fdba74' : '#c2410c'}">🗓️ Daily Challenge</p>
+    <p class="text-xs mb-3" style="color:${isDark() ? '#cbd5e1' : '#475569'}">Same draft board as every player today — submit your record to the daily leaderboard.</p>
+    <button data-action="submit-daily" id="submit-daily-btn"
+      class="w-full py-2.5 rounded-xl font-bold text-sm text-white hover:opacity-90 transition-all cursor-pointer card-shadow" style="background:#ea580c">
+      Submit to Daily Board →
+    </button>
+    ${errorHtml}
   </div>`;
 }
 
@@ -1447,7 +1469,6 @@ function renderResults() {
           ${p.archetype ? archetypeBadge(p.archetype) : ''}
         </div>
       </div>
-      ${ovrBadge(p.rating)}
       <div class="flex gap-3 text-xs text-muted-fg flex-shrink-0">
         <span><span class="font-semibold text-foreground">${s.ppg}</span> PPG</span>
         <span><span class="font-semibold text-foreground">${s.rpg}</span> RPG</span>
@@ -1480,7 +1501,6 @@ function renderResults() {
     ${renderHeader(false)}
     <main class="flex-1 flex flex-col items-center px-4 py-6">
       <div class="w-full max-w-2xl flex flex-col gap-4 animate-fade-up results-layout">
-        ${renderDailyResultBanner()}
         <div class="results-block--record rounded-2xl border-2 bg-white p-6 text-center card-shadow ${isPerfect ? 'perfect-glow' : ''}"
           style="border-color:${isPerfect ? '#fcd34d' : 'var(--border)'}">
           <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg mb-3">Season Record</p>
@@ -1529,7 +1549,7 @@ function renderResults() {
             </button>
           </div>
           ${autopsy ? `
-          <div class="rounded-2xl bg-white p-4 card-shadow flex flex-col" style="border:1.5px solid #fecaca">
+          <div class="rounded-2xl bg-white p-5 card-shadow flex flex-col" style="border:1.5px solid #fecaca">
             <p class="text-xs font-bold uppercase tracking-widest mb-2.5" style="color:#dc2626">
               Loss Autopsy — ${r.losses} ${r.losses === 1 ? 'loss' : 'losses'}
             </p>
@@ -1561,6 +1581,7 @@ function renderResults() {
         </div>
 
         <div class="results-block--save">${renderSaveRunCard()}</div>
+        ${renderDailySubmitCard()}
 
         <div class="rounded-2xl border border-border bg-white p-4 card-shadow">
           <div class="flex items-center justify-between mb-3">
@@ -1881,7 +1902,6 @@ function renderPlayoffs() {
           ${renderPlayoffBracketTree(po)}
         </div>
         ${champBanner}
-        ${renderDailyResultBanner()}
         <div class="flex flex-col gap-2">
           ${reveal ? `
           <button data-action="playoffs-continue" type="button"
@@ -1937,7 +1957,6 @@ function renderChampionship() {
           <p class="text-base font-black text-amber-700 mt-3">NBA Finals: def. ${oppTeam.name} ${score}</p>
           <p class="text-sm text-muted-fg mt-2">Regular Season: ${r.wins}–${r.losses} · Seed #${po.playerSeed}</p>
         </div>
-        ${renderDailyResultBanner()}
         ${renderGlobalSubmitCard(true)}
         <div class="flex flex-col gap-3 w-full">
           <button data-action="share" class="py-3 rounded-xl font-bold text-sm bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer card-shadow">Share Championship 🏆</button>
@@ -1980,7 +1999,6 @@ function renderEliminated() {
           <p class="text-xs font-bold uppercase tracking-widest text-amber-600 mb-1">NBA Champion</p>
           <p class="text-xl font-black text-amber-700">🏆 ${po.championTeam.name}</p>
         </div>` : ''}
-        ${renderDailyResultBanner()}
         ${renderGlobalSubmitCard(false)}
         <div class="flex flex-col gap-3 w-full">
           <button data-action="draft-new-roster" class="py-3 rounded-xl font-bold text-sm bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer card-shadow">Draft New Roster</button>
@@ -1995,7 +2013,7 @@ function renderEliminated() {
 // ── Trophy Room ───────────────────────────────────────────────────────────────
 function renderTrophyRoom() {
   let trophies = [];
-  try { trophies = JSON.parse(localStorage.getItem('nba820_trophies') || '[]'); } catch (e) {}
+  try { trophies = JSON.parse(cgGetItem('nba820_trophies') || '[]'); } catch (e) {}
 
   // Twelve pedestals — the empty ones are the hook.
   const PEDESTALS = 12;
@@ -2425,8 +2443,22 @@ function renderSeriesSim() {
   </div>`;
 }
 
+// Phases where the player is actively drafting/simulating, as opposed to a
+// menu or a results/summary screen — drives the CrazyGames gameplayStart/Stop
+// calls so their platform knows when it's safe to show an ad.
+const CG_GAMEPLAY_PHASES = new Set(['drafting', 'season-sim', 'playoffs', 'series-sim']);
+let _cgGameplayActive = null;
+
+function updateCrazyGamesGameplayState() {
+  const active = CG_GAMEPLAY_PHASES.has(S.phase);
+  if (active === _cgGameplayActive) return;
+  _cgGameplayActive = active;
+  if (active) cgGameplayStart(); else cgGameplayStop();
+}
+
 // ── Main render dispatcher ────────────────────────────────────────────────────
 export function render() {
+  updateCrazyGamesGameplayState();
   if      (S.phase === 'mode-select')   $app.innerHTML = renderModeSelect();
   else if (S.phase === 'drafting')      $app.innerHTML = renderDrafting();
   else if (S.phase === 'season-sim')    $app.innerHTML = renderSeasonSim();

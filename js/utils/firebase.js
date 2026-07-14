@@ -40,8 +40,7 @@
  *                                  && request.resource.data.fansM >= 0
  *                                  && request.resource.data.fansM <= 50))
  *                          && request.resource.data.champion is bool
- *                          && request.resource.data.timestampMs is number
- *                          && request.resource.data.timestampMs <= request.time.toMillis() + 60000;
+ *                          && request.resource.data.timestampMs is number;
  *            allow update, delete: if false;
  *          }
  *        }
@@ -52,51 +51,67 @@
  *    renders them for every visitor. The client also numeric-coerces on read
  *    (storage.js) as defense in depth.
  *
- *    DAILY CHALLENGE BOARD — the daily leaderboard uses a second collection.
- *    Add this block alongside the /leaderboard match (same documents scope)
- *    and publish, or daily submissions will be rejected:
+ *    `timestampMs` is client-reported and intentionally NOT compared against
+ *    request.time — an earlier rule did `timestampMs <= request.time.toMillis()
+ *    + 60000`, which rejected writes from any device whose system clock ran
+ *    fast (symptom: submission works on phone, fails on desktop, because
+ *    phones sync time over the cellular network while desktop clocks can
+ *    drift or have a misconfigured timezone). Time-window reads (24h/weekly)
+ *    filter on the `timestamp` field instead, which Firestore stamps via
+ *    serverTimestamp() and is authoritative regardless of the submitting
+ *    client's clock.
  *
- *          match /daily_leaderboard/{docId} {
- *            allow read: if true;
- *            allow create: if request.resource.data.keys().hasOnly(
- *                  ['challengeDate','challengeId','teamName','wins','passed',
- *                   'score','starters','timestampMs','timestamp'])
- *                          && request.resource.data.challengeDate is string
- *                          && request.resource.data.challengeDate.size() == 10
- *                          && request.resource.data.challengeId is string
- *                          && request.resource.data.challengeId.size() <= 40
- *                          && request.resource.data.wins is number
- *                          && request.resource.data.wins >= 0
- *                          && request.resource.data.wins <= 82
- *                          && request.resource.data.passed is bool
- *                          && request.resource.data.score is number
- *                          && request.resource.data.score >= 0
- *                          && request.resource.data.score <= 2000
- *                          && request.resource.data.teamName is string
- *                          && request.resource.data.teamName.size() <= 30
- *                          && request.resource.data.starters is string
- *                          && request.resource.data.starters.size() <= 100
- *                          && request.resource.data.timestampMs is number
- *                          && request.resource.data.timestampMs <= request.time.toMillis() + 60000;
- *            allow update, delete: if false;
- *          }
+ *    Also add this second rule block for the Daily Challenge leaderboard
+ *    (same file, same `match /databases/{database}/documents {` block):
+ *
+ *      match /dailyLeaderboard/{docId} {
+ *        allow read: if true;
+ *        allow create: if request.resource.data.date is string
+ *                      && request.resource.data.date.size() == 10
+ *                      && request.resource.data.wins is number
+ *                      && request.resource.data.wins >= 0
+ *                      && request.resource.data.wins <= 82
+ *                      && request.resource.data.losses is number
+ *                      && request.resource.data.losses >= 0
+ *                      && request.resource.data.losses <= 82
+ *                      && request.resource.data.teamName is string
+ *                      && request.resource.data.teamName.size() <= 30
+ *                      && request.resource.data.coachId is string
+ *                      && request.resource.data.coachId.size() <= 20
+ *                      && request.resource.data.coachName is string
+ *                      && request.resource.data.coachName.size() <= 30
+ *                      && request.resource.data.chemScore is number
+ *                      && request.resource.data.chemScore >= 0
+ *                      && request.resource.data.chemScore <= 100
+ *                      && request.resource.data.starters is string
+ *                      && request.resource.data.starters.size() <= 100
+ *                      && request.resource.data.champion is bool
+ *                      && request.resource.data.timestampMs is number;
+ *        allow update, delete: if false;
+ *      }
+ *
+ *    `date` is the 'YYYY-MM-DD' UTC calendar day (see state.js getUtcDateString)
+ *    — reads filter on it with a single equality `where()`, deliberately with
+ *    no `orderBy`, so no composite index needs to be created for this
+ *    collection; results are sorted by wins client-side instead (same trick
+ *    the 24h/weekly windows above use).
  *
  * 4. In Firebase Console → Project Settings → Your apps → Add web app.
  *    Copy the firebaseConfig object and paste the values into FIREBASE_CONFIG below.
  * 5. Deploy your site — scores will start flowing in automatically.
  *
  * Exports:
- *   isFirebaseConfigured()   — true only when real credentials are present
- *   submitGlobalScore(entry) — writes one document to 'leaderboard'
- *   fetchLeaderboard(filter) — reads top entries; filter: 'alltime' | '24h' | 'weekly'
- *   submitDailyScore(entry)  — writes one document to 'daily_leaderboard'
- *   fetchDailyLeaderboard(dateStr) — reads a day's top daily-challenge entries
+ *   isFirebaseConfigured()      — true only when real credentials are present
+ *   submitGlobalScore(entry)    — writes one document to 'leaderboard'
+ *   fetchLeaderboard(filter)    — reads top entries; filter: 'alltime' | '24h' | 'weekly'
+ *   submitDailyScore(entry)     — writes one document to 'dailyLeaderboard'
+ *   fetchDailyLeaderboard(date) — reads top entries for a 'YYYY-MM-DD' day
  */
 
 import { initializeApp, getApps }   from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js';
 import {
   getFirestore, collection, addDoc, getDocs,
-  query, orderBy, limit, where, serverTimestamp,
+  query, orderBy, limit, where, serverTimestamp, Timestamp,
 } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js';
 import { getAnalytics, logEvent } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-analytics.js';
 
@@ -227,12 +242,15 @@ export async function fetchLeaderboard(filter = 'alltime') {
     q = query(col, orderBy('wins', 'desc'), limit(10));
   } else {
     const msInDay = 24 * 60 * 60 * 1000;
-    const cutoff  = Date.now() - (filter === '24h' ? msInDay : 7 * msInDay);
+    // Filter on `timestamp` (server-stamped via serverTimestamp()), not the
+    // client-reported `timestampMs` — this keeps the window authoritative
+    // regardless of the reading device's own clock.
+    const cutoff = Timestamp.fromMillis(Date.now() - (filter === '24h' ? msInDay : 7 * msInDay));
     // Same-field where + orderBy — no composite index required. The window is
     // fetched newest-first then re-sorted by wins client-side, so the limit
     // bounds how many recent entries the top-10 is drawn from; 250 keeps a
     // busy week from dropping high-win runs off the board.
-    q = query(col, where('timestampMs', '>', cutoff), orderBy('timestampMs', 'desc'), limit(250));
+    q = query(col, where('timestamp', '>', cutoff), orderBy('timestamp', 'desc'), limit(250));
   }
 
   const snap    = await getDocs(q);
@@ -241,21 +259,20 @@ export async function fetchLeaderboard(filter = 'alltime') {
   return entries.slice(0, 10);
 }
 
-// ── Daily Challenge leaderboard ───────────────────────────────────────────────
-
 /**
- * Submits a daily-challenge result. The document shape must match the
- * daily_leaderboard security rule above exactly (hasOnly), or the write
- * is rejected wholesale.
+ * Submits a score entry to the Daily Challenge leaderboard.
  *
  * @param {{
- *   challengeDate: string,   // 'YYYY-MM-DD' (UTC)
- *   challengeId:   string,
- *   teamName:      string,
- *   wins:          number,
- *   passed:        boolean,
- *   score:         number,
- *   starters:      string,
+ *   date:        string,  // 'YYYY-MM-DD' UTC — see state.js getUtcDateString()
+ *   teamName:    string,
+ *   wins:        number,
+ *   losses:      number,
+ *   champion:    boolean,
+ *   coachId:     string,
+ *   coachName:   string,
+ *   chemScore:   number,
+ *   starters:    string,
+ *   timestampMs: number,
  * }} entry
  * @returns {Promise<string>} Firestore document ID
  */
@@ -263,37 +280,40 @@ export async function submitDailyScore(entry) {
   if (!isFirebaseConfigured()) throw new Error('Firebase not configured — see js/utils/firebase.js setup instructions');
   const wins = entry.wins ?? 0;
   if (wins < 0 || wins > 82) throw new Error('Invalid wins value');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(entry.date || '')) throw new Error('Invalid date');
   const db  = getDb();
-  const col = collection(db, 'daily_leaderboard');
+  const col = collection(db, 'dailyLeaderboard');
   const ref = await addDoc(col, {
-    challengeDate: String(entry.challengeDate ?? '').slice(0, 10),
-    challengeId:   String(entry.challengeId ?? '').slice(0, 40),
-    teamName:      (entry.teamName || 'Untitled Team').slice(0, 30),
-    wins,
-    passed:        !!entry.passed,
-    score:         Math.max(0, Math.min(2000, Math.round(entry.score ?? 0))),
-    starters:      (entry.starters ?? '').slice(0, 100),
-    timestampMs:   Date.now(),
-    timestamp:     serverTimestamp(),
+    date:         entry.date,
+    teamName:    (entry.teamName || 'Untitled Team').slice(0, 30),
+    wins:         entry.wins        ?? 0,
+    losses:       entry.losses      ?? 0,
+    champion:     entry.champion    ?? false,
+    coachId:      entry.coachId     ?? '',
+    coachName:    entry.coachName   ?? '',
+    chemScore:    entry.chemScore   ?? 0,
+    starters:    (entry.starters    ?? '').slice(0, 100),
+    timestampMs:  entry.timestampMs ?? 0,
+    timestamp:    serverTimestamp(),
   });
   return ref.id;
 }
 
 /**
- * Fetches a day's daily-challenge entries, best score first.
- * Same-field where + orderBy (challengeDate is equality-filtered, so the
- * orderBy on timestampMs needs no composite index); scores sort client-side.
+ * Fetches up to 10 Daily Challenge entries for one UTC day, sorted by wins.
  *
- * @param {string} dateStr  'YYYY-MM-DD' (UTC)
+ * @param {string} date  'YYYY-MM-DD' — see state.js getUtcDateString()
  * @returns {Promise<object[]>}
  */
-export async function fetchDailyLeaderboard(dateStr) {
+export async function fetchDailyLeaderboard(date) {
   if (!isFirebaseConfigured()) throw new Error('Firebase not configured — see js/utils/firebase.js setup instructions');
   const db  = getDb();
-  const col = collection(db, 'daily_leaderboard');
-  const q   = query(col, where('challengeDate', '==', dateStr), limit(250));
-  const snap    = await getDocs(q);
+  const col = collection(db, 'dailyLeaderboard');
+  // Single equality filter, no orderBy — needs no composite index. Sorted by
+  // wins client-side, same pattern fetchLeaderboard() uses for 24h/weekly.
+  const q    = query(col, where('date', '==', date), limit(500));
+  const snap = await getDocs(q);
   const entries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  entries.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+  entries.sort((a, b) => b.wins - a.wins || (a.timestampMs ?? 0) - (b.timestampMs ?? 0));
   return entries.slice(0, 10);
 }
