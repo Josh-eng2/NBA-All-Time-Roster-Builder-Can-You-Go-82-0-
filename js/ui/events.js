@@ -934,12 +934,11 @@ async function doSubmitDaily() {
   if (S.mode !== 'daily' || S.dailyScoreSubmitted || _submittingDaily) return;
   _submittingDaily = true;
 
-  // Opportunistically reuse whatever name was typed into the Save Run card —
-  // no need to make the player type their team name twice.
-  const input = document.getElementById('team-name-input');
-  const raw   = input ? input.value.trim() : '';
-  if (raw) S.teamName = raw.slice(0, 20);
-  if (!S.teamName) S.teamName = 'Untitled Team';
+  // Prefer the daily submit name field; fall back to Save Run / previously saved name.
+  const dailyInput = document.getElementById('daily-team-name-input');
+  const saveInput  = document.getElementById('team-name-input');
+  const raw = (dailyInput?.value ?? saveInput?.value ?? '').trim();
+  S.teamName = raw.slice(0, 30) || S.teamName || 'Untitled Team';
 
   const btn = document.getElementById('submit-daily-btn');
   if (btn) {

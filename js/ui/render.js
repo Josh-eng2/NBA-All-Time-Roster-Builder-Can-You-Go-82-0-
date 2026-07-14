@@ -1401,7 +1401,7 @@ function renderDailySubmitCard() {
         <span class="text-2xl">✅</span>
         <div class="min-w-0 flex-1">
           <p class="font-black text-sm" style="color:${isDark() ? '#fdba74' : '#9a3412'}">On the daily board!</p>
-          <p class="text-xs mt-0.5" style="color:${isDark() ? '#fed7aa' : '#c2410c'}">${r.wins}–${r.losses} · today's shared draft board</p>
+          <p class="text-xs mt-0.5" style="color:${isDark() ? '#fed7aa' : '#c2410c'}">"${esc(S.teamName)}" &nbsp;·&nbsp; ${r.wins}–${r.losses}</p>
         </div>
         <button data-action="open-daily-leaderboard" class="text-xs font-bold px-3 py-1.5 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:#fdba74;background:var(--card);color:${isDark() ? '#fdba74' : '#c2410c'}">
           Board 🏅
@@ -1416,12 +1416,26 @@ function renderDailySubmitCard() {
   return `
   <div class="rounded-2xl border p-4 card-shadow" style="border-color:#fdba74;background:${isDark() ? 'rgba(249,115,22,0.07)' : '#fffaf5'}">
     <p class="text-xs font-bold uppercase tracking-widest mb-2" style="color:${isDark() ? '#fdba74' : '#c2410c'}">🗓️ Daily Challenge</p>
-    <p class="text-xs mb-3" style="color:${isDark() ? '#cbd5e1' : '#475569'}">Same draft board as every player today — submit your record to the daily leaderboard.</p>
-    <button data-action="submit-daily" id="submit-daily-btn"
-      class="w-full py-2.5 rounded-xl font-bold text-sm text-white hover:opacity-90 transition-all cursor-pointer card-shadow" style="background:#ea580c">
-      Submit to Daily Board →
-    </button>
+    <p class="text-xs mb-3" style="color:${isDark() ? '#cbd5e1' : '#475569'}">Name your franchise, then submit your record to today's leaderboard.</p>
+    <div class="flex gap-2">
+      <div class="flex-1 relative">
+        <input
+          id="daily-team-name-input"
+          type="text"
+          maxlength="30"
+          value="${esc(S.teamName || '')}"
+          placeholder="Franchise Name"
+          class="w-full rounded-xl border border-border bg-white px-3 py-2.5 text-sm font-semibold text-foreground placeholder:text-muted-fg focus:outline-none focus:border-primary focus:ring-2 focus:ring-orange-100 transition-all"
+        />
+        <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-muted pointer-events-none" id="daily-team-name-counter">30</span>
+      </div>
+      <button data-action="submit-daily" id="submit-daily-btn"
+        class="flex-shrink-0 px-4 rounded-xl font-bold text-sm text-white hover:opacity-90 transition-all cursor-pointer card-shadow" style="background:#ea580c">
+        Submit
+      </button>
+    </div>
     ${errorHtml}
+    <p class="text-[10px] text-muted-fg mt-2">Appears on today's daily board · max 30 characters</p>
   </div>`;
 }
 
@@ -2582,6 +2596,17 @@ export function render() {
       const update = () => { gCounter.textContent = 30 - gInput.value.length; };
       update();
       gInput.addEventListener('input', update);
+    }
+  }
+
+  // Wire up character counter for the daily board submit input
+  if (S.phase === 'results' && S.mode === 'daily' && !S.dailyScoreSubmitted) {
+    const dInput   = document.getElementById('daily-team-name-input');
+    const dCounter = document.getElementById('daily-team-name-counter');
+    if (dInput && dCounter) {
+      const update = () => { dCounter.textContent = 30 - dInput.value.length; };
+      update();
+      dInput.addEventListener('input', update);
     }
   }
 }
