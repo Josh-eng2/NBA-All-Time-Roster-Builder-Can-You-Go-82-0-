@@ -24,8 +24,12 @@ import {
   saveLeaderboard, saveToTrophyRoom, markReturning, recordLegends,
   showLeaderboardModal, closeLeaderboardModal,
   showGlobalLeaderboardModal, closeGlobalLeaderboardModal,
+  getDailyAttempt, markDailyStarted, recordDailyResult, getDailyStreak,
 } from '../utils/storage.js';
-import { submitGlobalScore, logAnalyticsEvent, isFirebaseConfigured } from '../utils/firebase.js';
+import { submitGlobalScore, submitDailyScore, logAnalyticsEvent, isFirebaseConfigured } from '../utils/firebase.js';
+import {
+  todayUTC, getDailyChallenge, checkPickLegal, evaluateObjective, dailyScore,
+} from '../logic/challenge.js';
 import {
   render, $app, fmtPlayerLine, fmtDecadeShort, showToast, renderSeasonTickerRows,
   computeAutopsy, liveStreakLabel, withConfetti,
@@ -59,16 +63,34 @@ function handleClick(e) {
 function dispatch(action) {
   // ── Mode selection ─────────────────────────────────────────────────────────
   if (action === 'mode-solo') {
-    S.mode = 'solo'; S.currentPlayer = 1; S.p1 = null;
+    S.mode = 'solo'; S.currentPlayer = 1; S.p1 = null; S.dailyChallenge = null; S.dailyDate = null;
     doStartGame('all'); return;
   }
   if (action === 'mode-1v1') {
-    S.mode = '1v1'; S.currentPlayer = 1; S.p1 = null;
+    S.mode = '1v1'; S.currentPlayer = 1; S.p1 = null; S.dailyChallenge = null; S.dailyDate = null;
     doStartGame('all'); return;
   }
   if (action === 'mode-blind') {
-    S.mode = 'blind'; S.currentPlayer = 1; S.p1 = null;
+    S.mode = 'blind'; S.currentPlayer = 1; S.p1 = null; S.dailyChallenge = null; S.dailyDate = null;
     doStartGame('all'); return;
+  }
+  if (action === 'mode-daily') {
+    const date = todayUTC();
+    if (getDailyAttempt(date)?.status === 'done') {
+      showToast('✅ Done for today — new challenge at midnight UTC!');
+      render(); return;
+    }
+    const ch = getDailyChallenge(date);
+    S.mode = 'solo'; S.currentPlayer = 1; S.p1 = null;
+    S.dailyChallenge = ch;
+    S.dailyDate      = date;
+    markDailyStarted(date, ch.id);
+    logAnalyticsEvent('daily_started', { challenge: ch.id, date });
+    // Era-restricted challenges start era-locked (single era or a decade
+    // window) — the header picker must not override today's rules.
+    doStartGame(ch.params.era || 'all');
+    if (ch.params.era || ch.params.allowedDecades) S.eraLocked = true;
+    render(); return;
   }
   // ── Coach (in-draft chip) & Era (header picker) ────────────────────────────
   // Coach lives on the drafting screen; era lives in the header. Both lock on first spin.
@@ -101,13 +123,13 @@ function dispatch(action) {
 
   // ── Navigation ─────────────────────────────────────────────────────────────
   if (action === 'restart') {
-    confirmLeave(() => { S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; render(); }); return;
+    confirmLeave(() => { S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; S.dailyChallenge = null; render(); }); return;
   }
-  if (action === 'draft-new-roster') { S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; render(); return; }
+  if (action === 'draft-new-roster') { S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; S.dailyChallenge = null; render(); return; }
   if (action === 'view-trophies')    { S.phase = 'trophy-room'; render(); return; }
   if (action === 'view-legends')     { S.legendsReturnPhase = S.phase; S.phase = 'legends'; render(); return; }
   if (action === 'legends-back')     { S.phase = S.legendsReturnPhase || 'mode-select'; render(); return; }
-  if (action === 'back-to-menu')     { S.mode = null; S.phase = 'mode-select'; S.p1 = null; render(); return; }
+  if (action === 'back-to-menu')     { S.mode = null; S.phase = 'mode-select'; S.p1 = null; S.dailyChallenge = null; render(); return; }
   if (action === 'series-play-again') { S.mode = null; S.phase = 'mode-select'; S.p1 = null; S.seriesResult = null; S.seriesRevealedCount = 0; render(); return; }
   if (action === 'begin-series') { S.phase = 'series-sim'; S.seriesRevealedCount = 0; render(); return; }
   if (action === 'sim-next-game') { S.seriesRevealedCount = Math.min((S.seriesRevealedCount || 0) + 1, S.seriesResult.games.length); render(); return; }
@@ -422,6 +444,16 @@ function placePlayer(pos) {
   const spin   = S.currentSpin;
   const player = { ...S.selectedPlayer, team: spin?.team, decade: spin?.decade };
 
+  // Daily Challenge — today's draft rules are hard: illegal picks never place.
+  if (S.dailyChallenge) {
+    const filled = Object.values(S.roster || {}).filter(Boolean);
+    const { legal, reason } = checkPickLegal(S.dailyChallenge, player, filled);
+    if (!legal) {
+      showToast(`🚫 ${reason}`);
+      return;
+    }
+  }
+
   // ── 1v1 alternating draft ──────────────────────────────────────────────────
   if (S.mode === '1v1') {
     const activeRoster = S.currentPlayer === 1 ? S.p1Roster : S.p2Roster;
@@ -595,9 +627,63 @@ function doSimulate() {
     }));
   } catch (e) {}
 
+  // Daily Challenge — the attempt burns HERE, the moment the season runs.
+  finalizeDailyResult();
+
   S.phase = 'season-sim';
   render();
   runSeasonReveal();
+}
+
+// ── Daily Challenge verdict ───────────────────────────────────────────────────
+
+/**
+ * Evaluates the day's challenge against the finished season, burns the
+ * attempt, updates the streak, and submits to the global daily board.
+ * Championship challenges come back `pending` — resolveDailyPending()
+ * re-runs this after the playoff bracket decides.
+ */
+function finalizeDailyResult() {
+  const ch = S.dailyChallenge;
+  if (!ch || !S.result) return;
+  const verdict = evaluateObjective(ch, S);
+  const score   = dailyScore(ch, S);
+  const streak  = recordDailyResult({
+    date:        S.dailyDate,
+    challengeId: ch.id,
+    passed:      verdict.pass,
+    wins:        S.result.wins,
+    score,
+    pending:     verdict.pending,
+  });
+  S.dailyResult = { ...verdict, streak, score };
+  logAnalyticsEvent('daily_completed', {
+    challenge: ch.id, passed: verdict.pass, pending: verdict.pending, wins: S.result.wins,
+  });
+  // Pending verdicts (ring-or-nothing) submit after the playoffs instead.
+  if (!verdict.pending) submitDailyToGlobal(score, verdict.pass);
+}
+
+/** Re-evaluates a playoffs-dependent daily verdict once the bracket resolves. */
+function resolveDailyPending() {
+  if (S.dailyResult?.pending) finalizeDailyResult();
+}
+
+/** Fire-and-forget global daily-board submission — never blocks the UI. */
+function submitDailyToGlobal(score, passed) {
+  if (S.dailySubmitted) return;
+  S.dailySubmitted = true;
+  let teamName = S.teamName;
+  if (!teamName) { try { teamName = localStorage.getItem('nba820_lastTeamName') || ''; } catch (e) {} }
+  submitDailyScore({
+    challengeDate: S.dailyDate,
+    challengeId:   S.dailyChallenge.id,
+    teamName:      teamName || 'Anonymous',
+    wins:          S.result.wins,
+    passed,
+    score,
+    starters:      POSITIONS.map(p => S.roster[p]?.name || '—').join(', ').slice(0, 100),
+  }).catch(() => { /* daily board is best-effort — local record already saved */ });
 }
 
 const STREAK_MILESTONES = [10, 20, 30, 40, 50, 60, 70, 80];
@@ -791,6 +877,7 @@ async function doSaveRun() {
   const input = document.getElementById('team-name-input');
   const raw   = input ? input.value.trim() : '';
   S.teamName  = raw.slice(0, 20) || 'Untitled Team';
+  try { localStorage.setItem('nba820_lastTeamName', S.teamName); } catch (e) {}
   S.runSaved  = true;
   saveLeaderboard();
   render();
@@ -811,6 +898,7 @@ async function doSubmitGlobal() {
   const input  = document.getElementById('global-team-name-input');
   const raw    = input ? input.value.trim() : '';
   S.teamName   = raw.slice(0, 30) || S.teamName || 'Untitled Team';
+  try { localStorage.setItem('nba820_lastTeamName', S.teamName); } catch (e) {}
 
   if (!S.runSaved) {
     S.runSaved = true;
@@ -965,6 +1053,7 @@ function doSimNextRound() {
         po.tickState = null;
         const outcome = applyPlayoffRound(po, r2);
         if (outcome === 'champion') { onPlayoffChampion(); fireChampionConfetti(); }
+        if (outcome !== 'advanced') resolveDailyPending();
         render();
       }, 800);
     }
@@ -980,6 +1069,7 @@ function doSimAllPlayoffs() {
     applyPlayoffRound(po, results);
   }
   if (po.champion) onPlayoffChampion();
+  resolveDailyPending();
   po.pendingReveal = true;
   render();
 }

@@ -16,8 +16,12 @@ export function availableDecades() {
     ? (S.currentPlayer === 1 ? (S.p1Era || 'all') : (S.p2Era || 'all'))
     : (S.selectedEra || 'all');
   if (era !== 'all') return [era];
-  const remaining = DECADES.filter(d => !S.usedDecades.includes(d));
-  return remaining.length > 0 ? remaining : DECADES.slice();
+  // Daily challenges with a multi-decade window (e.g. "pre-1990 only") narrow
+  // the spin pool without locking to a single era.
+  const window    = S.dailyChallenge?.params?.allowedDecades ?? null;
+  const pool      = window ? DECADES.filter(d => window.includes(d)) : DECADES;
+  const remaining = pool.filter(d => !S.usedDecades.includes(d));
+  return remaining.length > 0 ? remaining : pool.slice();
 }
 
 /** All players from a given team/decade slot. */

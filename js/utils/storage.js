@@ -24,7 +24,8 @@
 
 import { S, COACHES, POSITIONS } from '../logic/state.js';
 import { getLegendCatalog }                      from '../logic/draft.js';
-import { fetchLeaderboard }                        from '../utils/firebase.js';
+import { fetchLeaderboard, fetchDailyLeaderboard } from '../utils/firebase.js';
+import { todayUTC, getDailyChallenge }             from '../logic/challenge.js';
 
 const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 
@@ -59,6 +60,80 @@ export function isReturningPlayer() {
 
 export function markReturning() {
   try { localStorage.setItem(RETURNING_KEY, '1'); } catch (e) {}
+}
+
+// ── Daily Challenge persistence ───────────────────────────────────────────────
+// One attempt per UTC day, Wordle-style. Keys:
+//   nba820_daily        — { date, challengeId, status:'started'|'done', passed, wins, score }
+//   nba820_dailyStreak  — { streak, lastPassDate }
+//   nba820_dailyHistory — last 60 { date, challengeId, passed, wins }
+// The attempt burns when the SIM runs (status:'done'), not when the draft
+// starts — a mid-draft refresh loses the roster anyway, so punishing it
+// would just feel broken.
+
+const DAILY_KEY        = 'nba820_daily';
+const DAILY_STREAK_KEY = 'nba820_dailyStreak';
+const DAILY_HIST_KEY   = 'nba820_dailyHistory';
+
+/** Today's attempt record, or null (missing / from a previous day). */
+export function getDailyAttempt(dateStr) {
+  try {
+    const rec = JSON.parse(localStorage.getItem(DAILY_KEY) || 'null');
+    return rec && rec.date === dateStr ? rec : null;
+  } catch (e) { return null; }
+}
+
+/** Marks today's challenge as entered (not yet burned — sim burns it). */
+export function markDailyStarted(dateStr, challengeId) {
+  try {
+    const rec = getDailyAttempt(dateStr);
+    if (rec?.status === 'done') return; // never downgrade a finished day
+    localStorage.setItem(DAILY_KEY, JSON.stringify({ date: dateStr, challengeId, status: 'started' }));
+  } catch (e) {}
+}
+
+/** { streak, lastPassDate } — streak of consecutive UTC days passed. */
+export function getDailyStreak() {
+  try { return JSON.parse(localStorage.getItem(DAILY_STREAK_KEY) || 'null') || { streak: 0, lastPassDate: null }; }
+  catch (e) { return { streak: 0, lastPassDate: null }; }
+}
+
+/** Last 60 daily results, newest first. */
+export function getDailyHistory() {
+  try { return JSON.parse(localStorage.getItem(DAILY_HIST_KEY) || '[]'); }
+  catch (e) { return []; }
+}
+
+/**
+ * Records the day's final outcome: burns the attempt, updates the streak
+ * (consecutive-day passes chain; a fail resets to 0), and appends history.
+ * Safe to call again when a pending (championship) verdict resolves —
+ * the record and history entry are overwritten, and a pass that follows a
+ * provisional fail re-runs the streak math for the same day.
+ *
+ * @returns {number} the streak after this result
+ */
+export function recordDailyResult({ date, challengeId, passed, wins, score, pending = false }) {
+  try {
+    localStorage.setItem(DAILY_KEY, JSON.stringify({ date, challengeId, status: 'done', passed, wins, score, pending }));
+
+    const hist = getDailyHistory().filter(h => h.date !== date);
+    hist.unshift({ date, challengeId, passed, wins });
+    localStorage.setItem(DAILY_HIST_KEY, JSON.stringify(hist.slice(0, 60)));
+
+    const s = getDailyStreak();
+    if (passed) {
+      if (s.lastPassDate !== date) { // don't double-count a same-day re-record
+        const yesterday = new Date(Date.parse(date + 'T00:00:00Z') - 86400000).toISOString().slice(0, 10);
+        s.streak       = s.lastPassDate === yesterday ? s.streak + 1 : 1;
+        s.lastPassDate = date;
+      }
+    } else if (!pending) {
+      s.streak = 0;
+    }
+    localStorage.setItem(DAILY_STREAK_KEY, JSON.stringify(s));
+    return s.streak;
+  } catch (e) { return 0; }
 }
 
 // ── Legends collection ────────────────────────────────────────────────────────
@@ -253,6 +328,7 @@ const GLOBAL_TABS = [
   { id: 'alltime', label: 'All-Time' },
   { id: '24h',     label: '24 Hours' },
   { id: 'weekly',  label: 'This Week' },
+  { id: 'daily',   label: '🎯 Daily' },
 ];
 
 let _globalLbCache   = [];
@@ -552,8 +628,52 @@ function _globalModalShellHtml(activeTab) {
   </div>`;
 }
 
+// Rows for the Daily tab — daily entries carry {score, passed, wins} instead
+// of {losses, chemScore}, so they get their own compact renderer.
+function _dailyLbRowsHtml(entries) {
+  const ch     = getDailyChallenge(todayUTC());
+  const header = `<p style="font-size:12px;font-weight:800;color:var(--muted-fg);text-align:center;margin:0 0 6px;font-family:Fira Sans,sans-serif">${ch.emoji} Today: ${esc(ch.title)}</p>`;
+  if (!entries || entries.length === 0) {
+    return header + `<p style="font-size:14px;color:var(--muted-fg);text-align:center;padding:28px 0;font-family:Fira Sans,sans-serif">No runs yet today — be the first!</p>`;
+  }
+  const medals = ['🥇', '🥈', '🥉'];
+  return header + entries.map((e, i) => {
+    const wins   = Number(e.wins)  || 0;
+    const score  = Number(e.score) || 0;
+    const medal  = i < 3
+      ? `<span style="font-size:18px">${medals[i]}</span>`
+      : `<span style="font-size:12px;font-weight:800;color:var(--muted)">#${i + 1}</span>`;
+    const name   = esc((e.teamName || 'Untitled Team').slice(0, 30));
+    const badge  = e.passed
+      ? `<span style="font-size:10px;font-weight:900;padding:2px 7px;border-radius:999px;background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;white-space:nowrap">✅ PASSED</span>`
+      : `<span style="font-size:10px;font-weight:900;padding:2px 7px;border-radius:999px;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;white-space:nowrap">✗ FAILED</span>`;
+    return `
+    <div style="border-radius:12px;border:1.5px solid var(--border);padding:10px 12px;display:flex;align-items:center;gap:10px;background:var(--card3)">
+      <div style="width:28px;text-align:center;flex-shrink:0">${medal}</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;flex-wrap:wrap">
+          <span style="font-weight:900;font-size:14px;color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:150px;font-family:Fira Sans,sans-serif">${name}</span>
+          ${badge}
+        </div>
+        <span style="font-weight:800;font-size:13px;color:var(--primary);font-family:Fira Sans,sans-serif">${wins} wins</span>
+        ${e.starters ? `<p style="font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:2px 0 0;font-family:Fira Sans,sans-serif">${esc(e.starters)}</p>` : ''}
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <p style="font-size:10px;color:var(--muted);margin:0 0 2px;font-family:Fira Sans,sans-serif">SCORE</p>
+        <p style="font-size:13px;font-weight:800;color:var(--primary);margin:0;font-family:Fira Sans,sans-serif">${score}</p>
+      </div>
+    </div>`;
+  }).join('');
+}
+
 async function _loadGlobalLb(tab) {
   try {
+    if (tab === 'daily') {
+      const entries = await fetchDailyLeaderboard(todayUTC());
+      const tableEl = document.getElementById('global-lb-table');
+      if (tableEl) tableEl.innerHTML = _dailyLbRowsHtml(entries);
+      return;
+    }
     const entries  = await fetchLeaderboard(tab);
     _globalLbCache = entries;
     const tableEl  = document.getElementById('global-lb-table');
