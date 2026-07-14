@@ -26,6 +26,7 @@ import {
   showLeaderboardModal, closeLeaderboardModal,
   showGlobalLeaderboardModal, closeGlobalLeaderboardModal,
   getDailyStatus, markDailyPlayed, showDailyLeaderboardModal, closeDailyLeaderboardModal,
+  DAILY_UNLIMITED_FOR_TESTING,
 } from '../utils/storage.js';
 import { submitGlobalScore, submitDailyScore, logAnalyticsEvent, isFirebaseConfigured } from '../utils/firebase.js';
 import { cgGetItem, cgSetItem } from '../utils/crazygames.js';
@@ -77,7 +78,7 @@ function dispatch(action) {
     doStartGame('all'); return;
   }
   if (action === 'mode-daily') {
-    if (getDailyStatus().playedToday) { render(); return; } // already played — mode-select shouldn't even show the button
+    if (getDailyStatus().playedToday && !DAILY_UNLIMITED_FOR_TESTING) { render(); return; }
     const today = getUtcDateString();
     const ch    = getDailyChallenge(today);
     S.mode = 'daily'; S.currentPlayer = 1; S.p1 = null;
