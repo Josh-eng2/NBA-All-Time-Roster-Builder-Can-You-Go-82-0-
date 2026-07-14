@@ -86,15 +86,22 @@
  *                      && request.resource.data.starters is string
  *                      && request.resource.data.starters.size() <= 100
  *                      && request.resource.data.champion is bool
- *                      && request.resource.data.timestampMs is number;
+ *                      && request.resource.data.timestampMs is number
+ *                      && request.resource.data.challengeId is string
+ *                      && request.resource.data.challengeId.size() <= 40
+ *                      && request.resource.data.passed is bool
+ *                      && request.resource.data.score is number
+ *                      && request.resource.data.score >= 0
+ *                      && request.resource.data.score <= 2000;
  *        allow update, delete: if false;
  *      }
  *
  *    `date` is the 'YYYY-MM-DD' UTC calendar day (see state.js getUtcDateString)
  *    — reads filter on it with a single equality `where()`, deliberately with
  *    no `orderBy`, so no composite index needs to be created for this
- *    collection; results are sorted by wins client-side instead (same trick
- *    the 24h/weekly windows above use).
+ *    collection; results are sorted by challenge score client-side instead
+ *    (same trick the 24h/weekly windows above use). `challengeId`/`passed`/
+ *    `score` describe the day's specific challenge (see js/logic/challenge.js).
  *
  * 4. In Firebase Console → Project Settings → Your apps → Add web app.
  *    Copy the firebaseConfig object and paste the values into FIREBASE_CONFIG below.
@@ -295,12 +302,19 @@ export async function submitDailyScore(entry) {
     starters:    (entry.starters    ?? '').slice(0, 100),
     timestampMs:  entry.timestampMs ?? 0,
     timestamp:    serverTimestamp(),
+    // Day's specific challenge (era rules, rating caps, win targets, …):
+    // score = wins*10 + 200 pass bonus — the board's primary sort key.
+    challengeId:  (entry.challengeId ?? '').slice(0, 40),
+    passed:       !!entry.passed,
+    score:        Math.max(0, Math.min(2000, Math.round(entry.score ?? 0))),
   });
   return ref.id;
 }
 
 /**
- * Fetches up to 10 Daily Challenge entries for one UTC day, sorted by wins.
+ * Fetches up to 10 Daily Challenge entries for one UTC day, best first.
+ * Sorted by challenge score (falls back to wins*10 for entries written
+ * before the challenge system), then earliest submission.
  *
  * @param {string} date  'YYYY-MM-DD' — see state.js getUtcDateString()
  * @returns {Promise<object[]>}
@@ -309,11 +323,12 @@ export async function fetchDailyLeaderboard(date) {
   if (!isFirebaseConfigured()) throw new Error('Firebase not configured — see js/utils/firebase.js setup instructions');
   const db  = getDb();
   const col = collection(db, 'dailyLeaderboard');
-  // Single equality filter, no orderBy — needs no composite index. Sorted by
-  // wins client-side, same pattern fetchLeaderboard() uses for 24h/weekly.
+  // Single equality filter, no orderBy — needs no composite index. Sorted
+  // client-side, same pattern fetchLeaderboard() uses for 24h/weekly.
   const q    = query(col, where('date', '==', date), limit(500));
   const snap = await getDocs(q);
   const entries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  entries.sort((a, b) => b.wins - a.wins || (a.timestampMs ?? 0) - (b.timestampMs ?? 0));
+  const scoreOf = e => Number(e.score) || (Number(e.wins) || 0) * 10;
+  entries.sort((a, b) => scoreOf(b) - scoreOf(a) || (a.timestampMs ?? 0) - (b.timestampMs ?? 0));
   return entries.slice(0, 10);
 }

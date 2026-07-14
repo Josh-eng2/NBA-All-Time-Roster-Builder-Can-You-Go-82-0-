@@ -13,13 +13,15 @@
 import {
   S, POSITIONS, ALL_POSITIONS, TOTAL_ROUNDS,
   COACHES, ERA_DESC, TEAM_COLORS, ARCHETYPE_STYLE, DECADES, TEAMS, pick, SNAKE_ORDER,
+  getUtcDateString,
 } from '../logic/state.js';
 import { calculateChemistry }                             from '../logic/chemistry.js';
 import { rosterFull, availableDecades, getLegendCatalog, getSkips } from '../logic/draft.js';
 import { coachSystemProgress }                            from '../logic/simulation.js';
 import { getBracketDisplayState }                         from '../logic/playoffs.js';
-import { markReturning, getCollectedLegends, getDailyStatus } from '../utils/storage.js';
+import { markReturning, getCollectedLegends, getDailyStatus, getDailyStreak } from '../utils/storage.js';
 import { cgGameplayStart, cgGameplayStop, cgGetItem }     from '../utils/crazygames.js';
+import { getDailyChallenge, checkPickLegal, checkRosterConstraint } from '../logic/challenge.js';
 import { bindEvents }                                     from '../ui/events.js'; // circular — safe (called inside functions only)
 
 // ── Mount point ───────────────────────────────────────────────────────────────
@@ -312,14 +314,26 @@ function renderDailyModeCard() {
   // border-slate-100 both already have dark-mode overrides, so this themes
   // correctly for free instead of needing a bespoke gradient per mode.
   const status = getDailyStatus();
+  const ch     = getDailyChallenge(getUtcDateString());
+  const streak = getDailyStreak().streak;
+  const streakChip = streak > 0
+    ? `<span class="text-[10px] font-black px-2 py-0.5 rounded-full flex-shrink-0" style="background:var(--amber-badge-bg,#fef3c7);color:var(--amber-text,#b45309);border:1px solid var(--amber-border,#fcd34d)">🔥 ${streak}</span>`
+    : '';
   if (status.playedToday) {
     const r = status.result;
+    // Recaps written before the challenge system have no `passed` field —
+    // fall back to the plain "Done" copy for those.
+    const verdict = ('passed' in r)
+      ? (r.passed
+          ? `<span style="color:#15803d;font-weight:900">PASSED ✅</span>`
+          : `<span style="color:#dc2626;font-weight:900">FAILED ✗</span>`)
+      : 'Done ✅';
     return `
     <div class="w-full rounded-2xl bg-white p-4 flex items-center gap-3 mb-3 card-shadow border border-slate-100">
-      <span class="text-3xl flex-shrink-0">🗓️</span>
+      <span class="text-3xl flex-shrink-0">${ch.emoji}</span>
       <div class="flex-1 min-w-0">
-        <p class="font-black text-base text-foreground">Daily Challenge — Done ✅</p>
-        <p class="text-xs text-muted-fg mt-0.5">You went <span style="color:#f97316;font-weight:700">${r.wins}–${r.losses}</span> today · ${dailyResetInLabel()}</p>
+        <p class="font-black text-base text-foreground flex items-center gap-2">Daily Challenge — ${verdict} ${streakChip}</p>
+        <p class="text-xs text-muted-fg mt-0.5">${ch.title}: you went <span style="color:#f97316;font-weight:700">${r.wins}–${r.losses}</span> today · ${dailyResetInLabel()}</p>
       </div>
       <button data-action="open-daily-leaderboard" class="text-xs font-bold px-3 py-2 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:#fdba74;background:var(--card);color:${isDark() ? '#fdba74' : '#c2410c'}">Board 🏅</button>
     </div>`;
@@ -328,10 +342,10 @@ function renderDailyModeCard() {
   <div class="mb-3">
     <button data-action="mode-daily"
       class="w-full rounded-2xl bg-white p-4 flex items-center gap-3 cursor-pointer card-shadow hover:shadow-md transition-all border border-slate-100 text-left">
-      <span class="text-3xl flex-shrink-0" style="pointer-events:none">🗓️</span>
+      <span class="text-3xl flex-shrink-0" style="pointer-events:none">${ch.emoji}</span>
       <div class="flex-1 min-w-0" style="pointer-events:none">
-        <p class="font-black text-base" style="color:#f97316">Daily Challenge</p>
-        <p class="text-xs text-muted-fg leading-snug mt-0.5">Same draft board as every player today — one shot, then compare records.</p>
+        <p class="font-black text-base flex items-center gap-2" style="color:#f97316">Daily Challenge · ${ch.title} ${streakChip}</p>
+        <p class="text-xs text-muted-fg leading-snug mt-0.5">${ch.desc} Same draft board as every player today — one shot.</p>
       </div>
       <span class="text-xs font-bold px-3 py-2 rounded-lg border flex-shrink-0" style="border-color:#fdba74;background:var(--card);color:${isDark() ? '#fdba74' : '#c2410c'};pointer-events:none">Play →</span>
     </button>
@@ -546,6 +560,46 @@ function shouldShowDraftBoard(full) {
   return false;
 }
 
+// ── Daily Challenge — drafting banner ─────────────────────────────────────────
+// Persistent reminder of today's rules with a live constraint status chip.
+function renderDailyDraftBanner() {
+  const ch = S.dailyChallenge;
+  if (!ch || S.mode !== 'daily') return '';
+  const filled = Object.values(S.roster || {}).filter(Boolean);
+  const status = checkRosterConstraint(ch, filled);
+  const chip   = status.detail
+    ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full" style="white-space:nowrap;${status.pass
+        ? 'background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0'
+        : 'background:#fef2f2;color:#dc2626;border:1px solid #fecaca'}">${status.pass ? '✓' : '✗'} ${status.detail}</span>`
+    : '';
+  return `
+  <div class="rounded-xl border-2 px-4 py-3 card-shadow" style="border-color:#fdba74;background:var(--card)">
+    <div class="flex items-center gap-2 flex-wrap">
+      <span class="text-lg">${ch.emoji}</span>
+      <p class="text-xs font-black uppercase tracking-widest" style="color:${isDark() ? '#fdba74' : '#c2410c'}">Today's Challenge</p>
+      <p class="text-xs font-bold text-foreground">${ch.title}</p>
+      <span class="ml-auto">${chip}</span>
+    </div>
+    <p class="text-[11px] text-muted-fg mt-1">${ch.desc}</p>
+  </div>`;
+}
+
+/**
+ * Daily-mode dead-end check: the spun board has players, but every one of
+ * them is barred (already rostered or blocked by today's rules) and the
+ * daily draft has no skips — without an escape the run would soft-lock.
+ */
+function dailyBoardDeadEnd() {
+  if (S.mode !== 'daily' || !S.dailyChallenge) return false;
+  if (S.spinState !== 'done' || !S.draftBoard?.length) return false;
+  const filled = Object.values(S.roster || {}).filter(Boolean);
+  return !S.draftBoard.some(p =>
+    !(S.draftedPlayerNames?.has(p.name)) &&
+    checkPickLegal(S.dailyChallenge,
+      { ...p, team: S.currentSpin?.team, decade: S.currentSpin?.decade }, filled).legal
+  );
+}
+
 function renderDrafting() {
   if (S.mode === '1v1') return renderDrafting1v1();
   const full = rosterFull();
@@ -563,6 +617,7 @@ function renderDrafting() {
           ${renderChemDashboard()}
           <div class="draft-screen__center">
             ${renderColdOpenBanner()}
+            ${renderDailyDraftBanner()}
             ${full ? renderSimulateCard() : ''}
             ${renderRoundBar()}
             ${renderCoachChip()}
@@ -582,6 +637,7 @@ function renderDrafting() {
     <main class="flex flex-col items-center px-4 pt-2 pb-8 draft-screen__main">
       <div class="w-full max-w-2xl flex flex-col gap-2 draft-screen__inner">
         ${renderColdOpenBanner()}
+        ${renderDailyDraftBanner()}
         ${full ? renderSimulateCard() : ''}
         ${renderRoundBar()}
         ${renderCoachChip()}
@@ -845,7 +901,13 @@ function renderSlotMachine() {
         SPINNING...
       </button>
     ` : `
+      ${dailyBoardDeadEnd() ? `
+      <button data-action="spin" class="w-full py-3 rounded-xl font-black text-sm uppercase tracking-widest bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer">
+        🚫 No legal picks here — spin a new board
+      </button>
+      ` : `
       <p class="text-center text-xs text-muted-fg py-1">${S.mode === 'blind' ? 'Names only — select a player, then tap a roster slot to place them' : 'Select a player below, then tap a roster slot to place them'}</p>
+      `}
     `}
   </div>`;
 }
@@ -877,7 +939,15 @@ function renderDraftBoard() {
 
 function renderDraftCard(p, index) {
   const alreadyOnRoster = S.draftedPlayerNames?.has(p.name) ?? false;
-  const unavailable     = alreadyOnRoster;
+  // Daily Challenge — players today's rules forbid render dimmed with the reason.
+  let dailyBlock = null;
+  if (S.dailyChallenge && S.mode === 'daily' && !alreadyOnRoster) {
+    const filled = Object.values(S.roster || {}).filter(Boolean);
+    const check  = checkPickLegal(S.dailyChallenge,
+      { ...p, team: S.currentSpin?.team, decade: S.currentSpin?.decade }, filled);
+    if (!check.legal) dailyBlock = check.reason;
+  }
+  const unavailable     = alreadyOnRoster || !!dailyBlock;
   const isSelected      = !unavailable && S.selectedPlayer?.id === p.id;
   const cardBorder      = unavailable ? 'var(--border)' : isSelected ? 'var(--primary)' : 'var(--border)';
   const cardBg          = unavailable ? 'var(--card3)' : isSelected ? 'var(--card2)' : 'var(--card)';
@@ -895,8 +965,8 @@ function renderDraftCard(p, index) {
       <p class="font-bold text-sm text-foreground leading-tight text-center draft-card__name">${p.name}</p>
     </div>
     <div class="px-3 pb-3 draft-card__actions">
-      ${alreadyOnRoster
-        ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs draft-card-btn" style="background:var(--card2);color:var(--muted);border:1.5px solid var(--border);cursor:not-allowed">Already on Roster</button>`
+      ${unavailable
+        ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs draft-card-btn" style="background:var(--card2);color:var(--muted);border:1.5px solid var(--border);cursor:not-allowed" ${dailyBlock ? `title="${dailyBlock}"` : ''}>${alreadyOnRoster ? 'Already on Roster' : '🚫 Off-Limits Today'}</button>`
         : `<button data-action="draft-pick-${index}"
             class="w-full py-2 rounded-lg font-bold text-xs transition-all cursor-pointer draft-card-btn"
             style="background:${isSelected ? 'var(--primary)' : 'var(--card2)'};color:${isSelected ? 'var(--primary-fg)' : 'var(--primary)'};border:1.5px solid ${isSelected ? 'var(--primary)' : '#bfdbfe'}">
@@ -927,8 +997,8 @@ function renderDraftCard(p, index) {
         </div>` : ''}
     </div>
     <div class="px-3 pb-3 draft-card__actions">
-      ${alreadyOnRoster
-        ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs draft-card-btn" style="background:var(--card2);color:var(--muted);border:1.5px solid var(--border);cursor:not-allowed">Already on Roster</button>`
+      ${unavailable
+        ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs draft-card-btn" style="background:var(--card2);color:var(--muted);border:1.5px solid var(--border);cursor:not-allowed" ${dailyBlock ? `title="${dailyBlock}"` : ''}>${alreadyOnRoster ? 'Already on Roster' : '🚫 Off-Limits Today'}</button>`
         : `<button data-action="draft-pick-${index}"
             class="w-full py-2 rounded-lg font-bold text-xs transition-all cursor-pointer draft-card-btn"
             style="background:${isSelected ? 'var(--primary)' : 'var(--card2)'};color:${isSelected ? 'var(--primary-fg)' : 'var(--primary)'};border:1.5px solid ${isSelected ? 'var(--primary)' : '#bfdbfe'}">
@@ -1298,6 +1368,24 @@ function renderSaveRunCard() {
         </div>`;
 }
 
+// ── Daily Challenge — results verdict banner ──────────────────────────────────
+function renderDailyResultBanner() {
+  const ch = S.dailyChallenge;
+  const dr = S.dailyResult;
+  if (S.mode !== 'daily' || !ch || !dr) return '';
+  const style = dr.pass
+    ? { bg: '#f0fdf4', border: '#86efac', color: '#15803d', icon: '🎉', head: 'Challenge passed!' }
+    : { bg: '#fef2f2', border: '#fca5a5', color: '#dc2626', icon: '💔', head: 'Challenge failed' };
+  const streakLine = dr.pass && dr.streak > 0 ? ` · 🔥 ${dr.streak}-day streak` : '';
+  return `
+  <div class="rounded-2xl border-2 p-4 card-shadow text-center" style="background:${style.bg};border-color:${style.border}">
+    <p class="text-xs font-black uppercase tracking-widest mb-1" style="color:${style.color}">${style.icon} Daily Challenge — ${style.head}</p>
+    <p class="text-sm font-bold" style="color:#0f172a">${ch.emoji} ${ch.title}</p>
+    <p class="text-xs mt-1" style="color:${style.color}">${dr.detail}${streakLine}</p>
+    <p class="text-[10px] mt-1.5" style="color:#64748b">Score ${dr.score} · new challenge tomorrow (midnight UTC)</p>
+  </div>`;
+}
+
 function renderDailySubmitCard() {
   if (S.mode !== 'daily') return '';
   const r = S.result;
@@ -1581,6 +1669,7 @@ function renderResults() {
         </div>
 
         <div class="results-block--save">${renderSaveRunCard()}</div>
+        ${renderDailyResultBanner()}
         ${renderDailySubmitCard()}
 
         <div class="rounded-2xl border border-border bg-white p-4 card-shadow">

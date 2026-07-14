@@ -10,6 +10,8 @@
  *   • `getUtcDateString` / `seedDailyRng` / `clearDailyRng` — Daily Challenge PRNG
  */
 
+import { getLockedPlayer } from './challenge.js';
+
 // ── Static configuration ──────────────────────────────────────────────────────
 
 export const TEAMS = [
@@ -195,8 +197,12 @@ function hashStringToSeed(str) {
 
 let _seededRng = null;
 
-/** Today's UTC calendar date as 'YYYY-MM-DD' — the Daily Challenge boundary is a global instant, not per-timezone midnight. */
+/** Today's UTC calendar date as 'YYYY-MM-DD' — the Daily Challenge boundary is a global instant, not per-timezone midnight. A `?dailydate=YYYY-MM-DD` query param overrides it (dev/testing — keeps the seeded board AND the day's challenge in sync). */
 export function getUtcDateString(d = new Date()) {
+  try {
+    const o = new URLSearchParams(window.location.search).get('dailydate');
+    if (o && /^\d{4}-\d{2}-\d{2}$/.test(o)) return o;
+  } catch (_) { /* non-browser context */ }
   return d.toISOString().slice(0, 10);
 }
 
@@ -292,6 +298,8 @@ export function startGame(era = 'all') {
   const mode          = S.mode;
   const currentPlayer = S.currentPlayer;
   const p1            = S.p1;
+  const dailyChallenge = S.dailyChallenge ?? null; // daily mode context survives the reset
+  const dailyDate      = S.dailyDate      ?? null;
   S = {
     phase:            'drafting',
     coach,
@@ -333,7 +341,25 @@ export function startGame(era = 'all') {
     seasonPaused:    false,
     rivalTease:      false,  // Rivalry Night banner currently showing
     rivalTeased:     false,  // one-shot guard — tease fires once per season
+
+    // Daily Challenge context (null outside daily runs)
+    dailyChallenge,
+    dailyDate,
+    dailyResult: null,       // { pass, pending, detail, streak } — set at sim time
   };
+
+  // Locked-player daily challenges start with the star already in their slot,
+  // registered exactly like a drafted pick (id/name/decade dedup all apply).
+  if (dailyChallenge?.type === 'locked') {
+    const locked = getLockedPlayer(dailyChallenge);
+    if (locked) {
+      const pos = dailyChallenge.params.pos;
+      S.roster[pos] = locked;
+      S.usedPlayerIds.push(locked.id);
+      S.draftedPlayerNames.add(locked.name);
+      if (locked.decade) S.usedDecades.push(locked.decade);
+    }
+  }
 }
 
 /**

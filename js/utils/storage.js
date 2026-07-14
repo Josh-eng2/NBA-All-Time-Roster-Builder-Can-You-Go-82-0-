@@ -30,6 +30,7 @@ import { S, COACHES, POSITIONS, getUtcDateString } from '../logic/state.js';
 import { getLegendCatalog }                      from '../logic/draft.js';
 import { fetchLeaderboard, fetchDailyLeaderboard } from '../utils/firebase.js';
 import { cgGetItem, cgSetItem }                    from '../utils/crazygames.js';
+import { getDailyChallenge }                       from '../logic/challenge.js';
 
 const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 
@@ -628,13 +629,42 @@ export function getDailyStatus() {
   return { today, playedToday, result: playedToday ? last : null };
 }
 
-/** Locks the Daily Challenge for today and stores a compact recap for the mode-select card. */
-export function markDailyPlayed({ wins, losses, chemScore, champion }) {
+const DAILY_STREAK_KEY = 'nba820_dailyStreak';
+
+/** @returns {{ streak: number, lastPassDate: string|null }} consecutive-day challenge passes */
+export function getDailyStreak() {
+  try { return JSON.parse(cgGetItem(DAILY_STREAK_KEY) || 'null') || { streak: 0, lastPassDate: null }; }
+  catch (e) { return { streak: 0, lastPassDate: null }; }
+}
+
+/**
+ * Locks the Daily Challenge for today, stores a compact recap for the
+ * mode-select card, and updates the pass streak (consecutive UTC days
+ * passed chain; a failed day resets to 0).
+ *
+ * @returns {number} the streak after this result
+ */
+export function markDailyPlayed({ wins, losses, chemScore, champion, challengeId = null, passed = false, score = 0 }) {
+  const today = getUtcDateString();
   try {
     cgSetItem(DAILY_KEY, JSON.stringify({
-      date: getUtcDateString(), wins, losses, chemScore, champion, at: Date.now(),
+      date: today, wins, losses, chemScore, champion, challengeId, passed, score, at: Date.now(),
     }));
   } catch (e) {}
+  try {
+    const s = getDailyStreak();
+    if (passed) {
+      if (s.lastPassDate !== today) { // idempotent for a same-day double-call
+        const yesterday = new Date(Date.parse(today + 'T00:00:00Z') - 86400000).toISOString().slice(0, 10);
+        s.streak       = s.lastPassDate === yesterday ? s.streak + 1 : 1;
+        s.lastPassDate = today;
+      }
+    } else {
+      s.streak = 0;
+    }
+    cgSetItem(DAILY_STREAK_KEY, JSON.stringify(s));
+    return s.streak;
+  } catch (e) { return 0; }
 }
 
 function _dailyLbRowsHtml(entries) {
@@ -661,13 +691,20 @@ function _dailyLbRowsHtml(entries) {
     const perfectBadge = isPerfect && !e.champion
       ? `<span style="font-size:10px;font-weight:900;padding:2px 7px;border-radius:999px;background:var(--amber-badge-bg);color:var(--amber-text);border:1px solid var(--amber-border);white-space:nowrap">82–0</span>`
       : '';
+    // Challenge verdict — entries written before the challenge system lack
+    // the field entirely and show no badge.
+    const passBadge = ('passed' in e)
+      ? (e.passed
+          ? `<span style="font-size:10px;font-weight:900;padding:2px 7px;border-radius:999px;background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;white-space:nowrap">✅ PASSED</span>`
+          : `<span style="font-size:10px;font-weight:900;padding:2px 7px;border-radius:999px;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;white-space:nowrap">✗ FAILED</span>`)
+      : '';
     return `
     <div style="border-radius:12px;border:1.5px solid;padding:10px 12px;display:flex;align-items:center;gap:10px;${rowBg}">
       <div style="width:28px;text-align:center;flex-shrink:0">${medal}</div>
       <div style="flex:1;min-width:0">
         <div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;flex-wrap:wrap">
           <span style="font-weight:900;font-size:14px;color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:150px;font-family:Fira Sans,sans-serif">${name}</span>
-          ${champBadge}${perfectBadge}
+          ${champBadge}${perfectBadge}${passBadge}
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
           <span style="font-weight:900;font-size:15px;color:${winsColor};font-family:Fira Sans,sans-serif">${wins}–${losses}</span>
@@ -684,6 +721,7 @@ function _dailyLbRowsHtml(entries) {
 }
 
 function _dailyModalShellHtml(dateLabel) {
+  const ch = getDailyChallenge(getUtcDateString());
   return `
   <div id="daily-lb-modal-backdrop" onclick="if(event.target===this)window.closeDailyLeaderboardModal()"
     style="position:fixed;inset:0;background:var(--overlay);z-index:9998;display:flex;
@@ -696,6 +734,7 @@ function _dailyModalShellHtml(dateLabel) {
         <div>
           <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--primary);margin:0 0 4px">${dateLabel}</p>
           <h2 style="font-size:22px;font-weight:900;margin:0;color:var(--fg)">🗓️ Daily Challenge</h2>
+          <p style="font-size:12px;font-weight:700;color:var(--muted-fg);margin:6px 0 0">${ch.emoji} ${ch.title} — <span style="font-weight:500">${ch.desc}</span></p>
         </div>
         <button onclick="window.closeDailyLeaderboardModal()"
           style="background:var(--card2);border:1px solid var(--border);color:var(--muted-fg);border-radius:999px;

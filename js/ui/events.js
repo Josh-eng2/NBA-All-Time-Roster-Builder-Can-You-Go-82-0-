@@ -30,6 +30,7 @@ import {
 import { submitGlobalScore, submitDailyScore, logAnalyticsEvent, isFirebaseConfigured } from '../utils/firebase.js';
 import { cgGetItem, cgSetItem } from '../utils/crazygames.js';
 import { buildShareCardBlob, buildShareCaption } from './shareCard.js';
+import { getDailyChallenge, checkPickLegal, evaluateObjective, dailyScore } from '../logic/challenge.js';
 import {
   render, $app, fmtDecadeShort, showToast, renderSeasonTickerRows,
   computeAutopsy, liveStreakLabel, withConfetti,
@@ -64,30 +65,37 @@ function handleClick(e) {
 function dispatch(action) {
   // ── Mode selection ─────────────────────────────────────────────────────────
   if (action === 'mode-solo') {
-    S.mode = 'solo'; S.currentPlayer = 1; S.p1 = null;
+    S.mode = 'solo'; S.currentPlayer = 1; S.p1 = null; S.dailyChallenge = null;
     doStartGame('all'); return;
   }
   if (action === 'mode-1v1') {
-    S.mode = '1v1'; S.currentPlayer = 1; S.p1 = null;
+    S.mode = '1v1'; S.currentPlayer = 1; S.p1 = null; S.dailyChallenge = null;
     doStartGame('all'); return;
   }
   if (action === 'mode-blind') {
-    S.mode = 'blind'; S.currentPlayer = 1; S.p1 = null;
+    S.mode = 'blind'; S.currentPlayer = 1; S.p1 = null; S.dailyChallenge = null;
     doStartGame('all'); return;
   }
   if (action === 'mode-daily') {
     if (getDailyStatus().playedToday) { render(); return; } // already played — mode-select shouldn't even show the button
+    const today = getUtcDateString();
+    const ch    = getDailyChallenge(today);
     S.mode = 'daily'; S.currentPlayer = 1; S.p1 = null;
+    // The day's challenge must be on S BEFORE startGame runs — locked-player
+    // challenges pre-fill their star inside the state reset.
+    S.dailyChallenge = ch;
     doStartGame('all');
     // Fixed era + zero skips: every player must draw from the identical
     // decade pool in the identical order for the shared board to hold.
-    const today = getUtcDateString();
+    // Era-restricted challenges pin the era instead of 'all' — still the
+    // same deterministic sequence for everyone.
     S.dailyDate   = today;
-    S.selectedEra = 'all';
+    S.selectedEra = ch.params.era || 'all';
     S.eraLocked   = true;
     S.teamSkips   = 0;
     S.decadeSkips = 0;
     seedDailyRng(today);
+    logAnalyticsEvent('daily_started', { challenge: ch.id, date: today });
     render(); return;
   }
   if (action === 'open-daily-leaderboard') { showDailyLeaderboardModal(); return; }
@@ -123,13 +131,13 @@ function dispatch(action) {
 
   // ── Navigation ─────────────────────────────────────────────────────────────
   if (action === 'restart') {
-    confirmLeave(() => { S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; render(); }); return;
+    confirmLeave(() => { S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; S.dailyChallenge = null; render(); }); return;
   }
-  if (action === 'draft-new-roster') { S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; render(); return; }
+  if (action === 'draft-new-roster') { S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; S.dailyChallenge = null; render(); return; }
   if (action === 'view-trophies')    { S.phase = 'trophy-room'; render(); return; }
   if (action === 'view-legends')     { S.legendsReturnPhase = S.phase; S.phase = 'legends'; render(); return; }
   if (action === 'legends-back')     { S.phase = S.legendsReturnPhase || 'mode-select'; render(); return; }
-  if (action === 'back-to-menu')     { S.mode = null; S.phase = 'mode-select'; S.p1 = null; render(); return; }
+  if (action === 'back-to-menu')     { S.mode = null; S.phase = 'mode-select'; S.p1 = null; S.dailyChallenge = null; render(); return; }
   if (action === 'series-play-again') { S.mode = null; S.phase = 'mode-select'; S.p1 = null; S.seriesResult = null; S.seriesRevealedCount = 0; render(); return; }
   if (action === 'begin-series') { S.phase = 'series-sim'; S.seriesRevealedCount = 0; render(); return; }
   if (action === 'sim-next-game') { S.seriesRevealedCount = Math.min((S.seriesRevealedCount || 0) + 1, S.seriesResult.games.length); render(); return; }
@@ -445,6 +453,16 @@ function placePlayer(pos) {
   const spin   = S.currentSpin;
   const player = { ...S.selectedPlayer, team: spin?.team, decade: spin?.decade };
 
+  // Daily Challenge — today's draft rules are hard: illegal picks never place.
+  if (S.dailyChallenge) {
+    const filled = Object.values(S.roster || {}).filter(Boolean);
+    const { legal, reason } = checkPickLegal(S.dailyChallenge, player, filled);
+    if (!legal) {
+      showToast(`🚫 ${reason}`);
+      return;
+    }
+  }
+
   // ── 1v1 alternating draft ──────────────────────────────────────────────────
   if (S.mode === '1v1') {
     const activeRoster = S.currentPlayer === 1 ? S.p1Roster : S.p2Roster;
@@ -622,11 +640,21 @@ function doSimulate() {
   // on submit — so re-drafting the (memorized) shared board for a better
   // simulation roll can't grind the daily leaderboard.
   if (S.mode === 'daily') {
-    markDailyPlayed({
+    // Verdict on the day's specific challenge (era rules, rating caps,
+    // win targets, …) — decided here, alongside the play lock.
+    const ch      = S.dailyChallenge;
+    const verdict = ch ? evaluateObjective(ch, S) : null;
+    const score   = ch ? dailyScore(ch, S) : S.result.wins * 10;
+    const streak  = markDailyPlayed({
       wins: S.result.wins, losses: S.result.losses,
       chemScore: Math.round(S.result.chemScore ?? 0),
       champion: false,
+      challengeId: ch?.id ?? null,
+      passed:      verdict?.pass ?? false,
+      score,
     });
+    S.dailyResult = verdict ? { ...verdict, score, streak } : null;
+    if (ch) logAnalyticsEvent('daily_completed', { challenge: ch.id, passed: verdict.pass, wins: S.result.wins });
   }
 
   S.phase = 'season-sim';
@@ -894,6 +922,10 @@ function buildDailyScorePayload() {
     chemScore:   Math.round(r.chemScore ?? 0),
     starters:    POSITIONS.map(p => S.roster[p]?.name || '—').join(', ').slice(0, 100),
     timestampMs: Date.now(),
+    // Day's specific challenge — verdict decided at sim time (doSimulate)
+    challengeId: S.dailyChallenge?.id     ?? '',
+    passed:      S.dailyResult?.pass      ?? false,
+    score:       S.dailyResult?.score     ?? (r.wins * 10),
   };
 }
 
