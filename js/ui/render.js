@@ -333,7 +333,7 @@ function renderDailyModeCard() {
         <p class="font-black text-base" style="color:#f97316">Daily Challenge</p>
         <p class="text-xs text-muted-fg leading-snug mt-0.5">Same draft board as every player today — one shot, then compare records.</p>
       </div>
-      <span class="text-xs font-bold px-3 py-2 rounded-lg text-white flex-shrink-0" style="background:#f97316;pointer-events:none">Play →</span>
+      <span class="text-xs font-bold px-3 py-2 rounded-lg border flex-shrink-0" style="border-color:#fdba74;background:var(--card);color:${isDark() ? '#fdba74' : '#c2410c'};pointer-events:none">Play →</span>
     </button>
     <button data-action="open-daily-leaderboard" class="w-full text-[11px] font-bold text-center mt-1.5 text-muted-fg hover:text-primary cursor-pointer border-0 bg-transparent">
       View today's leaderboard →
