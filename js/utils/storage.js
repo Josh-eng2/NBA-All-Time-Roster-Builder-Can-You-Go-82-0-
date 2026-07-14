@@ -983,8 +983,8 @@ export function showDailyStatsModal() {
              font-family:Fira Sans,sans-serif;color:var(--fg);
              animation:scaleIn 0.2s ease-out;box-shadow:0 20px 60px var(--shadow)">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px">
-        <h2 id="daily-stats-title" style="font-size:16px;font-weight:800;margin:0;letter-spacing:0.12em;
-                   text-transform:uppercase;color:var(--fg);width:100%;text-align:center;padding-left:32px">Statistics</h2>
+        <h2 id="daily-stats-title" style="font-size:16px;font-weight:800;margin:0;letter-spacing:0.08em;
+                   text-transform:uppercase;color:var(--fg);width:100%;text-align:center;padding-left:32px">Daily Challenge Stats</h2>
         <button onclick="window.closeDailyStatsModal()" aria-label="Close"
           style="background:var(--card2);border:1px solid var(--border);color:var(--muted-fg);border-radius:999px;
                  width:32px;height:32px;font-size:16px;cursor:pointer;display:flex;

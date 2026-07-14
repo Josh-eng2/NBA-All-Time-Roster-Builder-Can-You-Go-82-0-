@@ -339,7 +339,7 @@ function renderDailyModeCard() {
         <p class="font-black text-sm text-foreground flex items-center gap-2">Daily Challenge — ${verdict} ${streakChip}</p>
         <p class="text-[11px] text-muted-fg mt-0.5">${ch.title}: you went <span style="color:#f97316;font-weight:700">${r.wins}–${r.losses}</span> today · ${dailyResetInLabel()}</p>
       </div>
-      <button data-action="open-daily-stats" class="text-[11px] font-bold px-2 py-1 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:var(--border);background:var(--card);color:var(--muted-fg)">Stats</button>
+      <button data-action="open-daily-stats" class="text-[11px] font-bold px-2 py-1 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:var(--border);background:var(--card);color:var(--muted-fg)" title="Daily Challenge Stats">Stats</button>
       <button data-action="open-daily-leaderboard" class="text-[11px] font-bold px-2 py-1 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:#fdba74;background:var(--card);color:${isDark() ? '#fdba74' : '#c2410c'}">Board 🏅</button>
     </div>`;
   }
@@ -355,7 +355,7 @@ function renderDailyModeCard() {
       <span class="text-[11px] font-bold px-2 py-1 rounded-lg border flex-shrink-0" style="border-color:#fdba74;background:var(--card);color:${isDark() ? '#fdba74' : '#c2410c'};pointer-events:none">Play →</span>
     </button>
     <div class="flex items-center justify-center gap-3 mt-1.5">
-      <button data-action="open-daily-stats" class="text-[11px] font-bold text-muted-fg hover:text-primary cursor-pointer border-0 bg-transparent">Statistics</button>
+      <button data-action="open-daily-stats" class="text-[11px] font-bold text-muted-fg hover:text-primary cursor-pointer border-0 bg-transparent">Daily Challenge Stats</button>
       <span class="text-[11px] text-muted" aria-hidden="true">·</span>
       <button data-action="open-daily-leaderboard" class="text-[11px] font-bold text-muted-fg hover:text-primary cursor-pointer border-0 bg-transparent">
         Today's leaderboard →
@@ -377,7 +377,7 @@ function renderModeSelect() {
         <div class="w-20 mode-header__spacer"></div>
         <img src="logo-badge.svg" alt="82-0" class="mode-header__logo" style="height:52px;width:auto;margin-top:2px"/>
         <div class="flex items-center gap-1.5 justify-end mode-header__actions">
-          <button data-action="open-daily-stats" class="text-[11px] px-2 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Daily Statistics">📊</button>
+          <button data-action="open-daily-stats" class="text-[11px] px-2 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Daily Challenge Stats">📊</button>
           <button data-action="open-leaderboard" class="text-[11px] px-2 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Personal Best">🏅</button>
           <button data-action="open-global-leaderboard" class="text-[11px] px-2 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Global Leaderboard">🌍</button>
           <button data-action="toggle-theme" class="theme-toggle" title="Toggle Dark Mode">${themeIcon()}</button>
@@ -1395,7 +1395,7 @@ function renderDailyResultBanner() {
     <p class="text-xs mt-1" style="color:${style.color}">${dr.detail}${streakLine}</p>
     <p class="text-[10px] mt-1.5" style="color:#64748b">Score ${dr.score} · new challenge tomorrow (midnight UTC)</p>
     <button data-action="open-daily-stats" class="mt-3 text-xs font-bold px-3 py-1.5 rounded-lg border cursor-pointer"
-      style="border-color:${style.border};background:var(--card);color:${style.color}">Statistics 📊</button>
+      style="border-color:${style.border};background:var(--card);color:${style.color}">Daily Challenge Stats 📊</button>
   </div>`;
 }
 
