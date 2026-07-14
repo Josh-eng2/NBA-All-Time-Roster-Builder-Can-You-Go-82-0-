@@ -131,10 +131,16 @@ function dispatch(action) {
   if (action.startsWith('era-pick-')) { setEra(action.slice(9)); return; }
 
   // ── Navigation ─────────────────────────────────────────────────────────────
+  // Daily Challenge is one shot — refuse mid-run abandon/re-draft so players
+  // can't throw away a bad board and spin again before the day locks.
   if (action === 'restart') {
+    if (S.mode === 'daily') return;
     confirmLeave(() => { S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; S.dailyChallenge = null; render(); }); return;
   }
-  if (action === 'draft-new-roster') { S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; S.dailyChallenge = null; render(); return; }
+  if (action === 'draft-new-roster') {
+    if (S.mode === 'daily') return;
+    S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; S.dailyChallenge = null; render(); return;
+  }
   if (action === 'view-trophies')    { S.phase = 'trophy-room'; render(); return; }
   if (action === 'view-legends')     { S.legendsReturnPhase = S.phase; S.phase = 'legends'; render(); return; }
   if (action === 'legends-back')     { S.phase = S.legendsReturnPhase || 'mode-select'; render(); return; }
@@ -934,12 +940,11 @@ async function doSubmitDaily() {
   if (S.mode !== 'daily' || S.dailyScoreSubmitted || _submittingDaily) return;
   _submittingDaily = true;
 
-  // Opportunistically reuse whatever name was typed into the Save Run card —
-  // no need to make the player type their team name twice.
-  const input = document.getElementById('team-name-input');
-  const raw   = input ? input.value.trim() : '';
-  if (raw) S.teamName = raw.slice(0, 20);
-  if (!S.teamName) S.teamName = 'Untitled Team';
+  // Prefer the daily submit name field; fall back to Save Run / previously saved name.
+  const dailyInput = document.getElementById('daily-team-name-input');
+  const saveInput  = document.getElementById('team-name-input');
+  const raw = (dailyInput?.value ?? saveInput?.value ?? '').trim();
+  S.teamName = raw.slice(0, 30) || S.teamName || 'Untitled Team';
 
   const btn = document.getElementById('submit-daily-btn');
   if (btn) {

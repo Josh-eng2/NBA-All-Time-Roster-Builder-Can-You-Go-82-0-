@@ -80,7 +80,7 @@ if (typeof window !== 'undefined') {
   });
 }
 
-const FANS_TEAM_MAX = 500; // 5 starters × 100 max popularity each
+const FANS_TEAM_MAX = 500; // 5 starters × 100 max fans each
 
 function fansBarCol(avg, dark = isDark()) {
   if (avg >= 80) return dark ? '#60a5fa' : '#2563eb';
@@ -96,14 +96,15 @@ function fansTierFromAvg(avg) {
   };
 }
 
-/** Sum roster popularity for UI (max 500); avg drives tier labels. Sim logic unchanged. */
+/** Sum roster fans for UI. Role Players daily caps the meter at maxPopTotal (300). */
 function calcTeamFans(players) {
   const list = players.filter(Boolean);
   const sum  = list.reduce((s, p) => s + (p.popularity ?? 50), 0);
-  const pct  = Math.min(100, Math.round((sum / FANS_TEAM_MAX) * 100));
+  const max  = S.dailyChallenge?.params?.maxPopTotal ?? FANS_TEAM_MAX;
+  const pct  = Math.min(100, Math.round((sum / max) * 100));
   const avg  = list.length ? sum / list.length : 0;
   const { tier, barCol } = fansTierFromAvg(avg);
-  return { sum, max: FANS_TEAM_MAX, pct, avg, count: list.length, tier, barCol };
+  return { sum, max, pct, avg, count: list.length, tier, barCol };
 }
 
 function themeIcon() {
@@ -254,7 +255,10 @@ function renderHeader(showRestart = false) {
       </button>`
     : `<span class="header-pill">${eraLabel}${S.eraLocked ? '<span class="header-pill__lock" aria-hidden="true">🔒</span>' : ''}</span>`;
 
-  const restartBtn = showRestart
+  // Daily Challenge is one attempt — never offer Restart mid-run (or it
+  // would let players abort a shared board and spin again before lock).
+  const canRestart = showRestart && S.mode !== 'daily';
+  const restartBtn = canRestart
     ? `<button data-action="restart" type="button" class="header-pill header-pill--muted header-pill--restart">Restart</button>`
     : '';
 
@@ -282,7 +286,7 @@ function renderHeader(showRestart = false) {
         </div>
       </div>
     </header>
-    ${showRestart ? `
+    ${canRestart ? `
     <div class="mobile-restart-bar">
       <button data-action="restart" type="button" class="mobile-restart-bar__btn">↩ Restart Run</button>
     </div>` : ''}
@@ -826,7 +830,7 @@ function renderRoundBar() {
 
 function renderPopularityBar() {
   const fans       = calcTeamFans(Object.values(S.roster));
-  const scoreLabel = fans.count ? ` · ${Math.round(fans.sum)}/${fans.max}` : '';
+  const scoreLabel = ` · ${Math.round(fans.sum)}/${fans.max}`;
   return `
   <div class="rounded-xl border border-border bg-card px-4 py-3 card-shadow draft-pop-bar">
     <div class="flex items-center justify-between mb-2">
@@ -846,13 +850,14 @@ function renderPopularityBar() {
 // breakpoint; the horizontal bar above is what mobile/tablet users see.
 function renderPopularityBarVertical() {
   const fans = calcTeamFans(Object.values(S.roster));
+  const label = `${Math.round(fans.sum)}/${fans.max}`;
   return `
-  <div class="rounded-xl border border-border bg-card px-2 py-3 card-shadow draft-pop-bar-vertical" title="${fans.tier}${fans.count ? ` · ${Math.round(fans.sum)}/${fans.max}` : ''}">
+  <div class="rounded-xl border border-border bg-card px-2 py-3 card-shadow draft-pop-bar-vertical" title="${fans.tier}${fans.count ? ` · ${label}` : ''}">
     <p class="text-[9px] font-bold uppercase tracking-widest text-muted-fg draft-pop-bar-vertical__label">Fans</p>
     <div class="draft-pop-bar-vertical__track">
       <div class="draft-pop-bar-vertical__fill" style="height:${fans.pct}%;background:${fans.barCol}"></div>
     </div>
-    <p class="text-[11px] font-bold draft-pop-bar-vertical__value" style="color:${fans.barCol}">${Math.round(fans.sum)}</p>
+    <p class="text-[11px] font-bold draft-pop-bar-vertical__value" style="color:${fans.barCol}">${label}</p>
   </div>`;
 }
 
@@ -1401,7 +1406,7 @@ function renderDailySubmitCard() {
         <span class="text-2xl">✅</span>
         <div class="min-w-0 flex-1">
           <p class="font-black text-sm" style="color:${isDark() ? '#fdba74' : '#9a3412'}">On the daily board!</p>
-          <p class="text-xs mt-0.5" style="color:${isDark() ? '#fed7aa' : '#c2410c'}">${r.wins}–${r.losses} · today's shared draft board</p>
+          <p class="text-xs mt-0.5" style="color:${isDark() ? '#fed7aa' : '#c2410c'}">"${esc(S.teamName)}" &nbsp;·&nbsp; ${r.wins}–${r.losses}</p>
         </div>
         <button data-action="open-daily-leaderboard" class="text-xs font-bold px-3 py-1.5 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:#fdba74;background:var(--card);color:${isDark() ? '#fdba74' : '#c2410c'}">
           Board 🏅
@@ -1416,12 +1421,26 @@ function renderDailySubmitCard() {
   return `
   <div class="rounded-2xl border p-4 card-shadow" style="border-color:#fdba74;background:${isDark() ? 'rgba(249,115,22,0.07)' : '#fffaf5'}">
     <p class="text-xs font-bold uppercase tracking-widest mb-2" style="color:${isDark() ? '#fdba74' : '#c2410c'}">🗓️ Daily Challenge</p>
-    <p class="text-xs mb-3" style="color:${isDark() ? '#cbd5e1' : '#475569'}">Same draft board as every player today — submit your record to the daily leaderboard.</p>
-    <button data-action="submit-daily" id="submit-daily-btn"
-      class="w-full py-2.5 rounded-xl font-bold text-sm text-white hover:opacity-90 transition-all cursor-pointer card-shadow" style="background:#ea580c">
-      Submit to Daily Board →
-    </button>
+    <p class="text-xs mb-3" style="color:${isDark() ? '#cbd5e1' : '#475569'}">Name your franchise, then submit your record to today's leaderboard.</p>
+    <div class="flex gap-2">
+      <div class="flex-1 relative">
+        <input
+          id="daily-team-name-input"
+          type="text"
+          maxlength="30"
+          value="${esc(S.teamName || '')}"
+          placeholder="Franchise Name"
+          class="w-full rounded-xl border border-border bg-white px-3 py-2.5 text-sm font-semibold text-foreground placeholder:text-muted-fg focus:outline-none focus:border-primary focus:ring-2 focus:ring-orange-100 transition-all"
+        />
+        <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-muted pointer-events-none" id="daily-team-name-counter">30</span>
+      </div>
+      <button data-action="submit-daily" id="submit-daily-btn"
+        class="flex-shrink-0 px-4 rounded-xl font-bold text-sm text-white hover:opacity-90 transition-all cursor-pointer card-shadow" style="background:#ea580c">
+        Submit
+      </button>
+    </div>
     ${errorHtml}
+    <p class="text-[10px] text-muted-fg mt-2">Appears on today's daily board · max 30 characters</p>
   </div>`;
 }
 
@@ -1652,9 +1671,9 @@ function renderResults() {
                 <p class="text-xs font-bold mt-2" style="color:var(--primary)">💡 ${autopsy.fix}</p>
               </div>
             </div>
-            <button data-action="draft-new-roster"
+            ${S.mode !== 'daily' ? `<button data-action="draft-new-roster"
               class="w-full mt-3 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest text-white cursor-pointer transition-all hover:opacity-90"
-              style="background:#dc2626">🔁 Run It Back — Fix It</button>
+              style="background:#dc2626">🔁 Run It Back — Fix It</button>` : ''}
           </div>` : isPerfect ? `
           <div class="rounded-2xl p-4 card-shadow flex flex-col perfect-glow" style="border:1.5px solid #fcd34d;background:${isDark() ? 'rgba(251,191,36,0.08)' : '#fffbeb'}">
             <p class="text-xs font-bold uppercase tracking-widest mb-2.5" style="color:${isDark() ? '#fcd34d' : '#b45309'}">
@@ -1761,9 +1780,13 @@ function renderResults() {
         </div>
         <!-- ── Action buttons ────────────────────────────────────────── -->
         <div class="grid grid-cols-2 gap-3">
-          <button data-action="restart" class="py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer card-shadow">
+          ${S.mode === 'daily'
+            ? `<button data-action="back-to-menu" class="py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer card-shadow">
+            Back to Menu
+          </button>`
+            : `<button data-action="restart" class="py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer card-shadow">
             Build Another
-          </button>
+          </button>`}
           <button data-action="share" class="py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer card-shadow">
             Share Result
           </button>
@@ -2582,6 +2605,17 @@ export function render() {
       const update = () => { gCounter.textContent = 30 - gInput.value.length; };
       update();
       gInput.addEventListener('input', update);
+    }
+  }
+
+  // Wire up character counter for the daily board submit input
+  if (S.phase === 'results' && S.mode === 'daily' && !S.dailyScoreSubmitted) {
+    const dInput   = document.getElementById('daily-team-name-input');
+    const dCounter = document.getElementById('daily-team-name-counter');
+    if (dInput && dCounter) {
+      const update = () => { dCounter.textContent = 30 - dInput.value.length; };
+      update();
+      dInput.addEventListener('input', update);
     }
   }
 }
