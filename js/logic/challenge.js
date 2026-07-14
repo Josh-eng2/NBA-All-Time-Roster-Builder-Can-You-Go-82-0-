@@ -156,6 +156,12 @@ export function getDailyChallenge(dateStr = todayUTC()) {
   return CHALLENGES[idx]; // unreachable unless the whole catalog is broken
 }
 
+/** Look up a catalog entry by id (for the TEMP test picker). */
+export function getChallengeById(id) {
+  if (!id) return null;
+  return CHALLENGES.find(c => c.id === id) || null;
+}
+
 // ── Locked-player lookup ──────────────────────────────────────────────────────
 
 /**
