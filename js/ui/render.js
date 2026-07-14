@@ -19,9 +19,9 @@ import { calculateChemistry }                             from '../logic/chemist
 import { rosterFull, availableDecades, getLegendCatalog, getSkips } from '../logic/draft.js';
 import { coachSystemProgress }                            from '../logic/simulation.js';
 import { getBracketDisplayState }                         from '../logic/playoffs.js';
-import { markReturning, getCollectedLegends, getDailyStatus, getDailyStreak, DAILY_UNLIMITED_FOR_TESTING } from '../utils/storage.js';
+import { markReturning, getCollectedLegends, getDailyStatus, getDailyStreak, DAILY_UNLIMITED_FOR_TESTING, dailyTestOverrideId } from '../utils/storage.js';
 import { cgGameplayStart, cgGameplayStop, cgGetItem }     from '../utils/crazygames.js';
-import { getDailyChallenge, checkPickLegal, checkRosterConstraint } from '../logic/challenge.js';
+import { getDailyChallenge, checkPickLegal, checkRosterConstraint, CHALLENGES, getChallengeById } from '../logic/challenge.js';
 import { bindEvents }                                     from '../ui/events.js'; // circular — safe (called inside functions only)
 
 // ── Mount point ───────────────────────────────────────────────────────────────
@@ -318,11 +318,27 @@ function renderDailyModeCard() {
   // border-slate-100 both already have dark-mode overrides, so this themes
   // correctly for free instead of needing a bespoke gradient per mode.
   const status = getDailyStatus();
-  const ch     = getDailyChallenge(getUtcDateString());
+  const todayCh = getDailyChallenge(getUtcDateString());
+  const ch = (DAILY_UNLIMITED_FOR_TESTING && dailyTestOverrideId)
+    ? (getChallengeById(dailyTestOverrideId) || todayCh)
+    : todayCh;
   const streak = getDailyStreak().streak;
   const streakChip = streak > 0
     ? `<span class="text-[10px] font-black px-2 py-0.5 rounded-full flex-shrink-0" style="background:var(--amber-badge-bg,#fef3c7);color:var(--amber-text,#b45309);border:1px solid var(--amber-border,#fcd34d)">🔥 ${streak}</span>`
     : '';
+
+  const testPicker = DAILY_UNLIMITED_FOR_TESTING ? `
+  <div class="mb-3 rounded-xl border border-dashed p-3" style="border-color:#fb923c;background:${isDark() ? 'rgba(249,115,22,0.08)' : '#fff7ed'}">
+    <p class="text-[10px] font-black uppercase tracking-widest mb-2" style="color:#ea580c">TEMP · Test challenge picker</p>
+    <label class="block text-[11px] font-bold text-muted-fg mb-1" for="daily-test-challenge-select">Select daily mode to play</label>
+    <select id="daily-test-challenge-select"
+      class="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm font-semibold text-foreground cursor-pointer">
+      <option value="" ${!dailyTestOverrideId ? 'selected' : ''}>Today's scheduled — ${todayCh.emoji} ${todayCh.title}</option>
+      ${CHALLENGES.map(c => `<option value="${c.id}" ${dailyTestOverrideId === c.id ? 'selected' : ''}>${c.emoji} ${c.title} (${c.type})</option>`).join('')}
+    </select>
+    <p class="text-[10px] text-muted-fg mt-1.5">Remove before shipping — only shown while testing flag is on.</p>
+  </div>` : '';
+
   if (status.playedToday) {
     const r = status.result;
     // Recaps written before the challenge system have no `passed` field —
@@ -333,6 +349,7 @@ function renderDailyModeCard() {
           : `<span style="color:#dc2626;font-weight:900">FAILED ✗</span>`)
       : 'Done ✅';
     return `
+    ${testPicker}
     <div class="w-full rounded-2xl bg-white p-4 flex items-center gap-3 mb-3 card-shadow border border-slate-100">
       <span class="text-3xl flex-shrink-0">${ch.emoji}</span>
       <div class="flex-1 min-w-0">
@@ -346,6 +363,7 @@ function renderDailyModeCard() {
     </div>`;
   }
   return `
+  ${testPicker}
   <div class="mb-3">
     <button data-action="mode-daily"
       class="w-full rounded-2xl bg-white p-4 flex items-center gap-3 cursor-pointer card-shadow hover:shadow-md transition-all border border-slate-100 text-left">
