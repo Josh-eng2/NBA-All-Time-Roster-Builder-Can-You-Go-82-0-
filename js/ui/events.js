@@ -26,6 +26,7 @@ import {
   showLeaderboardModal, closeLeaderboardModal,
   showGlobalLeaderboardModal, closeGlobalLeaderboardModal,
   getDailyStatus, markDailyPlayed, showDailyLeaderboardModal, closeDailyLeaderboardModal,
+  showDailyStatsModal, closeDailyStatsModal,
 } from '../utils/storage.js';
 import { submitGlobalScore, submitDailyScore, logAnalyticsEvent, isFirebaseConfigured } from '../utils/firebase.js';
 import { cgGetItem, cgSetItem } from '../utils/crazygames.js';
@@ -40,6 +41,7 @@ import {
 window.closeLeaderboardModal       = closeLeaderboardModal;
 window.closeGlobalLeaderboardModal = closeGlobalLeaderboardModal;
 window.closeDailyLeaderboardModal  = closeDailyLeaderboardModal;
+window.closeDailyStatsModal        = closeDailyStatsModal;
 
 // ── Event binding ─────────────────────────────────────────────────────────────
 
@@ -99,6 +101,7 @@ function dispatch(action) {
     render(); return;
   }
   if (action === 'open-daily-leaderboard') { showDailyLeaderboardModal(); return; }
+  if (action === 'open-daily-stats')       { showDailyStatsModal(); return; }
   if (action === 'submit-daily')           { doSubmitDaily();             return; }
   // ── Coach (in-draft chip) & Era (header picker) ────────────────────────────
   // Coach lives on the drafting screen; era lives in the header. Both lock on first spin.
@@ -691,6 +694,14 @@ function runSeasonReveal() {
         if (S.gameId !== simId || S.phase !== 'season-sim') return;
         S.phase = 'results';
         render();
+        // Wordle-style: surface Statistics after the day's one shot lands.
+        if (S.mode === 'daily') {
+          setTimeout(() => {
+            if (S.gameId === simId && S.phase === 'results' && S.mode === 'daily') {
+              showDailyStatsModal();
+            }
+          }, 700);
+        }
       }, 900);
       return;
     }
