@@ -15,15 +15,20 @@
  *   showGlobalLbTeamDetail(i)     — popup for a global leaderboard entry's roster
  *   closeGlobalLbTeamDetail()     — closes the team detail popup
  *   getDailyStatus()              — { today, playedToday, result } for the Daily Challenge
+ *   getDailyStreak()              — { streak, lastPassDate } consecutive-day pass chain
+ *   getDailyStats()               — Wordle-style lifetime Daily Challenge stats
  *   markDailyPlayed(entry)        — locks the Daily Challenge for the current UTC day
  *   showDailyLeaderboardModal()   — renders and mounts today's Daily Challenge modal
  *   closeDailyLeaderboardModal()  — removes the daily modal from the DOM
+ *   showDailyStatsModal()         — Wordle-style Statistics modal for Daily Challenge
+ *   closeDailyStatsModal()        — removes the Statistics modal from the DOM
  *
  * Side-effects:
  *   window.closeLeaderboardModal, window.closeGlobalLeaderboardModal,
  *   window.showGlobalLbTeamDetail, window.closeGlobalLbTeamDetail,
- *   window.switchGlobalLbTab, and window.closeDailyLeaderboardModal are set
- *   at module load so inline onclick handlers in modal HTML can call them.
+ *   window.switchGlobalLbTab, window.closeDailyLeaderboardModal, and
+ *   window.closeDailyStatsModal are set at module load so inline onclick
+ *   handlers in modal HTML can call them.
  */
 
 import { S, COACHES, POSITIONS, getUtcDateString } from '../logic/state.js';
@@ -630,6 +635,31 @@ export function getDailyStatus() {
 }
 
 const DAILY_STREAK_KEY = 'nba820_dailyStreak';
+const DAILY_STATS_KEY  = 'nba820_dailyStats';
+
+/** Season-win bins for the Wordle-style distribution chart (6 rows). */
+export const DAILY_WIN_BINS = [
+  { key: '0-39',  label: '0–39',  min: 0,  max: 39 },
+  { key: '40-49', label: '40–49', min: 40, max: 49 },
+  { key: '50-59', label: '50–59', min: 50, max: 59 },
+  { key: '60-69', label: '60–69', min: 60, max: 69 },
+  { key: '70-79', label: '70–79', min: 70, max: 79 },
+  { key: '80-82', label: '80–82', min: 80, max: 82 },
+];
+
+function _emptyDailyDist() {
+  const d = {};
+  for (const b of DAILY_WIN_BINS) d[b.key] = 0;
+  return d;
+}
+
+function _binKeyForWins(wins) {
+  const w = Math.max(0, Math.min(82, Number(wins) || 0));
+  for (const b of DAILY_WIN_BINS) {
+    if (w >= b.min && w <= b.max) return b.key;
+  }
+  return '0-39';
+}
 
 /** @returns {{ streak: number, lastPassDate: string|null }} consecutive-day challenge passes */
 export function getDailyStreak() {
@@ -638,9 +668,74 @@ export function getDailyStreak() {
 }
 
 /**
+ * Lifetime Daily Challenge stats (Wordle-style).
+ * Soft-migrates today's locked result into lifetime totals if stats were
+ * added after the player already finished the day.
+ * @returns {{ played: number, wins: number, currentStreak: number, maxStreak: number, lastPlayedDate: string|null, distribution: Record<string, number> }}
+ */
+export function getDailyStats() {
+  const streak = getDailyStreak();
+  let stats = null;
+  try { stats = JSON.parse(cgGetItem(DAILY_STATS_KEY) || 'null'); } catch (e) {}
+  if (!stats || typeof stats !== 'object') {
+    stats = {
+      played: 0,
+      wins: 0,
+      currentStreak: streak.streak || 0,
+      maxStreak: streak.streak || 0,
+      lastPlayedDate: null,
+      distribution: _emptyDailyDist(),
+    };
+  } else {
+    const dist = { ..._emptyDailyDist(), ...(stats.distribution || {}) };
+    const storedStreak = Number(stats.currentStreak);
+    const currentStreak = Number.isFinite(storedStreak) ? Math.max(0, storedStreak) : (streak.streak || 0);
+    const storedMax = Number(stats.maxStreak);
+    const maxStreak = Math.max(
+      Number.isFinite(storedMax) ? Math.max(0, storedMax) : 0,
+      streak.streak || 0,
+      currentStreak,
+    );
+    stats = {
+      played:        Math.max(0, Number(stats.played) || 0),
+      wins:          Math.max(0, Number(stats.wins) || 0),
+      currentStreak,
+      maxStreak,
+      lastPlayedDate: stats.lastPlayedDate || null,
+      distribution:  dist,
+    };
+  }
+
+  // If today's daily is already locked but never recorded into lifetime
+  // stats (upgrade mid-day), fold it in once.
+  const status = getDailyStatus();
+  if (status.playedToday && status.result && stats.lastPlayedDate !== status.today) {
+    stats.played += 1;
+    if (status.result.passed) stats.wins += 1;
+    const bin = _binKeyForWins(status.result.wins);
+    stats.distribution[bin] = (stats.distribution[bin] || 0) + 1;
+    stats.lastPlayedDate = status.today;
+    stats.currentStreak = streak.streak || 0;
+    if (stats.currentStreak > stats.maxStreak) stats.maxStreak = stats.currentStreak;
+    try {
+      cgSetItem(DAILY_STATS_KEY, JSON.stringify({
+        played: stats.played,
+        wins: stats.wins,
+        currentStreak: stats.currentStreak,
+        maxStreak: stats.maxStreak,
+        lastPlayedDate: stats.lastPlayedDate,
+        distribution: stats.distribution,
+      }));
+    } catch (e) {}
+  }
+
+  return stats;
+}
+
+/**
  * Locks the Daily Challenge for today, stores a compact recap for the
- * mode-select card, and updates the pass streak (consecutive UTC days
- * passed chain; a failed day resets to 0).
+ * mode-select card, updates the pass streak (consecutive UTC days
+ * passed chain; a failed day resets to 0), and accumulates lifetime stats.
  *
  * @returns {number} the streak after this result
  */
@@ -651,6 +746,8 @@ export function markDailyPlayed({ wins, losses, chemScore, champion, challengeId
       date: today, wins, losses, chemScore, champion, challengeId, passed, score, at: Date.now(),
     }));
   } catch (e) {}
+
+  let streakVal = 0;
   try {
     const s = getDailyStreak();
     if (passed) {
@@ -663,8 +760,31 @@ export function markDailyPlayed({ wins, losses, chemScore, champion, challengeId
       s.streak = 0;
     }
     cgSetItem(DAILY_STREAK_KEY, JSON.stringify(s));
-    return s.streak;
-  } catch (e) { return 0; }
+    streakVal = s.streak;
+  } catch (e) { streakVal = 0; }
+
+  try {
+    const stats = getDailyStats();
+    if (stats.lastPlayedDate !== today) {
+      stats.played += 1;
+      if (passed) stats.wins += 1;
+      const bin = _binKeyForWins(wins);
+      stats.distribution[bin] = (stats.distribution[bin] || 0) + 1;
+      stats.lastPlayedDate = today;
+    }
+    stats.currentStreak = streakVal;
+    if (streakVal > stats.maxStreak) stats.maxStreak = streakVal;
+    cgSetItem(DAILY_STATS_KEY, JSON.stringify({
+      played: stats.played,
+      wins: stats.wins,
+      currentStreak: stats.currentStreak,
+      maxStreak: stats.maxStreak,
+      lastPlayedDate: stats.lastPlayedDate,
+      distribution: stats.distribution,
+    }));
+  } catch (e) {}
+
+  return streakVal;
 }
 
 function _dailyLbRowsHtml(entries) {
@@ -794,6 +914,103 @@ export function showDailyLeaderboardModal() {
 
 export function closeDailyLeaderboardModal() {
   const el = document.getElementById('daily-lb-modal-root');
+  if (el) {
+    if (el._removeKey) el._removeKey();
+    el.remove();
+  }
+}
+
+// ── Daily Challenge — Wordle-style Statistics modal ───────────────────────────
+
+function _dailyStatsBodyHtml() {
+  const stats   = getDailyStats();
+  const status  = getDailyStatus();
+  const winPct  = stats.played > 0 ? Math.round((stats.wins / stats.played) * 100) : 0;
+  const todayWins = status.playedToday ? Number(status.result?.wins) : null;
+  const todayBin  = todayWins != null ? _binKeyForWins(todayWins) : null;
+  const maxCount  = Math.max(1, ...DAILY_WIN_BINS.map(b => stats.distribution[b.key] || 0));
+
+  const cells = [
+    { value: stats.played,        label: 'Played' },
+    { value: winPct,              label: 'Win %' },
+    { value: stats.currentStreak, label: 'Current<br>Streak' },
+    { value: stats.maxStreak,     label: 'Max<br>Streak' },
+  ].map(c => `
+    <div style="text-align:center;flex:1;min-width:0">
+      <p style="font-size:36px;font-weight:700;line-height:1;margin:0;color:var(--fg);font-family:Fira Sans,sans-serif">${c.value}</p>
+      <p style="font-size:11px;font-weight:600;line-height:1.2;margin:6px 0 0;color:var(--muted-fg);text-transform:uppercase;letter-spacing:0.04em;font-family:Fira Sans,sans-serif">${c.label}</p>
+    </div>`).join('');
+
+  const bars = DAILY_WIN_BINS.map(b => {
+    const count = stats.distribution[b.key] || 0;
+    const pct   = Math.max(count > 0 ? 8 : 7, Math.round((count / maxCount) * 100));
+    const isToday = todayBin === b.key;
+    const barBg = isToday ? '#ea580c' : (count > 0 ? 'var(--muted-fg)' : 'var(--muted)');
+    return `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+      <span style="width:42px;flex-shrink:0;font-size:13px;font-weight:700;color:var(--fg);text-align:right;font-family:Fira Sans,sans-serif">${b.label}</span>
+      <div style="flex:1;min-width:0;display:flex">
+        <div style="background:${barBg};color:#fff;font-size:12px;font-weight:700;line-height:1;padding:4px 6px;
+                    min-width:${count > 0 ? '20px' : '18px'};width:${pct}%;max-width:100%;
+                    display:flex;align-items:center;justify-content:flex-end;
+                    font-family:Fira Sans,sans-serif;border-radius:2px;box-sizing:border-box">${count}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  return `
+  <div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:28px;padding:0 4px">
+    ${cells}
+  </div>
+  <p style="font-size:14px;font-weight:800;text-align:center;letter-spacing:0.08em;text-transform:uppercase;margin:0 0 12px;color:var(--fg);font-family:Fira Sans,sans-serif">Win Distribution</p>
+  <div style="padding:0 4px">${bars}</div>
+  ${stats.played === 0
+    ? `<p style="text-align:center;font-size:12px;color:var(--muted-fg);margin:16px 0 0;font-family:Fira Sans,sans-serif">Play today's Daily Challenge to start tracking stats.</p>`
+    : ''}`;
+}
+
+export function showDailyStatsModal() {
+  closeDailyStatsModal();
+  const div = document.createElement('div');
+  div.id = 'daily-stats-modal-root';
+  div.innerHTML = `
+  <div id="daily-stats-modal-backdrop" onclick="if(event.target===this)window.closeDailyStatsModal()"
+    style="position:fixed;inset:0;background:var(--overlay);z-index:9998;display:flex;
+           align-items:center;justify-content:center;padding:16px">
+    <div role="dialog" aria-labelledby="daily-stats-title" aria-modal="true"
+      style="background:var(--card);border:1.5px solid var(--border);border-radius:20px;width:100%;
+             max-width:380px;max-height:90vh;overflow-y:auto;padding:28px 24px 24px;
+             font-family:Fira Sans,sans-serif;color:var(--fg);
+             animation:scaleIn 0.2s ease-out;box-shadow:0 20px 60px var(--shadow)">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px">
+        <h2 id="daily-stats-title" style="font-size:16px;font-weight:800;margin:0;letter-spacing:0.12em;
+                   text-transform:uppercase;color:var(--fg);width:100%;text-align:center;padding-left:32px">Statistics</h2>
+        <button onclick="window.closeDailyStatsModal()" aria-label="Close"
+          style="background:var(--card2);border:1px solid var(--border);color:var(--muted-fg);border-radius:999px;
+                 width:32px;height:32px;font-size:16px;cursor:pointer;display:flex;
+                 align-items:center;justify-content:center;flex-shrink:0;margin-left:-32px">✕</button>
+      </div>
+      ${_dailyStatsBodyHtml()}
+    </div>
+  </div>`;
+  document.body.appendChild(div);
+  const onKey = e => { if (e.key === 'Escape') closeDailyStatsModal(); };
+  document.addEventListener('keydown', onKey);
+  div._removeKey = () => document.removeEventListener('keydown', onKey);
+  const focusable = div.querySelectorAll('button, [tabindex]:not([tabindex="-1"])');
+  const first = focusable[0], last = focusable[focusable.length - 1];
+  div.addEventListener('keydown', e => {
+    if (e.key !== 'Tab' || !first) return;
+    if (e.shiftKey ? document.activeElement === first : document.activeElement === last) {
+      e.preventDefault();
+      (e.shiftKey ? last : first).focus();
+    }
+  });
+  first?.focus();
+}
+
+export function closeDailyStatsModal() {
+  const el = document.getElementById('daily-stats-modal-root');
   if (el) {
     if (el._removeKey) el._removeKey();
     el.remove();
