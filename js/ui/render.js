@@ -333,26 +333,26 @@ function renderDailyModeCard() {
           : `<span style="color:#dc2626;font-weight:900">FAILED ✗</span>`)
       : 'Done ✅';
     return `
-    <div class="w-full rounded-2xl bg-white p-4 flex items-center gap-3 mb-3 card-shadow border border-slate-100">
-      <span class="text-3xl flex-shrink-0">${ch.emoji}</span>
+    <div class="w-full rounded-2xl bg-white px-3 py-2 flex items-center gap-2 mb-3 card-shadow border border-slate-100">
+      <span class="text-2xl flex-shrink-0">${ch.emoji}</span>
       <div class="flex-1 min-w-0">
-        <p class="font-black text-base text-foreground flex items-center gap-2">Daily Challenge — ${verdict} ${streakChip}</p>
-        <p class="text-xs text-muted-fg mt-0.5">${ch.title}: you went <span style="color:#f97316;font-weight:700">${r.wins}–${r.losses}</span> today · ${dailyResetInLabel()}</p>
+        <p class="font-black text-sm text-foreground flex items-center gap-2">Daily Challenge — ${verdict} ${streakChip}</p>
+        <p class="text-[11px] text-muted-fg mt-0.5">${ch.title}: you went <span style="color:#f97316;font-weight:700">${r.wins}–${r.losses}</span> today · ${dailyResetInLabel()}</p>
       </div>
-      <button data-action="open-daily-stats" class="text-xs font-bold px-3 py-2 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:var(--border);background:var(--card);color:var(--muted-fg)">Stats</button>
-      <button data-action="open-daily-leaderboard" class="text-xs font-bold px-3 py-2 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:#fdba74;background:var(--card);color:${isDark() ? '#fdba74' : '#c2410c'}">Board 🏅</button>
+      <button data-action="open-daily-stats" class="text-[11px] font-bold px-2 py-1 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:var(--border);background:var(--card);color:var(--muted-fg)">Stats</button>
+      <button data-action="open-daily-leaderboard" class="text-[11px] font-bold px-2 py-1 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:#fdba74;background:var(--card);color:${isDark() ? '#fdba74' : '#c2410c'}">Board 🏅</button>
     </div>`;
   }
   return `
   <div class="mb-3">
     <button data-action="mode-daily"
-      class="w-full rounded-2xl bg-white p-4 flex items-center gap-3 cursor-pointer card-shadow hover:shadow-md transition-all border border-slate-100 text-left">
-      <span class="text-3xl flex-shrink-0" style="pointer-events:none">${ch.emoji}</span>
+      class="w-full rounded-2xl bg-white px-3 py-2 flex items-center gap-2 cursor-pointer card-shadow hover:shadow-md transition-all border border-slate-100 text-left">
+      <span class="text-2xl flex-shrink-0" style="pointer-events:none">${ch.emoji}</span>
       <div class="flex-1 min-w-0" style="pointer-events:none">
-        <p class="font-black text-base flex items-center gap-2" style="color:#f97316">Daily Challenge · ${ch.title} ${streakChip}</p>
-        <p class="text-xs text-muted-fg leading-snug mt-0.5">${ch.desc} Same draft board as every player today — one shot.</p>
+        <p class="font-black text-sm flex items-center gap-2" style="color:#f97316">Daily Challenge · ${ch.title} ${streakChip}</p>
+        <p class="text-[11px] text-muted-fg leading-snug mt-0.5">${ch.desc} Same draft board as every player today — one shot.</p>
       </div>
-      <span class="text-xs font-bold px-3 py-2 rounded-lg border flex-shrink-0" style="border-color:#fdba74;background:var(--card);color:${isDark() ? '#fdba74' : '#c2410c'};pointer-events:none">Play →</span>
+      <span class="text-[11px] font-bold px-2 py-1 rounded-lg border flex-shrink-0" style="border-color:#fdba74;background:var(--card);color:${isDark() ? '#fdba74' : '#c2410c'};pointer-events:none">Play →</span>
     </button>
     <div class="flex items-center justify-center gap-3 mt-1.5">
       <button data-action="open-daily-stats" class="text-[11px] font-bold text-muted-fg hover:text-primary cursor-pointer border-0 bg-transparent">Statistics</button>
