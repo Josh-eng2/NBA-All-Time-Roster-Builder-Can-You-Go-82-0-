@@ -116,11 +116,19 @@
  *
  * ACCOUNTS / CROSS-DEVICE SYNC (optional, on top of the above)
  * ──────────────────────────────────────────────────────────
- * 6. Firebase Console → Authentication → Sign-in method → enable "Google".
- *    No other provider is wired up — sign-in stays fully optional (the game
- *    never requires an account to play), so a popup-only Google flow is
- *    enough and avoids building any password UI.
- * 7. Firestore Rules — add this block alongside the leaderboard rules above
+ * 6. Firebase Console → Authentication → Sign-in method → enable both
+ *    "Google" and "Email link (passwordless sign-in)". Only these two are
+ *    wired up — sign-in stays fully optional (the game never requires an
+ *    account to play), so neither needs a password UI to be built.
+ * 7. Firebase Console → Authentication → Settings → Authorized domains →
+ *    add your production domain (e.g. canyougo820.com). Firebase Auth
+ *    rejects sign-in attempts from any domain not on this list — it does
+ *    NOT automatically trust a custom domain just because Firestore/Hosting
+ *    already know about it. Forgetting this step is the most common way to
+ *    see a working "Sign in with Google" button do nothing (or, on some
+ *    mobile browsers, land on a Firebase-hosted "missing initial state"
+ *    error page instead of a clean rejection).
+ * 8. Firestore Rules — add this block alongside the leaderboard rules above
  *    (same `match /databases/{database}/documents {` block). Unlike the
  *    leaderboard, this collection is owner-only, so it needs no field
  *    validation — a signed-in user can only ever read/write their OWN doc:
@@ -136,11 +144,25 @@
  *   submitDailyScore(entry)     — writes one document to 'dailyLeaderboard'
  *   fetchDailyLeaderboard(date) — reads top entries for a 'YYYY-MM-DD' day
  *   fetchDailyCommunityStats(date) — { attempts, passed, pct } for the day's board
- *   signInWithGoogle()          — opens a Google sign-in popup, resolves to the user
+ *   signInWithGoogle()          — starts a Google sign-in redirect (see note below)
+ *   consumeRedirectSignIn()     — call once at boot to complete a pending Google redirect
+ *   sendEmailSignInLink(email)  — emails a one-time passwordless sign-in link
+ *   consumeEmailLinkSignIn()    — call once at boot to complete a tapped email link
  *   signOutUser()                — signs the current user out
  *   getCurrentUser()             — sync snapshot of the signed-in user, or null
  *   getUserDoc(uid)              — reads the cross-device-sync doc at users/{uid}
  *   setUserDoc(uid, data)        — overwrites the cross-device-sync doc at users/{uid}
+ *
+ * Google sign-in uses signInWithRedirect, not signInWithPopup. The popup
+ * flow relies on sessionStorage being readable by BOTH the opener tab and
+ * the popup window to relay the result back — several mobile browsers
+ * (notably Safari on iOS) partition storage per top-level site and block
+ * that, which surfaces as an unrecoverable "missing initial state" error on
+ * Firebase's own hosted handler page, with no JS exception this app could
+ * catch or retry. Redirect never needs cross-window storage sharing (it's
+ * the same tab/session before and after), so it doesn't have this failure
+ * mode — the tradeoff is a full page reload, handled by calling
+ * consumeRedirectSignIn() once at boot (see main.js).
  */
 
 import { initializeApp, getApps }   from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js';
@@ -151,7 +173,8 @@ import {
 } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js';
 import { getAnalytics, logEvent } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-analytics.js';
 import {
-  getAuth, GoogleAuthProvider, signInWithPopup, signOut as fbSignOut,
+  getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut as fbSignOut,
+  isSignInWithEmailLink, sendSignInLinkToEmail, signInWithEmailLink,
 } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js';
 
 // ── Firebase project config ────────────────────────────────────────────────────
@@ -228,15 +251,76 @@ export function logAnalyticsEvent(eventName, params = {}) {
 // getUserDoc/setUserDoc below.
 
 /**
- * Opens a Google sign-in popup.
- * @returns {Promise<{uid:string, displayName:string|null, email:string|null, photoURL:string|null}>}
+ * Starts a Google sign-in redirect — navigates the whole page to Google and
+ * back. See the file-header note above for why this isn't a popup. Because
+ * it navigates away, this never resolves with a user; call
+ * consumeRedirectSignIn() at boot on the page it returns to instead.
  */
 export async function signInWithGoogle() {
   if (!isFirebaseConfigured()) throw new Error('Firebase not configured — see js/utils/firebase.js setup instructions');
   const auth = getAuthInstance();
   if (!auth) throw new Error('Firebase auth unavailable');
-  const { user } = await signInWithPopup(auth, new GoogleAuthProvider());
-  return toPublicUser(user);
+  await signInWithRedirect(auth, new GoogleAuthProvider());
+}
+
+/**
+ * Call once at boot, before anything else needs to know the auth state.
+ * Completes a Google sign-in that was in progress before the redirect
+ * navigated away. Resolves to null on every ordinary page load (i.e. almost
+ * always) — cheap and safe to call unconditionally.
+ * @returns {Promise<{uid:string, displayName:string|null, email:string|null, photoURL:string|null}|null>}
+ */
+export async function consumeRedirectSignIn() {
+  const auth = getAuthInstance();
+  if (!auth) return null;
+  const cred = await getRedirectResult(auth);
+  return toPublicUser(cred?.user ?? null);
+}
+
+// Where sendSignInLinkToEmail's emailed link points back to, and the
+// localStorage key that carries the address across the email round-trip —
+// plain localStorage (not cgGetItem/storage.js's CrazyGames-routed storage)
+// is correct here: this is a short-lived auth-handshake artifact, not player
+// progress, and the whole email-sign-in feature is hidden inside the
+// CrazyGames iframe anyway (see showAccountButton() in render.js).
+const EMAIL_LINK_SETTINGS = () => ({ url: window.location.origin + window.location.pathname, handleCodeInApp: true });
+const EMAIL_FOR_SIGN_IN_KEY = 'nba820_emailForSignIn';
+
+/**
+ * Emails a one-time passwordless sign-in link to the given address.
+ * @param {string} email
+ */
+export async function sendEmailSignInLink(email) {
+  if (!isFirebaseConfigured()) throw new Error('Firebase not configured — see js/utils/firebase.js setup instructions');
+  const auth = getAuthInstance();
+  if (!auth) throw new Error('Firebase auth unavailable');
+  await sendSignInLinkToEmail(auth, email, EMAIL_LINK_SETTINGS());
+  try { window.localStorage.setItem(EMAIL_FOR_SIGN_IN_KEY, email); } catch (_) {}
+}
+
+/**
+ * Call once at boot. If the current URL is a link the player just tapped
+ * from their email, completes the sign-in and cleans the link's params out
+ * of the URL either way (so a refresh can't replay a used/expired link).
+ * Resolves to null on every ordinary page load.
+ * @returns {Promise<{uid:string, displayName:string|null, email:string|null, photoURL:string|null}|null>}
+ */
+export async function consumeEmailLinkSignIn() {
+  const auth = getAuthInstance();
+  if (!auth || !isSignInWithEmailLink(auth, window.location.href)) return null;
+  const href = window.location.href;
+  window.history.replaceState({}, document.title, window.location.pathname);
+  let email = null;
+  try { email = window.localStorage.getItem(EMAIL_FOR_SIGN_IN_KEY); } catch (_) {}
+  if (!email) {
+    // Link opened in a different browser/device than the one that requested
+    // it — Firebase can't recover the address on its own, so ask once.
+    email = window.prompt('Confirm your email to finish signing in:');
+  }
+  if (!email) return null;
+  const cred = await signInWithEmailLink(auth, email, href);
+  try { window.localStorage.removeItem(EMAIL_FOR_SIGN_IN_KEY); } catch (_) {}
+  return toPublicUser(cred.user);
 }
 
 /** Signs the current user out. No-ops if Firebase isn't configured. */

@@ -33,20 +33,21 @@
  *   window.showGlobalLbTeamDetail, window.closeGlobalLbTeamDetail,
  *   window.switchGlobalLbTab, window.closeDailyLeaderboardModal,
  *   window.closeDailyStatsModal, window.closeAccountModal,
- *   window._accountSignIn, and window._accountSignOut are set at module
- *   load / call time so inline onclick handlers in modal HTML can call them.
+ *   window._accountSignIn, window._accountSendEmailLink, window._accountReset,
+ *   and window._accountSignOut are set at module load / call time so inline
+ *   onclick handlers in modal HTML can call them.
  */
 
 import { S, COACHES, POSITIONS, getUtcDateString } from '../logic/state.js';
 import { getLegendCatalog }                      from '../logic/draft.js';
 import {
   fetchLeaderboard, fetchDailyLeaderboard, fetchDailyCommunityStats,
-  signInWithGoogle, signOutUser, getCurrentUser,
+  signInWithGoogle, sendEmailSignInLink, signOutUser, getCurrentUser,
 } from '../utils/firebase.js';
 import { cgGetItem, cgSetItem }                    from '../utils/crazygames.js';
 // circular with cloudSync.js (it imports the *_KEY consts and getters below) —
 // safe: only used inside function bodies here, never at module-init time.
-import { pushLocalToCloud, syncOnSignIn }          from '../utils/cloudSync.js';
+import { pushLocalToCloud }                        from '../utils/cloudSync.js';
 import { getDailyChallenge }                       from '../logic/challenge.js';
 
 const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
@@ -642,15 +643,41 @@ export function closeGlobalLeaderboardModal() {
 
 function _accountSignedOutHtml() {
   return `
-  <div style="text-align:center;padding:8px 0 4px">
-    <p style="font-size:13px;color:var(--muted-fg);margin:0 0 18px;line-height:1.5">
-      Sign in with Google to carry your leaderboard history and trophy room to another device. Totally optional — everything already works without it.
+  <div style="padding:8px 0 4px">
+    <p style="font-size:13px;color:var(--muted-fg);margin:0 0 18px;line-height:1.5;text-align:center">
+      Sign in to carry your leaderboard history and trophy room to another device. Totally optional — everything already works without it.
     </p>
     <button onclick="window._accountSignIn()"
       style="width:100%;padding:12px 16px;border-radius:12px;border:1px solid var(--border);background:var(--card2);color:var(--fg);font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;font-family:'Fira Sans',sans-serif">
       <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.81.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.71H.96v2.33A9 9 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.97 10.71A5.4 5.4 0 0 1 3.68 9c0-.59.1-1.17.29-1.71V4.96H.96A9 9 0 0 0 0 9c0 1.45.35 2.83.96 4.04l3.01-2.33z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.51.46 3.44 1.35l2.59-2.59C13.46.89 11.43 0 9 0A9 9 0 0 0 .96 4.96l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z"/></svg>
       Sign in with Google
     </button>
+    <div style="display:flex;align-items:center;gap:10px;margin:18px 0">
+      <div style="flex:1;height:1px;background:var(--border)"></div>
+      <span style="font-size:11px;color:var(--muted-fg);text-transform:uppercase;letter-spacing:0.05em">or</span>
+      <div style="flex:1;height:1px;background:var(--border)"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <input id="account-email-input" type="email" placeholder="you@example.com" autocomplete="email"
+        style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--fg);font-size:14px;font-family:'Fira Sans',sans-serif;box-sizing:border-box" />
+      <button onclick="window._accountSendEmailLink()"
+        style="width:100%;padding:11px 16px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--fg);font-weight:700;font-size:13px;cursor:pointer;font-family:'Fira Sans',sans-serif">
+        Email me a sign-in link
+      </button>
+    </div>
+  </div>`;
+}
+
+function _accountEmailSentHtml(email) {
+  return `
+  <div style="text-align:center;padding:16px 0 4px">
+    <p style="font-size:32px;margin:0 0 12px">📬</p>
+    <p style="font-weight:800;font-size:15px;color:var(--fg);margin:0 0 6px">Check your email</p>
+    <p style="font-size:13px;color:var(--muted-fg);margin:0 0 18px;line-height:1.5">
+      We sent a sign-in link to <strong style="color:var(--fg)">${esc(email)}</strong>. Open it on this device to finish signing in.
+    </p>
+    <button onclick="window._accountReset()"
+      style="padding:9px 20px;border-radius:10px;border:1px solid var(--border);background:var(--card2);color:var(--muted-fg);font-weight:700;font-size:13px;cursor:pointer;font-family:'Fira Sans',sans-serif">Back</button>
   </div>`;
 }
 
@@ -666,7 +693,7 @@ function _accountErrorHtml(message) {
   return `
   <div style="text-align:center;padding:8px 0">
     <p style="font-size:13px;color:#dc2626;margin:0 0 16px;line-height:1.5">${esc(message)}</p>
-    <button onclick="window._accountSignIn()"
+    <button onclick="window._accountReset()"
       style="padding:9px 20px;border-radius:10px;border:1px solid var(--border);background:var(--card2);color:var(--fg);font-weight:700;font-size:13px;cursor:pointer;font-family:'Fira Sans',sans-serif">Try again</button>
   </div>`;
 }
@@ -715,22 +742,35 @@ function _setAccountModalBody(html) {
 }
 
 window._accountSignIn = async function () {
-  _setAccountModalBody(_accountLoadingHtml('Opening Google sign-in…'));
-  let user;
+  // Redirects the whole page to Google — nothing left to update here on
+  // success, the page is about to navigate away. main.js completes the
+  // sign-in (and shows a toast) on the page it redirects back to.
+  _setAccountModalBody(_accountLoadingHtml('Redirecting to Google…'));
   try {
-    user = await signInWithGoogle();
+    await signInWithGoogle();
   } catch (e) {
-    const msg = e?.code === 'auth/popup-closed-by-user'
-      ? 'Sign-in cancelled.'
-      : 'Sign-in failed — check your connection and try again.';
-    _setAccountModalBody(_accountErrorHtml(msg));
+    _setAccountModalBody(_accountErrorHtml('Sign-in failed — check your connection and try again.'));
+  }
+};
+
+window._accountSendEmailLink = async function () {
+  const input = document.getElementById('account-email-input');
+  const email = (input?.value || '').trim();
+  if (!email || !email.includes('@')) {
+    _setAccountModalBody(_accountErrorHtml('Enter a valid email address.'));
     return;
   }
-  _setAccountModalBody(_accountLoadingHtml('Syncing your progress…'));
-  let syncSummary = null;
-  try { syncSummary = await syncOnSignIn(user.uid); }
-  catch (e) { console.warn('[account] sync failed', e); } // signed in either way — sync just didn't complete this round
-  _setAccountModalBody(_accountSignedInHtml(user, syncSummary));
+  _setAccountModalBody(_accountLoadingHtml('Sending your sign-in link…'));
+  try {
+    await sendEmailSignInLink(email);
+    _setAccountModalBody(_accountEmailSentHtml(email));
+  } catch (e) {
+    _setAccountModalBody(_accountErrorHtml("Couldn't send the link — check the address and try again."));
+  }
+};
+
+window._accountReset = function () {
+  _setAccountModalBody(_accountSignedOutHtml());
 };
 
 window._accountSignOut = async function () {
