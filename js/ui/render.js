@@ -20,7 +20,7 @@ import { rosterFull, availableDecades, getLegendCatalog, getSkips } from '../log
 import { coachSystemProgress }                            from '../logic/simulation.js';
 import { getBracketDisplayState }                         from '../logic/playoffs.js';
 import { markReturning, getCollectedLegends, getDailyStatus, currentDailyStreak } from '../utils/storage.js';
-import { cgGameplayStart, cgGameplayStop, cgGetItem }     from '../utils/crazygames.js';
+import { cgGameplayStart, cgGameplayStop, cgGetItem, isCrazyGamesActive } from '../utils/crazygames.js';
 import { getDailyChallenge, checkPickLegal, checkRosterConstraint } from '../logic/challenge.js';
 import { fetchDailyCommunityStats, isFirebaseConfigured } from '../utils/firebase.js';
 import { bindEvents }                                     from '../ui/events.js'; // circular — safe (called inside functions only)
@@ -34,6 +34,11 @@ export const $app = document.getElementById('app');
 const esc = s => String(s)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
   .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+// Account/sync button only makes sense where Firebase is wired up, and is
+// hidden inside the CrazyGames iframe — their own account-linked storage
+// already carries progress across devices there (see crazygames.js).
+const showAccountButton = () => isFirebaseConfigured() && !isCrazyGamesActive();
 
 // ── Chemistry dashboard cache ─────────────────────────────────────────────────
 // Keyed by sorted roster player IDs — recalculates only when the roster changes.
@@ -282,6 +287,7 @@ function renderHeader(showRestart = false) {
           ${eraPill}
           <button data-action="open-leaderboard" type="button" class="header-pill header-pill--icon" title="Personal Best">🏅</button>
           <button data-action="open-global-leaderboard" type="button" class="header-pill header-pill--icon" title="Global Leaderboard">🌍</button>
+          ${showAccountButton() ? `<button data-action="open-account" type="button" class="header-pill header-pill--icon" title="Sync Progress">👤</button>` : ''}
           <button data-action="toggle-theme" type="button" class="header-pill header-pill--icon" title="Toggle Dark Mode">${themeIcon()}</button>
           ${restartBtn}
         </div>
@@ -484,6 +490,7 @@ function renderModeSelect() {
           <button data-action="open-daily-stats" class="text-[11px] px-2 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Daily Challenge Stats">📊</button>
           <button data-action="open-leaderboard" class="text-[11px] px-2 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Personal Best">🏅</button>
           <button data-action="open-global-leaderboard" class="text-[11px] px-2 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Global Leaderboard">🌍</button>
+          ${showAccountButton() ? `<button data-action="open-account" class="text-[11px] px-2 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Sync Progress">👤</button>` : ''}
           <button data-action="toggle-theme" class="theme-toggle" title="Toggle Dark Mode">${themeIcon()}</button>
         </div>
       </div>
