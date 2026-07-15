@@ -86,6 +86,17 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Daily Challenge community pass-rate — short on mobile, full on sm+ */
+.daily-community-copy {
+  font-weight: 700;
+}
+.daily-community-copy__full { display: none; }
+.daily-community-copy__short { display: inline; }
+@media (min-width: 640px) {
+  .daily-community-copy__short { display: none; }
+  .daily-community-copy__full { display: inline; }
+}
+
 /* ── Scrollbar ─────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: var(--card2); }

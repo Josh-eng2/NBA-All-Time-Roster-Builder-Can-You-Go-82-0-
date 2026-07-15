@@ -318,40 +318,63 @@ function dailyResetInLabel() {
 const COMMUNITY_STATS_MIN = 1;
 let _communityStatsCache = { date: null, promise: null, data: null };
 
-function communityStatsLabel(stats) {
+function communityStatsLabels(stats) {
   if (!stats || stats.pct == null || stats.attempts < COMMUNITY_STATS_MIN) return null;
-  return `${stats.pct}% of players passed today's challenge`;
+  return {
+    short: `${stats.pct}% passed today`,
+    full:  `${stats.pct}% of players passed today's challenge`,
+  };
 }
 
-/** Inline community line for inside the Daily Challenge card (hidden until hydrated). */
-function renderCommunityStatsInline() {
+/** Dual short/full copy — CSS shows short on mobile, full from sm up. */
+function communityStatsSpanHtml(labels, accent) {
+  return `<span class="daily-community-copy" style="color:${accent}">`
+    + `<span class="daily-community-copy__short">📊 ${labels.short}</span>`
+    + `<span class="daily-community-copy__full">📊 ${labels.full}</span>`
+    + `</span>`;
+}
+
+/**
+ * Inline fragment merged into the Daily Challenge record/desc line
+ * (e.g. " · 📊 73% passed today"). Hidden until hydrated.
+ */
+function renderCommunityStatsMerged() {
   if (!isFirebaseConfigured()) return '';
   const cached = (_communityStatsCache.date === getUtcDateString() && _communityStatsCache.data)
-    ? communityStatsLabel(_communityStatsCache.data)
+    ? communityStatsLabels(_communityStatsCache.data)
     : null;
   if (_communityStatsCache.date === getUtcDateString() && _communityStatsCache.data && !cached) {
     return '';
   }
   const accent = isDark() ? '#fdba74' : '#c2410c';
   if (cached) {
-    return `<p id="daily-community-stats" class="text-[11px] font-bold mt-1 leading-snug" style="color:${accent}" data-state="ready" aria-live="polite">📊 ${cached}</p>`;
+    return ` · <span id="daily-community-stats" data-state="ready" aria-live="polite">${communityStatsSpanHtml(cached, accent)}</span>`;
   }
-  return `<p id="daily-community-stats" class="text-[11px] font-bold mt-1 leading-snug" style="color:${accent};display:none" data-state="loading" aria-live="polite" hidden></p>`;
+  return ` <span id="daily-community-stats" data-state="loading" aria-live="polite" hidden style="display:none"></span>`;
 }
 
 function paintCommunityStatsEl(el, stats) {
   if (!el) return;
-  const label = communityStatsLabel(stats);
+  const labels = communityStatsLabels(stats);
   const accent = isDark() ? '#fdba74' : '#c2410c';
-  if (!label) {
+  if (!labels) {
+    // Remove leading " · " text node if we left one when mounting cached-ready markup...
+    // For the loading placeholder, just remove the span.
+    const prev = el.previousSibling;
+    if (prev && prev.nodeType === 3 && /^\s*·\s*$/.test(prev.textContent)) prev.remove();
     el.remove();
     return;
   }
   el.dataset.state = 'ready';
   el.hidden = false;
   el.style.display = '';
-  el.style.color = accent;
-  el.textContent = `📊 ${label}`;
+  // Ensure a middle-dot prefix when hydrating from the empty placeholder.
+  const prev = el.previousSibling;
+  const hasDot = prev && prev.nodeType === 3 && prev.textContent.includes('·');
+  if (!hasDot) {
+    el.parentNode?.insertBefore(document.createTextNode(' · '), el);
+  }
+  el.innerHTML = communityStatsSpanHtml(labels, accent);
 }
 
 async function hydrateDailyCommunityStats() {
@@ -382,7 +405,11 @@ async function hydrateDailyCommunityStats() {
     paintCommunityStatsEl(live, stats);
   } catch (_) {
     const live = document.getElementById('daily-community-stats');
-    if (live) live.remove();
+    if (live) {
+      const prev = live.previousSibling;
+      if (prev && prev.nodeType === 3 && /^\s*·\s*$/.test(prev.textContent)) prev.remove();
+      live.remove();
+    }
   }
 }
 
@@ -399,7 +426,7 @@ function renderDailyModeCard() {
   const streakChip = streak > 0
     ? `<span class="text-[10px] font-black px-2 py-0.5 rounded-full flex-shrink-0" style="background:var(--amber-badge-bg,#fef3c7);color:var(--amber-text,#b45309);border:1px solid var(--amber-border,#fcd34d)">🔥 ${streak}</span>`
     : '';
-  const communityLine = renderCommunityStatsInline();
+  const community = renderCommunityStatsMerged();
   if (status.playedToday) {
     const r = status.result;
     // Recaps written before the challenge system have no `passed` field —
@@ -414,8 +441,7 @@ function renderDailyModeCard() {
       <span class="text-2xl flex-shrink-0">${ch.emoji}</span>
       <div class="flex-1 min-w-0">
         <p class="font-black text-sm text-foreground flex items-center gap-2">Daily Challenge — ${verdict} ${streakChip}</p>
-        <p class="text-[11px] text-muted-fg mt-0.5">${ch.title}: you went <span style="color:#f97316;font-weight:700">${r.wins}–${r.losses}</span> today · ${dailyResetInLabel()}</p>
-        ${communityLine}
+        <p class="text-[11px] text-muted-fg mt-0.5 leading-snug">${ch.title}: you went <span style="color:#f97316;font-weight:700">${r.wins}–${r.losses}</span>${community} · ${dailyResetInLabel()}</p>
       </div>
       <button data-action="open-daily-stats" class="text-[11px] font-bold px-2 py-1 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:var(--border);background:var(--card);color:var(--muted-fg)" title="Daily Challenge Stats">Stats</button>
       <button data-action="open-daily-leaderboard" class="text-[11px] font-bold px-2 py-1 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:#fdba74;background:var(--card);color:${isDark() ? '#fdba74' : '#c2410c'}">Board 🏅</button>
@@ -428,8 +454,7 @@ function renderDailyModeCard() {
       <span class="text-2xl flex-shrink-0" style="pointer-events:none">${ch.emoji}</span>
       <div class="flex-1 min-w-0" style="pointer-events:none">
         <p class="font-black text-sm flex items-center gap-2" style="color:#f97316">Daily Challenge · ${ch.title} ${streakChip}</p>
-        <p class="text-[11px] text-muted-fg leading-snug mt-0.5">${ch.desc} Same draft board as every player today — one shot.</p>
-        ${communityLine}
+        <p class="text-[11px] text-muted-fg leading-snug mt-0.5">${ch.desc} Same board today — one shot.${community}</p>
       </div>
       <span class="text-[11px] font-bold px-2 py-1 rounded-lg border flex-shrink-0" style="border-color:#fdba74;background:var(--card);color:${isDark() ? '#fdba74' : '#c2410c'};pointer-events:none">Play →</span>
     </button>
@@ -1472,8 +1497,7 @@ function renderDailyResultBanner() {
     <p class="text-xs font-black uppercase tracking-widest mb-1" style="color:${style.color}">${style.icon} Daily Challenge — ${style.head}</p>
     <p class="text-sm font-bold" style="color:#0f172a">${ch.emoji} ${ch.title}</p>
     <p class="text-xs mt-1" style="color:${style.color}">${dr.detail}${streakLine}</p>
-    <p class="text-[10px] mt-1.5" style="color:#64748b">Score ${dr.score} · new challenge tomorrow (midnight UTC)</p>
-    ${renderCommunityStatsInline()}
+    <p class="text-[10px] mt-1.5" style="color:#64748b">Score ${dr.score} · new challenge tomorrow (midnight UTC)${renderCommunityStatsMerged()}</p>
     <button data-action="open-daily-stats" class="mt-3 text-xs font-bold px-3 py-1.5 rounded-lg border cursor-pointer"
       style="border-color:${style.border};background:var(--card);color:${style.color}">Daily Challenge Stats 📊</button>
   </div>`;

@@ -907,7 +907,10 @@ async function _loadDailyLb(date) {
     if (tableEl) tableEl.innerHTML = _dailyLbRowsHtml(entries);
     if (communityEl) {
       if (community && community.pct != null && community.attempts >= 1) {
-        communityEl.textContent = `📊 ${community.pct}% of players passed today's challenge`;
+        communityEl.innerHTML = `<span class="daily-community-copy">`
+          + `<span class="daily-community-copy__short">📊 ${community.pct}% passed today</span>`
+          + `<span class="daily-community-copy__full">📊 ${community.pct}% of players passed today's challenge</span>`
+          + `</span>`;
       } else {
         communityEl.textContent = '';
       }
