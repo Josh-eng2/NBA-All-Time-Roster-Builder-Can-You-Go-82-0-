@@ -114,6 +114,21 @@
  *    Copy the firebaseConfig object and paste the values into FIREBASE_CONFIG below.
  * 5. Deploy your site — scores will start flowing in automatically.
  *
+ * ACCOUNTS / CROSS-DEVICE SYNC (optional, on top of the above)
+ * ──────────────────────────────────────────────────────────
+ * 6. Firebase Console → Authentication → Sign-in method → enable "Google".
+ *    No other provider is wired up — sign-in stays fully optional (the game
+ *    never requires an account to play), so a popup-only Google flow is
+ *    enough and avoids building any password UI.
+ * 7. Firestore Rules — add this block alongside the leaderboard rules above
+ *    (same `match /databases/{database}/documents {` block). Unlike the
+ *    leaderboard, this collection is owner-only, so it needs no field
+ *    validation — a signed-in user can only ever read/write their OWN doc:
+ *
+ *      match /users/{uid} {
+ *        allow read, write: if request.auth != null && request.auth.uid == uid;
+ *      }
+ *
  * Exports:
  *   isFirebaseConfigured()      — true only when real credentials are present
  *   submitGlobalScore(entry)    — writes one document to 'leaderboard'
@@ -121,14 +136,23 @@
  *   submitDailyScore(entry)     — writes one document to 'dailyLeaderboard'
  *   fetchDailyLeaderboard(date) — reads top entries for a 'YYYY-MM-DD' day
  *   fetchDailyCommunityStats(date) — { attempts, passed, pct } for the day's board
+ *   signInWithGoogle()          — opens a Google sign-in popup, resolves to the user
+ *   signOutUser()                — signs the current user out
+ *   getCurrentUser()             — sync snapshot of the signed-in user, or null
+ *   getUserDoc(uid)              — reads the cross-device-sync doc at users/{uid}
+ *   setUserDoc(uid, data)        — overwrites the cross-device-sync doc at users/{uid}
  */
 
 import { initializeApp, getApps }   from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js';
 import {
   getFirestore, collection, addDoc, getDocs,
   query, orderBy, limit, where, serverTimestamp, Timestamp,
+  doc, getDoc, setDoc,
 } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js';
 import { getAnalytics, logEvent } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-analytics.js';
+import {
+  getAuth, GoogleAuthProvider, signInWithPopup, signOut as fbSignOut,
+} from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js';
 
 // ── Firebase project config ────────────────────────────────────────────────────
 const FIREBASE_CONFIG = {
@@ -173,6 +197,19 @@ function getDb() {
   return _db;
 }
 
+let _auth = null;
+
+function getAuthInstance() {
+  if (_auth) return _auth;
+  if (!_app) return null;
+  _auth = getAuth(_app);
+  return _auth;
+}
+
+const toPublicUser = u => u
+  ? { uid: u.uid, displayName: u.displayName, email: u.email, photoURL: u.photoURL }
+  : null;
+
 /**
  * Logs a Firebase Analytics event. Silently no-ops if Analytics is blocked.
  * @param {string} eventName
@@ -182,6 +219,64 @@ export function logAnalyticsEvent(eventName, params = {}) {
   try {
     if (_analytics) logEvent(_analytics, eventName, params);
   } catch (_) { /* silently ignore */ }
+}
+
+// ── Accounts / cross-device sync ────────────────────────────────────────────
+// Sign-in is entirely optional — the game never gates play behind it. It
+// exists solely so a player can carry their leaderboard/trophy history to
+// another device. See js/utils/cloudSync.js for the merge logic that uses
+// getUserDoc/setUserDoc below.
+
+/**
+ * Opens a Google sign-in popup.
+ * @returns {Promise<{uid:string, displayName:string|null, email:string|null, photoURL:string|null}>}
+ */
+export async function signInWithGoogle() {
+  if (!isFirebaseConfigured()) throw new Error('Firebase not configured — see js/utils/firebase.js setup instructions');
+  const auth = getAuthInstance();
+  if (!auth) throw new Error('Firebase auth unavailable');
+  const { user } = await signInWithPopup(auth, new GoogleAuthProvider());
+  return toPublicUser(user);
+}
+
+/** Signs the current user out. No-ops if Firebase isn't configured. */
+export async function signOutUser() {
+  const auth = getAuthInstance();
+  if (!auth) return;
+  await fbSignOut(auth);
+}
+
+/**
+ * Sync snapshot of the signed-in user, or null. Firebase restores a prior
+ * session from IndexedDB asynchronously, so this can read null for a
+ * moment right at page load even for a previously-signed-in player — callers
+ * that only run well after boot (e.g. a button click) won't observe that gap.
+ */
+export function getCurrentUser() {
+  return toPublicUser(getAuthInstance()?.currentUser ?? null);
+}
+
+/**
+ * Reads the cross-device-sync document for a signed-in user.
+ * @param {string} uid
+ * @returns {Promise<object|null>} the stored doc's data, or null if it doesn't exist yet
+ */
+export async function getUserDoc(uid) {
+  const db = getDb();
+  if (!db) return null;
+  const snap = await getDoc(doc(db, 'users', uid));
+  return snap.exists() ? snap.data() : null;
+}
+
+/**
+ * Overwrites the cross-device-sync document for a signed-in user.
+ * @param {string} uid
+ * @param {object} data
+ */
+export async function setUserDoc(uid, data) {
+  const db = getDb();
+  if (!db) return;
+  await setDoc(doc(db, 'users', uid), { ...data, updatedAt: serverTimestamp() });
 }
 
 // ── Public API ────────────────────────────────────────────────────────────────
