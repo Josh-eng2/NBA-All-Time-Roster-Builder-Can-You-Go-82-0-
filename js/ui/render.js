@@ -433,9 +433,9 @@ function renderDailyModeCard() {
     // fall back to the plain "Done" copy for those.
     const verdict = ('passed' in r)
       ? (r.passed
-          ? `<span style="color:#15803d;font-weight:900">PASSED ✅</span>`
+          ? `<span style="color:#15803d;font-weight:900">PASSED</span>`
           : `<span style="color:#dc2626;font-weight:900">FAILED ✗</span>`)
-      : 'Done ✅';
+      : 'Done';
     return `
     <div class="w-full rounded-2xl bg-white px-3 py-2.5 mb-3 card-shadow border border-slate-100">
       <div class="flex items-start gap-2">
@@ -445,7 +445,7 @@ function renderDailyModeCard() {
           <p class="text-[11px] text-muted-fg mt-0.5 leading-snug">${ch.title}: you went <span style="color:#f97316;font-weight:700">${r.wins}–${r.losses}</span>${community} · ${dailyResetInLabel()}</p>
         </div>
       </div>
-      <div class="flex items-center gap-2 mt-2.5">
+      <div class="flex items-center gap-2 mt-3.5">
         <button data-action="open-daily-stats" class="flex-1 text-[11px] font-bold px-2 py-1.5 rounded-lg border cursor-pointer" style="border-color:var(--border);background:var(--card);color:var(--muted-fg)" title="Daily Challenge Stats">Stats</button>
         <button data-action="open-daily-leaderboard" class="flex-1 text-[11px] font-bold px-2 py-1.5 rounded-lg border cursor-pointer" style="border-color:#fdba74;background:var(--card);color:${isDark() ? '#fdba74' : '#c2410c'}">Board 🏅</button>
       </div>
