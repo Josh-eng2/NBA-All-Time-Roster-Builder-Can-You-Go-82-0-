@@ -320,8 +320,7 @@ function dailyResetInLabel() {
 }
 
 // Community pass-rate cache — one fetch per UTC day per page load.
-// TEMP: min 1 so we can verify the banner with a single board submit; restore to 3 after testing.
-const COMMUNITY_STATS_MIN = 1;
+const COMMUNITY_STATS_MIN = 3; // hide until enough board submissions for the day
 let _communityStatsCache = { date: null, promise: null, data: null };
 
 function communityStatsLabels(stats) {
@@ -341,8 +340,27 @@ function communityStatsSpanHtml(labels, accent) {
 }
 
 /**
- * Inline fragment merged into the Daily Challenge record/desc line
- * (e.g. " · 📊 73% passed today"). Hidden until hydrated.
+ * Own-line community slot (played Daily card).
+ * Always the short "X% passed today" copy so the post-play card stays three clean lines.
+ */
+function renderCommunityStatsLine() {
+  if (!isFirebaseConfigured()) return '';
+  const cached = (_communityStatsCache.date === getUtcDateString() && _communityStatsCache.data)
+    ? communityStatsLabels(_communityStatsCache.data)
+    : null;
+  if (_communityStatsCache.date === getUtcDateString() && _communityStatsCache.data && !cached) {
+    return '';
+  }
+  const accent = isDark() ? '#fdba74' : '#c2410c';
+  if (cached) {
+    return `<p id="daily-community-stats" class="text-[11px] font-bold mt-0.5 leading-snug" style="color:${accent}" data-slot="line" data-state="ready" aria-live="polite">📊 ${cached.short}</p>`;
+  }
+  return `<p id="daily-community-stats" class="text-[11px] font-bold mt-0.5 leading-snug" style="color:${accent};display:none" data-slot="line" data-state="loading" aria-live="polite" hidden></p>`;
+}
+
+/**
+ * Inline fragment merged into an existing line (unplayed card / results).
+ * e.g. " · 📊 73% passed today"
  */
 function renderCommunityStatsMerged() {
   if (!isFirebaseConfigured()) return '';
@@ -354,9 +372,9 @@ function renderCommunityStatsMerged() {
   }
   const accent = isDark() ? '#fdba74' : '#c2410c';
   if (cached) {
-    return ` · <span id="daily-community-stats" data-state="ready" aria-live="polite">${communityStatsSpanHtml(cached, accent)}</span>`;
+    return ` · <span id="daily-community-stats" data-slot="merged" data-state="ready" aria-live="polite">${communityStatsSpanHtml(cached, accent)}</span>`;
   }
-  return ` <span id="daily-community-stats" data-state="loading" aria-live="polite" hidden style="display:none"></span>`;
+  return ` <span id="daily-community-stats" data-slot="merged" data-state="loading" aria-live="polite" hidden style="display:none"></span>`;
 }
 
 function paintCommunityStatsEl(el, stats) {
@@ -364,21 +382,27 @@ function paintCommunityStatsEl(el, stats) {
   const labels = communityStatsLabels(stats);
   const accent = isDark() ? '#fdba74' : '#c2410c';
   if (!labels) {
-    // Remove leading " · " text node if we left one when mounting cached-ready markup...
-    // For the loading placeholder, just remove the span.
-    const prev = el.previousSibling;
-    if (prev && prev.nodeType === 3 && /^\s*·\s*$/.test(prev.textContent)) prev.remove();
+    if (el.dataset.slot === 'merged') {
+      const prev = el.previousSibling;
+      if (prev && prev.nodeType === 3 && /^\s*·\s*$/.test(prev.textContent)) prev.remove();
+    }
     el.remove();
     return;
   }
   el.dataset.state = 'ready';
   el.hidden = false;
   el.style.display = '';
-  // Ensure a middle-dot prefix when hydrating from the empty placeholder.
-  const prev = el.previousSibling;
-  const hasDot = prev && prev.nodeType === 3 && prev.textContent.includes('·');
-  if (!hasDot) {
-    el.parentNode?.insertBefore(document.createTextNode(' · '), el);
+  if (el.dataset.slot === 'line') {
+    el.style.color = accent;
+    el.textContent = `📊 ${labels.short}`;
+    return;
+  }
+  if (el.dataset.slot === 'merged') {
+    const prev = el.previousSibling;
+    const hasDot = prev && prev.nodeType === 3 && prev.textContent.includes('·');
+    if (!hasDot) {
+      el.parentNode?.insertBefore(document.createTextNode(' · '), el);
+    }
   }
   el.innerHTML = communityStatsSpanHtml(labels, accent);
 }
@@ -412,8 +436,10 @@ async function hydrateDailyCommunityStats() {
   } catch (_) {
     const live = document.getElementById('daily-community-stats');
     if (live) {
-      const prev = live.previousSibling;
-      if (prev && prev.nodeType === 3 && /^\s*·\s*$/.test(prev.textContent)) prev.remove();
+      if (live.dataset.slot === 'merged') {
+        const prev = live.previousSibling;
+        if (prev && prev.nodeType === 3 && /^\s*·\s*$/.test(prev.textContent)) prev.remove();
+      }
       live.remove();
     }
   }
@@ -432,27 +458,28 @@ function renderDailyModeCard() {
   const streakChip = streak > 0
     ? `<span class="text-[10px] font-black px-2 py-0.5 rounded-full flex-shrink-0" style="background:var(--amber-badge-bg,#fef3c7);color:var(--amber-text,#b45309);border:1px solid var(--amber-border,#fcd34d)">🔥 ${streak}</span>`
     : '';
-  const community = renderCommunityStatsMerged();
   if (status.playedToday) {
     const r = status.result;
     // Recaps written before the challenge system have no `passed` field —
-    // fall back to the plain "Done" copy for those.
+    // fall back to a plain tick for those.
     const verdict = ('passed' in r)
       ? (r.passed
-          ? `<span style="color:#15803d;font-weight:900">PASSED ✅</span>`
-          : `<span style="color:#dc2626;font-weight:900">FAILED ✗</span>`)
-      : 'Done ✅';
+          ? `<span style="color:#15803d;font-weight:900">✅</span>`
+          : `<span style="color:#dc2626;font-weight:900">✗</span>`)
+      : `<span style="color:#15803d;font-weight:900">✅</span>`;
     return `
     <div class="w-full rounded-2xl bg-white px-3 py-2 flex items-center gap-2 mb-3 card-shadow border border-slate-100">
       <span class="text-2xl flex-shrink-0">${ch.emoji}</span>
       <div class="flex-1 min-w-0">
         <p class="font-black text-sm text-foreground flex items-center gap-2">Daily Challenge — ${verdict} ${streakChip}</p>
-        <p class="text-[11px] text-muted-fg mt-0.5 leading-snug">${ch.title}: you went <span style="color:#f97316;font-weight:700">${r.wins}–${r.losses}</span>${community} · ${dailyResetInLabel()}</p>
+        <p class="text-[11px] text-muted-fg mt-0.5 leading-snug">${ch.title}: you went <span style="color:#f97316;font-weight:700">${r.wins}–${r.losses}</span></p>
+        ${renderCommunityStatsLine()}
       </div>
       <button data-action="open-daily-stats" class="text-[11px] font-bold px-2 py-1 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:var(--border);background:var(--card);color:var(--muted-fg)" title="Daily Challenge Stats">Stats</button>
       <button data-action="open-daily-leaderboard" class="text-[11px] font-bold px-2 py-1 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:#fdba74;background:var(--card);color:${isDark() ? '#fdba74' : '#c2410c'}">Board 🏅</button>
     </div>`;
   }
+  const community = renderCommunityStatsMerged();
   return `
   <div class="mb-3">
     <button data-action="mode-daily"
