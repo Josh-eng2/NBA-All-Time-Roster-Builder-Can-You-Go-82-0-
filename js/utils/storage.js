@@ -5,9 +5,6 @@
  *   nba820_lb       — leaderboard, up to 20 entries, sorted desc by wins
  *   nba820_trophies — trophy room,  up to 12 entries (championships only)
  *
- * This module's saves (leaderboard, trophy room, legends, daily streak/stats)
- * also push to Firestore when signed in — see js/utils/cloudSync.js.
- *
  * Exports:
  *   saveLeaderboard()             — persists current result to leaderboard
  *   saveToTrophyRoom()            — persists current championship to trophy room
@@ -25,29 +22,19 @@
  *   closeDailyLeaderboardModal()  — removes the daily modal from the DOM
  *   showDailyStatsModal()         — Wordle-style Statistics modal for Daily Challenge
  *   closeDailyStatsModal()        — removes the Statistics modal from the DOM
- *   showAccountModal()            — renders and mounts the sign-in/sync modal
- *   closeAccountModal()           — removes the account modal from the DOM
  *
  * Side-effects:
  *   window.closeLeaderboardModal, window.closeGlobalLeaderboardModal,
  *   window.showGlobalLbTeamDetail, window.closeGlobalLbTeamDetail,
- *   window.switchGlobalLbTab, window.closeDailyLeaderboardModal,
- *   window.closeDailyStatsModal, window.closeAccountModal,
- *   window._accountSignIn, window._accountSendEmailLink, window._accountReset,
- *   and window._accountSignOut are set at module load / call time so inline
- *   onclick handlers in modal HTML can call them.
+ *   window.switchGlobalLbTab, window.closeDailyLeaderboardModal, and
+ *   window.closeDailyStatsModal are set at module load so inline onclick
+ *   handlers in modal HTML can call them.
  */
 
 import { S, COACHES, POSITIONS, getUtcDateString } from '../logic/state.js';
 import { getLegendCatalog }                      from '../logic/draft.js';
-import {
-  fetchLeaderboard, fetchDailyLeaderboard, fetchDailyCommunityStats,
-  signInWithGoogle, sendEmailSignInLink, signOutUser, getCurrentUser,
-} from '../utils/firebase.js';
+import { fetchLeaderboard, fetchDailyLeaderboard, fetchDailyCommunityStats } from '../utils/firebase.js';
 import { cgGetItem, cgSetItem }                    from '../utils/crazygames.js';
-// circular with cloudSync.js (it imports the *_KEY consts and getters below) —
-// safe: only used inside function bodies here, never at module-init time.
-import { pushLocalToCloud }                        from '../utils/cloudSync.js';
 import { getDailyChallenge }                       from '../logic/challenge.js';
 
 const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
@@ -90,7 +77,7 @@ export function markReturning() {
 // HoopIQ, and both 1v1 rosters). Survives runs — the "number goes up"
 // meta-progression hook.
 
-export const LEGENDS_KEY = 'nba820_legends';
+const LEGENDS_KEY = 'nba820_legends';
 
 /** @returns {Set<string>} the set of collected player ids. */
 export function getCollectedLegends() {
@@ -116,7 +103,6 @@ export function recordLegends(players) {
   if (newlyAdded.length) {
     try { cgSetItem(LEGENDS_KEY, JSON.stringify([...collected])); }
     catch (e) { console.warn('[storage] legends not saved', e); }
-    pushLocalToCloud();
   }
   return newlyAdded;
 }
@@ -135,8 +121,6 @@ export function packLeaders(r) {
   return { pts: one(L.scoring), reb: one(L.rebounding), ast: one(L.assists), stl: one(L.steals), blk: one(L.blocks) };
 }
 
-export const LB_KEY = 'nba820_lb';
-
 export function saveLeaderboard() {
   const r = S.result;
   if (!r) return;
@@ -150,7 +134,7 @@ export function saveLeaderboard() {
     leaders:       packLeaders(r),
   };
   let lb = [];
-  try { lb = JSON.parse(cgGetItem(LB_KEY) || '[]'); } catch (e) {}
+  try { lb = JSON.parse(cgGetItem('nba820_lb') || '[]'); } catch (e) {}
   lb.push(entry);
   // Tie-breakers: 1° wins  2° Team Popularity
   lb.sort((a, b) => {
@@ -159,15 +143,13 @@ export function saveLeaderboard() {
   });
   if (lb.length > 20) lb = lb.slice(0, 20);
   try {
-    cgSetItem(LB_KEY, JSON.stringify(lb));
+    cgSetItem('nba820_lb', JSON.stringify(lb));
   } catch (e) {
     console.warn('[storage] leaderboard not saved', e);
   }
 }
 
 // ── Save trophy room entry ────────────────────────────────────────────────────
-
-export const TROPHIES_KEY = 'nba820_trophies';
 
 export function saveToTrophyRoom() {
   const r        = S.result;
@@ -182,11 +164,11 @@ export function saveToTrophyRoom() {
     starters:    POSITIONS.map(p => S.roster[p]?.name || '—').join(', '),
   };
   let trophies = [];
-  try { trophies = JSON.parse(cgGetItem(TROPHIES_KEY) || '[]'); } catch (e) {}
+  try { trophies = JSON.parse(cgGetItem('nba820_trophies') || '[]'); } catch (e) {}
   trophies.unshift(entry);
   if (trophies.length > 12) trophies = trophies.slice(0, 12);
   try {
-    cgSetItem(TROPHIES_KEY, JSON.stringify(trophies));
+    cgSetItem('nba820_trophies', JSON.stringify(trophies));
   } catch (e) {
     console.warn('[storage] trophy room not saved', e);
   }
@@ -196,7 +178,7 @@ export function saveToTrophyRoom() {
 
 function renderLeaderboardModal() {
   let lb = [];
-  try { lb = JSON.parse(cgGetItem(LB_KEY) || '[]'); } catch (e) {}
+  try { lb = JSON.parse(cgGetItem('nba820_lb') || '[]'); } catch (e) {}
   const top5 = lb.slice(0, 5);
 
   const rows = top5.length === 0
@@ -639,176 +621,6 @@ export function closeGlobalLeaderboardModal() {
   }
 }
 
-// ── Account modal (optional Google sign-in / cross-device sync) ───────────────
-
-function _accountSignedOutHtml() {
-  return `
-  <div style="padding:8px 0 4px">
-    <p style="font-size:13px;color:var(--muted-fg);margin:0 0 18px;line-height:1.5;text-align:center">
-      Sign in to carry your leaderboard history and trophy room to another device. Totally optional — everything already works without it.
-    </p>
-    <button onclick="window._accountSignIn()"
-      style="width:100%;padding:12px 16px;border-radius:12px;border:1px solid var(--border);background:var(--card2);color:var(--fg);font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;font-family:'Fira Sans',sans-serif">
-      <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.81.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.71H.96v2.33A9 9 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.97 10.71A5.4 5.4 0 0 1 3.68 9c0-.59.1-1.17.29-1.71V4.96H.96A9 9 0 0 0 0 9c0 1.45.35 2.83.96 4.04l3.01-2.33z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.51.46 3.44 1.35l2.59-2.59C13.46.89 11.43 0 9 0A9 9 0 0 0 .96 4.96l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z"/></svg>
-      Sign in with Google
-    </button>
-    <div style="display:flex;align-items:center;gap:10px;margin:18px 0">
-      <div style="flex:1;height:1px;background:var(--border)"></div>
-      <span style="font-size:11px;color:var(--muted-fg);text-transform:uppercase;letter-spacing:0.05em">or</span>
-      <div style="flex:1;height:1px;background:var(--border)"></div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:8px">
-      <input id="account-email-input" type="email" placeholder="you@example.com" autocomplete="email"
-        style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--fg);font-size:14px;font-family:'Fira Sans',sans-serif;box-sizing:border-box" />
-      <button onclick="window._accountSendEmailLink()"
-        style="width:100%;padding:11px 16px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--fg);font-weight:700;font-size:13px;cursor:pointer;font-family:'Fira Sans',sans-serif">
-        Email me a sign-in link
-      </button>
-    </div>
-  </div>`;
-}
-
-function _accountEmailSentHtml(email) {
-  return `
-  <div style="text-align:center;padding:16px 0 4px">
-    <p style="font-size:32px;margin:0 0 12px">📬</p>
-    <p style="font-weight:800;font-size:15px;color:var(--fg);margin:0 0 6px">Check your email</p>
-    <p style="font-size:13px;color:var(--muted-fg);margin:0 0 18px;line-height:1.5">
-      We sent a sign-in link to <strong style="color:var(--fg)">${esc(email)}</strong>. Open it on this device to finish signing in.
-    </p>
-    <button onclick="window._accountReset()"
-      style="padding:9px 20px;border-radius:10px;border:1px solid var(--border);background:var(--card2);color:var(--muted-fg);font-weight:700;font-size:13px;cursor:pointer;font-family:'Fira Sans',sans-serif">Back</button>
-  </div>`;
-}
-
-function _accountLoadingHtml(label) {
-  return `
-  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 0;gap:12px">
-    <div style="width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:_spin 0.7s linear infinite"></div>
-    <p style="font-size:13px;color:var(--muted-fg);font-family:'Fira Sans',sans-serif">${esc(label)}</p>
-  </div>`;
-}
-
-function _accountErrorHtml(message) {
-  return `
-  <div style="text-align:center;padding:8px 0">
-    <p style="font-size:13px;color:#dc2626;margin:0 0 16px;line-height:1.5">${esc(message)}</p>
-    <button onclick="window._accountReset()"
-      style="padding:9px 20px;border-radius:10px;border:1px solid var(--border);background:var(--card2);color:var(--fg);font-weight:700;font-size:13px;cursor:pointer;font-family:'Fira Sans',sans-serif">Try again</button>
-  </div>`;
-}
-
-function _accountSignedInHtml(user, syncSummary) {
-  const name   = esc(user.displayName || user.email || 'Signed in');
-  const avatar = user.photoURL
-    ? `<img src="${esc(user.photoURL)}" alt="" style="width:40px;height:40px;border-radius:999px" referrerpolicy="no-referrer" />`
-    : `<div style="width:40px;height:40px;border-radius:999px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;flex-shrink:0">${esc(name.slice(0, 1).toUpperCase())}</div>`;
-  const summary = syncSummary
-    ? `<p style="font-size:12px;color:var(--muted-fg);margin:4px 0 0">✓ Synced · ${syncSummary.leaderboard.length} leaderboard run${syncSummary.leaderboard.length === 1 ? '' : 's'} · ${syncSummary.trophies.length} troph${syncSummary.trophies.length === 1 ? 'y' : 'ies'}</p>`
-    : `<p style="font-size:12px;color:var(--muted-fg);margin:4px 0 0">Synced to this account</p>`;
-  return `
-  <div style="display:flex;align-items:center;gap:12px;padding:4px 0 18px">
-    ${avatar}
-    <div style="min-width:0">
-      <p style="font-weight:800;font-size:14px;color:var(--fg);margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${name}</p>
-      ${summary}
-    </div>
-  </div>
-  <button onclick="window._accountSignOut()"
-    style="width:100%;padding:10px 16px;border-radius:12px;border:1px solid var(--border);background:var(--card2);color:var(--muted-fg);font-weight:700;font-size:13px;cursor:pointer;font-family:'Fira Sans',sans-serif">Sign out</button>`;
-}
-
-function _accountModalShellHtml(bodyHtml) {
-  return `
-  <div id="account-modal-backdrop" onclick="if(event.target===this)window.closeAccountModal()"
-    style="position:fixed;inset:0;background:var(--overlay);z-index:9998;display:flex;align-items:center;justify-content:center;padding:16px">
-    <div style="background:var(--card);border:1.5px solid var(--border);border-radius:20px;width:100%;max-width:400px;max-height:90vh;overflow-y:auto;padding:24px;font-family:'Fira Sans',sans-serif;color:var(--fg);animation:scaleIn 0.2s ease-out;box-shadow:0 20px 60px var(--shadow)">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-        <div>
-          <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--primary);margin:0 0 4px">Account</p>
-          <h2 style="font-size:22px;font-weight:900;margin:0;color:var(--fg)">Sync Progress</h2>
-        </div>
-        <button onclick="window.closeAccountModal()"
-          style="background:var(--card2);border:1px solid var(--border);color:var(--muted-fg);border-radius:999px;width:32px;height:32px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">✕</button>
-      </div>
-      <div id="account-modal-body">${bodyHtml}</div>
-    </div>
-  </div>`;
-}
-
-function _setAccountModalBody(html) {
-  const el = document.getElementById('account-modal-body');
-  if (el) el.innerHTML = html;
-}
-
-window._accountSignIn = async function () {
-  // Redirects the whole page to Google — nothing left to update here on
-  // success, the page is about to navigate away. main.js completes the
-  // sign-in (and shows a toast) on the page it redirects back to.
-  _setAccountModalBody(_accountLoadingHtml('Redirecting to Google…'));
-  try {
-    await signInWithGoogle();
-  } catch (e) {
-    _setAccountModalBody(_accountErrorHtml('Sign-in failed — check your connection and try again.'));
-  }
-};
-
-window._accountSendEmailLink = async function () {
-  const input = document.getElementById('account-email-input');
-  const email = (input?.value || '').trim();
-  if (!email || !email.includes('@')) {
-    _setAccountModalBody(_accountErrorHtml('Enter a valid email address.'));
-    return;
-  }
-  _setAccountModalBody(_accountLoadingHtml('Sending your sign-in link…'));
-  try {
-    await sendEmailSignInLink(email);
-    _setAccountModalBody(_accountEmailSentHtml(email));
-  } catch (e) {
-    _setAccountModalBody(_accountErrorHtml("Couldn't send the link — check the address and try again."));
-  }
-};
-
-window._accountReset = function () {
-  _setAccountModalBody(_accountSignedOutHtml());
-};
-
-window._accountSignOut = async function () {
-  _setAccountModalBody(_accountLoadingHtml('Signing out…'));
-  try { await signOutUser(); } catch (e) {}
-  _setAccountModalBody(_accountSignedOutHtml());
-};
-
-export function showAccountModal() {
-  closeAccountModal();
-  const div = document.createElement('div');
-  div.id = 'account-modal-root';
-  const user = getCurrentUser();
-  div.innerHTML = _accountModalShellHtml(user ? _accountSignedInHtml(user, null) : _accountSignedOutHtml());
-  document.body.appendChild(div);
-  const onKey = e => { if (e.key === 'Escape') closeAccountModal(); };
-  document.addEventListener('keydown', onKey);
-  div._removeKey = () => document.removeEventListener('keydown', onKey);
-  const focusable = div.querySelectorAll('button, [tabindex]:not([tabindex="-1"])');
-  const first = focusable[0], last = focusable[focusable.length - 1];
-  div.addEventListener('keydown', e => {
-    if (e.key !== 'Tab' || !first) return;
-    if (e.shiftKey ? document.activeElement === first : document.activeElement === last) {
-      e.preventDefault();
-      (e.shiftKey ? last : first).focus();
-    }
-  });
-  first?.focus();
-}
-
-export function closeAccountModal() {
-  const el = document.getElementById('account-modal-root');
-  if (el) {
-    if (el._removeKey) el._removeKey();
-    el.remove();
-  }
-}
-
 // ── Daily Challenge — local lock/recap + leaderboard modal ────────────────────
 
 const DAILY_KEY = 'nba820_daily_last';
@@ -822,8 +634,8 @@ export function getDailyStatus() {
   return { today, playedToday, result: playedToday ? last : null };
 }
 
-export const DAILY_STREAK_KEY = 'nba820_dailyStreak';
-export const DAILY_STATS_KEY  = 'nba820_dailyStats';
+const DAILY_STREAK_KEY = 'nba820_dailyStreak';
+const DAILY_STATS_KEY  = 'nba820_dailyStats';
 
 /** Season-win bins for the Wordle-style distribution chart (6 rows). */
 export const DAILY_WIN_BINS = [
@@ -997,7 +809,6 @@ export function markDailyPlayed({ date, wins, losses, chemScore, champion, chall
     }));
   } catch (e) {}
 
-  pushLocalToCloud();
   return streakVal;
 }
 
