@@ -113,6 +113,7 @@
  *   fetchLeaderboard(filter)    — reads top entries; filter: 'alltime' | '24h' | 'weekly'
  *   submitDailyScore(entry)     — writes one document to 'dailyLeaderboard'
  *   fetchDailyLeaderboard(date) — reads top entries for a 'YYYY-MM-DD' day
+ *   fetchDailyCommunityStats(date) — { attempts, passed, pct } for the day's board
  */
 
 import { initializeApp, getApps }   from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js';
@@ -331,4 +332,32 @@ export async function fetchDailyLeaderboard(date) {
   const scoreOf = e => Number(e.score) || (Number(e.wins) || 0) * 10;
   entries.sort((a, b) => scoreOf(b) - scoreOf(a) || (a.timestampMs ?? 0) - (b.timestampMs ?? 0));
   return entries.slice(0, 10);
+}
+
+/**
+ * Community pass-rate for one UTC Daily Challenge day.
+ * Aggregates `passed` flags from that day's dailyLeaderboard submissions
+ * (same query shape as fetchDailyLeaderboard — no composite index).
+ *
+ * @param {string} date  'YYYY-MM-DD'
+ * @returns {Promise<{ attempts: number, passed: number, pct: number|null }>}
+ */
+export async function fetchDailyCommunityStats(date) {
+  if (!isFirebaseConfigured()) throw new Error('Firebase not configured — see js/utils/firebase.js setup instructions');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date || '')) throw new Error('Invalid date');
+  const db  = getDb();
+  const col = collection(db, 'dailyLeaderboard');
+  const q    = query(col, where('date', '==', date), limit(500));
+  const snap = await getDocs(q);
+  let attempts = 0;
+  let passed   = 0;
+  for (const d of snap.docs) {
+    const data = d.data();
+    // Skip pre-challenge-system submissions that never recorded a verdict.
+    if (typeof data.passed !== 'boolean') continue;
+    attempts += 1;
+    if (data.passed) passed += 1;
+  }
+  const pct = attempts > 0 ? Math.round((passed / attempts) * 100) : null;
+  return { attempts, passed, pct };
 }
