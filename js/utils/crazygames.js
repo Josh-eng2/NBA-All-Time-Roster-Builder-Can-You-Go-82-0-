@@ -80,18 +80,6 @@ function usingCgData() {
   return _dataEnv === 'crazygames' || _dataEnv === 'local';
 }
 
-/**
- * Sync snapshot of usingCgData() — accurate any time after main.js's boot-time
- * `await initCrazyGamesData()` resolves (i.e. for every render). Used to hide
- * the Google-sign-in / cloud-sync UI while embedded in CrazyGames: their own
- * account-linked storage (cgGetItem/cgSetItem above) already carries progress
- * across devices there, so a second, separate login system would be
- * redundant and out of place on their surface.
- */
-export function isCrazyGamesActive() {
-  return usingCgData();
-}
-
 /** Drop-in replacement for localStorage.getItem — routes through the
  *  CrazyGames Data Module when embedded there, else plain localStorage. */
 export function cgGetItem(key) {

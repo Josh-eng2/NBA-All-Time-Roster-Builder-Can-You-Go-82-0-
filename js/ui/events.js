@@ -27,7 +27,6 @@ import {
   showGlobalLeaderboardModal, closeGlobalLeaderboardModal,
   getDailyStatus, markDailyPlayed, showDailyLeaderboardModal, closeDailyLeaderboardModal,
   showDailyStatsModal, closeDailyStatsModal,
-  showAccountModal, closeAccountModal,
 } from '../utils/storage.js';
 import { submitGlobalScore, submitDailyScore, logAnalyticsEvent, isFirebaseConfigured } from '../utils/firebase.js';
 import { cgGetItem, cgSetItem } from '../utils/crazygames.js';
@@ -40,7 +39,6 @@ import {
 
 // Expose modal close helpers globally — inline onclicks in modal HTML are outside #app
 window.closeLeaderboardModal       = closeLeaderboardModal;
-window.closeAccountModal           = closeAccountModal;
 window.closeGlobalLeaderboardModal = closeGlobalLeaderboardModal;
 window.closeDailyLeaderboardModal  = closeDailyLeaderboardModal;
 window.closeDailyStatsModal        = closeDailyStatsModal;
@@ -200,7 +198,6 @@ function dispatch(action) {
   if (action === 'open-leaderboard')       { showLeaderboardModal();             return; }
   if (action === 'open-global-leaderboard'){ showGlobalLeaderboardModal();       return; }
   if (action === 'submit-global')          { doSubmitGlobal();                   return; }
-  if (action === 'open-account')           { showAccountModal();                 return; }
   if (action === 'toggle-theme')           { toggleTheme();                      return; }
 
   render(); // fallback — re-render for unhandled actions
