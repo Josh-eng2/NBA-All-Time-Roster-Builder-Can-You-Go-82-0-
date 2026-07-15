@@ -33,7 +33,7 @@
 
 import { S, COACHES, POSITIONS, getUtcDateString } from '../logic/state.js';
 import { getLegendCatalog }                      from '../logic/draft.js';
-import { fetchLeaderboard, fetchDailyLeaderboard } from '../utils/firebase.js';
+import { fetchLeaderboard, fetchDailyLeaderboard, fetchDailyCommunityStats } from '../utils/firebase.js';
 import { cgGetItem, cgSetItem }                    from '../utils/crazygames.js';
 import { getDailyChallenge }                       from '../logic/challenge.js';
 
@@ -889,17 +889,29 @@ function _dailyModalShellHtml(dateLabel) {
       <div id="daily-lb-table" style="display:flex;flex-direction:column;gap:8px">
         ${_globalLbLoadingHtml()}
       </div>
-      <p style="text-align:center;font-size:11px;color:var(--muted-fg);margin:12px 0 0;font-family:Fira Sans,sans-serif">Everyone drafts from the same board today — only your picks and your season differ</p>
+      <p id="daily-lb-community" style="text-align:center;font-size:12px;font-weight:700;color:var(--primary);margin:14px 0 0;font-family:Fira Sans,sans-serif;min-height:18px"></p>
+      <p style="text-align:center;font-size:11px;color:var(--muted-fg);margin:8px 0 0;font-family:Fira Sans,sans-serif">Everyone drafts from the same board today — only your picks and your season differ</p>
     </div>
   </div>`;
 }
 
 async function _loadDailyLb(date) {
   const tableEl = document.getElementById('daily-lb-table');
+  const communityEl = document.getElementById('daily-lb-community');
   if (tableEl) tableEl.innerHTML = _globalLbLoadingHtml();
   try {
-    const entries = await fetchDailyLeaderboard(date);
+    const [entries, community] = await Promise.all([
+      fetchDailyLeaderboard(date),
+      fetchDailyCommunityStats(date).catch(() => null),
+    ]);
     if (tableEl) tableEl.innerHTML = _dailyLbRowsHtml(entries);
+    if (communityEl) {
+      if (community && community.pct != null && community.attempts >= 1) {
+        communityEl.textContent = `📊 ${community.pct}% of players passed today's challenge`;
+      } else {
+        communityEl.textContent = '';
+      }
+    }
   } catch (err) {
     const isPermission = err.message.includes('permission') || err.message.includes('Permission') || err.message.includes('PERMISSION');
     const msg = err.message.includes('not configured')
@@ -908,6 +920,7 @@ async function _loadDailyLb(date) {
         ? 'Firestore permission denied — open Firebase Console → Firestore → Rules and publish the dailyLeaderboard rule.'
         : 'Failed to load — check your connection. <button onclick="window._retryDailyLb()" style="text-decoration:underline;cursor:pointer;font-family:Fira Sans,sans-serif">Retry</button>';
     if (tableEl) tableEl.innerHTML = `<p style="color:#dc2626;font-size:13px;text-align:center;padding:24px 0;font-family:Fira Sans,sans-serif">${msg}</p>`;
+    if (communityEl) communityEl.textContent = '';
   }
 }
 window._retryDailyLb = () => _loadDailyLb(getUtcDateString());
@@ -1008,8 +1021,8 @@ export function showDailyStatsModal() {
              font-family:Fira Sans,sans-serif;color:var(--fg);
              animation:scaleIn 0.2s ease-out;box-shadow:0 20px 60px var(--shadow)">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px">
-        <h2 id="daily-stats-title" style="font-size:16px;font-weight:800;margin:0;letter-spacing:0.12em;
-                   text-transform:uppercase;color:var(--fg);width:100%;text-align:center;padding-left:32px">Statistics</h2>
+        <h2 id="daily-stats-title" style="font-size:16px;font-weight:800;margin:0;letter-spacing:0.08em;
+                   text-transform:uppercase;color:var(--fg);width:100%;text-align:center;padding-left:32px">Daily Challenge Stats</h2>
         <button onclick="window.closeDailyStatsModal()" aria-label="Close"
           style="background:var(--card2);border:1px solid var(--border);color:var(--muted-fg);border-radius:999px;
                  width:32px;height:32px;font-size:16px;cursor:pointer;display:flex;

@@ -22,6 +22,7 @@ import { getBracketDisplayState }                         from '../logic/playoff
 import { markReturning, getCollectedLegends, getDailyStatus, currentDailyStreak } from '../utils/storage.js';
 import { cgGameplayStart, cgGameplayStop, cgGetItem }     from '../utils/crazygames.js';
 import { getDailyChallenge, checkPickLegal, checkRosterConstraint } from '../logic/challenge.js';
+import { fetchDailyCommunityStats, isFirebaseConfigured } from '../utils/firebase.js';
 import { bindEvents }                                     from '../ui/events.js'; // circular — safe (called inside functions only)
 
 // ── Mount point ───────────────────────────────────────────────────────────────
@@ -312,6 +313,79 @@ function dailyResetInLabel() {
   return `new board in ~${hrs}h`;
 }
 
+// Community pass-rate cache — one fetch per UTC day per page load.
+// TEMP: min 1 so we can verify the banner with a single board submit; restore to 3 after testing.
+const COMMUNITY_STATS_MIN = 1;
+let _communityStatsCache = { date: null, promise: null, data: null };
+
+function communityStatsLabel(stats) {
+  if (!stats || stats.pct == null || stats.attempts < COMMUNITY_STATS_MIN) return null;
+  return `${stats.pct}% of players passed today's challenge`;
+}
+
+/** Inline community line for inside the Daily Challenge card (hidden until hydrated). */
+function renderCommunityStatsInline() {
+  if (!isFirebaseConfigured()) return '';
+  const cached = (_communityStatsCache.date === getUtcDateString() && _communityStatsCache.data)
+    ? communityStatsLabel(_communityStatsCache.data)
+    : null;
+  if (_communityStatsCache.date === getUtcDateString() && _communityStatsCache.data && !cached) {
+    return '';
+  }
+  const accent = isDark() ? '#fdba74' : '#c2410c';
+  if (cached) {
+    return `<p id="daily-community-stats" class="text-[11px] font-bold mt-1 leading-snug" style="color:${accent}" data-state="ready" aria-live="polite">📊 ${cached}</p>`;
+  }
+  return `<p id="daily-community-stats" class="text-[11px] font-bold mt-1 leading-snug" style="color:${accent};display:none" data-state="loading" aria-live="polite" hidden></p>`;
+}
+
+function paintCommunityStatsEl(el, stats) {
+  if (!el) return;
+  const label = communityStatsLabel(stats);
+  const accent = isDark() ? '#fdba74' : '#c2410c';
+  if (!label) {
+    el.remove();
+    return;
+  }
+  el.dataset.state = 'ready';
+  el.hidden = false;
+  el.style.display = '';
+  el.style.color = accent;
+  el.textContent = `📊 ${label}`;
+}
+
+async function hydrateDailyCommunityStats() {
+  const el = document.getElementById('daily-community-stats');
+  if (!el || !isFirebaseConfigured()) return;
+  const date = getUtcDateString();
+  try {
+    if (_communityStatsCache.date !== date) {
+      _communityStatsCache = { date, promise: null, data: null };
+    }
+    if (_communityStatsCache.data) {
+      paintCommunityStatsEl(el, _communityStatsCache.data);
+      return;
+    }
+    if (!_communityStatsCache.promise) {
+      _communityStatsCache.promise = fetchDailyCommunityStats(date)
+        .then(data => {
+          _communityStatsCache.data = data;
+          return data;
+        })
+        .catch(err => {
+          _communityStatsCache.promise = null;
+          throw err;
+        });
+    }
+    const stats = await _communityStatsCache.promise;
+    const live = document.getElementById('daily-community-stats');
+    paintCommunityStatsEl(live, stats);
+  } catch (_) {
+    const live = document.getElementById('daily-community-stats');
+    if (live) live.remove();
+  }
+}
+
 function renderDailyModeCard() {
   // Same white-card + orange-accent treatment the old "Best season" callout
   // used (and that Classic/Ball IQ/1v1 still use below it) — bg-white and
@@ -325,6 +399,7 @@ function renderDailyModeCard() {
   const streakChip = streak > 0
     ? `<span class="text-[10px] font-black px-2 py-0.5 rounded-full flex-shrink-0" style="background:var(--amber-badge-bg,#fef3c7);color:var(--amber-text,#b45309);border:1px solid var(--amber-border,#fcd34d)">🔥 ${streak}</span>`
     : '';
+  const communityLine = renderCommunityStatsInline();
   if (status.playedToday) {
     const r = status.result;
     // Recaps written before the challenge system have no `passed` field —
@@ -340,8 +415,9 @@ function renderDailyModeCard() {
       <div class="flex-1 min-w-0">
         <p class="font-black text-sm text-foreground flex items-center gap-2">Daily Challenge — ${verdict} ${streakChip}</p>
         <p class="text-[11px] text-muted-fg mt-0.5">${ch.title}: you went <span style="color:#f97316;font-weight:700">${r.wins}–${r.losses}</span> today · ${dailyResetInLabel()}</p>
+        ${communityLine}
       </div>
-      <button data-action="open-daily-stats" class="text-[11px] font-bold px-2 py-1 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:var(--border);background:var(--card);color:var(--muted-fg)">Stats</button>
+      <button data-action="open-daily-stats" class="text-[11px] font-bold px-2 py-1 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:var(--border);background:var(--card);color:var(--muted-fg)" title="Daily Challenge Stats">Stats</button>
       <button data-action="open-daily-leaderboard" class="text-[11px] font-bold px-2 py-1 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:#fdba74;background:var(--card);color:${isDark() ? '#fdba74' : '#c2410c'}">Board 🏅</button>
     </div>`;
   }
@@ -353,11 +429,12 @@ function renderDailyModeCard() {
       <div class="flex-1 min-w-0" style="pointer-events:none">
         <p class="font-black text-sm flex items-center gap-2" style="color:#f97316">Daily Challenge · ${ch.title} ${streakChip}</p>
         <p class="text-[11px] text-muted-fg leading-snug mt-0.5">${ch.desc} Same draft board as every player today — one shot.</p>
+        ${communityLine}
       </div>
       <span class="text-[11px] font-bold px-2 py-1 rounded-lg border flex-shrink-0" style="border-color:#fdba74;background:var(--card);color:${isDark() ? '#fdba74' : '#c2410c'};pointer-events:none">Play →</span>
     </button>
     <div class="flex items-center justify-center gap-3 mt-1.5">
-      <button data-action="open-daily-stats" class="text-[11px] font-bold text-muted-fg hover:text-primary cursor-pointer border-0 bg-transparent">Statistics</button>
+      <button data-action="open-daily-stats" class="text-[11px] font-bold text-muted-fg hover:text-primary cursor-pointer border-0 bg-transparent">Daily Challenge Stats</button>
       <span class="text-[11px] text-muted" aria-hidden="true">·</span>
       <button data-action="open-daily-leaderboard" class="text-[11px] font-bold text-muted-fg hover:text-primary cursor-pointer border-0 bg-transparent">
         Today's leaderboard →
@@ -379,7 +456,7 @@ function renderModeSelect() {
         <div class="w-20 mode-header__spacer"></div>
         <img src="logo-badge.svg" alt="82-0" class="mode-header__logo" style="height:52px;width:auto;margin-top:2px"/>
         <div class="flex items-center gap-1.5 justify-end mode-header__actions">
-          <button data-action="open-daily-stats" class="text-[11px] px-2 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Daily Statistics">📊</button>
+          <button data-action="open-daily-stats" class="text-[11px] px-2 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Daily Challenge Stats">📊</button>
           <button data-action="open-leaderboard" class="text-[11px] px-2 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Personal Best">🏅</button>
           <button data-action="open-global-leaderboard" class="text-[11px] px-2 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Global Leaderboard">🌍</button>
           <button data-action="toggle-theme" class="theme-toggle" title="Toggle Dark Mode">${themeIcon()}</button>
@@ -1396,8 +1473,9 @@ function renderDailyResultBanner() {
     <p class="text-sm font-bold" style="color:#0f172a">${ch.emoji} ${ch.title}</p>
     <p class="text-xs mt-1" style="color:${style.color}">${dr.detail}${streakLine}</p>
     <p class="text-[10px] mt-1.5" style="color:#64748b">Score ${dr.score} · new challenge tomorrow (midnight UTC)</p>
+    ${renderCommunityStatsInline()}
     <button data-action="open-daily-stats" class="mt-3 text-xs font-bold px-3 py-1.5 rounded-lg border cursor-pointer"
-      style="border-color:${style.border};background:var(--card);color:${style.color}">Statistics 📊</button>
+      style="border-color:${style.border};background:var(--card);color:${style.color}">Daily Challenge Stats 📊</button>
   </div>`;
 }
 
@@ -2624,5 +2702,13 @@ export function render() {
       update();
       dInput.addEventListener('input', update);
     }
+  }
+
+  // Community pass-rate for Daily Challenge (mode select + daily results)
+  if (
+    S.phase === 'mode-select'
+    || (S.phase === 'results' && S.mode === 'daily')
+  ) {
+    hydrateDailyCommunityStats();
   }
 }
