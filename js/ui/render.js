@@ -460,7 +460,7 @@ function renderDailyModeCard() {
       <span class="text-2xl flex-shrink-0" style="pointer-events:none">${ch.emoji}</span>
       <div class="flex-1 min-w-0" style="pointer-events:none">
         <p class="font-black text-sm flex items-center gap-2" style="color:#f97316">Daily Challenge · ${ch.title} ${streakChip}</p>
-        <p class="text-[11px] text-muted-fg leading-snug mt-0.5">${ch.desc} Same board today — one shot.${community}</p>
+        <p class="text-[11px] text-muted-fg leading-snug mt-0.5">${ch.desc}${community}</p>
       </div>
       <span class="text-[11px] font-bold px-2 py-1 rounded-lg border flex-shrink-0" style="border-color:#fdba74;background:var(--card);color:${isDark() ? '#fdba74' : '#c2410c'};pointer-events:none">Play →</span>
     </button>
