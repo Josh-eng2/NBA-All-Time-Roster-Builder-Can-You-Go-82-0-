@@ -91,7 +91,7 @@ function fansBarCol(avg, dark = isDark()) {
 }
 
 function fansTierFromAvg(avg) {
-  if (!avg) return { tier: 'Draft players to build star power', barCol: '#cbd5e1' };
+  if (!avg) return { tier: '', barCol: '#cbd5e1' };
   return {
     tier:   avg >= 85 ? 'Superstar Lineup' : avg >= 70 ? 'Star Power' : avg >= 55 ? 'Solid Roster' : 'Under the Radar',
     barCol: fansBarCol(avg, false),
@@ -995,12 +995,14 @@ function renderRoundBar() {
 
 function renderPopularityBar() {
   const fans       = calcTeamFans(Object.values(S.roster));
-  const scoreLabel = ` · ${Math.round(fans.sum)}/${fans.max}`;
+  const badgeText  = fans.tier
+    ? `${fans.tier} · ${Math.round(fans.sum)}/${fans.max}`
+    : `${Math.round(fans.sum)}/${fans.max}`;
   return `
   <div class="rounded-xl border border-border bg-card px-4 py-3 card-shadow draft-pop-bar">
     <div class="flex items-center justify-between mb-2">
       <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg">Fans</p>
-      <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border" style="color:${fans.barCol};background:${fans.barCol}18;border-color:${fans.barCol}30">${fans.tier}${scoreLabel}</span>
+      <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border" style="color:${fans.barCol};background:${fans.barCol}18;border-color:${fans.barCol}30">${badgeText}</span>
     </div>
     <div class="h-1.5 rounded-full overflow-hidden bg-border">
       <div class="h-full rounded-full transition-all stat-bar-fill" style="width:${fans.pct}%;background:${fans.barCol}"></div>
@@ -1260,7 +1262,7 @@ function renderChemDashboard() {
   return `
   <div class="rounded-xl border border-border bg-card px-4 py-3 card-shadow draft-chem-dashboard">
     <div class="flex items-center justify-between mb-2 draft-chem-dashboard__head">
-      <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg">Live Chemistry</p>
+      <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg">Chemistry</p>
       <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border" style="background:${scoreBg};color:${scoreColor};border-color:${scoreColor}30">${scoreLabel} · ${chemScore}%</span>
     </div>
     <div class="h-1.5 rounded-full overflow-hidden bg-border draft-chem-dashboard__meter mb-3">
@@ -1463,7 +1465,7 @@ function renderSeasonSim() {
   return `
   <div class="flex flex-col min-h-screen main-gradient">
     ${renderHeader(true)}
-    <main class="flex-1 flex flex-col items-center px-4 pt-8 pb-8">
+    <main class="flex-1 flex flex-col items-center px-4 pt-8 pb-24 season-sim-main">
       <div class="w-full max-w-md flex flex-col gap-4 animate-fade-up">
 
         <div class="text-center">
@@ -1497,11 +1499,11 @@ function renderSeasonSim() {
           </div>`;
         })() : ''}
 
-        <div id="sim-ticker" class="flex flex-col gap-1" style="min-height:120px">${renderSeasonTickerRows()}</div>
+        <div id="sim-ticker" class="flex flex-col gap-1 season-sim-ticker">${renderSeasonTickerRows()}</div>
 
         ${!done && !S.seasonPaused ? `
-        <button data-action="season-skip"
-          class="w-full py-2.5 rounded-xl font-bold text-xs border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">
+        <button data-action="season-skip" id="season-skip-btn"
+          class="season-skip-btn py-2.5 rounded-xl font-bold text-xs border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">
           Skip to Final Record ⏭
         </button>` : ''}
 
