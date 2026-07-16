@@ -19,10 +19,9 @@ import { calculateChemistry }                             from '../logic/chemist
 import { rosterFull, availableDecades, getLegendCatalog, getSkips } from '../logic/draft.js';
 import { coachSystemProgress }                            from '../logic/simulation.js';
 import { getBracketDisplayState }                         from '../logic/playoffs.js';
-import { markReturning, getCollectedLegends, getDailyStatus, currentDailyStreak, getBossWeekStatus } from '../utils/storage.js';
+import { markReturning, getCollectedLegends, getDailyStatus, currentDailyStreak } from '../utils/storage.js';
 import { cgGameplayStart, cgGameplayStop, cgGetItem }     from '../utils/crazygames.js';
 import { getDailyChallenge, checkPickLegal, checkRosterConstraint } from '../logic/challenge.js';
-import { getBossOfWeek } from '../logic/bossWeek.js';
 import { isDualDraft, seriesLabels, MORE_MODES, fansFirstScore } from '../logic/modes.js';
 import { fetchDailyCommunityStats, isFirebaseConfigured } from '../utils/firebase.js';
 import { bindEvents }                                     from '../ui/events.js'; // circular — safe (called inside functions only)
@@ -258,8 +257,9 @@ function renderHeader(showRestart = false) {
       </button>`
     : `<span class="header-pill">${eraLabel}${S.eraLocked ? '<span class="header-pill__lock" aria-hidden="true">🔒</span>' : ''}</span>`;
 
-  // Daily / Boss of the Week are one attempt — never offer Restart mid-run.
-  const canRestart = showRestart && S.mode !== 'daily' && S.mode !== 'boss-week';
+  // Daily Challenge is one attempt — never offer Restart mid-run.
+  // Boss of the Week is unlimited; Restart is fine.
+  const canRestart = showRestart && S.mode !== 'daily';
   const restartBtn = canRestart
     ? `<button data-action="restart" type="button" class="header-pill header-pill--muted header-pill--restart">Restart</button>`
     : '';
@@ -505,16 +505,17 @@ function renderModeSelect() {
 
         ${renderDailyModeCard()}
 
-        <!-- Classic + Ball IQ side by side -->
-        <div class="grid grid-cols-2 gap-3 mb-3">
-          <button data-action="mode-solo"
-            class="rounded-2xl bg-white p-4 flex flex-col items-center gap-2 cursor-pointer card-shadow hover:shadow-md transition-all border border-slate-100">
-            <span class="text-3xl" style="pointer-events:none">💯</span>
-            <p class="font-black text-base" style="color:#f97316;pointer-events:none">Classic</p>
-            <p class="text-xs text-muted-fg text-center leading-snug flex-1" style="pointer-events:none">Draft with full player stats visible — make informed picks.</p>
-            <div class="w-full py-2 rounded-xl font-bold text-sm text-white text-center mt-1" style="background:#f97316;pointer-events:none">Play Classic</div>
-          </button>
+        <!-- Classic full width -->
+        <button data-action="mode-solo"
+          class="w-full rounded-2xl bg-white px-5 py-4 flex flex-col items-center gap-2 cursor-pointer card-shadow hover:shadow-md transition-all border border-slate-100 mb-3">
+          <span class="text-3xl" style="pointer-events:none">💯</span>
+          <p class="font-black text-base" style="color:#f97316;pointer-events:none">Classic</p>
+          <p class="text-sm text-muted-fg text-center" style="pointer-events:none">Draft with full player stats visible — make informed picks.</p>
+          <div class="w-full py-2.5 rounded-xl font-bold text-sm text-white text-center mt-1" style="background:#f97316;pointer-events:none">Play Classic</div>
+        </button>
 
+        <!-- Ball IQ + 1v1 side by side -->
+        <div class="grid grid-cols-2 gap-3 mb-3">
           <button data-action="mode-blind"
             class="rounded-2xl bg-white p-4 flex flex-col items-center gap-2 cursor-pointer card-shadow hover:shadow-md transition-all border border-slate-100">
             <span class="text-3xl" style="pointer-events:none">🧠</span>
@@ -522,16 +523,15 @@ function renderModeSelect() {
             <p class="text-xs text-muted-fg text-center leading-snug flex-1" style="pointer-events:none">Names only — draft by memory and test your Ball IQ.</p>
             <div class="w-full py-2 rounded-xl font-bold text-sm text-white text-center mt-1" style="background:#f97316;pointer-events:none">Play Ball IQ</div>
           </button>
-        </div>
 
-        <!-- 1v1 full width -->
-        <button data-action="mode-1v1"
-          class="w-full rounded-2xl bg-white px-5 py-4 flex flex-col items-center gap-2 cursor-pointer card-shadow hover:shadow-md transition-all border border-slate-100 mb-3">
-          <span class="text-3xl" style="pointer-events:none">⚔️</span>
-          <p class="font-black text-base" style="color:#f97316;pointer-events:none">1v1</p>
-          <p class="text-sm text-muted-fg text-center" style="pointer-events:none">Draft your team, then go head-to-head against a rival lineup.</p>
-          <div class="w-full py-2.5 rounded-xl font-bold text-sm text-white text-center mt-1" style="background:#f97316;pointer-events:none">Play</div>
-        </button>
+          <button data-action="mode-1v1"
+            class="rounded-2xl bg-white p-4 flex flex-col items-center gap-2 cursor-pointer card-shadow hover:shadow-md transition-all border border-slate-100">
+            <span class="text-3xl" style="pointer-events:none">⚔️</span>
+            <p class="font-black text-base" style="color:#f97316;pointer-events:none">1v1</p>
+            <p class="text-xs text-muted-fg text-center leading-snug flex-1" style="pointer-events:none">Draft your team, then go head-to-head against a rival lineup.</p>
+            <div class="w-full py-2 rounded-xl font-bold text-sm text-white text-center mt-1" style="background:#f97316;pointer-events:none">Play</div>
+          </button>
+        </div>
 
         <button data-action="view-trophies"
           class="w-full py-3 rounded-xl font-bold text-sm border border-amber-200 bg-amber-50 text-amber-700 cursor-pointer transition-all hover:bg-amber-100 card-shadow mb-3">
@@ -548,17 +548,12 @@ function renderModeSelect() {
 
 /** Collapsed More Modes entry — keeps secondary modes off the primary tiles. */
 function renderMoreModesDropdown() {
-  const boss = getBossOfWeek(getUtcDateString());
-  const bossStatus = getBossWeekStatus();
   const options = MORE_MODES.map(m => {
     let label = m.label;
     if (m.id === 'boss-week') {
-      label = bossStatus.playedThisWeek
-        ? `Boss of the Week (${boss.name} · played)`
-        : `Boss of the Week — ${boss.name}`;
+      label = 'Boss of the Week';
     }
-    const disabled = m.id === 'boss-week' && bossStatus.playedThisWeek ? ' disabled' : '';
-    return `<option value="${m.action}"${disabled}>${label}</option>`;
+    return `<option value="${m.action}">${label}</option>`;
   }).join('');
 
   return `
@@ -767,7 +762,7 @@ function renderModeDraftBanner() {
   }
   if (S.mode === 'boss-week' && S.bossOfWeek) {
     return `<div class="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 font-semibold">
-      👹 Boss of the Week — beat the <strong>${S.bossOfWeek.name}</strong> in a best-of-7. One attempt this week.
+      👹 Boss of the Week — beat the <strong>${S.bossOfWeek.name}</strong> in a best-of-7. New random boss every run — play as often as you want.
     </div>`;
   }
   return '';
@@ -1311,7 +1306,7 @@ function renderSimulateCard() {
     : isDual
     ? 'Both rosters set. Time to settle it on the court.'
     : isBoss
-    ? 'Skip the regular season — go straight at this week\'s dynasty.'
+    ? 'Skip the regular season — go straight at a random dynasty.'
     : S.mode === 'defense'
     ? 'Win probability leans on stocks, boards, and defensive chemistry.'
     : S.mode === 'fans'

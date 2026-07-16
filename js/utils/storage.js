@@ -206,7 +206,13 @@ export function getBossWeekStatus() {
     streak = Number(s.streak) || 0;
   } catch (e) {}
 
-  return { weekKey, playedThisWeek, result: playedThisWeek ? result : null, streak };
+  return {
+    weekKey,
+    playedThisWeek,
+    result: playedThisWeek ? result : null,
+    lastBossName: result?.bossName || null,
+    streak,
+  };
 }
 
 export function markBossWeekPlayed({ weekKey, bossName, won, score, seriesWins, seriesLosses }) {

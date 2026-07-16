@@ -1,5 +1,5 @@
 /**
- * js/logic/bossWeek.js — Boss of the Week rotation (UTC Monday boundary).
+ * js/logic/bossWeek.js — Boss of the Week (random opponent each play, unlimited runs).
  */
 
 import { CPU_TEAMS } from './state.js';
@@ -20,13 +20,8 @@ const BOSS_ROTATION = [
   '89 Pistons',
 ];
 
-function hashStr(str) {
-  let h = 2166136261;
-  for (let i = 0; i < str.length; i++) {
-    h ^= str.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return h >>> 0;
+function findCpu(name) {
+  return CPU_TEAMS.find(t => t.name === name) || CPU_TEAMS[0];
 }
 
 /** UTC Monday date string for the week containing `date` (Date or YYYY-MM-DD). */
@@ -40,37 +35,52 @@ export function weekKeyUTC(dateStr) {
   return monday.toISOString().slice(0, 10);
 }
 
-function findCpu(name) {
-  return CPU_TEAMS.find(t => t.name === name) || CPU_TEAMS[0];
-}
-
 /**
- * @param {string} [dateStr] YYYY-MM-DD
+ * Pick a Boss of the Week opponent for this play.
+ * Random from the rotation; avoids `excludeName` when possible (e.g. last run).
+ *
+ * @param {{ excludeName?: string|null }} [opts]
  * @returns {{ weekKey: string, name: string, strength: number, prevName: string|null }}
  */
-export function getBossOfWeek(dateStr) {
-  const weekKey = weekKeyUTC(dateStr);
-  const idx = hashStr(weekKey) % BOSS_ROTATION.length;
+export function pickBossForPlay(opts = {}) {
+  const weekKey = weekKeyUTC();
+  const exclude = opts.excludeName || null;
+  let pool = BOSS_ROTATION.filter(n => n !== exclude);
+  if (!pool.length) pool = BOSS_ROTATION.slice();
 
-  // Avoid repeating last week's boss when possible.
-  const prevKey = (() => {
-    const d = new Date(weekKey + 'T12:00:00Z');
-    d.setUTCDate(d.getUTCDate() - 7);
-    return d.toISOString().slice(0, 10);
-  })();
-  const prevIdx = hashStr(prevKey) % BOSS_ROTATION.length;
-  let useIdx = idx;
-  if (idx === prevIdx && BOSS_ROTATION.length > 1) {
-    useIdx = (idx + 1) % BOSS_ROTATION.length;
-  }
-
-  const name = BOSS_ROTATION[useIdx];
+  const useIdx = Math.floor(Math.random() * pool.length);
+  const name = pool[useIdx];
   const cpu = findCpu(name);
   return {
     weekKey,
     name: cpu.name,
     strength: cpu.strength,
-    prevName: BOSS_ROTATION[prevIdx] || null,
+    prevName: exclude,
+  };
+}
+
+/**
+ * @deprecated Prefer pickBossForPlay() for new runs. Kept for callers that
+ * only need a display fallback; still returns a stable weekly pick for
+ * legacy/analytics weekKey alignment.
+ * @param {string} [dateStr] YYYY-MM-DD
+ */
+export function getBossOfWeek(dateStr) {
+  // Stable weekly fallback (not used for new plays) — same hash as before.
+  let h = 2166136261;
+  const weekKey = weekKeyUTC(dateStr);
+  for (let i = 0; i < weekKey.length; i++) {
+    h ^= weekKey.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  const idx = (h >>> 0) % BOSS_ROTATION.length;
+  const name = BOSS_ROTATION[idx];
+  const cpu = findCpu(name);
+  return {
+    weekKey,
+    name: cpu.name,
+    strength: cpu.strength,
+    prevName: null,
   };
 }
 

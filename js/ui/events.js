@@ -33,7 +33,7 @@ import { submitGlobalScore, submitDailyScore, logAnalyticsEvent, isFirebaseConfi
 import { cgGetItem, cgSetItem } from '../utils/crazygames.js';
 import { buildShareCardBlob, buildShareCaption } from './shareCard.js';
 import { getDailyChallenge, checkPickLegal, evaluateObjective, dailyScore } from '../logic/challenge.js';
-import { getBossOfWeek, bossWeekScore } from '../logic/bossWeek.js';
+import { pickBossForPlay, bossWeekScore } from '../logic/bossWeek.js';
 import { chooseAiPick, bestAiSlot } from '../logic/aiDraft.js';
 import { isDualDraft, getModeConfig, fansFirstScore, fansFirstPassed } from '../logic/modes.js';
 import {
@@ -105,8 +105,8 @@ function dispatch(action) {
     doStartGame('all'); return;
   }
   if (action === 'mode-boss-week') {
-    if (getBossWeekStatus().playedThisWeek) { showToast('Already played Boss of the Week — come back Monday'); render(); return; }
-    const boss = getBossOfWeek(getUtcDateString());
+    const bossStatus = getBossWeekStatus();
+    const boss = pickBossForPlay({ excludeName: bossStatus.lastBossName });
     S.mode = 'boss-week'; S.currentPlayer = 1; S.p1 = null; S.dailyChallenge = null;
     S.bossOfWeek = boss;
     doStartGame('all');
@@ -181,12 +181,13 @@ function dispatch(action) {
   // ── Navigation ─────────────────────────────────────────────────────────────
   // Daily Challenge is one shot — refuse mid-run abandon/re-draft so players
   // can't throw away a bad board and spin again before the day locks.
+  // Boss of the Week is unlimited — Restart / new roster are allowed.
   if (action === 'restart') {
-    if (S.mode === 'daily' || S.mode === 'boss-week') return;
+    if (S.mode === 'daily') return;
     confirmLeave(() => { S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; S.dailyChallenge = null; S.bossOfWeek = null; render(); }); return;
   }
   if (action === 'draft-new-roster') {
-    if (S.mode === 'daily' || S.mode === 'boss-week') return;
+    if (S.mode === 'daily') return;
     S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; S.dailyChallenge = null; S.bossOfWeek = null; render(); return;
   }
   if (action === 'view-trophies')    { S.phase = 'trophy-room'; render(); return; }
@@ -674,7 +675,7 @@ function doSimulate() {
 
   // Boss of the Week — skip the 82-game ticker; go straight to a best-of-7.
   if (S.mode === 'boss-week') {
-    const boss = S.bossOfWeek || getBossOfWeek(getUtcDateString());
+    const boss = S.bossOfWeek || pickBossForPlay();
     S.result = simulateSeason(starters, S.coach);
     S.result.newLegends = recordLegends(starters).length;
     S.seriesResult = simulateBossSeries(S.result, boss);
