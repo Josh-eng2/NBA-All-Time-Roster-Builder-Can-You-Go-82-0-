@@ -31,7 +31,7 @@ import { getModeConfig }       from '../logic/modes.js';
 // position-clean builds: elite (pop 85+) median 2.03 → ~73 wins; elite p90
 // 2.40 → ~80 wins; mid-tier (68-84) median 1.73 → ~52 wins.
 const SIM_K      = 5;
-const SIM_CENTER = 1.62;
+const SIM_CENTER = 1.8;
 const WIN_CAP    = 1.0;
 
 let _baselinesCache = null;
