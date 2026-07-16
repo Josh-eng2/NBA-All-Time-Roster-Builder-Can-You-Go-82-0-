@@ -458,7 +458,7 @@ function renderDailyModeCard() {
     <div class="w-full rounded-2xl bg-white px-3 py-2.5 flex items-center gap-2 mb-3 card-shadow border border-slate-100">
       <span class="text-2xl flex-shrink-0">${ch.emoji}</span>
       <div class="flex-1 min-w-0">
-        <p class="font-black text-sm text-foreground flex flex-wrap items-center gap-x-2 gap-y-1">Daily Challenge — <span class="inline-flex items-center gap-1.5">${verdict}${streakChip}</span></p>
+        <p class="font-black text-sm text-foreground flex flex-wrap items-center gap-x-2 gap-y-1">Daily Challenge <span class="inline-flex items-center gap-1.5">${verdict}${streakChip}</span></p>
         <p class="text-[11px] text-muted-fg mt-0.5 leading-snug">${ch.title}: you went <span style="color:#f97316;font-weight:700">${r.wins}–${r.losses}</span></p>
         ${renderCommunityStatsLine()}
       </div>
