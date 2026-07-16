@@ -32,7 +32,7 @@ import { getModeConfig }       from '../logic/modes.js';
 // 2.40 → ~80 wins; mid-tier (68-84) median 1.73 → ~52 wins.
 const SIM_K      = 5;
 const SIM_CENTER = 1.8;
-const WIN_CAP    = 1.0;
+const WIN_CAP    = 0.99;
 
 let _baselinesCache = null;
 
