@@ -1,11 +1,11 @@
 /**
- * js/logic/bossWeek.js — Dynasty Duel (random legendary opponent each play).
+ * js/logic/dynastyDuel.js — Dynasty Duel (random legendary opponent each play).
  */
 
 import { CPU_TEAMS } from './state.js';
 
 /** Curated rotation — references CPU_TEAMS by name. */
-const BOSS_ROTATION = [
+const DYNASTY_ROTATION = [
   '96 Bulls',
   '17 Warriors',
   '86 Celtics',
@@ -42,11 +42,11 @@ export function weekKeyUTC(dateStr) {
  * @param {{ excludeName?: string|null }} [opts]
  * @returns {{ weekKey: string, name: string, strength: number, prevName: string|null }}
  */
-export function pickBossForPlay(opts = {}) {
+export function pickDynastyForPlay(opts = {}) {
   const weekKey = weekKeyUTC();
   const exclude = opts.excludeName || null;
-  let pool = BOSS_ROTATION.filter(n => n !== exclude);
-  if (!pool.length) pool = BOSS_ROTATION.slice();
+  let pool = DYNASTY_ROTATION.filter(n => n !== exclude);
+  if (!pool.length) pool = DYNASTY_ROTATION.slice();
 
   const useIdx = Math.floor(Math.random() * pool.length);
   const name = pool[useIdx];
@@ -59,32 +59,7 @@ export function pickBossForPlay(opts = {}) {
   };
 }
 
-/**
- * @deprecated Prefer pickBossForPlay() for new runs. Kept for callers that
- * only need a display fallback; still returns a stable weekly pick for
- * legacy/analytics weekKey alignment.
- * @param {string} [dateStr] YYYY-MM-DD
- */
-export function getBossOfWeek(dateStr) {
-  // Stable weekly fallback (not used for new plays) — same hash as before.
-  let h = 2166136261;
-  const weekKey = weekKeyUTC(dateStr);
-  for (let i = 0; i < weekKey.length; i++) {
-    h ^= weekKey.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  const idx = (h >>> 0) % BOSS_ROTATION.length;
-  const name = BOSS_ROTATION[idx];
-  const cpu = findCpu(name);
-  return {
-    weekKey,
-    name: cpu.name,
-    strength: cpu.strength,
-    prevName: null,
-  };
-}
-
 /** Leaderboard score for a Dynasty Duel run. */
-export function bossWeekScore(seriesWins, won, playerStrength) {
+export function dynastyDuelScore(seriesWins, won, playerStrength) {
   return (seriesWins ?? 0) * 100 + (won ? 500 : 0) + Math.floor((playerStrength ?? 0) * 10);
 }

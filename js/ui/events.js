@@ -19,7 +19,7 @@ import {
   spinResult, spinResultAtLeast, getAvailablePlayers, availableDecades,
   playerTier, rosterFull, getSkips, useSkip,
 } from '../logic/draft.js';
-import { simulateSeason, simulateSeries, simulateHeadToHeadSeries, simulateBossSeries } from '../logic/simulation.js';
+import { simulateSeason, simulateSeries, simulateHeadToHeadSeries, simulateDynastySeries } from '../logic/simulation.js';
 import { applyPlayoffRound } from '../logic/playoffs.js';
 import {
   saveLeaderboard, saveToTrophyRoom, markReturning, recordLegends,
@@ -27,13 +27,13 @@ import {
   showGlobalLeaderboardModal, closeGlobalLeaderboardModal,
   getDailyStatus, markDailyPlayed, showDailyLeaderboardModal, closeDailyLeaderboardModal,
   showDailyStatsModal, closeDailyStatsModal,
-  saveModeLeaderboard, getBossWeekStatus, markBossWeekPlayed,
+  saveModeLeaderboard, getDynastyDuelStatus, markDynastyDuelPlayed,
 } from '../utils/storage.js';
 import { submitGlobalScore, submitDailyScore, logAnalyticsEvent, isFirebaseConfigured } from '../utils/firebase.js';
 import { cgGetItem, cgSetItem } from '../utils/crazygames.js';
 import { buildShareCardBlob, buildShareCaption } from './shareCard.js';
 import { getDailyChallenge, checkPickLegal, evaluateObjective, dailyScore } from '../logic/challenge.js';
-import { pickBossForPlay, bossWeekScore } from '../logic/bossWeek.js';
+import { pickDynastyForPlay, dynastyDuelScore } from '../logic/dynastyDuel.js';
 import { chooseAiPick, bestAiSlot } from '../logic/aiDraft.js';
 import { isDualDraft, getModeConfig, fansFirstScore, fansFirstPassed } from '../logic/modes.js';
 import {
@@ -93,26 +93,26 @@ function dispatch(action) {
     doStartGame('all'); return;
   }
   if (action === 'mode-gm-ai') {
-    S.mode = 'gm-ai'; S.currentPlayer = 1; S.p1 = null; S.dailyChallenge = null; S.bossOfWeek = null;
+    S.mode = 'gm-ai'; S.currentPlayer = 1; S.p1 = null; S.dailyChallenge = null; S.dynastyOpponent = null;
     doStartGame('all'); return;
   }
   if (action === 'mode-defense') {
-    S.mode = 'defense'; S.currentPlayer = 1; S.p1 = null; S.dailyChallenge = null; S.bossOfWeek = null;
+    S.mode = 'defense'; S.currentPlayer = 1; S.p1 = null; S.dailyChallenge = null; S.dynastyOpponent = null;
     doStartGame('all'); return;
   }
   if (action === 'mode-fans') {
-    S.mode = 'fans'; S.currentPlayer = 1; S.p1 = null; S.dailyChallenge = null; S.bossOfWeek = null;
+    S.mode = 'fans'; S.currentPlayer = 1; S.p1 = null; S.dailyChallenge = null; S.dynastyOpponent = null;
     doStartGame('all'); return;
   }
-  if (action === 'mode-boss-week') {
-    const bossStatus = getBossWeekStatus();
-    const boss = pickBossForPlay({ excludeName: bossStatus.lastBossName });
-    S.mode = 'boss-week'; S.currentPlayer = 1; S.p1 = null; S.dailyChallenge = null;
-    S.bossOfWeek = boss;
+  if (action === 'mode-dynasty-duel') {
+    const status = getDynastyDuelStatus();
+    const opponent = pickDynastyForPlay({ excludeName: status.lastOpponentName });
+    S.mode = 'dynasty-duel'; S.currentPlayer = 1; S.p1 = null; S.dailyChallenge = null;
+    S.dynastyOpponent = opponent;
     doStartGame('all');
     S.teamSkips = 0;
     S.decadeSkips = 0;
-    logAnalyticsEvent('boss_week_started', { boss: boss.name, week: boss.weekKey });
+    logAnalyticsEvent('dynasty_duel_started', { opponent: opponent.name, week: opponent.weekKey });
     render(); return;
   }
   if (action === 'more-mode-change') {
@@ -184,22 +184,22 @@ function dispatch(action) {
   // Dynasty Duel is unlimited — Restart / new roster are allowed.
   if (action === 'restart') {
     if (S.mode === 'daily') return;
-    confirmLeave(() => { S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; S.dailyChallenge = null; S.bossOfWeek = null; render(); }); return;
+    confirmLeave(() => { S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; S.dailyChallenge = null; S.dynastyOpponent = null; render(); }); return;
   }
   if (action === 'draft-new-roster') {
     if (S.mode === 'daily') return;
-    S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; S.dailyChallenge = null; S.bossOfWeek = null; render(); return;
+    S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; S.dailyChallenge = null; S.dynastyOpponent = null; render(); return;
   }
   if (action === 'view-trophies')    { S.phase = 'trophy-room'; render(); return; }
   if (action === 'view-legends')     { S.legendsReturnPhase = S.phase; S.phase = 'legends'; render(); return; }
   if (action === 'legends-back')     { S.phase = S.legendsReturnPhase || 'mode-select'; render(); return; }
-  if (action === 'back-to-menu')     { S.mode = null; S.phase = 'mode-select'; S.p1 = null; S.dailyChallenge = null; S.bossOfWeek = null; render(); return; }
-  if (action === 'series-play-again') { S.mode = null; S.phase = 'mode-select'; S.p1 = null; S.seriesResult = null; S.seriesRevealedCount = 0; S.bossOfWeek = null; render(); return; }
+  if (action === 'back-to-menu')     { S.mode = null; S.phase = 'mode-select'; S.p1 = null; S.dailyChallenge = null; S.dynastyOpponent = null; render(); return; }
+  if (action === 'series-play-again') { S.mode = null; S.phase = 'mode-select'; S.p1 = null; S.seriesResult = null; S.seriesRevealedCount = 0; S.dynastyOpponent = null; render(); return; }
   if (action === 'begin-series') { S.phase = 'series-sim'; S.seriesRevealedCount = 0; render(); return; }
   if (action === 'sim-next-game') { S.seriesRevealedCount = Math.min((S.seriesRevealedCount || 0) + 1, S.seriesResult.games.length); render(); return; }
   if (action === 'series-to-recap') {
     S.phase = 'series-result';
-    if (S.seriesResult?.winner === 'p1' && (S.mode === 'gm-ai' || S.mode === 'boss-week')) {
+    if (S.seriesResult?.winner === 'p1' && (S.mode === 'gm-ai' || S.mode === 'dynasty-duel')) {
       withConfetti(() => {
         confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 }, colors: ['#f97316', '#2563eb', '#fcd34d'] });
       });
@@ -674,37 +674,37 @@ function doSimulate() {
   const starters = POSITIONS.map(p => S.roster[p]).filter(Boolean);
 
   // Dynasty Duel — skip the 82-game ticker; go straight to a best-of-7.
-  if (S.mode === 'boss-week') {
-    const boss = S.bossOfWeek || pickBossForPlay();
+  if (S.mode === 'dynasty-duel') {
+    const opponent = S.dynastyOpponent || pickDynastyForPlay();
     S.result = simulateSeason(starters, S.coach);
     S.result.newLegends = recordLegends(starters).length;
-    S.seriesResult = simulateBossSeries(S.result, boss);
+    S.seriesResult = simulateDynastySeries(S.result, opponent);
     S.seriesRevealedCount = 0;
-    // Mirror player roster into p1 for series UI; p2 is the boss (no cards).
+    // Mirror player roster into p1 for series UI; p2 is the dynasty (no cards).
     S.p1Roster = { ...S.roster };
     S.p2Roster = { PG: null, SG: null, SF: null, PF: null, C: null };
     S.p1Coach = S.coach;
     S.p2Coach = null;
 
     const won = S.seriesResult.winner === 'p1';
-    const score = bossWeekScore(S.seriesResult.p1Wins, won, S.result.strength);
-    S.bossWeekResult = { won, score, bossName: boss.name, weekKey: boss.weekKey };
-    markBossWeekPlayed({
-      weekKey: boss.weekKey,
-      bossName: boss.name,
+    const score = dynastyDuelScore(S.seriesResult.p1Wins, won, S.result.strength);
+    S.dynastyDuelResult = { won, score, opponentName: opponent.name, weekKey: opponent.weekKey };
+    markDynastyDuelPlayed({
+      weekKey: opponent.weekKey,
+      opponentName: opponent.name,
       won,
       score,
       seriesWins: S.seriesResult.p1Wins,
       seriesLosses: S.seriesResult.p2Wins,
     });
-    saveModeLeaderboard('boss-week', {
-      bossName: boss.name,
+    saveModeLeaderboard('dynasty-duel', {
+      opponentName: opponent.name,
       won,
       score,
-      weekKey: boss.weekKey,
+      weekKey: opponent.weekKey,
       date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
     });
-    logAnalyticsEvent('boss_week_series', { boss: boss.name, won, score });
+    logAnalyticsEvent('dynasty_duel_series', { opponent: opponent.name, won, score });
     S.phase = 'series-preview';
     render();
     return;
