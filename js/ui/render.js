@@ -489,13 +489,6 @@ function renderDailyModeCard() {
       </div>
       <span class="text-[11px] font-bold px-2 py-1 rounded-lg border flex-shrink-0" style="border-color:#fdba74;background:var(--card);color:${isDark() ? '#fdba74' : '#c2410c'};pointer-events:none">Play →</span>
     </button>
-    <div class="flex items-center justify-center gap-3 mt-1.5">
-      <button data-action="open-daily-stats" class="text-[11px] font-bold text-muted-fg hover:text-primary cursor-pointer border-0 bg-transparent">Daily Challenge Stats</button>
-      <span class="text-[11px] text-muted" aria-hidden="true">·</span>
-      <button data-action="open-daily-leaderboard" class="text-[11px] font-bold text-muted-fg hover:text-primary cursor-pointer border-0 bg-transparent">
-        Today's leaderboard →
-      </button>
-    </div>
   </div>`;
 }
 
