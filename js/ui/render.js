@@ -449,19 +449,16 @@ function renderDailyModeCard() {
   if (status.playedToday) {
     const r = status.result;
     // Recaps written before the challenge system have no `passed` field —
-    // fall back to the plain "Done" copy for those.
-    const verdict = ('passed' in r)
-      ? (r.passed
-          ? `<span style="color:#15803d;font-weight:900">PASSED</span>`
-          : `<span style="color:#dc2626;font-weight:900">FAILED ✗</span>`)
-      : 'Done';
+    // treat those as complete with a neutral tick.
+    const tick = !('passed' in r) || r.passed
+      ? `<span style="color:#15803d;font-weight:900" aria-label="Passed">✓</span>`
+      : `<span style="color:#dc2626;font-weight:900" aria-label="Failed">✗</span>`;
     return `
     <div class="w-full rounded-2xl bg-white px-3 py-2.5 flex items-center gap-2 mb-3 card-shadow border border-slate-100">
       <span class="text-2xl flex-shrink-0">${ch.emoji}</span>
       <div class="flex-1 min-w-0">
-        <p class="font-black text-sm text-foreground flex flex-wrap items-center gap-x-2 gap-y-1">Daily Challenge <span class="inline-flex items-center gap-1.5">${verdict}${streakChip}</span></p>
+        <p class="font-black text-sm text-foreground flex flex-wrap items-center gap-x-2 gap-y-1">Daily Challenge <span class="inline-flex items-center gap-1.5">${tick}${streakChip}</span></p>
         <p class="text-[11px] text-muted-fg mt-0.5 leading-snug">${ch.title}: you went <span style="color:#f97316;font-weight:700">${r.wins}–${r.losses}</span></p>
-        ${renderCommunityStatsLine()}
       </div>
       <button data-action="open-daily-stats" class="text-[11px] font-bold px-2 py-1.5 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:var(--border);background:var(--card);color:var(--muted-fg)" title="Daily Challenge Stats">Stats</button>
       <button data-action="open-daily-leaderboard" class="text-[11px] font-bold px-2 py-1.5 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:#fdba74;background:var(--card);color:${isDark() ? '#fdba74' : '#c2410c'}">Board 🏅</button>
@@ -503,13 +500,13 @@ function renderModeSelect() {
       </div>
     </header>
 
-    <main class="flex-1 flex flex-col items-center px-4 pt-6 pb-8">
+    <main class="flex-1 flex flex-col items-center px-4 pt-3 pb-8">
       <div class="w-full max-w-md animate-fade-up">
 
-        <div class="text-center mb-5">
-          <p class="text-sm font-semibold text-muted-fg mb-0.5">Can you go 82-0?</p>
-          <h1 class="text-2xl font-black text-foreground mb-1">Choose Your Mode</h1>
-          <p class="text-sm text-muted-fg">How do you want to build your all-time team?</p>
+        <div class="text-center mb-3">
+          <p class="text-xs font-semibold text-muted-fg mb-0">Can you go 82-0?</p>
+          <h1 class="text-xl font-black text-foreground mb-0.5 leading-tight">Choose Your Mode</h1>
+          <p class="text-xs text-muted-fg leading-snug">How do you want to build your all-time team?</p>
         </div>
 
         ${renderDailyModeCard()}
