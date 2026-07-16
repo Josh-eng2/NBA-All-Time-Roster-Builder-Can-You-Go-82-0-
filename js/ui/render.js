@@ -502,20 +502,7 @@ function renderModeSelect() {
         <!-- Classic full width -->
         <button data-action="mode-solo"
           class="w-full rounded-2xl bg-white px-5 py-4 flex flex-col items-center gap-2 cursor-pointer card-shadow hover:shadow-md transition-all border border-slate-100 mb-3">
-          <span class="inline-flex items-center justify-center" style="pointer-events:none;width:2.25rem;height:2.25rem" aria-hidden="true">
-            <svg viewBox="0 0 64 64" width="36" height="36" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <linearGradient id="classic820Grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#ff6b35"/>
-                  <stop offset="55%" stop-color="#f97316"/>
-                  <stop offset="100%" stop-color="#ea580c"/>
-                </linearGradient>
-              </defs>
-              <rect x="4" y="4" width="56" height="56" rx="14" fill="url(#classic820Grad)"/>
-              <rect x="8" y="8" width="48" height="48" rx="11" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="2"/>
-              <text x="32" y="40" text-anchor="middle" font-family="Fira Sans,Arial Black,sans-serif" font-size="20" font-weight="900" fill="#fff" letter-spacing="-0.5">82-0</text>
-            </svg>
-          </span>
+          <span class="text-3xl" style="pointer-events:none">💯</span>
           <p class="font-black text-base" style="color:#f97316;pointer-events:none">Classic</p>
           <p class="text-sm text-muted-fg text-center" style="pointer-events:none">Draft with full player stats visible — make informed picks.</p>
           <div class="w-full py-2.5 rounded-xl font-bold text-sm text-white text-center mt-1" style="background:#f97316;pointer-events:none">Play Classic</div>
