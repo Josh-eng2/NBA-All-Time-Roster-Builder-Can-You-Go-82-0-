@@ -19,7 +19,7 @@ import {
   spinResult, spinResultAtLeast, getAvailablePlayers, availableDecades,
   playerTier, rosterFull, getSkips, useSkip,
 } from '../logic/draft.js';
-import { simulateSeason, simulateSeries, simulateHeadToHeadSeries } from '../logic/simulation.js';
+import { simulateSeason, simulateSeries, simulateHeadToHeadSeries, simulateBossSeries } from '../logic/simulation.js';
 import { applyPlayoffRound } from '../logic/playoffs.js';
 import {
   saveLeaderboard, saveToTrophyRoom, markReturning, recordLegends,
@@ -27,11 +27,15 @@ import {
   showGlobalLeaderboardModal, closeGlobalLeaderboardModal,
   getDailyStatus, markDailyPlayed, showDailyLeaderboardModal, closeDailyLeaderboardModal,
   showDailyStatsModal, closeDailyStatsModal,
+  saveModeLeaderboard, getBossWeekStatus, markBossWeekPlayed,
 } from '../utils/storage.js';
 import { submitGlobalScore, submitDailyScore, logAnalyticsEvent, isFirebaseConfigured } from '../utils/firebase.js';
 import { cgGetItem, cgSetItem } from '../utils/crazygames.js';
 import { buildShareCardBlob, buildShareCaption } from './shareCard.js';
 import { getDailyChallenge, checkPickLegal, evaluateObjective, dailyScore } from '../logic/challenge.js';
+import { getBossOfWeek, bossWeekScore } from '../logic/bossWeek.js';
+import { chooseAiPick, bestAiSlot } from '../logic/aiDraft.js';
+import { isDualDraft, getModeConfig, fansFirstScore, fansFirstPassed } from '../logic/modes.js';
 import {
   render, $app, fmtDecadeShort, showToast, renderSeasonTickerRows,
   computeAutopsy, liveStreakLabel, withConfetti,
@@ -54,6 +58,9 @@ export function bindEvents() {
   if (_bound) return;
   _bound = true;
   $app.addEventListener('click', handleClick);
+  $app.addEventListener('change', e => {
+    if (e.target?.id === 'more-modes-select') dispatch('more-mode-change');
+  });
 }
 
 function handleClick(e) {
@@ -65,6 +72,13 @@ function handleClick(e) {
 // ── Action dispatcher ─────────────────────────────────────────────────────────
 
 function dispatch(action) {
+  // Block human input while the AI GM is drafting
+  if (S.mode === 'gm-ai' && S.currentPlayer === 2 && S.phase === 'drafting') {
+    const blocked = action === 'spin' || action === 'skip-team' || action === 'skip-decade'
+      || action.startsWith('draft-pick-') || action.startsWith('place-')
+      || action.startsWith('coach-pick-') || action === 'coach-picker-toggle';
+    if (blocked) return;
+  }
   // ── Mode selection ─────────────────────────────────────────────────────────
   if (action === 'mode-solo') {
     S.mode = 'solo'; S.currentPlayer = 1; S.p1 = null; S.dailyChallenge = null;
@@ -77,6 +91,37 @@ function dispatch(action) {
   if (action === 'mode-blind') {
     S.mode = 'blind'; S.currentPlayer = 1; S.p1 = null; S.dailyChallenge = null;
     doStartGame('all'); return;
+  }
+  if (action === 'mode-gm-ai') {
+    S.mode = 'gm-ai'; S.currentPlayer = 1; S.p1 = null; S.dailyChallenge = null; S.bossOfWeek = null;
+    doStartGame('all'); return;
+  }
+  if (action === 'mode-defense') {
+    S.mode = 'defense'; S.currentPlayer = 1; S.p1 = null; S.dailyChallenge = null; S.bossOfWeek = null;
+    doStartGame('all'); return;
+  }
+  if (action === 'mode-fans') {
+    S.mode = 'fans'; S.currentPlayer = 1; S.p1 = null; S.dailyChallenge = null; S.bossOfWeek = null;
+    doStartGame('all'); return;
+  }
+  if (action === 'mode-boss-week') {
+    if (getBossWeekStatus().playedThisWeek) { showToast('Already played Boss of the Week — come back Monday'); render(); return; }
+    const boss = getBossOfWeek(getUtcDateString());
+    S.mode = 'boss-week'; S.currentPlayer = 1; S.p1 = null; S.dailyChallenge = null;
+    S.bossOfWeek = boss;
+    doStartGame('all');
+    S.teamSkips = 0;
+    S.decadeSkips = 0;
+    logAnalyticsEvent('boss_week_started', { boss: boss.name, week: boss.weekKey });
+    render(); return;
+  }
+  if (action === 'more-mode-change') {
+    const sel = document.getElementById('more-modes-select');
+    const val = sel?.value;
+    if (!val) return;
+    if (sel) sel.value = '';
+    dispatch(val);
+    return;
   }
   if (action === 'mode-daily') {
     if (getDailyStatus().playedToday) { render(); return; } // already played — mode-select shouldn't even show the button
@@ -109,6 +154,7 @@ function dispatch(action) {
     if (!S.coachLocked) {
       S.coach = action.slice(11);
       S.coachPickerOpen = false;
+      if (S.mode === 'gm-ai') S.p1Coach = S.coach;
     }
     render(); return;
   }
@@ -136,21 +182,30 @@ function dispatch(action) {
   // Daily Challenge is one shot — refuse mid-run abandon/re-draft so players
   // can't throw away a bad board and spin again before the day locks.
   if (action === 'restart') {
-    if (S.mode === 'daily') return;
-    confirmLeave(() => { S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; S.dailyChallenge = null; render(); }); return;
+    if (S.mode === 'daily' || S.mode === 'boss-week') return;
+    confirmLeave(() => { S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; S.dailyChallenge = null; S.bossOfWeek = null; render(); }); return;
   }
   if (action === 'draft-new-roster') {
-    if (S.mode === 'daily') return;
-    S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; S.dailyChallenge = null; render(); return;
+    if (S.mode === 'daily' || S.mode === 'boss-week') return;
+    S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; S.dailyChallenge = null; S.bossOfWeek = null; render(); return;
   }
   if (action === 'view-trophies')    { S.phase = 'trophy-room'; render(); return; }
   if (action === 'view-legends')     { S.legendsReturnPhase = S.phase; S.phase = 'legends'; render(); return; }
   if (action === 'legends-back')     { S.phase = S.legendsReturnPhase || 'mode-select'; render(); return; }
-  if (action === 'back-to-menu')     { S.mode = null; S.phase = 'mode-select'; S.p1 = null; S.dailyChallenge = null; render(); return; }
-  if (action === 'series-play-again') { S.mode = null; S.phase = 'mode-select'; S.p1 = null; S.seriesResult = null; S.seriesRevealedCount = 0; render(); return; }
+  if (action === 'back-to-menu')     { S.mode = null; S.phase = 'mode-select'; S.p1 = null; S.dailyChallenge = null; S.bossOfWeek = null; render(); return; }
+  if (action === 'series-play-again') { S.mode = null; S.phase = 'mode-select'; S.p1 = null; S.seriesResult = null; S.seriesRevealedCount = 0; S.bossOfWeek = null; render(); return; }
   if (action === 'begin-series') { S.phase = 'series-sim'; S.seriesRevealedCount = 0; render(); return; }
   if (action === 'sim-next-game') { S.seriesRevealedCount = Math.min((S.seriesRevealedCount || 0) + 1, S.seriesResult.games.length); render(); return; }
-  if (action === 'series-to-recap') { S.phase = 'series-result'; render(); return; }
+  if (action === 'series-to-recap') {
+    S.phase = 'series-result';
+    if (S.seriesResult?.winner === 'p1' && (S.mode === 'gm-ai' || S.mode === 'boss-week')) {
+      withConfetti(() => {
+        confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 }, colors: ['#f97316', '#2563eb', '#fcd34d'] });
+      });
+    }
+    render();
+    return;
+  }
 
   // ── Draft actions ──────────────────────────────────────────────────────────
   if (action === 'spin')         { doSpin();       return; }
@@ -219,9 +274,10 @@ function toggleTheme() {
 
 function setEra(era) {
   if (S.phase !== 'drafting' || S.eraLocked) return;
-  if (S.mode === '1v1') {
+  if (isDualDraft()) {
     S.p1Era = era;
     S.p2Era = era;
+    S.selectedEra = era;
   } else {
     S.selectedEra = era;
   }
@@ -241,6 +297,20 @@ function doStartGame(era = 'all') {
     logAnalyticsEvent('1v1_draft_started', { era });
     render(); return;
   }
+  if (S.mode === 'gm-ai') {
+    if (!S.coach) {
+      let remembered = null;
+      try { remembered = localStorage.getItem('nba820_coach'); } catch (e) {}
+      S.coach = COACHES.some(c => c.id === remembered) ? remembered : 'jackson';
+    }
+    S.p1Coach = S.coach;
+    S.p2Coach = pick(COACHES).id;
+    S.p1Era   = era;
+    S.p2Era   = era;
+    startGame1v1();
+    logAnalyticsEvent('gm_ai_draft_started', { era, coach: S.p1Coach, aiCoach: S.p2Coach });
+    render(); return;
+  }
   // Default coach: last one used, else the recommended starter system.
   // Changeable from the drafting screen until the first spin locks it.
   if (!S.coach) {
@@ -249,7 +319,7 @@ function doStartGame(era = 'all') {
     S.coach = COACHES.some(c => c.id === remembered) ? remembered : 'jackson';
   }
   startGame(era);
-  logAnalyticsEvent('game_started', { era, coach: S.coach ?? 'none' });
+  logAnalyticsEvent('game_started', { era, coach: S.coach ?? 'none', mode: S.mode ?? 'solo' });
   render();
 }
 
@@ -293,9 +363,11 @@ export function doSpin() {
 
   // First spin commits the coach — the system is chosen with zero players
   // seen, so the system meter is an objective rather than a post-hoc score.
+  // Pure 1v1 has no coach; GM vs AI does.
   if (S.mode !== '1v1' && !S.coachLocked) {
     S.coachLocked     = true;
     S.coachPickerOpen = false;
+    if (S.mode === 'gm-ai') S.p1Coach = S.coach;
     try { if (S.coach) localStorage.setItem('nba820_coach', S.coach); } catch (e) {}
   }
 
@@ -309,7 +381,7 @@ export function doSpin() {
   S.draftBoard     = [];
   render();
 
-  const activeEra  = S.mode === '1v1'
+  const activeEra  = isDualDraft()
     ? (S.currentPlayer === 1 ? (S.p1Era || 'all') : (S.p2Era || 'all'))
     : (S.selectedEra || 'all');
   const eraLocked  = activeEra !== 'all';
@@ -331,19 +403,11 @@ export function doSpin() {
 
     if (ticks >= total) {
       clearInterval(interval);
-      // Escalating rounds for solo/blind runs:
-      //   round 1      — GOAT-tier guarantee (the hook)
-      //   rounds 2–3   — star-or-better guarantee (front-loaded generosity)
-      //   rounds 4+    — pure random, protected by the pity timer:
-      //                  a starless board forces the NEXT spin to star tier,
-      //                  so back-to-back dry boards can't happen. (With only
-      //                  two unrigged spins in the 5-pick format, the old
-      //                  4-board threshold could never fire.)
-      // 1v1 keeps pure random spins for competitive fairness.
-      const solo    = S.mode !== '1v1';
-      const rigGoat = solo && S.round === 0;
-      const rigStar = solo && !rigGoat && S.round <= 2;
-      const pity    = solo && !rigGoat && !rigStar && (S.drySpins ?? 0) >= 1;
+      // Escalating rounds for pity-enabled modes; dual draft stays pure random.
+      const usePity = getModeConfig().pity;
+      const rigGoat = usePity && (isDualDraft() ? false : S.round === 0);
+      const rigStar = usePity && !rigGoat && !isDualDraft() && S.round <= 2;
+      const pity    = usePity && !rigGoat && !rigStar && !isDualDraft() && (S.drySpins ?? 0) >= 1;
       if (pity) logAnalyticsEvent('pity_spin_triggered', { round: S.round + 1 });
       const spin = rigGoat ? spinResultAtLeast('goat')
         : (rigStar || pity) ? spinResultAtLeast('star')
@@ -387,7 +451,7 @@ function buildDraftBoard() {
  * A "dry" board has no star-or-better player on it.
  */
 function updateDryCounter() {
-  if (S.mode === '1v1') return;
+  if (isDualDraft() || !getModeConfig().pity) return;
   const hasStar = S.availablePlayers.some(p => playerTier(p) !== 'starter');
   S.drySpins = hasStar ? 0 : (S.drySpins ?? 0) + 1;
 }
@@ -442,7 +506,7 @@ function doSkipTeam() {
 }
 
 function doSkipDecade() {
-  const activeEra = S.mode === '1v1'
+  const activeEra = isDualDraft()
     ? (S.currentPlayer === 1 ? (S.p1Era || 'all') : (S.p2Era || 'all'))
     : (S.selectedEra || 'all');
   if (activeEra !== 'all')                          { render(); return; }
@@ -474,8 +538,8 @@ function placePlayer(pos) {
     }
   }
 
-  // ── 1v1 alternating draft ──────────────────────────────────────────────────
-  if (S.mode === '1v1') {
+  // ── Dual draft (1v1 / GM vs AI) ────────────────────────────────────────────
+  if (isDualDraft()) {
     const activeRoster = S.currentPlayer === 1 ? S.p1Roster : S.p2Roster;
 
     if (activeRoster[pos]) {
@@ -495,28 +559,42 @@ function placePlayer(pos) {
 
     if (S.currentPlayer === 1) S.p1Round++;
     else S.p2Round++;
-    const pick = S.p1Round + S.p2Round;
-    S.draftLog.push({ name: player.name, playerNum: S.currentPlayer, pick });
+    const pickNum = S.p1Round + S.p2Round;
+    S.draftLog.push({ name: player.name, playerNum: S.currentPlayer, pick: pickNum });
 
-    logAnalyticsEvent('player_drafted', { player: player.name, pos, playerNum: S.currentPlayer });
+    logAnalyticsEvent('player_drafted', { player: player.name, pos, playerNum: S.currentPlayer, mode: S.mode });
     S.spinState = 'idle'; S.currentSpin = null; S.availablePlayers = []; S.draftBoard = []; S.selectedPlayer = null;
 
     // Both rosters complete — auto-simulate series
     if (S.p1Round >= 5 && S.p2Round >= 5) {
       const p1s = POSITIONS.map(p => S.p1Roster[p]).filter(Boolean);
       const p2s = POSITIONS.map(p => S.p2Roster[p]).filter(Boolean);
-      recordLegends([...p1s, ...p2s]); // both rosters join the collection
+      recordLegends([...p1s, ...p2s]);
       S.seriesResult       = simulateHeadToHeadSeries(p1s, S.p1Coach, p2s, S.p2Coach);
       S.seriesRevealedCount = 0;
       S.phase = 'series-preview';
-      logAnalyticsEvent('1v1_series_simulated', { winner: S.seriesResult.winner });
+      logAnalyticsEvent(S.mode === 'gm-ai' ? 'gm_ai_series_simulated' : '1v1_series_simulated', {
+        winner: S.seriesResult.winner,
+      });
+      if (S.mode === 'gm-ai') {
+        saveModeLeaderboard('gm-ai', {
+          won: S.seriesResult.winner === 'p1',
+          margin: Math.abs(S.seriesResult.p1Wins - S.seriesResult.p2Wins),
+          strength: S.seriesResult.p1Season.strength,
+          date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        });
+      }
       render(); return;
     }
 
     // Snake draft turn order: 1-2-2-1-1-2-2-1-1-2
     const completedPicks = S.p1Round + S.p2Round;
     S.currentPlayer = SNAKE_ORDER[completedPicks];
-    render(); return;
+    render();
+    if (S.mode === 'gm-ai' && S.currentPlayer === 2 && S.p2Round < 5) {
+      setTimeout(() => doAiTurn(), 750);
+    }
+    return;
   }
 
   // ── Solo draft ─────────────────────────────────────────────────────────────
@@ -549,16 +627,103 @@ function placePlayer(pos) {
 
 // ── Season simulation ─────────────────────────────────────────────────────────
 
+/** Instant spin + pick for the AI GM (no slot-machine animation). */
+function doAiTurn() {
+  if (S.mode !== 'gm-ai' || S.currentPlayer !== 2 || S.phase !== 'drafting') return;
+  if (S.p2Round >= 5) return;
+
+  if (!S.coachLocked) {
+    S.coachLocked = true;
+    S.coachPickerOpen = false;
+  }
+  if (!S.eraLocked) {
+    S.eraLocked = true;
+    S.eraPickerOpen = false;
+  }
+
+  let spin = spinResult();
+  if (!spin) {
+    showToast('AI GM has no players left to draft');
+    return;
+  }
+  S.currentSpin      = spin;
+  S.availablePlayers = getAvailablePlayers(spin.team, spin.decade);
+  S.draftBoard       = buildDraftBoard();
+  S.spinState        = 'done';
+
+  // Empty board — try one re-spin
+  if (!S.draftBoard.length) {
+    spin = spinResult();
+    if (!spin) return;
+    S.currentSpin      = spin;
+    S.availablePlayers = getAvailablePlayers(spin.team, spin.decade);
+    S.draftBoard       = buildDraftBoard();
+  }
+
+  const choice = chooseAiPick(S.draftBoard, S.p2Roster, S.p2Coach);
+  if (!choice) return;
+  const pos = bestAiSlot(choice, S.p2Roster);
+  if (!pos) return;
+  S.selectedPlayer = choice;
+  placePlayer(pos);
+}
+
 function doSimulate() {
-  if (S.phase !== 'drafting' || S.mode === '1v1') return;
+  if (S.phase !== 'drafting' || isDualDraft()) return;
   const starters = POSITIONS.map(p => S.roster[p]).filter(Boolean);
+
+  // Boss of the Week — skip the 82-game ticker; go straight to a best-of-7.
+  if (S.mode === 'boss-week') {
+    const boss = S.bossOfWeek || getBossOfWeek(getUtcDateString());
+    S.result = simulateSeason(starters, S.coach);
+    S.result.newLegends = recordLegends(starters).length;
+    S.seriesResult = simulateBossSeries(S.result, boss);
+    S.seriesRevealedCount = 0;
+    // Mirror player roster into p1 for series UI; p2 is the boss (no cards).
+    S.p1Roster = { ...S.roster };
+    S.p2Roster = { PG: null, SG: null, SF: null, PF: null, C: null };
+    S.p1Coach = S.coach;
+    S.p2Coach = null;
+
+    const won = S.seriesResult.winner === 'p1';
+    const score = bossWeekScore(S.seriesResult.p1Wins, won, S.result.strength);
+    S.bossWeekResult = { won, score, bossName: boss.name, weekKey: boss.weekKey };
+    markBossWeekPlayed({
+      weekKey: boss.weekKey,
+      bossName: boss.name,
+      won,
+      score,
+      seriesWins: S.seriesResult.p1Wins,
+      seriesLosses: S.seriesResult.p2Wins,
+    });
+    saveModeLeaderboard('boss-week', {
+      bossName: boss.name,
+      won,
+      score,
+      weekKey: boss.weekKey,
+      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    });
+    logAnalyticsEvent('boss_week_series', { boss: boss.name, won, score });
+    S.phase = 'series-preview';
+    render();
+    return;
+  }
+
   S.result  = simulateSeason(starters, S.coach);
   S.runSaved = false;
 
   // Meta-progression: every started legend joins the permanent collection.
   S.result.newLegends = recordLegends(starters).length;
 
-  logAnalyticsEvent('season_simulated', { wins: S.result.wins, losses: S.result.losses, coach: S.coach ?? 'none', era: S.selectedEra ?? 'all' });
+  if (S.mode === 'fans') {
+    S.result.fansScore = fansFirstScore(S.result.avgPopularity, S.result.fansM, S.result.wins);
+    S.result.fansPassed = fansFirstPassed(S.result.avgPopularity, S.result.wins);
+  }
+
+  logAnalyticsEvent('season_simulated', {
+    wins: S.result.wins, losses: S.result.losses,
+    coach: S.coach ?? 'none', era: S.selectedEra ?? 'all', mode: S.mode ?? 'solo',
+  });
 
   // First-visit hook payoff delivered — from here on they're a veteran.
   if (S.coldOpen) markReturning();
@@ -877,6 +1042,26 @@ async function doSaveRun() {
   S.teamName  = raw.slice(0, 20) || 'Untitled Team';
   S.runSaved  = true;
   saveLeaderboard();
+  if (S.mode === 'defense' && S.result) {
+    saveModeLeaderboard('defense', {
+      teamName: S.teamName,
+      wins: S.result.wins,
+      losses: S.result.losses,
+      teamStocks: S.result.teamStocks ?? 0,
+      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    });
+  }
+  if (S.mode === 'fans' && S.result) {
+    saveModeLeaderboard('fans', {
+      teamName: S.teamName,
+      score: S.result.fansScore ?? 0,
+      wins: S.result.wins,
+      fansM: S.result.fansM,
+      avgPopularity: S.result.avgPopularity,
+      passed: !!S.result.fansPassed,
+      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    });
+  }
   render();
 
   await doSubmitGlobal();

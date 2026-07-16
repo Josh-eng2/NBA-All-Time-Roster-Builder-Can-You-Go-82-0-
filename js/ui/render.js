@@ -19,9 +19,11 @@ import { calculateChemistry }                             from '../logic/chemist
 import { rosterFull, availableDecades, getLegendCatalog, getSkips } from '../logic/draft.js';
 import { coachSystemProgress }                            from '../logic/simulation.js';
 import { getBracketDisplayState }                         from '../logic/playoffs.js';
-import { markReturning, getCollectedLegends, getDailyStatus, currentDailyStreak } from '../utils/storage.js';
+import { markReturning, getCollectedLegends, getDailyStatus, currentDailyStreak, getBossWeekStatus } from '../utils/storage.js';
 import { cgGameplayStart, cgGameplayStop, cgGetItem }     from '../utils/crazygames.js';
 import { getDailyChallenge, checkPickLegal, checkRosterConstraint } from '../logic/challenge.js';
+import { getBossOfWeek } from '../logic/bossWeek.js';
+import { isDualDraft, seriesLabels, MORE_MODES, fansFirstScore } from '../logic/modes.js';
 import { fetchDailyCommunityStats, isFirebaseConfigured } from '../utils/firebase.js';
 import { bindEvents }                                     from '../ui/events.js'; // circular — safe (called inside functions only)
 
@@ -203,7 +205,7 @@ export function showToast(msg, duration = 2500) {
 
 // ── Shared chrome ─────────────────────────────────────────────────────────────
 function getActiveEra() {
-  if (S.mode === '1v1') return S.p1Era || S.p2Era || 'all';
+  if (isDualDraft()) return S.p1Era || S.p2Era || S.selectedEra || 'all';
   return S.selectedEra || 'all';
 }
 
@@ -256,9 +258,8 @@ function renderHeader(showRestart = false) {
       </button>`
     : `<span class="header-pill">${eraLabel}${S.eraLocked ? '<span class="header-pill__lock" aria-hidden="true">🔒</span>' : ''}</span>`;
 
-  // Daily Challenge is one attempt — never offer Restart mid-run (or it
-  // would let players abort a shared board and spin again before lock).
-  const canRestart = showRestart && S.mode !== 'daily';
+  // Daily / Boss of the Week are one attempt — never offer Restart mid-run.
+  const canRestart = showRestart && S.mode !== 'daily' && S.mode !== 'boss-week';
   const restartBtn = canRestart
     ? `<button data-action="restart" type="button" class="header-pill header-pill--muted header-pill--restart">Restart</button>`
     : '';
@@ -541,6 +542,8 @@ function renderModeSelect() {
           <div class="w-full py-2.5 rounded-xl font-bold text-sm text-white text-center mt-1" style="background:#f97316;pointer-events:none">Play</div>
         </button>
 
+        ${renderMoreModesDropdown()}
+
         <button data-action="view-trophies"
           class="w-full py-3 rounded-xl font-bold text-sm border border-amber-200 bg-amber-50 text-amber-700 cursor-pointer transition-all hover:bg-amber-100 card-shadow">
           🏆 Trophy Room${trophies.length > 0 ? ` · ${trophies.length} Championship${trophies.length === 1 ? '' : 's'}` : ''}
@@ -549,6 +552,32 @@ function renderModeSelect() {
       </div>
     </main>
     ${renderFooter()}
+  </div>`;
+}
+
+/** Collapsed More Modes entry — keeps secondary modes off the primary tiles. */
+function renderMoreModesDropdown() {
+  const boss = getBossOfWeek(getUtcDateString());
+  const bossStatus = getBossWeekStatus();
+  const options = MORE_MODES.map(m => {
+    let label = m.label;
+    if (m.id === 'boss-week') {
+      label = bossStatus.playedThisWeek
+        ? `Boss of the Week (${boss.name} · played)`
+        : `Boss of the Week — ${boss.name}`;
+    }
+    const disabled = m.id === 'boss-week' && bossStatus.playedThisWeek ? ' disabled' : '';
+    return `<option value="${m.action}"${disabled}>${label}</option>`;
+  }).join('');
+
+  return `
+  <div class="w-full mb-3 rounded-xl border border-border bg-white/80 px-3 py-2.5 card-shadow">
+    <label for="more-modes-select" class="block text-[10px] font-bold uppercase tracking-widest text-muted-fg mb-1.5">More Modes</label>
+    <select id="more-modes-select"
+      class="w-full text-sm font-semibold rounded-lg border border-border bg-card2 text-foreground px-3 py-2 cursor-pointer">
+      <option value="">Choose a side mode…</option>
+      ${options}
+    </select>
   </div>`;
 }
 
@@ -727,8 +756,34 @@ function dailyBoardDeadEnd() {
   );
 }
 
+function renderModeDraftBanner() {
+  if (S.mode === 'daily') return renderDailyDraftBanner();
+  if (S.mode === 'defense') {
+    return `<div class="rounded-xl border border-violet-200 bg-violet-50 px-3 py-2 text-xs text-violet-800 font-semibold">
+      🛡️ Defense Only — stocks &amp; boards carry this sim. Scoring volume matters less.
+    </div>`;
+  }
+  if (S.mode === 'fans') {
+    const starters = Object.values(S.roster || {}).filter(Boolean);
+    const avg = starters.length
+      ? starters.reduce((s, p) => s + (p.popularity || 50), 0) / starters.length
+      : 0;
+    const fansM = Math.pow(Math.max(0, Math.min(1, (avg - 35) / 65)), 1.5) * 38 + 2;
+    const proj = starters.length ? fansFirstScore(avg, fansM, 50) : null;
+    return `<div class="rounded-xl border border-pink-200 bg-pink-50 px-3 py-2 text-xs text-pink-800 font-semibold">
+      📣 Fans First — optimize star power. Score ≈ pop×10 + fansM×5 + wins×2${proj != null ? ` · live proj ~${Math.round(proj)}` : ''}.
+    </div>`;
+  }
+  if (S.mode === 'boss-week' && S.bossOfWeek) {
+    return `<div class="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 font-semibold">
+      👹 Boss of the Week — beat the <strong>${S.bossOfWeek.name}</strong> in a best-of-7. One attempt this week.
+    </div>`;
+  }
+  return '';
+}
+
 function renderDrafting() {
-  if (S.mode === '1v1') return renderDrafting1v1();
+  if (isDualDraft()) return renderDrafting1v1();
   const full = rosterFull();
 
   if (isDesktopDraftLayout()) {
@@ -744,7 +799,7 @@ function renderDrafting() {
           ${renderChemDashboard()}
           <div class="draft-screen__center">
             ${renderColdOpenBanner()}
-            ${renderDailyDraftBanner()}
+            ${renderModeDraftBanner()}
             ${full ? renderSimulateCard() : ''}
             ${renderRoundBar()}
             ${renderCoachChip()}
@@ -764,7 +819,7 @@ function renderDrafting() {
     <main class="flex flex-col items-center px-4 pt-2 pb-8 draft-screen__main">
       <div class="w-full max-w-2xl flex flex-col gap-2 draft-screen__inner">
         ${renderColdOpenBanner()}
-        ${renderDailyDraftBanner()}
+        ${renderModeDraftBanner()}
         ${full ? renderSimulateCard() : ''}
         ${renderRoundBar()}
         ${renderCoachChip()}
@@ -811,7 +866,7 @@ function render1v1RosterPanel(roster, playerNum, isActive) {
   return `
   <div class="rounded-2xl border-2 bg-white p-3 card-shadow transition-all" style="border-color:${bdrCol}">
     <div class="flex items-center justify-between mb-1.5">
-      <p class="text-xs font-black uppercase tracking-wider" style="color:${color}">P${playerNum}</p>
+      <p class="text-xs font-black uppercase tracking-wider" style="color:${color}">${playerNum === 1 ? seriesLabels().p1 : seriesLabels().p2}</p>
       ${isActive
         ? `<span class="text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse-glow" style="background:${bg};color:${color}">${canPlace ? '👆 Pick a slot' : '🎯 ON CLOCK'}</span>`
         : `<span class="text-[10px] text-muted-fg font-medium">${(playerNum === 1 ? S.p1Round : S.p2Round)}/5</span>`}
@@ -822,13 +877,18 @@ function render1v1RosterPanel(roster, playerNum, isActive) {
 }
 
 function renderDrafting1v1() {
+  const labels = seriesLabels();
   const completedPicks = S.p1Round + S.p2Round;
   const totalPick      = completedPicks + 1;
   const totalPicks     = SNAKE_ORDER.length; // 10
   const isP1Turn       = S.currentPlayer === 1;
+  const isAiThinking   = S.mode === 'gm-ai' && !isP1Turn;
   const clockColor     = isP1Turn ? '#2563eb' : '#d97706';
   const clockBg        = isP1Turn ? '#eff6ff'  : '#fffbeb';
   const clockBdr       = isP1Turn ? '#bfdbfe'  : '#fde68a';
+  const turnLabel      = isAiThinking
+    ? '🤖 AI GM is picking…'
+    : `⚡ ${isP1Turn ? labels.p1 : labels.p2} On The Clock`;
 
   // Snake order tracker — shows all 10 pick slots with player colour coding
   const snakeDots = SNAKE_ORDER.map((player, idx) => {
@@ -845,12 +905,13 @@ function renderDrafting1v1() {
       : isCurrent
         ? '#ffffff'
         : '#94a3b8';
-    const label     = isCurrent ? `P${player}` : (isDone ? '✓' : `P${player}`);
+    const short = p1Pick ? labels.p1Short : labels.p2Short;
+    const label     = isCurrent ? short : (isDone ? '✓' : short);
     const ringStyle = isCurrent
       ? `box-shadow:0 0 0 2px ${p1Pick ? '#2563eb' : '#d97706'};`
       : '';
     return `<div class="flex flex-col items-center gap-0.5">
-      <div class="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-black transition-all"
+      <div class="w-6 h-6 rounded-full flex items-center justify-center text-[8px] font-black transition-all"
         style="background:${dotBg};color:${dotText};${ringStyle}">${label}</div>
       <span class="text-[8px] text-muted-fg font-semibold">${idx + 1}</span>
     </div>`;
@@ -859,12 +920,15 @@ function renderDrafting1v1() {
   // Recent picks log (last 5)
   const recentPicks = S.draftLog.slice(-5).reverse().map(entry => {
     const c = entry.playerNum === 1 ? '#2563eb' : '#d97706';
+    const who = entry.playerNum === 1 ? labels.p1Short : labels.p2Short;
     return `<div class="flex items-center gap-2 py-1 border-b border-border last:border-0">
-      <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full" style="background:${entry.playerNum === 1 ? '#eff6ff' : '#fffbeb'};color:${c}">P${entry.playerNum}</span>
+      <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full" style="background:${entry.playerNum === 1 ? '#eff6ff' : '#fffbeb'};color:${c}">${who}</span>
       <span class="text-xs text-foreground font-semibold truncate">${entry.name}</span>
       <span class="text-[10px] text-muted-fg ml-auto flex-shrink-0">Pick ${entry.pick}</span>
     </div>`;
   }).join('');
+
+  const aiCoach = COACHES.find(c => c.id === S.p2Coach);
 
   return `
   <div class="min-h-screen main-gradient">
@@ -872,10 +936,12 @@ function renderDrafting1v1() {
     <main class="flex flex-col items-center px-4 pt-2 pb-8">
       <div class="w-full max-w-3xl flex flex-col gap-3">
 
+        ${S.mode === 'gm-ai' ? renderCoachChip() : ''}
+
         <!-- ON THE CLOCK banner -->
         <div class="flex items-center justify-between px-4 py-2.5 rounded-xl font-black text-sm uppercase tracking-widest"
           style="background:${clockBg};color:${clockColor};border:2px solid ${clockBdr}">
-          <span>⚡ Player ${S.currentPlayer} On The Clock</span>
+          <span>${turnLabel}</span>
           <span class="text-xs font-bold opacity-70">Pick ${totalPick} of ${totalPicks}</span>
         </div>
 
@@ -886,9 +952,8 @@ function renderDrafting1v1() {
             ${snakeDots}
           </div>
           <div class="flex items-center gap-3 mt-2">
-            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full inline-block" style="background:#2563eb"></span><span class="text-[9px] text-muted-fg">Player 1</span></span>
-            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full inline-block" style="background:#d97706"></span><span class="text-[9px] text-muted-fg">Player 2</span></span>
-            <span class="flex items-center gap-1 ml-auto"><span class="text-[9px] text-muted-fg">Balances first-pick advantage</span></span>
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full inline-block" style="background:#2563eb"></span><span class="text-[9px] text-muted-fg">${labels.p1}</span></span>
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full inline-block" style="background:#d97706"></span><span class="text-[9px] text-muted-fg">${labels.p2}${aiCoach ? ` · ${aiCoach.name}` : ''}</span></span>
           </div>
         </div>
 
@@ -898,9 +963,9 @@ function renderDrafting1v1() {
           ${render1v1RosterPanel(S.p2Roster, 2, !isP1Turn)}
         </div>
 
-        <!-- Shared draft board -->
-        ${renderSlotMachine()}
-        ${S.spinState === 'done' ? renderDraftBoard() : ''}
+        <!-- Shared draft board (hidden while AI is picking) -->
+        ${isAiThinking ? '' : renderSlotMachine()}
+        ${!isAiThinking && S.spinState === 'done' ? renderDraftBoard() : ''}
 
         <!-- Recent picks -->
         ${S.draftLog.length > 0 ? `
@@ -985,13 +1050,13 @@ function renderSlotMachine() {
   const isDone    = S.spinState === 'done';
   const isSpin    = S.spinState === 'spinning';
   const tc        = isDone ? TEAM_COLORS[S.currentSpin.team] : null;
-  const activeEra = S.mode === '1v1'
+  const activeEra = isDualDraft()
     ? (S.currentPlayer === 1 ? (S.p1Era || 'all') : (S.p2Era || 'all'))
     : (S.selectedEra || 'all');
   const eraLocked = activeEra !== 'all';
   const decPool   = availableDecades();
   const skips = getSkips();
-  const boardLabel = S.mode === '1v1'
+  const boardLabel = isDualDraft()
     ? `Pick ${S.p1Round + S.p2Round + 1} of ${SNAKE_ORDER.length}`
     : `Round ${S.round + 1}`;
   return `
@@ -1234,24 +1299,37 @@ function renderChemDashboard() {
 
 // ── Simulate card ─────────────────────────────────────────────────────────────
 function renderSimulateCard() {
-  const is1v1   = S.mode === '1v1';
+  const isDual  = isDualDraft();
   const isP1    = S.currentPlayer === 1;
-  const btnText = is1v1 && isP1
+  const isBoss  = S.mode === 'boss-week';
+  const btnText = isDual && isP1
     ? 'Lock In Roster — Pass to Player 2 →'
-    : is1v1
+    : isDual
     ? 'Simulate Best-of-7 Series →'
+    : isBoss
+    ? `Challenge ${S.bossOfWeek?.name || 'Boss'} →`
+    : S.mode === 'defense'
+    ? 'Simulate Defense Season →'
+    : S.mode === 'fans'
+    ? 'Simulate Fans First Season →'
     : 'Simulate 82 Games →';
-  const btnColor = is1v1 && isP1 ? '#d97706' : '#2563eb';
-  const btnHover = is1v1 && isP1 ? '#b45309' : '#1d4ed8';
-  const subtitle = is1v1 && isP1
+  const btnColor = isDual && isP1 ? '#d97706' : isBoss ? '#b45309' : '#2563eb';
+  const btnHover = isDual && isP1 ? '#b45309' : isBoss ? '#92400e' : '#1d4ed8';
+  const subtitle = isDual && isP1
     ? 'All 5 spots locked in. Hand the device to Player 2.'
-    : is1v1
+    : isDual
     ? 'Both rosters set. Time to settle it on the court.'
+    : isBoss
+    ? 'Skip the regular season — go straight at this week\'s dynasty.'
+    : S.mode === 'defense'
+    ? 'Win probability leans on stocks, boards, and defensive chemistry.'
+    : S.mode === 'fans'
+    ? 'Star power scores the run — still need ~35 wins to look legit.'
     : 'All 5 spots locked in. Ready to run the season.';
   return `
   <div class="rounded-2xl border-2 border-primary bg-white p-5 text-center animate-scale-in card-shadow draft-simulate-card" style="border-color:${btnColor}20">
     <div class="flex justify-center mb-3">${iconBall('h-10 w-10 text-primary')}</div>
-    ${is1v1 ? `<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-2 text-xs font-bold" style="background:${isP1 ? '#eff6ff' : '#fffbeb'};color:${isP1 ? '#2563eb' : '#d97706'}">⚔️ Player ${S.currentPlayer}</div>` : ''}
+    ${isDual ? `<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-2 text-xs font-bold" style="background:${isP1 ? '#eff6ff' : '#fffbeb'};color:${isP1 ? '#2563eb' : '#d97706'}">⚔️ ${seriesLabels().p1} / ${seriesLabels().p2}</div>` : ''}
     <p class="font-black text-lg text-foreground mb-1">Roster Complete</p>
     <p class="text-sm text-muted-fg mb-4">${subtitle}</p>
     <button data-action="simulate" class="w-full py-3.5 rounded-xl font-black text-sm uppercase tracking-widest text-white transition-all cursor-pointer animate-pulse-glow"
@@ -1591,6 +1669,12 @@ function renderResults() {
   else if (isPlayoff)  { label = 'Playoff Contender';      labelColor = isDark() ? '#93c5fd' : '#1e40af'; labelBg = isDark() ? 'rgba(59,130,246,0.12)' : '#eff6ff'; emoji = '✅'; }
   else                 { label = 'Rebuild Required';       labelColor = isDark() ? '#f87171' : '#991b1b'; labelBg = isDark() ? 'rgba(239,68,68,0.12)' : '#fef2f2'; emoji = '📋'; }
 
+  const modeBadge = S.mode === 'defense'
+    ? `<span class="inline-block text-[11px] font-bold px-3 py-1 rounded-full mb-2 border border-violet-200 bg-violet-50 text-violet-800">🛡️ DEF profile · ${r.teamStocks ?? 0} stocks</span>`
+    : S.mode === 'fans'
+    ? `<span class="inline-block text-[11px] font-bold px-3 py-1 rounded-full mb-2 border border-pink-200 bg-pink-50 text-pink-800">📣 Fans First score ${r.fansScore ?? 0}${r.fansPassed ? ' · ✓' : ''}</span>`
+    : '';
+
   const winsColor = isPerfect || isHistoric ? (isDark() ? '#fbbf24' : '#d97706') : isElite ? (isDark() ? '#4ade80' : '#16a34a') : isPlayoff ? (isDark() ? '#60a5fa' : '#2563eb') : (isDark() ? '#f87171' : '#dc2626');
 
   // ── Team rating (0–100 overall) display helpers ───────────────────────────
@@ -1742,6 +1826,7 @@ function renderResults() {
             <span class="text-muted-fg">${r.losses}</span>
           </div>
           <span class="inline-block text-sm font-bold px-4 py-1.5 rounded-full mb-2" style="background:${labelBg};color:${labelColor}">${emoji} ${label}</span>
+          ${modeBadge}
           <p class="text-xs text-muted-fg mb-2">Win% ${r.winPct}% &nbsp;·&nbsp; Team OVR ${teamOvr} &nbsp;·&nbsp; Strength Index ${r.strength}</p>
           <div class="flex items-center justify-center gap-2 flex-wrap">
             <span class="inline-flex items-center gap-1 text-[11px] font-black px-2.5 py-1 rounded-full border"
@@ -2359,6 +2444,7 @@ function renderTrophyRoom() {
 
 // ── 1v1 Series Result screen ──────────────────────────────────────────────────
 function renderSeriesResult() {
+  const labels = seriesLabels();
   const sr     = S.seriesResult;
   const winner = sr.winner; // 'p1' | 'p2'
   const p1s    = sr.p1Season;
@@ -2370,14 +2456,14 @@ function renderSeriesResult() {
 
   const winnerColor = p1Win ? '#2563eb' : '#d97706';
   const winnerBg    = p1Win ? '#eff6ff'  : '#fffbeb';
-  const loserLabel  = p1Win ? 'Player 2' : 'Player 1';
-  const winnerLabel = p1Win ? 'Player 1' : 'Player 2';
+  const loserLabel  = p1Win ? labels.p2 : labels.p1;
+  const winnerLabel = p1Win ? labels.p1 : labels.p2;
 
   const gameChips = series.games.map((g, i) => {
     const p1Won = g === 'W';
     return `<div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-black border-2"
       style="background:${p1Won ? '#eff6ff' : '#fffbeb'};color:${p1Won ? '#2563eb' : '#d97706'};border-color:${p1Won ? '#bfdbfe' : '#fde68a'}">
-      ${p1Won ? 'P1' : 'P2'}</div>`;
+      ${p1Won ? labels.p1Short : labels.p2Short}</div>`;
   }).join('');
 
   const p1CoachId = S.p1Coach || S.p1?.coach;
@@ -2430,8 +2516,8 @@ function renderSeriesResult() {
           <p class="text-xs font-bold uppercase tracking-widest text-muted-fg mb-3">Game-by-Game</p>
           <div class="flex gap-2 flex-wrap">${gameChips}</div>
           <div class="flex gap-4 mt-3 text-xs text-muted-fg">
-            <span><span class="font-bold" style="color:#2563eb">P1</span> = Player 1 won that game</span>
-            <span><span class="font-bold" style="color:#d97706">P2</span> = Player 2 won that game</span>
+            <span><span class="font-bold" style="color:#2563eb">${labels.p1Short}</span> = ${labels.p1} won that game</span>
+            <span><span class="font-bold" style="color:#d97706">${labels.p2Short}</span> = ${labels.p2} won that game</span>
           </div>
         </div>
 
@@ -2439,7 +2525,7 @@ function renderSeriesResult() {
         <div class="grid grid-cols-2 gap-3">
           <div class="rounded-2xl border p-4 card-shadow" style="border-color:#bfdbfe;background:var(--surface-sky)">
             <div class="flex items-center justify-between mb-3">
-              <p class="text-xs font-bold uppercase tracking-widest" style="color:#2563eb">Player 1</p>
+              <p class="text-xs font-bold uppercase tracking-widest" style="color:#2563eb">${labels.p1}</p>
               ${chemBadge(p1s.chemScore)}
             </div>
             ${p1Coach ? `<p class="text-[10px] text-muted-fg mb-2 font-medium">Coach: ${p1Coach.name}</p>` : ''}
@@ -2448,12 +2534,14 @@ function renderSeriesResult() {
           </div>
           <div class="rounded-2xl border p-4 card-shadow" style="border-color:#fde68a;background:var(--surface-cream)">
             <div class="flex items-center justify-between mb-3">
-              <p class="text-xs font-bold uppercase tracking-widest" style="color:#d97706">Player 2</p>
+              <p class="text-xs font-bold uppercase tracking-widest" style="color:#d97706">${labels.p2}</p>
               ${chemBadge(p2s.chemScore)}
             </div>
             ${p2Coach ? `<p class="text-[10px] text-muted-fg mb-2 font-medium">Coach: ${p2Coach.name}</p>` : ''}
             <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg/60 mb-1">Starting 5</p>
-            ${rosterMini(S.p2Roster || S.roster, ['PG','SG','SF','PF','C'])}
+            ${S.mode === 'boss-week'
+              ? `<p class="text-xs text-muted-fg py-2">Legendary ${labels.p2} — strength ${p2s.strength.toFixed(2)}</p>`
+              : rosterMini(S.p2Roster || S.roster, ['PG','SG','SF','PF','C'])}
           </div>
         </div>
 
@@ -2467,11 +2555,11 @@ function renderSeriesResult() {
               const p2pct  = Math.round((p2s.strength / maxStr) * 100);
               return `
               <div>
-                <div class="flex justify-between text-xs mb-1"><span class="font-bold" style="color:#2563eb">Player 1</span><span class="font-semibold text-foreground">${p1s.strength.toFixed(3)}</span></div>
+                <div class="flex justify-between text-xs mb-1"><span class="font-bold" style="color:#2563eb">${labels.p1}</span><span class="font-semibold text-foreground">${p1s.strength.toFixed(3)}</span></div>
                 <div class="h-2.5 rounded-full bg-border overflow-hidden"><div class="h-full rounded-full" style="width:${p1pct}%;background:#2563eb"></div></div>
               </div>
               <div>
-                <div class="flex justify-between text-xs mb-1"><span class="font-bold" style="color:#d97706">Player 2</span><span class="font-semibold text-foreground">${p2s.strength.toFixed(3)}</span></div>
+                <div class="flex justify-between text-xs mb-1"><span class="font-bold" style="color:#d97706">${labels.p2}</span><span class="font-semibold text-foreground">${p2s.strength.toFixed(3)}</span></div>
                 <div class="h-2.5 rounded-full bg-border overflow-hidden"><div class="h-full rounded-full" style="width:${p2pct}%;background:#d97706"></div></div>
               </div>`;
             })()}
@@ -2492,11 +2580,13 @@ function renderSeriesResult() {
 
 // ── 1v1 Series Preview screen ─────────────────────────────────────────────────
 function renderSeriesPreview() {
+  const labels = seriesLabels();
   const sr   = S.seriesResult;
   const p1s  = sr.p1Season;
   const p2s  = sr.p2Season;
   const p1CoachObj = COACHES.find(c => c.id === S.p1Coach);
   const p2CoachObj = COACHES.find(c => c.id === S.p2Coach);
+  const isBoss = S.mode === 'boss-week';
   const maxStr  = Math.max(p1s.strength, p2s.strength, 0.01);
   const p1pct   = Math.round((p1s.strength / maxStr) * 100);
   const p2pct   = Math.round((p2s.strength / maxStr) * 100);
@@ -2528,7 +2618,7 @@ function renderSeriesPreview() {
           <div class="flex flex-col gap-2">
             <div>
               <div class="flex justify-between text-xs mb-1">
-                <span class="font-bold" style="color:#2563eb">Player 1${p1CoachObj ? ` · ${p1CoachObj.name}` : ''}</span>
+                <span class="font-bold" style="color:#2563eb">${labels.p1}${p1CoachObj ? ` · ${p1CoachObj.name}` : ''}</span>
                 <span class="font-semibold text-foreground">${p1s.strength.toFixed(3)}</span>
               </div>
               <div class="h-2.5 rounded-full bg-border overflow-hidden">
@@ -2537,7 +2627,7 @@ function renderSeriesPreview() {
             </div>
             <div>
               <div class="flex justify-between text-xs mb-1">
-                <span class="font-bold" style="color:#d97706">Player 2${p2CoachObj ? ` · ${p2CoachObj.name}` : ''}</span>
+                <span class="font-bold" style="color:#d97706">${labels.p2}${p2CoachObj ? ` · ${p2CoachObj.name}` : ''}</span>
                 <span class="font-semibold text-foreground">${p2s.strength.toFixed(3)}</span>
               </div>
               <div class="h-2.5 rounded-full bg-border overflow-hidden">
@@ -2550,12 +2640,14 @@ function renderSeriesPreview() {
         <!-- Side-by-side rosters -->
         <div class="grid grid-cols-2 gap-3">
           <div class="rounded-2xl border-2 bg-white p-3 card-shadow" style="border-color:#bfdbfe">
-            <p class="text-xs font-black uppercase tracking-wider mb-2" style="color:#2563eb">Player 1</p>
-            ${rosterMini(S.p1Roster, '#2563eb')}
+            <p class="text-xs font-black uppercase tracking-wider mb-2" style="color:#2563eb">${labels.p1}</p>
+            ${rosterMini(S.p1Roster || S.roster, '#2563eb')}
           </div>
           <div class="rounded-2xl border-2 bg-white p-3 card-shadow" style="border-color:#fde68a">
-            <p class="text-xs font-black uppercase tracking-wider mb-2" style="color:#d97706">Player 2</p>
-            ${rosterMini(S.p2Roster, '#d97706')}
+            <p class="text-xs font-black uppercase tracking-wider mb-2" style="color:#d97706">${labels.p2}</p>
+            ${isBoss
+              ? `<p class="text-xs text-muted-fg leading-relaxed py-2">Legendary CPU dynasty. Strength ${p2s.strength.toFixed(2)}.</p>`
+              : rosterMini(S.p2Roster, '#d97706')}
           </div>
         </div>
 
@@ -2572,6 +2664,7 @@ function renderSeriesPreview() {
 
 // ── 1v1 Series Simulation screen ──────────────────────────────────────────────
 function renderSeriesSim() {
+  const labels   = seriesLabels();
   const sr       = S.seriesResult;
   const revealed = S.seriesRevealedCount ?? 0;
   const games    = sr.games; // array of { gameNum, p1Score, p2Score, p1Won, p1WinsAfter, p2WinsAfter }
@@ -2586,7 +2679,7 @@ function renderSeriesSim() {
     statusText  = 'Series Not Started';
     statusColor = 'var(--muted-fg)'; statusBg = 'var(--card3)'; statusBdr = 'var(--border)';
   } else if (seriesOver) {
-    const w = p1Wins === 4 ? 'Player 1' : 'Player 2';
+    const w = p1Wins === 4 ? labels.p1 : labels.p2;
     const wc = p1Wins === 4 ? '#2563eb' : '#d97706';
     statusText  = `🏆 ${w} wins the series ${p1Wins}–${p2Wins}!`;
     statusColor = wc; statusBg = p1Wins === 4 ? '#eff6ff' : '#fffbeb'; statusBdr = wc + '40';
@@ -2594,7 +2687,7 @@ function renderSeriesSim() {
     statusText  = `Series tied ${p1Wins}–${p2Wins}`;
     statusColor = 'var(--muted-fg)'; statusBg = 'var(--card3)'; statusBdr = 'var(--border)';
   } else {
-    const leader = p1Wins > p2Wins ? 'Player 1' : 'Player 2';
+    const leader = p1Wins > p2Wins ? labels.p1 : labels.p2;
     const lc     = p1Wins > p2Wins ? '#2563eb' : '#d97706';
     const lw = Math.max(p1Wins, p2Wins), ll = Math.min(p1Wins, p2Wins);
     statusText  = `${leader} leads ${lw}–${ll}`;
@@ -2639,12 +2732,12 @@ function renderSeriesSim() {
         <!-- Win counters -->
         <div class="grid grid-cols-2 gap-3">
           <div class="rounded-2xl border-2 p-4 text-center card-shadow" style="border-color:${p1Wins > p2Wins ? '#2563eb' : '#bfdbfe'};background:${p1Wins > p2Wins ? '#eff6ff' : '#f8fbff'}">
-            <p class="text-[10px] font-bold uppercase tracking-widest mb-1" style="color:#2563eb">Player 1</p>
+            <p class="text-[10px] font-bold uppercase tracking-widest mb-1" style="color:#2563eb">${labels.p1}</p>
             <p class="text-5xl font-black" style="color:#2563eb">${p1Wins}</p>
             <p class="text-[10px] text-muted-fg mt-1">${p1Wins === 1 ? 'win' : 'wins'}</p>
           </div>
           <div class="rounded-2xl border-2 p-4 text-center card-shadow" style="border-color:${p2Wins > p1Wins ? '#d97706' : '#fde68a'};background:${p2Wins > p1Wins ? '#fffbeb' : '#fffef8'}">
-            <p class="text-[10px] font-bold uppercase tracking-widest mb-1" style="color:#d97706">Player 2</p>
+            <p class="text-[10px] font-bold uppercase tracking-widest mb-1" style="color:#d97706">${labels.p2}</p>
             <p class="text-5xl font-black" style="color:#d97706">${p2Wins}</p>
             <p class="text-[10px] text-muted-fg mt-1">${p2Wins === 1 ? 'win' : 'wins'}</p>
           </div>

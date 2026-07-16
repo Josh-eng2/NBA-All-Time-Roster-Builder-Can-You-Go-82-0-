@@ -1,8 +1,8 @@
 /**
  * js/logic/chemistry.js — Advanced Team Chemistry Engine
  *
- * calculateChemistry(starters)
- *   Reads S.coach for coach-specific amplifiers/suppressors.
+ * calculateChemistry(starters, coachId?)
+ *   Uses coachId when provided; otherwise falls back to S.coach.
  *   Returns { chemBonus, chemScore, chemReport }.
  *
  *   chemBonus  — raw float added to adjustedStrength in simulation
@@ -99,8 +99,8 @@ function optimizeLineup(starters) {
  * @param {object[]} starters  5 starter player objects (starters-only format)
  * @returns {{ chemBonus: number, chemScore: number, chemReport: string[], lineupAssignment: object[] }}
  */
-export function calculateChemistry(starters) {
-  const coach = (typeof S !== 'undefined' && S.coach) ? S.coach : null;
+export function calculateChemistry(starters, coachId = null) {
+  const coach = coachId ?? ((typeof S !== 'undefined' && S.coach) ? S.coach : null);
 
   // Archetype shorthand
   const sA = starters.map(p => p.archetype || '');

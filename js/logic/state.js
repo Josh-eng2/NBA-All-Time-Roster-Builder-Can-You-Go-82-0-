@@ -301,6 +301,9 @@ export function startGame(era = 'all') {
   const p1            = S.p1;
   const dailyChallenge = S.dailyChallenge ?? null; // daily mode context survives the reset
   const dailyDate      = S.dailyDate      ?? null;
+  const bossOfWeek     = S.bossOfWeek     ?? null;
+  // Skips: daily/boss-week = 0; classic-like = 1
+  const skipBudget = (mode === 'daily' || mode === 'boss-week') ? 0 : 1;
   S = {
     phase:            'drafting',
     coach,
@@ -312,14 +315,15 @@ export function startGame(era = 'all') {
     currentPlayer,
     p1,
     seriesResult:     null,
+    seriesRevealedCount: 0,
     selectedEra:      era,
     gameId:           crypto.randomUUID(),
     round:            0,
     usedDecades:      [],
     usedPlayerIds:    [],
     draftedPlayerNames: new Set(), // names of players currently on the roster (blocks cross-era clones)
-    teamSkips:        1,
-    decadeSkips:      1,
+    teamSkips:        skipBudget,
+    decadeSkips:      skipBudget,
     drySpins:         0,        // consecutive boards without a star+ player (pity timer)
 
     spinState:        'idle',   // 'idle' | 'spinning' | 'done'
@@ -347,6 +351,10 @@ export function startGame(era = 'all') {
     dailyChallenge,
     dailyDate,
     dailyResult: null,       // { pass, pending, detail, streak } — set at sim time
+
+    // Boss of the Week / More Modes extras
+    bossOfWeek,
+    bossWeekResult: null,
   };
 
   // Locked-player daily challenges start with the star already in their slot,
@@ -364,14 +372,16 @@ export function startGame(era = 'all') {
 }
 
 /**
- * Initialises S for a 1v1 alternating draft.
- * Called after both players have selected their coach + era.
+ * Initialises S for a 1v1 or GM vs AI alternating draft.
+ * Called after coaches/eras are set on S.
  */
 export function startGame1v1() {
   const { p1Coach, p1Era, p2Coach, p2Era } = S;
+  const mode = S.mode === 'gm-ai' ? 'gm-ai' : '1v1';
+  const isAi = mode === 'gm-ai';
   S = {
     phase:    'drafting',
-    mode:     '1v1',
+    mode,
     currentPlayer: 1,
     p1Coach, p1Era, p2Coach, p2Era,
     p1Roster: { PG: null, SG: null, SF: null, PF: null, C: null },
@@ -381,15 +391,18 @@ export function startGame1v1() {
     draftLog: [],
     eraLocked:     false,
     eraPickerOpen: false,
+    coachLocked:   false,
+    coachPickerOpen: false,
 
     // Shared draft-pool tracking
     gameId:    crypto.randomUUID(),
     usedDecades: [],
     usedPlayerIds: [],
     draftedPlayerNames: new Set(),
-    // Per-player skip budgets — each drafter gets their own team/era skip
+    // Per-player skip budgets — AI never skips
     p1TeamSkips: 1, p1DecadeSkips: 1,
-    p2TeamSkips: 1, p2DecadeSkips: 1,
+    p2TeamSkips: isAi ? 0 : 1,
+    p2DecadeSkips: isAi ? 0 : 1,
     drySpins:   0,
     spinState:  'idle',
     currentSpin: null,
@@ -410,8 +423,11 @@ export function startGame1v1() {
     teamSkips: 0,
     decadeSkips: 0,
     seriesResult: null,
+    seriesRevealedCount: 0,
     p1: null,
-    selectedEra: null,
-    coach: null,
+    selectedEra: p1Era || 'all',
+    coach: isAi ? p1Coach : null,
+    bossOfWeek: null,
+    bossWeekResult: null,
   };
 }
