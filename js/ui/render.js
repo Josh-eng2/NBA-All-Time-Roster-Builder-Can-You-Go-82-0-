@@ -542,12 +542,12 @@ function renderModeSelect() {
           <div class="w-full py-2.5 rounded-xl font-bold text-sm text-white text-center mt-1" style="background:#f97316;pointer-events:none">Play</div>
         </button>
 
-        ${renderMoreModesDropdown()}
-
         <button data-action="view-trophies"
-          class="w-full py-3 rounded-xl font-bold text-sm border border-amber-200 bg-amber-50 text-amber-700 cursor-pointer transition-all hover:bg-amber-100 card-shadow">
+          class="w-full py-3 rounded-xl font-bold text-sm border border-amber-200 bg-amber-50 text-amber-700 cursor-pointer transition-all hover:bg-amber-100 card-shadow mb-3">
           🏆 Trophy Room${trophies.length > 0 ? ` · ${trophies.length} Championship${trophies.length === 1 ? '' : 's'}` : ''}
         </button>
+
+        ${renderMoreModesDropdown()}
 
       </div>
     </main>
