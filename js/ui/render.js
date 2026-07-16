@@ -306,13 +306,6 @@ function renderFooter() {
 }
 
 // ── Mode selection ────────────────────────────────────────────────────────────
-function dailyResetInLabel() {
-  const now  = new Date();
-  const next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 0, 0, 0));
-  const hrs  = Math.max(1, Math.round((next - now) / 3600000));
-  return `new board in ~${hrs}h`;
-}
-
 // Community pass-rate cache — one fetch per UTC day per page load.
 const COMMUNITY_STATS_MIN = 3; // hide until enough board submissions for the day
 let _communityStatsCache = { date: null, promise: null, data: null };
@@ -465,8 +458,8 @@ function renderDailyModeCard() {
     <div class="w-full rounded-2xl bg-white px-3 py-2.5 flex items-center gap-2 mb-3 card-shadow border border-slate-100">
       <span class="text-2xl flex-shrink-0">${ch.emoji}</span>
       <div class="flex-1 min-w-0">
-        <p class="font-black text-sm text-foreground flex flex-wrap items-center gap-x-2 gap-y-1">Daily Challenge — ${verdict} ${streakChip}</p>
-        <p class="text-[11px] text-muted-fg mt-0.5 leading-snug">${ch.title}: you went <span style="color:#f97316;font-weight:700">${r.wins}–${r.losses}</span> · ${dailyResetInLabel()}</p>
+        <p class="font-black text-sm text-foreground flex flex-wrap items-center gap-x-2 gap-y-1">Daily Challenge — <span class="inline-flex items-center gap-1.5">${verdict}${streakChip}</span></p>
+        <p class="text-[11px] text-muted-fg mt-0.5 leading-snug">${ch.title}: you went <span style="color:#f97316;font-weight:700">${r.wins}–${r.losses}</span></p>
         ${renderCommunityStatsLine()}
       </div>
       <button data-action="open-daily-stats" class="text-[11px] font-bold px-2 py-1.5 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:var(--border);background:var(--card);color:var(--muted-fg)" title="Daily Challenge Stats">Stats</button>
