@@ -504,9 +504,7 @@ function renderModeSelect() {
       <div class="w-full max-w-md animate-fade-up">
 
         <div class="text-center mb-3">
-          <p class="text-xs font-semibold text-muted-fg mb-0">Can you go 82-0?</p>
-          <h1 class="text-xl font-black text-foreground mb-0.5 leading-tight">Choose Your Mode</h1>
-          <p class="text-xs text-muted-fg leading-snug">How do you want to build your all-time team?</p>
+          <h1 class="text-xl font-black text-foreground leading-tight">Choose Your Mode</h1>
         </div>
 
         ${renderDailyModeCard()}
