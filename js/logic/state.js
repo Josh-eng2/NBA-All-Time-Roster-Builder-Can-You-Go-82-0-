@@ -352,7 +352,7 @@ export function startGame(era = 'all') {
     dailyDate,
     dailyResult: null,       // { pass, pending, detail, streak } — set at sim time
 
-    // Boss of the Week / More Modes extras
+    // Dynasty Duel / More Modes extras
     bossOfWeek,
     bossWeekResult: null,
   };

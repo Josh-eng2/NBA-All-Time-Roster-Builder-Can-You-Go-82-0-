@@ -1,5 +1,5 @@
 /**
- * js/logic/bossWeek.js — Boss of the Week (random opponent each play, unlimited runs).
+ * js/logic/bossWeek.js — Dynasty Duel (random legendary opponent each play).
  */
 
 import { CPU_TEAMS } from './state.js';
@@ -36,7 +36,7 @@ export function weekKeyUTC(dateStr) {
 }
 
 /**
- * Pick a Boss of the Week opponent for this play.
+ * Pick a Dynasty Duel opponent for this play.
  * Random from the rotation; avoids `excludeName` when possible (e.g. last run).
  *
  * @param {{ excludeName?: string|null }} [opts]
@@ -84,7 +84,7 @@ export function getBossOfWeek(dateStr) {
   };
 }
 
-/** Leaderboard score for a Boss of the Week run. */
+/** Leaderboard score for a Dynasty Duel run. */
 export function bossWeekScore(seriesWins, won, playerStrength) {
   return (seriesWins ?? 0) * 100 + (won ? 500 : 0) + Math.floor((playerStrength ?? 0) * 10);
 }

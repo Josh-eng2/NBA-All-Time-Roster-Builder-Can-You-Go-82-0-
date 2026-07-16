@@ -29,19 +29,19 @@ export function isDualDraft(mode = S?.mode) {
 /** Modes that use the More Modes dropdown (not primary tiles). */
 export const MORE_MODES = [
   { id: 'gm-ai',     action: 'mode-gm-ai',     label: 'GM vs AI' },
-  { id: 'boss-week', action: 'mode-boss-week', label: 'Boss of the Week' },
+  { id: 'boss-week', action: 'mode-boss-week', label: 'Dynasty Duel' },
   { id: 'defense',   action: 'mode-defense',   label: 'Defense Only' },
   { id: 'fans',      action: 'mode-fans',      label: 'Fans First' },
 ];
 
-/** Display labels for series UI (1v1 / GM vs AI / Boss). */
+/** Display labels for series UI (1v1 / GM vs AI / Dynasty Duel). */
 export function seriesLabels() {
   if (S.mode === 'gm-ai') {
     return { p1: 'You', p2: 'AI GM', p1Short: 'YOU', p2Short: 'AI' };
   }
   if (S.mode === 'boss-week') {
-    const name = S.bossOfWeek?.name || 'Boss';
-    return { p1: 'You', p2: name, p1Short: 'YOU', p2Short: 'BOSS' };
+    const name = S.bossOfWeek?.name || 'Dynasty';
+    return { p1: 'You', p2: name, p1Short: 'YOU', p2Short: 'DYN' };
   }
   return { p1: 'Player 1', p2: 'Player 2', p1Short: 'P1', p2Short: 'P2' };
 }
