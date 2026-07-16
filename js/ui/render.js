@@ -19,7 +19,7 @@ import { calculateChemistry }                             from '../logic/chemist
 import { rosterFull, availableDecades, getLegendCatalog, getSkips } from '../logic/draft.js';
 import { coachSystemProgress }                            from '../logic/simulation.js';
 import { getBracketDisplayState }                         from '../logic/playoffs.js';
-import { markReturning, getCollectedLegends, getDailyStatus, currentDailyStreak } from '../utils/storage.js';
+import { markReturning, getCollectedLegends, getDailyStatus } from '../utils/storage.js';
 import { cgGameplayStart, cgGameplayStop, cgGetItem }     from '../utils/crazygames.js';
 import { getDailyChallenge, checkPickLegal, checkRosterConstraint } from '../logic/challenge.js';
 import { isDualDraft, seriesLabels, MORE_MODES, fansFirstScore } from '../logic/modes.js';
@@ -440,12 +440,6 @@ function renderDailyModeCard() {
   // correctly for free instead of needing a bespoke gradient per mode.
   const status = getDailyStatus();
   const ch     = getDailyChallenge(getUtcDateString());
-  // Live streak — 0 the moment a day has been skipped, not just after the
-  // next play writes the reset.
-  const streak = currentDailyStreak(status.today);
-  const streakChip = streak > 0
-    ? `<span class="text-[10px] font-black px-2 py-0.5 rounded-full flex-shrink-0" style="background:var(--amber-badge-bg,#fef3c7);color:var(--amber-text,#b45309);border:1px solid var(--amber-border,#fcd34d)">🔥 ${streak}</span>`
-    : '';
   if (status.playedToday) {
     const r = status.result;
     // Recaps written before the challenge system have no `passed` field —
@@ -457,11 +451,11 @@ function renderDailyModeCard() {
     <div class="w-full rounded-2xl bg-white px-3 py-2.5 flex items-center gap-2 mb-3 card-shadow border border-slate-100">
       <span class="text-2xl flex-shrink-0">${ch.emoji}</span>
       <div class="flex-1 min-w-0">
-        <p class="font-black text-sm text-foreground flex flex-wrap items-center gap-x-2 gap-y-1">Daily Challenge <span class="inline-flex items-center gap-1.5">${tick}${streakChip}</span></p>
+        <p class="font-black text-sm text-foreground flex flex-wrap items-center gap-x-2 gap-y-1">Daily Challenge ${tick}</p>
         <p class="text-[11px] text-muted-fg mt-0.5 leading-snug">${ch.title}: you went <span style="color:#f97316;font-weight:700">${r.wins}–${r.losses}</span></p>
       </div>
       <button data-action="open-daily-stats" class="text-[11px] font-bold px-2 py-1.5 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:var(--border);background:var(--card);color:var(--muted-fg)" title="Daily Challenge Stats">Stats</button>
-      <button data-action="open-daily-leaderboard" class="text-[11px] font-bold px-2 py-1.5 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:#fdba74;background:var(--card);color:${isDark() ? '#fdba74' : '#c2410c'}">Board 🏅</button>
+      <button data-action="open-daily-leaderboard" class="text-[11px] font-bold px-2 py-1.5 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:var(--border);background:var(--card);color:var(--muted-fg)">Board</button>
     </div>`;
   }
   const community = renderCommunityStatsMerged();
@@ -471,7 +465,7 @@ function renderDailyModeCard() {
       class="w-full rounded-2xl bg-white px-3 py-2 flex items-center gap-2 cursor-pointer card-shadow hover:shadow-md transition-all border border-slate-100 text-left">
       <span class="text-2xl flex-shrink-0" style="pointer-events:none">${ch.emoji}</span>
       <div class="flex-1 min-w-0" style="pointer-events:none">
-        <p class="font-black text-sm flex flex-wrap items-center gap-x-2 gap-y-1" style="color:#f97316">Daily Challenge · ${ch.title} ${streakChip}</p>
+        <p class="font-black text-sm flex flex-wrap items-center gap-x-2 gap-y-1" style="color:#f97316">Daily Challenge · ${ch.title}</p>
         <p class="text-[11px] text-muted-fg leading-snug mt-0.5">${ch.desc}${community}</p>
       </div>
       <span class="text-[11px] font-bold px-2 py-1 rounded-lg border flex-shrink-0" style="border-color:#fdba74;background:var(--card);color:${isDark() ? '#fdba74' : '#c2410c'};pointer-events:none">Play →</span>
@@ -508,7 +502,20 @@ function renderModeSelect() {
         <!-- Classic full width -->
         <button data-action="mode-solo"
           class="w-full rounded-2xl bg-white px-5 py-4 flex flex-col items-center gap-2 cursor-pointer card-shadow hover:shadow-md transition-all border border-slate-100 mb-3">
-          <span class="text-3xl" style="pointer-events:none">💯</span>
+          <span class="inline-flex items-center justify-center" style="pointer-events:none;width:2.25rem;height:2.25rem" aria-hidden="true">
+            <svg viewBox="0 0 64 64" width="36" height="36" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="classic820Grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#ff6b35"/>
+                  <stop offset="55%" stop-color="#f97316"/>
+                  <stop offset="100%" stop-color="#ea580c"/>
+                </linearGradient>
+              </defs>
+              <rect x="4" y="4" width="56" height="56" rx="14" fill="url(#classic820Grad)"/>
+              <rect x="8" y="8" width="48" height="48" rx="11" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="2"/>
+              <text x="32" y="40" text-anchor="middle" font-family="Fira Sans,Arial Black,sans-serif" font-size="20" font-weight="900" fill="#fff" letter-spacing="-0.5">82-0</text>
+            </svg>
+          </span>
           <p class="font-black text-base" style="color:#f97316;pointer-events:none">Classic</p>
           <p class="text-sm text-muted-fg text-center" style="pointer-events:none">Draft with full player stats visible — make informed picks.</p>
           <div class="w-full py-2.5 rounded-xl font-bold text-sm text-white text-center mt-1" style="background:#f97316;pointer-events:none">Play Classic</div>
@@ -550,7 +557,7 @@ function renderModeSelect() {
 function renderMoreModesDropdown() {
   const options = MORE_MODES.map(m => {
     let label = m.label;
-    if (m.id === 'boss-week') {
+    if (m.id === 'dynasty-duel') {
       label = 'Dynasty Duel';
     }
     return `<option value="${m.action}">${label}</option>`;
@@ -760,9 +767,9 @@ function renderModeDraftBanner() {
       📣 Fans First — optimize star power. Score ≈ pop×10 + fansM×5 + wins×2${proj != null ? ` · live proj ~${Math.round(proj)}` : ''}.
     </div>`;
   }
-  if (S.mode === 'boss-week' && S.bossOfWeek) {
+  if (S.mode === 'dynasty-duel' && S.dynastyOpponent) {
     return `<div class="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 font-semibold">
-      👑 Dynasty Duel — beat the <strong>${S.bossOfWeek.name}</strong> in a best-of-7. New random dynasty every run — play as often as you want.
+      👑 Dynasty Duel — beat the <strong>${S.dynastyOpponent.name}</strong> in a best-of-7. New random dynasty every run — play as often as you want.
     </div>`;
   }
   return '';
@@ -1287,26 +1294,26 @@ function renderChemDashboard() {
 function renderSimulateCard() {
   const isDual  = isDualDraft();
   const isP1    = S.currentPlayer === 1;
-  const isBoss  = S.mode === 'boss-week';
+  const isDynasty = S.mode === 'dynasty-duel';
   const btnText = isDual && isP1
     ? 'Lock In Roster — Pass to Player 2 →'
     : isDual
     ? 'Simulate Best-of-7 Series →'
-    : isBoss
-    ? `Challenge ${S.bossOfWeek?.name || 'Dynasty'} →`
+    : isDynasty
+    ? `Challenge ${S.dynastyOpponent?.name || 'Dynasty'} →`
     : S.mode === 'defense'
     ? 'Simulate Defense Season →'
     : S.mode === 'fans'
     ? 'Simulate Fans First Season →'
     : 'Simulate 82 Games →';
-  const btnColor = isDual && isP1 ? '#d97706' : isBoss ? '#b45309' : '#2563eb';
-  const btnHover = isDual && isP1 ? '#b45309' : isBoss ? '#92400e' : '#1d4ed8';
+  const btnColor = isDual && isP1 ? '#d97706' : isDynasty ? '#b45309' : '#2563eb';
+  const btnHover = isDual && isP1 ? '#b45309' : isDynasty ? '#92400e' : '#1d4ed8';
   const subtitle = isDual && isP1
     ? 'All 5 spots locked in. Hand the device to Player 2.'
     : isDual
     ? 'Both rosters set. Time to settle it on the court.'
-    : isBoss
-    ? 'Skip the regular season — go straight at a random dynasty.'
+    : isDynasty
+    ? 'Skip the regular season — go straight at a legendary dynasty.'
     : S.mode === 'defense'
     ? 'Win probability leans on stocks, boards, and defensive chemistry.'
     : S.mode === 'fans'
@@ -1594,8 +1601,8 @@ function renderDailySubmitCard() {
           <p class="font-black text-sm" style="color:${isDark() ? '#fdba74' : '#9a3412'}">On the daily board!</p>
           <p class="text-xs mt-0.5" style="color:${isDark() ? '#fed7aa' : '#c2410c'}">"${esc(S.teamName)}" &nbsp;·&nbsp; ${r.wins}–${r.losses}</p>
         </div>
-        <button data-action="open-daily-leaderboard" class="text-xs font-bold px-3 py-1.5 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:#fdba74;background:var(--card);color:${isDark() ? '#fdba74' : '#c2410c'}">
-          Board 🏅
+        <button data-action="open-daily-leaderboard" class="text-xs font-bold px-3 py-1.5 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:var(--border);background:var(--card);color:var(--muted-fg)">
+          Board
         </button>
       </div>
     </div>`;
@@ -2525,7 +2532,7 @@ function renderSeriesResult() {
             </div>
             ${p2Coach ? `<p class="text-[10px] text-muted-fg mb-2 font-medium">Coach: ${p2Coach.name}</p>` : ''}
             <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg/60 mb-1">Starting 5</p>
-            ${S.mode === 'boss-week'
+            ${S.mode === 'dynasty-duel'
               ? `<p class="text-xs text-muted-fg py-2">Legendary ${labels.p2} — strength ${p2s.strength.toFixed(2)}</p>`
               : rosterMini(S.p2Roster || S.roster, ['PG','SG','SF','PF','C'])}
           </div>
@@ -2572,7 +2579,7 @@ function renderSeriesPreview() {
   const p2s  = sr.p2Season;
   const p1CoachObj = COACHES.find(c => c.id === S.p1Coach);
   const p2CoachObj = COACHES.find(c => c.id === S.p2Coach);
-  const isBoss = S.mode === 'boss-week';
+  const isDynasty = S.mode === 'dynasty-duel';
   const maxStr  = Math.max(p1s.strength, p2s.strength, 0.01);
   const p1pct   = Math.round((p1s.strength / maxStr) * 100);
   const p2pct   = Math.round((p2s.strength / maxStr) * 100);
@@ -2631,7 +2638,7 @@ function renderSeriesPreview() {
           </div>
           <div class="rounded-2xl border-2 bg-white p-3 card-shadow" style="border-color:#fde68a">
             <p class="text-xs font-black uppercase tracking-wider mb-2" style="color:#d97706">${labels.p2}</p>
-            ${isBoss
+            ${isDynasty
               ? `<p class="text-xs text-muted-fg leading-relaxed py-2">Legendary CPU dynasty. Strength ${p2s.strength.toFixed(2)}.</p>`
               : rosterMini(S.p2Roster, '#d97706')}
           </div>

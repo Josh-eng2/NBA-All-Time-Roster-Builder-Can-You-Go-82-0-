@@ -9,7 +9,7 @@
  * Exports:
  *   simulateSeason(starters, coach, profile?)  → full result object
  *   simulateSeries(playerStr, oppStr) → series result object
- *   simulateBossSeries(playerSeason, boss) → head-to-head shaped series result
+ *   simulateDynastySeries(playerSeason, opponent) → head-to-head shaped series result
  */
 
 import { DB }                  from '../data/players.js';
@@ -577,13 +577,13 @@ export function simulateHeadToHeadSeries(p1Starters, p1Coach, p2Starters, p2Coac
  * Best-of-7 vs a Dynasty Duel CPU team (no opposing roster cards).
  * Returns the same shape as simulateHeadToHeadSeries for shared series UI.
  */
-export function simulateBossSeries(playerSeason, boss) {
+export function simulateDynastySeries(playerSeason, opponent) {
   const p1Str = playerSeason.strength;
-  const p2Str = boss.strength;
+  const p2Str = opponent.strength;
   const p2Season = {
     strength: p2Str,
     chemScore: 88,
-    chemReport: [`🟢 Legendary dynasty: ${boss.name}`],
+    chemReport: [`🟢 Legendary dynasty: ${opponent.name}`],
     wins: 70,
     losses: 12,
     avgPopularity: 92,
@@ -607,7 +607,7 @@ export function simulateBossSeries(playerSeason, boss) {
     won:        winner === 'p1',
   };
 
-  return { p1Season: playerSeason, p2Season, games, p1Wins, p2Wins, winner, series, boss };
+  return { p1Season: playerSeason, p2Season, games, p1Wins, p2Wins, winner, series, opponent };
 }
 
 /**

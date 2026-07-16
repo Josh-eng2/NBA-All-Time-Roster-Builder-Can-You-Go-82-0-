@@ -4,17 +4,17 @@
 
 import { S } from './state.js';
 
-/** @typedef {'solo'|'blind'|'daily'|'1v1'|'gm-ai'|'boss-week'|'defense'|'fans'} ModeId */
+/** @typedef {'solo'|'blind'|'daily'|'1v1'|'gm-ai'|'dynasty-duel'|'defense'|'fans'} ModeId */
 
 export const MODE_CONFIG = {
-  solo:       { draft: 'solo',   postDraft: 'season',     pity: true,  skips: 1, simProfile: 'classic' },
-  blind:      { draft: 'solo',   postDraft: 'season',     pity: true,  skips: 1, simProfile: 'classic' },
-  daily:      { draft: 'solo',   postDraft: 'season',     pity: true,  skips: 0, simProfile: 'classic' },
-  '1v1':      { draft: 'dual',   postDraft: 'series',     pity: false, skips: 1, simProfile: 'classic' },
-  'gm-ai':    { draft: 'dual',   postDraft: 'series',     pity: false, skips: 1, simProfile: 'classic' },
-  'boss-week':{ draft: 'solo',   postDraft: 'bossSeries', pity: true,  skips: 0, simProfile: 'classic' },
-  defense:    { draft: 'solo',   postDraft: 'season',     pity: true,  skips: 1, simProfile: 'defense' },
-  fans:       { draft: 'solo',   postDraft: 'season',     pity: true,  skips: 1, simProfile: 'fans' },
+  solo:            { draft: 'solo',   postDraft: 'season',        pity: true,  skips: 1, simProfile: 'classic' },
+  blind:           { draft: 'solo',   postDraft: 'season',        pity: true,  skips: 1, simProfile: 'classic' },
+  daily:           { draft: 'solo',   postDraft: 'season',        pity: true,  skips: 0, simProfile: 'classic' },
+  '1v1':           { draft: 'dual',   postDraft: 'series',        pity: false, skips: 1, simProfile: 'classic' },
+  'gm-ai':         { draft: 'dual',   postDraft: 'series',        pity: false, skips: 1, simProfile: 'classic' },
+  'dynasty-duel':  { draft: 'solo',   postDraft: 'dynastySeries', pity: true,  skips: 0, simProfile: 'classic' },
+  defense:         { draft: 'solo',   postDraft: 'season',        pity: true,  skips: 1, simProfile: 'defense' },
+  fans:            { draft: 'solo',   postDraft: 'season',        pity: true,  skips: 1, simProfile: 'fans' },
 };
 
 export function getModeConfig(mode = S?.mode) {
@@ -28,10 +28,10 @@ export function isDualDraft(mode = S?.mode) {
 
 /** Modes that use the More Modes dropdown (not primary tiles). */
 export const MORE_MODES = [
-  { id: 'gm-ai',     action: 'mode-gm-ai',     label: 'GM vs AI' },
-  { id: 'boss-week', action: 'mode-boss-week', label: 'Dynasty Duel' },
-  { id: 'defense',   action: 'mode-defense',   label: 'Defense Only' },
-  { id: 'fans',      action: 'mode-fans',      label: 'Fans First' },
+  { id: 'gm-ai',          action: 'mode-gm-ai',          label: 'GM vs AI' },
+  { id: 'dynasty-duel',   action: 'mode-dynasty-duel',   label: 'Dynasty Duel' },
+  { id: 'defense',        action: 'mode-defense',        label: 'Defense Only' },
+  { id: 'fans',           action: 'mode-fans',           label: 'Fans First' },
 ];
 
 /** Display labels for series UI (1v1 / GM vs AI / Dynasty Duel). */
@@ -39,8 +39,8 @@ export function seriesLabels() {
   if (S.mode === 'gm-ai') {
     return { p1: 'You', p2: 'AI GM', p1Short: 'YOU', p2Short: 'AI' };
   }
-  if (S.mode === 'boss-week') {
-    const name = S.bossOfWeek?.name || 'Dynasty';
+  if (S.mode === 'dynasty-duel') {
+    const name = S.dynastyOpponent?.name || 'Dynasty';
     return { p1: 'You', p2: name, p1Short: 'YOU', p2Short: 'DYN' };
   }
   return { p1: 'Player 1', p2: 'Player 2', p1Short: 'P1', p2Short: 'P2' };

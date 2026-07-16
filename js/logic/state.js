@@ -301,9 +301,9 @@ export function startGame(era = 'all') {
   const p1            = S.p1;
   const dailyChallenge = S.dailyChallenge ?? null; // daily mode context survives the reset
   const dailyDate      = S.dailyDate      ?? null;
-  const bossOfWeek     = S.bossOfWeek     ?? null;
-  // Skips: daily/boss-week = 0; classic-like = 1
-  const skipBudget = (mode === 'daily' || mode === 'boss-week') ? 0 : 1;
+  const dynastyOpponent = S.dynastyOpponent ?? null;
+  // Skips: daily/dynasty-duel = 0; classic-like = 1
+  const skipBudget = (mode === 'daily' || mode === 'dynasty-duel') ? 0 : 1;
   S = {
     phase:            'drafting',
     coach,
@@ -353,8 +353,8 @@ export function startGame(era = 'all') {
     dailyResult: null,       // { pass, pending, detail, streak } — set at sim time
 
     // Dynasty Duel / More Modes extras
-    bossOfWeek,
-    bossWeekResult: null,
+    dynastyOpponent,
+    dynastyDuelResult: null,
   };
 
   // Locked-player daily challenges start with the star already in their slot,
@@ -427,7 +427,7 @@ export function startGame1v1() {
     p1: null,
     selectedEra: p1Era || 'all',
     coach: isAi ? p1Coach : null,
-    bossOfWeek: null,
-    bossWeekResult: null,
+    dynastyOpponent: null,
+    dynastyDuelResult: null,
   };
 }
