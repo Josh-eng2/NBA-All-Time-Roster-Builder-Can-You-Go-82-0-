@@ -149,6 +149,96 @@ export function saveLeaderboard() {
   }
 }
 
+const MODE_LB_KEYS = {
+  defense: 'nba820_lb_defense',
+  fans: 'nba820_lb_fans',
+  'gm-ai': 'nba820_lb_gmai',
+  'boss-week': 'nba820_lb_boss',
+};
+
+/**
+ * Persist a More Modes local leaderboard entry (top 20).
+ * @param {'defense'|'fans'|'gm-ai'|'boss-week'} mode
+ * @param {object} entry
+ */
+export function saveModeLeaderboard(mode, entry) {
+  const key = MODE_LB_KEYS[mode];
+  if (!key || !entry) return;
+  let lb = [];
+  try { lb = JSON.parse(cgGetItem(key) || '[]'); } catch (e) {}
+  lb.push(entry);
+  if (mode === 'fans') {
+    lb.sort((a, b) => (b.score ?? 0) - (a.score ?? 0) || (b.wins ?? 0) - (a.wins ?? 0));
+  } else if (mode === 'boss-week') {
+    lb.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+  } else if (mode === 'gm-ai') {
+    lb.sort((a, b) => (b.won === a.won ? 0 : b.won ? 1 : -1) || (b.margin ?? 0) - (a.margin ?? 0) || (b.strength ?? 0) - (a.strength ?? 0));
+  } else {
+    lb.sort((a, b) => (b.wins ?? 0) - (a.wins ?? 0) || (b.teamStocks ?? 0) - (a.teamStocks ?? 0));
+  }
+  if (lb.length > 20) lb = lb.slice(0, 20);
+  try { cgSetItem(key, JSON.stringify(lb)); } catch (e) {
+    console.warn('[storage] mode leaderboard not saved', e);
+  }
+}
+
+const BOSS_WEEK_KEY = 'nba820_boss_week_last';
+const BOSS_WEEK_STREAK_KEY = 'nba820_boss_week_streak';
+
+/**
+ * @returns {{ weekKey: string, playedThisWeek: boolean, result: object|null, streak: number }}
+ */
+export function getBossWeekStatus() {
+  // Lazy import avoided — week key computed here from UTC Monday
+  const now = new Date();
+  const day = now.getUTCDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  const monday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + diff));
+  const weekKey = monday.toISOString().slice(0, 10);
+
+  let result = null;
+  try { result = JSON.parse(cgGetItem(BOSS_WEEK_KEY) || 'null'); } catch (e) {}
+  const playedThisWeek = !!(result && result.weekKey === weekKey);
+
+  let streak = 0;
+  try {
+    const s = JSON.parse(cgGetItem(BOSS_WEEK_STREAK_KEY) || '{}');
+    streak = Number(s.streak) || 0;
+  } catch (e) {}
+
+  return { weekKey, playedThisWeek, result: playedThisWeek ? result : null, streak };
+}
+
+export function markBossWeekPlayed({ weekKey, bossName, won, score, seriesWins, seriesLosses }) {
+  try {
+    cgSetItem(BOSS_WEEK_KEY, JSON.stringify({
+      weekKey, bossName, won, score, seriesWins, seriesLosses, at: Date.now(),
+    }));
+  } catch (e) {}
+
+  try {
+    const prev = JSON.parse(cgGetItem(BOSS_WEEK_STREAK_KEY) || '{}');
+    if (won) {
+      const d = new Date(weekKey + 'T12:00:00Z');
+      d.setUTCDate(d.getUTCDate() - 7);
+      const prevWeek = d.toISOString().slice(0, 10);
+      const last = prev.lastWinWeek;
+      let streak = 1;
+      if (last === weekKey) {
+        streak = Number(prev.streak) || 1; // idempotent re-save
+      } else if (last === prevWeek) {
+        streak = (Number(prev.streak) || 0) + 1;
+      }
+      cgSetItem(BOSS_WEEK_STREAK_KEY, JSON.stringify({ streak, lastWinWeek: weekKey }));
+    } else {
+      cgSetItem(BOSS_WEEK_STREAK_KEY, JSON.stringify({
+        streak: 0,
+        lastWinWeek: prev.lastWinWeek || null,
+      }));
+    }
+  } catch (e) {}
+}
+
 // ── Save trophy room entry ────────────────────────────────────────────────────
 
 export function saveToTrophyRoom() {
