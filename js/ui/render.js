@@ -503,10 +503,6 @@ function renderModeSelect() {
     <main class="flex-1 flex flex-col items-center px-4 pt-3 pb-8">
       <div class="w-full max-w-md animate-fade-up">
 
-        <div class="text-center mb-3">
-          <h1 class="text-xl font-black text-foreground leading-tight">Choose Your Mode</h1>
-        </div>
-
         ${renderDailyModeCard()}
 
         <!-- Classic + Ball IQ side by side -->
