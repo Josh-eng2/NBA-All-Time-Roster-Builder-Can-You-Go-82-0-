@@ -181,7 +181,7 @@ function dispatch(action) {
   // ── Navigation ─────────────────────────────────────────────────────────────
   // Daily Challenge is one shot — refuse mid-run abandon/re-draft so players
   // can't throw away a bad board and spin again before the day locks.
-  // Boss of the Week is unlimited — Restart / new roster are allowed.
+  // Dynasty Duel is unlimited — Restart / new roster are allowed.
   if (action === 'restart') {
     if (S.mode === 'daily') return;
     confirmLeave(() => { S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; S.dailyChallenge = null; S.bossOfWeek = null; render(); }); return;
@@ -673,7 +673,7 @@ function doSimulate() {
   if (S.phase !== 'drafting' || isDualDraft()) return;
   const starters = POSITIONS.map(p => S.roster[p]).filter(Boolean);
 
-  // Boss of the Week — skip the 82-game ticker; go straight to a best-of-7.
+  // Dynasty Duel — skip the 82-game ticker; go straight to a best-of-7.
   if (S.mode === 'boss-week') {
     const boss = S.bossOfWeek || pickBossForPlay();
     S.result = simulateSeason(starters, S.coach);

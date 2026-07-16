@@ -258,7 +258,7 @@ function renderHeader(showRestart = false) {
     : `<span class="header-pill">${eraLabel}${S.eraLocked ? '<span class="header-pill__lock" aria-hidden="true">🔒</span>' : ''}</span>`;
 
   // Daily Challenge is one attempt — never offer Restart mid-run.
-  // Boss of the Week is unlimited; Restart is fine.
+  // Dynasty Duel is unlimited; Restart is fine.
   const canRestart = showRestart && S.mode !== 'daily';
   const restartBtn = canRestart
     ? `<button data-action="restart" type="button" class="header-pill header-pill--muted header-pill--restart">Restart</button>`
@@ -546,22 +546,22 @@ function renderModeSelect() {
   </div>`;
 }
 
-/** Collapsed More Modes entry — keeps secondary modes off the primary tiles. */
+/** Collapsed Challenges entry — keeps secondary modes off the primary tiles. */
 function renderMoreModesDropdown() {
   const options = MORE_MODES.map(m => {
     let label = m.label;
     if (m.id === 'boss-week') {
-      label = 'Boss of the Week';
+      label = 'Dynasty Duel';
     }
     return `<option value="${m.action}">${label}</option>`;
   }).join('');
 
   return `
   <div class="w-full mb-3 rounded-xl border border-border bg-white/80 px-3 py-2.5 card-shadow">
-    <label for="more-modes-select" class="block text-[10px] font-bold uppercase tracking-widest text-muted-fg mb-1.5">More Modes</label>
+    <label for="more-modes-select" class="block text-[10px] font-bold uppercase tracking-widest text-muted-fg mb-1.5">Challenges</label>
     <select id="more-modes-select"
       class="w-full text-sm font-semibold rounded-lg border border-border bg-card2 text-foreground px-3 py-2 cursor-pointer">
-      <option value="">Choose a side mode…</option>
+      <option value="">Choose a challenge…</option>
       ${options}
     </select>
   </div>`;
@@ -762,7 +762,7 @@ function renderModeDraftBanner() {
   }
   if (S.mode === 'boss-week' && S.bossOfWeek) {
     return `<div class="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 font-semibold">
-      👹 Boss of the Week — beat the <strong>${S.bossOfWeek.name}</strong> in a best-of-7. New random boss every run — play as often as you want.
+      👑 Dynasty Duel — beat the <strong>${S.bossOfWeek.name}</strong> in a best-of-7. New random dynasty every run — play as often as you want.
     </div>`;
   }
   return '';
@@ -1293,7 +1293,7 @@ function renderSimulateCard() {
     : isDual
     ? 'Simulate Best-of-7 Series →'
     : isBoss
-    ? `Challenge ${S.bossOfWeek?.name || 'Boss'} →`
+    ? `Challenge ${S.bossOfWeek?.name || 'Dynasty'} →`
     : S.mode === 'defense'
     ? 'Simulate Defense Season →'
     : S.mode === 'fans'

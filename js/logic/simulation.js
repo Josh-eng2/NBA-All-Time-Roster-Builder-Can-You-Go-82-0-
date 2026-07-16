@@ -574,7 +574,7 @@ export function simulateHeadToHeadSeries(p1Starters, p1Coach, p2Starters, p2Coac
 }
 
 /**
- * Best-of-7 vs a fixed Boss of the Week CPU team (no opposing roster cards).
+ * Best-of-7 vs a Dynasty Duel CPU team (no opposing roster cards).
  * Returns the same shape as simulateHeadToHeadSeries for shared series UI.
  */
 export function simulateBossSeries(playerSeason, boss) {
