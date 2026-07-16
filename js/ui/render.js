@@ -462,19 +462,15 @@ function renderDailyModeCard() {
           : `<span style="color:#dc2626;font-weight:900">FAILED ✗</span>`)
       : 'Done';
     return `
-    <div class="w-full rounded-2xl bg-white px-3 py-2.5 mb-3 card-shadow border border-slate-100">
-      <div class="flex items-start gap-2">
-        <span class="text-2xl flex-shrink-0">${ch.emoji}</span>
-        <div class="flex-1 min-w-0">
-          <p class="font-black text-sm text-foreground flex flex-wrap items-center gap-x-2 gap-y-1">Daily Challenge — ${verdict} ${streakChip}</p>
-          <p class="text-[11px] text-muted-fg mt-0.5 leading-snug">${ch.title}: you went <span style="color:#f97316;font-weight:700">${r.wins}–${r.losses}</span> · ${dailyResetInLabel()}</p>
-          ${renderCommunityStatsLine()}
-        </div>
+    <div class="w-full rounded-2xl bg-white px-3 py-2.5 flex items-center gap-2 mb-3 card-shadow border border-slate-100">
+      <span class="text-2xl flex-shrink-0">${ch.emoji}</span>
+      <div class="flex-1 min-w-0">
+        <p class="font-black text-sm text-foreground flex flex-wrap items-center gap-x-2 gap-y-1">Daily Challenge — ${verdict} ${streakChip}</p>
+        <p class="text-[11px] text-muted-fg mt-0.5 leading-snug">${ch.title}: you went <span style="color:#f97316;font-weight:700">${r.wins}–${r.losses}</span> · ${dailyResetInLabel()}</p>
+        ${renderCommunityStatsLine()}
       </div>
-      <div class="flex items-center gap-2 mt-3.5">
-        <button data-action="open-daily-stats" class="flex-1 text-[11px] font-bold px-2 py-1.5 rounded-lg border cursor-pointer" style="border-color:var(--border);background:var(--card);color:var(--muted-fg)" title="Daily Challenge Stats">Stats</button>
-        <button data-action="open-daily-leaderboard" class="flex-1 text-[11px] font-bold px-2 py-1.5 rounded-lg border cursor-pointer" style="border-color:#fdba74;background:var(--card);color:${isDark() ? '#fdba74' : '#c2410c'}">Board 🏅</button>
-      </div>
+      <button data-action="open-daily-stats" class="text-[11px] font-bold px-2 py-1.5 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:var(--border);background:var(--card);color:var(--muted-fg)" title="Daily Challenge Stats">Stats</button>
+      <button data-action="open-daily-leaderboard" class="text-[11px] font-bold px-2 py-1.5 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:#fdba74;background:var(--card);color:${isDark() ? '#fdba74' : '#c2410c'}">Board 🏅</button>
     </div>`;
   }
   const community = renderCommunityStatsMerged();
