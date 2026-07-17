@@ -26,7 +26,12 @@ function findCpu(name) {
 
 /** UTC Monday date string for the week containing `date` (Date or YYYY-MM-DD). */
 export function weekKeyUTC(dateStr) {
-  const d = dateStr
+  // Accept a real Date too — the old string concatenation turned a Date into
+  // "Mon Jul 13 2026 …T12:00:00Z" (Invalid Date), and toISOString() below
+  // then threw a RangeError.
+  const d = dateStr instanceof Date
+    ? dateStr
+    : dateStr
     ? new Date(dateStr + (String(dateStr).includes('T') ? '' : 'T12:00:00Z'))
     : new Date();
   const day = d.getUTCDay(); // 0 Sun … 1 Mon

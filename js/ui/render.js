@@ -12,7 +12,7 @@
 
 import {
   S, POSITIONS, ALL_POSITIONS, TOTAL_ROUNDS,
-  COACHES, ERA_DESC, TEAM_COLORS, ARCHETYPE_STYLE, DECADES, TEAMS, pick, SNAKE_ORDER,
+  COACHES, ERA_DESC, TEAM_COLORS, ARCHETYPE_STYLE, DECADES, TEAMS, pickCosmetic, SNAKE_ORDER,
   getUtcDateString,
 } from '../logic/state.js';
 import { calculateChemistry }                             from '../logic/chemistry.js';
@@ -1084,7 +1084,7 @@ function renderSlotMachine() {
         style="background:${isDone && tc ? tc.bg + '12' : 'var(--card2)'};border-color:${isDone && tc ? tc.bg + '88' : 'var(--border)'}">
         <span class="text-[10px] font-bold uppercase tracking-widest mb-2 text-muted-fg">TEAM</span>
         <span class="slot-badge text-xl font-black text-foreground" id="slot-team">
-          ${isDone ? S.currentSpin.team : isSpin ? pick(TEAMS) : '—'}
+          ${isDone ? S.currentSpin.team : isSpin ? pickCosmetic(TEAMS) : '—'}
         </span>
         ${isDone ? `<span class="mt-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary text-white uppercase tracking-wider">LOCKED</span>` : ''}
       </div>
@@ -1092,7 +1092,7 @@ function renderSlotMachine() {
         style="background:${isDone ? 'var(--surface-blue)' : 'var(--card2)'};border-color:${isDone ? '#93c5fd' : 'var(--border)'}">
         <span class="text-[10px] font-bold uppercase tracking-widest mb-2 text-muted-fg">ERA</span>
         <span class="slot-badge text-xl font-black text-foreground" id="slot-decade">
-          ${isDone ? S.currentSpin.decade : isSpin ? (eraLocked ? activeEra : pick(decPool.length ? decPool : DECADES)) : '—'}
+          ${isDone ? S.currentSpin.decade : isSpin ? (eraLocked ? activeEra : pickCosmetic(decPool.length ? decPool : DECADES)) : '—'}
         </span>
         ${isDone ? `<span class="mt-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary text-white uppercase tracking-wider">LOCKED</span>` : ''}
       </div>

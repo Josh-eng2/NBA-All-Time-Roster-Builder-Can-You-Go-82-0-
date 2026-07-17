@@ -220,6 +220,16 @@ export function clearDailyRng() {
 /** Pick a random element from an array — seeded during the Daily Challenge, real-random otherwise. */
 export const pick = arr => arr[Math.floor((_seededRng ? _seededRng() : Math.random()) * arr.length)];
 
+/**
+ * Cosmetic-only random pick — NEVER seeded. Slot-machine tumble frames and
+ * other purely visual noise must use this instead of pick(): a cosmetic call
+ * that goes through the seeded generator consumes a draw from the Daily
+ * Challenge's deterministic stream, and the number of those calls varies with
+ * DOM state and render count (mid-spin re-renders, missing elements), which
+ * silently desyncs the "same board for everyone" guarantee between players.
+ */
+export const pickCosmetic = arr => arr[Math.floor(Math.random() * arr.length)];
+
 // ── Playoff helpers ───────────────────────────────────────────────────────────
 
 /**
@@ -255,12 +265,16 @@ export function buildBracket(playerSeed, playerStrength) {
     if (!seeds[i]) seeds[i] = { ...cpuSorted[cpuIdx++], isPlayer: false };
   }
 
-  // Classic 1v8, 2v7, 3v6, 4v5 bracket
+  // Classic 1v8, 4v5, 3v6, 2v7 bracket — adjacent pairs advance together
+  // (applyPlayoffRound pairs winners [0,1] and [2,3]), so this order makes the
+  // 1v8 winner meet the 4v5 winner in the semis and keeps the top two seeds
+  // apart until the Finals. The previous [1v8, 2v7, 3v6, 4v5] order forced the
+  // #1 and #2 seeds to eliminate each other a round early.
   return [
     [seeds[0], seeds[7]],
-    [seeds[1], seeds[6]],
-    [seeds[2], seeds[5]],
     [seeds[3], seeds[4]],
+    [seeds[2], seeds[5]],
+    [seeds[1], seeds[6]],
   ];
 }
 

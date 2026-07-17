@@ -148,6 +148,32 @@ function hashStr(str) {
 const rawIndex = dateStr => hashStr(dateStr) % CHALLENGES.length;
 
 /**
+ * A date's catalog index after repeat-avoidance. Each day must be bumped off
+ * the previous day's index *after its own bump*, not off its raw hash: when
+ * yesterday collided and got bumped forward, today's raw index could land
+ * exactly on yesterday's final challenge and a raw-vs-raw comparison never
+ * saw it — a back-to-back repeat roughly every ~80 days, the very thing the
+ * avoidance logic exists to prevent. Bumps chain (a bumped day shifts what
+ * its successor must avoid), so the exact value is computed by replaying the
+ * bump rule forward from a fixed horizon; 32 days is exact unless every one
+ * of 32 consecutive raw hashes chain-collides, which is effectively never.
+ * Pure function of the date string — identical on every client.
+ */
+function finalIndexFor(dateStr) {
+  const HORIZON = 32;
+  const dates = [dateStr];
+  for (let i = 0; i < HORIZON; i++) dates.push(yesterdayOf(dates[dates.length - 1]));
+  dates.reverse(); // oldest → newest
+  let prev = rawIndex(dates[0]); // anchor: beyond the horizon, treat raw as final
+  for (let i = 1; i < dates.length; i++) {
+    let idx = rawIndex(dates[i]);
+    if (idx === prev) idx = (idx + 1) % CHALLENGES.length;
+    prev = idx;
+  }
+  return prev;
+}
+
+/**
  * The day's challenge. Deterministic: same date → same entry for everyone.
  * Skips (a) yesterday's challenge, so no back-to-back repeats, and
  * (b) locked entries whose playerId is missing from the DB (data drift).
@@ -157,12 +183,17 @@ const rawIndex = dateStr => hashStr(dateStr) % CHALLENGES.length;
 const _challengeCache = new Map();
 export function getDailyChallenge(dateStr = todayUTC()) {
   if (_challengeCache.has(dateStr)) return _challengeCache.get(dateStr);
-  const avoid = rawIndex(yesterdayOf(dateStr));
+  const avoid = finalIndexFor(yesterdayOf(dateStr));
   let idx = rawIndex(dateStr);
-  if (idx === avoid) idx = (idx + 1) % CHALLENGES.length;
+  if (idx === avoid) idx = (idx + 1) % CHALLENGES.length; // == finalIndexFor(dateStr)
   let found = CHALLENGES[idx]; // fallback — unreachable unless the whole catalog is broken
   for (let tries = 0; tries < CHALLENGES.length; tries++) {
-    const ch = CHALLENGES[(idx + tries) % CHALLENGES.length];
+    const j = (idx + tries) % CHALLENGES.length;
+    // Skipping a broken locked entry must not walk back onto yesterday's
+    // challenge — that would reintroduce the back-to-back repeat the
+    // pre-loop adjustment exists to prevent.
+    if (j === avoid) continue;
+    const ch = CHALLENGES[j];
     if (ch.type === 'locked' && !getLockedPlayer(ch)) {
       console.warn(`[daily] locked player ${ch.params.playerId} missing from DB — skipping ${ch.id}`);
       continue;
