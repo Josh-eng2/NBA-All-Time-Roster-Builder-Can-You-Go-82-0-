@@ -22,14 +22,18 @@ import { getModeConfig }       from '../logic/modes.js';
 // SIM_K:      steepness — lower = more gradual spread between good/bad teams
 // SIM_CENTER: adjustedStrength that maps to exactly 50 % win rate
 //             (raise to make 82-0 rarer, lower to make it easier)
-// WIN_CAP:    1.0 — 82-0 is possible only for genuinely elite rosters
+// WIN_CAP:    per-game win probability ceiling — 0.99 means even a maxed
+//             roster can lose any given night, so 82-0 is never guaranteed
 //
-// Recalibrated for the starters-only format (bench removal shifted the whole
-// strength distribution down: the old bench ratio was measured against a
-// bench-tier baseline, inflating strength by ~0.3, and roster-wide chem procs
-// lost their bench reach). Empirical anchors from 300-sample sweeps of
-// position-clean builds: elite (pop 85+) median 2.03 → ~73 wins; elite p90
-// 2.40 → ~80 wins; mid-tier (68-84) median 1.73 → ~52 wins.
+// Retuned (K 5→3.5, CENTER 1.62→1.8, CAP 1.0→0.99) after the previous curve
+// made perfection routine: a star-chasing roster hit 80-win medians and went
+// 82-0 in roughly a quarter of runs. Empirical anchors from 400-sample sweeps
+// against the live DB under THESE constants (strengths are post-multiplier):
+//   star-chasing builds — median 2.36 → ~72 wins; p90 2.75 → ~79 wins;
+//   P(82-0) ≈ 1.5 % across those builds (the chase stays real but rare)
+//   random builds       — median 1.41 → ~17 wins; p90 1.78 → ~40 wins
+// Daily-challenge win gates under this curve (star-chasing builds):
+//   55+ ≈ 83 % · 60+ ≈ 76 % · 65+ ≈ 66 % · 70+ ≈ 54 % pass rates pre-constraint.
 const SIM_K      = 3.5;
 const SIM_CENTER = 1.8;
 const WIN_CAP    = 0.99;

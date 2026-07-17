@@ -2449,9 +2449,12 @@ function renderSeriesResult() {
   }).join('');
 
   const p1CoachId = S.p1Coach || S.p1?.coach;
-  const p2CoachId = S.p2Coach || S.coach;
+  // No fallback to S.coach here — in Dynasty Duel S.coach is the PLAYER's
+  // coach and S.p2Coach is deliberately null (the CPU dynasty has no coach
+  // card), so falling back printed the player's own coach under the
+  // dynasty's roster column.
   const p1Coach   = COACHES.find(c => c.id === p1CoachId);
-  const p2Coach   = COACHES.find(c => c.id === p2CoachId);
+  const p2Coach   = COACHES.find(c => c.id === S.p2Coach);
 
   const rosterMini = (roster, positions) => positions.map(pos => {
     const p = roster[pos];
