@@ -197,16 +197,10 @@ function dispatch(action) {
   if (action === 'series-play-again') { S.mode = null; S.phase = 'mode-select'; S.p1 = null; S.seriesResult = null; S.seriesRevealedCount = 0; S.dynastyOpponent = null; render(); return; }
   if (action === 'begin-series') { S.phase = 'series-sim'; S.seriesRevealedCount = 0; render(); return; }
   if (action === 'sim-next-game') { S.seriesRevealedCount = Math.min((S.seriesRevealedCount || 0) + 1, S.seriesResult.games.length); render(); return; }
-  if (action === 'series-to-recap') {
-    S.phase = 'series-result';
-    if (S.seriesResult?.winner === 'p1' && (S.mode === 'gm-ai' || S.mode === 'dynasty-duel')) {
-      withConfetti(() => {
-        confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 }, colors: ['#f97316', '#2563eb', '#fcd34d'] });
-      });
-    }
-    render();
-    return;
-  }
+  // renderSeriesResult fires its own once-per-series confetti for every mode
+  // (guarded by S.seriesConfettiFired) — firing another blast here for
+  // gm-ai/dynasty wins doubled the celebration on the same frame.
+  if (action === 'series-to-recap') { S.phase = 'series-result'; render(); return; }
 
   // ── Draft actions ──────────────────────────────────────────────────────────
   if (action === 'spin')         { doSpin();       return; }
@@ -234,7 +228,19 @@ function dispatch(action) {
     S.seasonPaused = false;
     S.rivalTease   = false;
     S.phase = 'results';
-    render(); return;
+    render();
+    // Wordle-style: the Daily's Statistics modal surfaces after the day's one
+    // shot lands. runSeasonReveal only fires it on the reveal's natural end,
+    // which skipping bypasses — without this, skippers never see it.
+    if (S.mode === 'daily') {
+      const skipGameId = S.gameId;
+      setTimeout(() => {
+        if (S.gameId === skipGameId && S.phase === 'results' && S.mode === 'daily') {
+          showDailyStatsModal();
+        }
+      }, 700);
+    }
+    return;
   }
   if (action === 'save-run')             { doSaveRun();           return; }
   if (action === 'advance-to-playoffs') { doAdvanceToPlayoffs(); return; }
