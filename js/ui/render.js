@@ -532,7 +532,7 @@ function renderModeSelect() {
           🏆 Trophy Room${trophies.length > 0 ? ` · ${trophies.length} Championship${trophies.length === 1 ? '' : 's'}` : ''}
         </button>
 
-        ${renderMoreModesDropdown()}
+        ${renderMoreModesButton()}
 
       </div>
     </main>
@@ -540,24 +540,54 @@ function renderModeSelect() {
   </div>`;
 }
 
-/** Collapsed Challenges entry — keeps secondary modes off the primary tiles. */
-function renderMoreModesDropdown() {
-  const options = MORE_MODES.map(m => {
-    let label = m.label;
-    if (m.id === 'dynasty-duel') {
-      label = 'Dynasty Duel';
-    }
-    return `<option value="${m.action}">${label}</option>`;
-  }).join('');
+/** Challenges entry — a button that opens the full challenge-select screen. */
+function renderMoreModesButton() {
+  return `
+  <button data-action="open-more-modes"
+    class="w-full mb-3 rounded-xl border border-border bg-white/80 px-4 py-3 flex items-center justify-between gap-3 cursor-pointer card-shadow hover:border-primary hover:bg-card2 transition-all">
+    <span class="flex items-center gap-2" style="pointer-events:none">
+      <span class="text-xl">🎮</span>
+      <span class="flex flex-col text-left">
+        <span class="text-[10px] font-bold uppercase tracking-widest text-muted-fg">Challenges</span>
+        <span class="text-sm font-bold text-foreground">Explore more game modes</span>
+      </span>
+    </span>
+    <span class="text-lg text-muted-fg" style="pointer-events:none">→</span>
+  </button>`;
+}
+
+/** Full-screen challenge picker — one card per secondary mode. */
+function renderMoreModesScreen() {
+  const cards = MORE_MODES.map(m => `
+    <button data-action="${m.action}"
+      class="w-full rounded-2xl bg-white px-5 py-4 flex items-center gap-4 cursor-pointer card-shadow hover:shadow-md transition-all border border-slate-100 text-left">
+      <span class="text-3xl flex-shrink-0" style="pointer-events:none">${m.emoji}</span>
+      <span class="flex flex-col gap-1 flex-1" style="pointer-events:none">
+        <span class="font-black text-base" style="color:#f97316">${m.label}</span>
+        <span class="text-sm text-muted-fg leading-snug">${m.desc}</span>
+      </span>
+      <span class="text-lg text-muted-fg flex-shrink-0" style="pointer-events:none">→</span>
+    </button>`).join('');
 
   return `
-  <div class="w-full mb-3 rounded-xl border border-border bg-white/80 px-3 py-2.5 card-shadow">
-    <label for="more-modes-select" class="block text-[10px] font-bold uppercase tracking-widest text-muted-fg mb-1.5">Challenges</label>
-    <select id="more-modes-select"
-      class="w-full text-sm font-semibold rounded-lg border border-border bg-card2 text-foreground px-3 py-2 cursor-pointer">
-      <option value="">Choose a challenge…</option>
-      ${options}
-    </select>
+  <div class="flex flex-col min-h-screen main-gradient">
+    <header class="sticky top-0 z-50 w-full bg-white border-b border-border" style="box-shadow:0 1px 3px var(--header-shadow)">
+      <div class="mx-auto flex h-14 max-w-2xl items-center justify-between px-4">
+        <button data-action="more-modes-back" class="text-sm font-bold text-muted-fg hover:text-primary transition-all cursor-pointer">← Back</button>
+        <p class="text-sm font-black text-foreground">🎮 Challenges</p>
+        <div class="w-12"></div>
+      </div>
+    </header>
+    <main class="flex-1 flex flex-col items-center px-4 py-6">
+      <div class="w-full max-w-md flex flex-col gap-3 animate-fade-up">
+        <p class="text-center text-sm text-muted-fg mb-1">Pick a challenge mode to play.</p>
+        ${cards}
+        <button data-action="more-modes-back" class="w-full py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer card-shadow mt-1">
+          ← Back
+        </button>
+      </div>
+    </main>
+    ${renderFooter()}
   </div>`;
 }
 
@@ -2772,6 +2802,7 @@ function updateCrazyGamesGameplayState() {
 export function render() {
   updateCrazyGamesGameplayState();
   if      (S.phase === 'mode-select')   $app.innerHTML = renderModeSelect();
+  else if (S.phase === 'more-modes')    $app.innerHTML = renderMoreModesScreen();
   else if (S.phase === 'drafting')      $app.innerHTML = renderDrafting();
   else if (S.phase === 'season-sim')    $app.innerHTML = renderSeasonSim();
   else if (S.phase === 'results')       $app.innerHTML = renderResults();
