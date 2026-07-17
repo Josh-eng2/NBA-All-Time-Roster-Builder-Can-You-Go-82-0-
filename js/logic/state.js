@@ -274,7 +274,7 @@ export function buildBracket(playerSeed, playerStrength) {
 
 /** @type {object} */
 export let S = {
-  phase:          'mode-select', // 'mode-select' | 'drafting' | 'season-sim' | 'results' | 'playoffs' | 'trophy-room' | 'series-result'
+  phase:          'mode-select', // 'mode-select' | 'more-modes' | 'drafting' | 'season-sim' | 'results' | 'playoffs' | 'trophy-room' | 'series-result'
   mode:           null,          // 'solo' | '1v1'
   currentPlayer:  1,             // 1 or 2 (1v1 only)
   p1:             null,          // snapshot of P1 after sequential draft (old 1v1 flow — kept for compat)

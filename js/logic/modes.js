@@ -26,12 +26,16 @@ export function isDualDraft(mode = S?.mode) {
   return mode === '1v1' || mode === 'gm-ai';
 }
 
-/** Modes that use the More Modes dropdown (not primary tiles). */
+/** Modes reached from the Challenges screen (not primary tiles). */
 export const MORE_MODES = [
-  { id: 'gm-ai',          action: 'mode-gm-ai',          label: 'GM vs AI' },
-  { id: 'dynasty-duel',   action: 'mode-dynasty-duel',   label: 'Dynasty Duel' },
-  { id: 'defense',        action: 'mode-defense',        label: 'Defense Only' },
-  { id: 'fans',           action: 'mode-fans',           label: 'Fans First' },
+  { id: 'gm-ai',          action: 'mode-gm-ai',          label: 'GM vs AI',      emoji: '🤖',
+    desc: 'Draft against a CPU general manager, then face its lineup in a best-of-7.' },
+  { id: 'dynasty-duel',   action: 'mode-dynasty-duel',   label: 'Dynasty Duel',  emoji: '👑',
+    desc: 'Beat a random legendary team in a best-of-7 — play as often as you want.' },
+  { id: 'defense',        action: 'mode-defense',        label: 'Defense Only',  emoji: '🛡️',
+    desc: 'Stocks & boards win it — scoring volume matters less this sim.' },
+  { id: 'fans',           action: 'mode-fans',           label: 'Fans First',    emoji: '📣',
+    desc: 'Optimize star power — score by popularity, fans, and wins.' },
 ];
 
 /** Display labels for series UI (1v1 / GM vs AI / Dynasty Duel). */

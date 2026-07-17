@@ -58,9 +58,6 @@ export function bindEvents() {
   if (_bound) return;
   _bound = true;
   $app.addEventListener('click', handleClick);
-  $app.addEventListener('change', e => {
-    if (e.target?.id === 'more-modes-select') dispatch('more-mode-change');
-  });
 }
 
 function handleClick(e) {
@@ -115,13 +112,13 @@ function dispatch(action) {
     logAnalyticsEvent('dynasty_duel_started', { opponent: opponent.name, week: opponent.weekKey });
     render(); return;
   }
-  if (action === 'more-mode-change') {
-    const sel = document.getElementById('more-modes-select');
-    const val = sel?.value;
-    if (!val) return;
-    if (sel) sel.value = '';
-    dispatch(val);
-    return;
+  if (action === 'open-more-modes') {
+    S.phase = 'more-modes';
+    render(); return;
+  }
+  if (action === 'more-modes-back') {
+    S.phase = 'mode-select';
+    render(); return;
   }
   if (action === 'mode-daily') {
     if (getDailyStatus().playedToday) { render(); return; } // already played — mode-select shouldn't even show the button
