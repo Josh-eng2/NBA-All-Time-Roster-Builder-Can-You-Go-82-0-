@@ -14,7 +14,7 @@
 
 import { DB }                  from '../data/players.js';
 import { calculateChemistry } from '../logic/chemistry.js';
-import { TEAMS, pick, S }      from '../logic/state.js';
+import { TEAMS, pickCosmetic, S } from '../logic/state.js';
 import { eraFactor, eraAdjustedStat, eraAdjustedLine, decadeFromBucketKey } from '../logic/era.js';
 import { getModeConfig }       from '../logic/modes.js';
 
@@ -498,10 +498,13 @@ export function simulateSeason(starters, coach = null, profile = null) {
 function decorateSeasonGames(games, winPct) {
   let lastOpp = null;
   for (const g of games) {
-    let opp = pick(TEAMS);
+    // pickCosmetic, not pick: the daily seed governs draft OFFERS only —
+    // season dressing drawing from the seeded stream contradicted that
+    // invariant (documented in state.js) whenever a daily run simulated.
+    let opp = pickCosmetic(TEAMS);
     // Re-draw until the opponent differs from the previous game's (bounded —
     // a single retry still let back-to-back repeats slip through ~0.1% of rows)
-    for (let t = 0; t < 5 && opp === lastOpp; t++) opp = pick(TEAMS);
+    for (let t = 0; t < 5 && opp === lastOpp; t++) opp = pickCosmetic(TEAMS);
     lastOpp = opp;
 
     const r      = Math.random();

@@ -2,7 +2,9 @@
  * js/logic/playoffs.js — Playoff bracket display & round advancement helpers
  */
 
-export const QF_SEED_PAIRS = [[1, 8], [2, 7], [3, 6], [4, 5]];
+// Must mirror buildBracket()'s matchup order (state.js): adjacent pairs feed
+// the same semifinal, so 1v8 → 4v5 on top, 3v6 → 2v7 on the bottom.
+export const QF_SEED_PAIRS = [[1, 8], [4, 5], [3, 6], [2, 7]];
 
 /** @param {object} result  series result with teamA, teamB, won */
 export function seriesWinner(result) {

@@ -16,6 +16,27 @@ import { S } from '../logic/state.js';
 
 const FLOOR_SLOTS = ['PG', 'SG', 'SF', 'PF', 'C'];
 
+// Ordered slot selections P(5, n), memoized by n. The pool is always
+// FLOOR_SLOTS, so the permutation set never changes — but optimizeLineup runs
+// inside hot paths (AI-draft candidate scoring calls calculateChemistry twice
+// per board player), and rebuilding up to 120 arrays each call was pure waste.
+const _slotOrderCache = new Map();
+
+function slotOrders(pool, r) {
+  if (r === 0) return [[]];
+  const out = [];
+  for (let i = 0; i < pool.length; i++) {
+    const rest = [...pool.slice(0, i), ...pool.slice(i + 1)];
+    for (const sub of slotOrders(rest, r - 1)) out.push([pool[i], ...sub]);
+  }
+  return out;
+}
+
+function slotOrdersForCount(n) {
+  if (!_slotOrderCache.has(n)) _slotOrderCache.set(n, slotOrders(FLOOR_SLOTS, n));
+  return _slotOrderCache.get(n);
+}
+
 // Returns the raw chemBonus contribution for one player-slot pair.
 // Primary match = +3%, secondary/flex = +2%, out-of-position = +1%.
 // OOP is intentionally lower than secondary — it fills a role but doesn't fit it.
@@ -38,19 +59,9 @@ function optimizeLineup(starters) {
 
   const players = starters.slice(0, n);
 
-  function slotOrders(pool, r) {
-    if (r === 0) return [[]];
-    const out = [];
-    for (let i = 0; i < pool.length; i++) {
-      const rest = [...pool.slice(0, i), ...pool.slice(i + 1)];
-      for (const sub of slotOrders(rest, r - 1)) out.push([pool[i], ...sub]);
-    }
-    return out;
-  }
-
   let bestSlots = null;
   let bestScore = -Infinity;
-  for (const perm of slotOrders(FLOOR_SLOTS, n)) {
+  for (const perm of slotOrdersForCount(n)) {
     const score = players.reduce((s, p, i) => s + slotFitScore(p, perm[i]), 0);
     if (score > bestScore) { bestScore = score; bestSlots = perm; }
   }

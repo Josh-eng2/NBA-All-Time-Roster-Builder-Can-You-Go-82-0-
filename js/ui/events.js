@@ -12,7 +12,7 @@
 
 import {
   S, startGame, startGame1v1, POSITIONS,
-  TEAMS, DECADES, COACHES, CPU_TEAMS, pick, buildBracket, getPlayerSeed, SNAKE_ORDER,
+  TEAMS, DECADES, COACHES, CPU_TEAMS, pick, pickCosmetic, buildBracket, getPlayerSeed, SNAKE_ORDER,
   getUtcDateString, seedDailyRng, clearDailyRng,
 } from '../logic/state.js';
 import {
@@ -400,10 +400,12 @@ export function doSpin() {
     const teamEl   = document.getElementById('slot-team');
     const decadeEl = document.getElementById('slot-decade');
     const decPool  = availableDecades();
-    if (teamEl)   teamEl.textContent   = pick(TEAMS);
+    // Tumble frames are pure decoration — pickCosmetic keeps them off the
+    // seeded daily stream, whose draw count must not depend on DOM state.
+    if (teamEl)   teamEl.textContent   = pickCosmetic(TEAMS);
     if (decadeEl) decadeEl.textContent = eraLocked
       ? activeEra
-      : pick(decPool.length ? decPool : DECADES);
+      : pickCosmetic(decPool.length ? decPool : DECADES);
 
     if (ticks >= total) {
       clearInterval(interval);
@@ -452,11 +454,22 @@ function buildDraftBoard() {
 
 /**
  * Pity-timer bookkeeping — call whenever a new board lands.
- * A "dry" board has no star-or-better player on it.
+ * A "dry" board has no star-or-better player on it. In the Daily Challenge a
+ * star the day's rules forbid (rating cap, fans budget, banned decade) can't
+ * be drafted, so it must not reset the counter — otherwise a board whose only
+ * star is off-limits silently eats the pity spin.
  */
 function updateDryCounter() {
   if (isDualDraft() || !getModeConfig().pity) return;
-  const hasStar = S.availablePlayers.some(p => playerTier(p) !== 'starter');
+  const filled  = (S.mode === 'daily' && S.dailyChallenge)
+    ? Object.values(S.roster || {}).filter(Boolean)
+    : null;
+  const hasStar = S.availablePlayers.some(p => {
+    if (playerTier(p) === 'starter') return false;
+    if (!filled) return true;
+    const hydrated = { ...p, team: S.currentSpin?.team, decade: S.currentSpin?.decade };
+    return checkPickLegal(S.dailyChallenge, hydrated, filled).legal;
+  });
   S.drySpins = hasStar ? 0 : (S.drySpins ?? 0) + 1;
 }
 
@@ -482,8 +495,8 @@ function animateSkipReveal(spin, tumbleTeam, tumbleDecade) {
     ticks++;
     const teamEl   = document.getElementById('slot-team');
     const decadeEl = document.getElementById('slot-decade');
-    if (teamEl)   teamEl.textContent   = tumbleTeam   ? pick(TEAMS)   : spin.team;
-    if (decadeEl) decadeEl.textContent = tumbleDecade ? pick(DECADES) : spin.decade;
+    if (teamEl)   teamEl.textContent   = tumbleTeam   ? pickCosmetic(TEAMS)   : spin.team;
+    if (decadeEl) decadeEl.textContent = tumbleDecade ? pickCosmetic(DECADES) : spin.decade;
 
     if (ticks >= total) {
       clearInterval(interval);
@@ -514,7 +527,9 @@ function doSkipDecade() {
     ? (S.currentPlayer === 1 ? (S.p1Era || 'all') : (S.p2Era || 'all'))
     : (S.selectedEra || 'all');
   if (activeEra !== 'all')                          { render(); return; }
-  if (getSkips().decade <= 0 || !S.currentSpin)     { render(); return; }
+  // Same 'done' gate as doSkipTeam — a skip triggered mid-tumble would burn
+  // the budget AND start a second interval racing the one already running.
+  if (getSkips().decade <= 0 || !S.currentSpin || S.spinState !== 'done') { render(); return; }
   // A skip keeps the team — only land on eras where THIS team has players,
   // so the fallback can never silently swap the franchise mid-animation.
   const pool = availableDecades().filter(d =>
@@ -754,7 +769,9 @@ function doSimulate() {
   // W/L stays exactly as drawn; only the opponent and score dress up.
   const rg = S.seasonGames[28 + Math.floor(Math.random() * 31)]; // games 29–59
   rg.rival  = true;
-  rg.opp    = `'` + pick(CPU_TEAMS).name;                        // "'96 Bulls"
+  // Cosmetic draw — the daily seed governs draft OFFERS only (state.js), so
+  // season dressing must not consume from the deterministic stream.
+  rg.opp    = `'` + pickCosmetic(CPU_TEAMS).name;                // "'96 Bulls"
   rg.margin = 2 + Math.floor(Math.random() * 6);                 // rivalry games are tight
   const rBase = 95 + Math.floor(Math.random() * 28);
   rg.ps   = rg.won ? rBase + Math.ceil(rg.margin / 2) : rBase - Math.floor(rg.margin / 2);
