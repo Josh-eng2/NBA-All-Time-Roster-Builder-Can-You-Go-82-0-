@@ -13,7 +13,7 @@
  */
 
 import { DB }                  from '../data/players.js';
-import { calculateChemistry } from '../logic/chemistry.js';
+import { calculateChemistry, chemScoreFromBonus } from '../logic/chemistry.js';
 import { TEAMS, pickCosmetic, S } from '../logic/state.js';
 import { eraFactor, eraAdjustedStat, eraAdjustedLine, decadeFromBucketKey } from '../logic/era.js';
 import { getModeConfig }       from '../logic/modes.js';
@@ -401,16 +401,17 @@ export function simulateSeason(starters, coach = null, profile = null) {
 
   const lossDiagnosis = buildLossDiagnosis(starters, weakestStat, balancePenalty, sRatio, STARTER_BASE);
 
-  let { chemBonus, chemScore, chemReport, lineupAssignment } = calculateChemistry(starters, coach);
+  let { chemBonus, chemScore, chemReport, chemEntries, lineupAssignment } = calculateChemistry(starters, coach);
 
   if (simProfile === 'defense') {
-    const DEF_RE = /Defensive|Lockdown|Paint Patrol|Twin Towers|Board Crashers|Rim Protector|Perimeter Clamps|3-and-D|Paint Protection|All-Defensive|Defensive Anchor|Perimeter Lockdown|Paint Beast/;
-    const OFF_RE = /Drive & Kick|Floor General|Scoring|Sharpshooter|Volume|Pick & Roll|Showtime/;
-    const hasDef = chemReport.some(l => l.startsWith('🟢') && DEF_RE.test(l));
-    const hasOff = chemReport.some(l => l.startsWith('🟢') && OFF_RE.test(l));
+    // Structured families replace the old label-regex sniffing, which silently
+    // broke whenever a synergy was renamed and misclassified edge cases
+    // (e.g. Two-Way Pillars never matched the defense pattern).
+    const hasDef = chemEntries.some(e => e.kind === 'synergy' && e.family === 'defense');
+    const hasOff = chemEntries.some(e => e.kind === 'synergy' && e.family === 'offense');
     if (hasDef) chemBonus *= 1.35;
     else if (hasOff) chemBonus *= 0.75;
-    chemScore = Math.round(Math.max(0, Math.min(100, (chemBonus / 1.10) * 100)));
+    chemScore = chemScoreFromBonus(chemBonus);
   }
 
   // Unified coach boost — every coach has the same floor and the same
@@ -475,7 +476,7 @@ export function simulateSeason(starters, coach = null, profile = null) {
     baseStrength: +baseStrength.toFixed(3),
     totals, ratio, sTotals,
     balancePenalty: +balancePenalty.toFixed(4), weakestStat, lossDiagnosis,
-    chemScore, chemReport, lineupAssignment,
+    chemScore, chemReport, chemEntries, lineupAssignment,
     avgPopularity: +avgPop.toFixed(1),
     popEloDelta,
     avgRating:  +avgRating.toFixed(1),
