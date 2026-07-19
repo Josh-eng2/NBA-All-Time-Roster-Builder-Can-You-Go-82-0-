@@ -220,6 +220,16 @@ export function clearDailyRng() {
 /** Pick a random element from an array — seeded during the Daily Challenge, real-random otherwise. */
 export const pick = arr => arr[Math.floor((_seededRng ? _seededRng() : Math.random()) * arr.length)];
 
+/**
+ * Cosmetic-only random pick — NEVER seeded. Slot-machine tumble frames and
+ * other purely visual noise must use this instead of pick(): a cosmetic call
+ * that goes through the seeded generator consumes a draw from the Daily
+ * Challenge's deterministic stream, and the number of those calls varies with
+ * DOM state and render count (mid-spin re-renders, missing elements), which
+ * silently desyncs the "same board for everyone" guarantee between players.
+ */
+export const pickCosmetic = arr => arr[Math.floor(Math.random() * arr.length)];
+
 // ── Playoff helpers ───────────────────────────────────────────────────────────
 
 /**
@@ -255,12 +265,16 @@ export function buildBracket(playerSeed, playerStrength) {
     if (!seeds[i]) seeds[i] = { ...cpuSorted[cpuIdx++], isPlayer: false };
   }
 
-  // Classic 1v8, 2v7, 3v6, 4v5 bracket
+  // Classic 1v8, 4v5, 3v6, 2v7 bracket — adjacent pairs advance together
+  // (applyPlayoffRound pairs winners [0,1] and [2,3]), so this order makes the
+  // 1v8 winner meet the 4v5 winner in the semis and keeps the top two seeds
+  // apart until the Finals. The previous [1v8, 2v7, 3v6, 4v5] order forced the
+  // #1 and #2 seeds to eliminate each other a round early.
   return [
     [seeds[0], seeds[7]],
-    [seeds[1], seeds[6]],
-    [seeds[2], seeds[5]],
     [seeds[3], seeds[4]],
+    [seeds[2], seeds[5]],
+    [seeds[1], seeds[6]],
   ];
 }
 
@@ -274,7 +288,7 @@ export function buildBracket(playerSeed, playerStrength) {
 
 /** @type {object} */
 export let S = {
-  phase:          'mode-select', // 'mode-select' | 'drafting' | 'season-sim' | 'results' | 'playoffs' | 'trophy-room' | 'series-result'
+  phase:          'mode-select', // 'mode-select' | 'more-modes' | 'drafting' | 'season-sim' | 'results' | 'playoffs' | 'trophy-room' | 'series-result'
   mode:           null,          // 'solo' | '1v1'
   currentPlayer:  1,             // 1 or 2 (1v1 only)
   p1:             null,          // snapshot of P1 after sequential draft (old 1v1 flow — kept for compat)
@@ -301,6 +315,9 @@ export function startGame(era = 'all') {
   const p1            = S.p1;
   const dailyChallenge = S.dailyChallenge ?? null; // daily mode context survives the reset
   const dailyDate      = S.dailyDate      ?? null;
+  const dynastyOpponent = S.dynastyOpponent ?? null;
+  // Skips: daily/dynasty-duel = 0; classic-like = 1
+  const skipBudget = (mode === 'daily' || mode === 'dynasty-duel') ? 0 : 1;
   S = {
     phase:            'drafting',
     coach,
@@ -312,14 +329,15 @@ export function startGame(era = 'all') {
     currentPlayer,
     p1,
     seriesResult:     null,
+    seriesRevealedCount: 0,
     selectedEra:      era,
     gameId:           crypto.randomUUID(),
     round:            0,
     usedDecades:      [],
     usedPlayerIds:    [],
     draftedPlayerNames: new Set(), // names of players currently on the roster (blocks cross-era clones)
-    teamSkips:        1,
-    decadeSkips:      1,
+    teamSkips:        skipBudget,
+    decadeSkips:      skipBudget,
     drySpins:         0,        // consecutive boards without a star+ player (pity timer)
 
     spinState:        'idle',   // 'idle' | 'spinning' | 'done'
@@ -347,6 +365,10 @@ export function startGame(era = 'all') {
     dailyChallenge,
     dailyDate,
     dailyResult: null,       // { pass, pending, detail, streak } — set at sim time
+
+    // Dynasty Duel / More Modes extras
+    dynastyOpponent,
+    dynastyDuelResult: null,
   };
 
   // Locked-player daily challenges start with the star already in their slot,
@@ -364,14 +386,16 @@ export function startGame(era = 'all') {
 }
 
 /**
- * Initialises S for a 1v1 alternating draft.
- * Called after both players have selected their coach + era.
+ * Initialises S for a 1v1 or GM vs AI alternating draft.
+ * Called after coaches/eras are set on S.
  */
 export function startGame1v1() {
   const { p1Coach, p1Era, p2Coach, p2Era } = S;
+  const mode = S.mode === 'gm-ai' ? 'gm-ai' : '1v1';
+  const isAi = mode === 'gm-ai';
   S = {
     phase:    'drafting',
-    mode:     '1v1',
+    mode,
     currentPlayer: 1,
     p1Coach, p1Era, p2Coach, p2Era,
     p1Roster: { PG: null, SG: null, SF: null, PF: null, C: null },
@@ -381,15 +405,18 @@ export function startGame1v1() {
     draftLog: [],
     eraLocked:     false,
     eraPickerOpen: false,
+    coachLocked:   false,
+    coachPickerOpen: false,
 
     // Shared draft-pool tracking
     gameId:    crypto.randomUUID(),
     usedDecades: [],
     usedPlayerIds: [],
     draftedPlayerNames: new Set(),
-    // Per-player skip budgets — each drafter gets their own team/era skip
+    // Per-player skip budgets — AI never skips
     p1TeamSkips: 1, p1DecadeSkips: 1,
-    p2TeamSkips: 1, p2DecadeSkips: 1,
+    p2TeamSkips: isAi ? 0 : 1,
+    p2DecadeSkips: isAi ? 0 : 1,
     drySpins:   0,
     spinState:  'idle',
     currentSpin: null,
@@ -410,8 +437,11 @@ export function startGame1v1() {
     teamSkips: 0,
     decadeSkips: 0,
     seriesResult: null,
+    seriesRevealedCount: 0,
     p1: null,
-    selectedEra: null,
-    coach: null,
+    selectedEra: p1Era || 'all',
+    coach: isAi ? p1Coach : null,
+    dynastyOpponent: null,
+    dynastyDuelResult: null,
   };
 }

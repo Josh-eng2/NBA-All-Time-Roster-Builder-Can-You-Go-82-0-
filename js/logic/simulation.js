@@ -7,30 +7,36 @@
  * adjustedStrength before the sigmoid is applied.
  *
  * Exports:
- *   simulateSeason(starters, coach)  → full result object
+ *   simulateSeason(starters, coach, profile?)  → full result object
  *   simulateSeries(playerStr, oppStr) → series result object
+ *   simulateDynastySeries(playerSeason, opponent) → head-to-head shaped series result
  */
 
 import { DB }                  from '../data/players.js';
-import { calculateChemistry } from '../logic/chemistry.js';
-import { TEAMS, pick }         from '../logic/state.js';
+import { calculateChemistry, chemScoreFromBonus } from '../logic/chemistry.js';
+import { TEAMS, pickCosmetic, S } from '../logic/state.js';
 import { eraFactor, eraAdjustedStat, eraAdjustedLine, decadeFromBucketKey } from '../logic/era.js';
+import { getModeConfig }       from '../logic/modes.js';
 
 // ── Sigmoid tuning knobs ──────────────────────────────────────────────────────
 // SIM_K:      steepness — lower = more gradual spread between good/bad teams
 // SIM_CENTER: adjustedStrength that maps to exactly 50 % win rate
 //             (raise to make 82-0 rarer, lower to make it easier)
-// WIN_CAP:    1.0 — 82-0 is possible only for genuinely elite rosters
+// WIN_CAP:    per-game win probability ceiling — 0.99 means even a maxed
+//             roster can lose any given night, so 82-0 is never guaranteed
 //
-// Recalibrated for the starters-only format (bench removal shifted the whole
-// strength distribution down: the old bench ratio was measured against a
-// bench-tier baseline, inflating strength by ~0.3, and roster-wide chem procs
-// lost their bench reach). Empirical anchors from 300-sample sweeps of
-// position-clean builds: elite (pop 85+) median 2.03 → ~73 wins; elite p90
-// 2.40 → ~80 wins; mid-tier (68-84) median 1.73 → ~52 wins.
-const SIM_K      = 5;
-const SIM_CENTER = 1.62;
-const WIN_CAP    = 1.0;
+// Retuned (K 5→3.5, CENTER 1.62→1.8, CAP 1.0→0.99) after the previous curve
+// made perfection routine: a star-chasing roster hit 80-win medians and went
+// 82-0 in roughly a quarter of runs. Empirical anchors from 400-sample sweeps
+// against the live DB under THESE constants (strengths are post-multiplier):
+//   star-chasing builds — median 2.36 → ~72 wins; p90 2.75 → ~79 wins;
+//   P(82-0) ≈ 1.5 % across those builds (the chase stays real but rare)
+//   random builds       — median 1.41 → ~17 wins; p90 1.78 → ~40 wins
+// Daily-challenge win gates under this curve (star-chasing builds):
+//   55+ ≈ 83 % · 60+ ≈ 76 % · 65+ ≈ 66 % · 70+ ≈ 54 % pass rates pre-constraint.
+const SIM_K      = 3.5;
+const SIM_CENTER = 1.8;
+const WIN_CAP    = 0.99;
 
 let _baselinesCache = null;
 
@@ -333,11 +339,13 @@ function simulatePlayerStats(starters, winPct) {
  * Simulates a full 82-game regular season.
  *
  * @param {object[]} starters  5 starting player objects
- * @returns {object}  { wins, losses, winPct, strength, totals, ratio,
- *                      sTotals, chemScore, chemReport, lossDiagnosis,
- *                      playerStats, statLeaders, simTotals }
+ * @param {string|null} coach
+ * @param {string} [profile]   'classic' | 'defense' | 'fans' — defaults from S.mode
+ * @returns {object}
  */
-export function simulateSeason(starters, coach = null) {
+export function simulateSeason(starters, coach = null, profile = null) {
+  const simProfile = profile || getModeConfig(S?.mode).simProfile || 'classic';
+
   // Pace-adjusted (era-neutral) totals drive the win-probability engine, so a
   // roster stacked with fast-paced-era players doesn't out-strength an
   // equally good roster from a slower era just because of possession counts.
@@ -370,21 +378,41 @@ export function simulateSeason(starters, coach = null) {
   // Starters-only: the starting 5 IS the team.
   const ratio = sRatio;
 
-  const strength =
-    ratio.ppg * 0.35 +
-    ratio.rpg * 0.20 +
-    ratio.apg * 0.20 +
-    ratio.spg * 0.15 +
-    ratio.bpg * 0.10;
+  const weights = simProfile === 'defense'
+    ? { ppg: 0.10, rpg: 0.30, apg: 0.10, spg: 0.25, bpg: 0.25 }
+    : { ppg: 0.35, rpg: 0.20, apg: 0.20, spg: 0.15, bpg: 0.10 };
 
-  const weakestStatEntry = Object.entries(sRatio).reduce((min, e) => e[1] < min[1] ? e : min);
+  const strength =
+    ratio.ppg * weights.ppg +
+    ratio.rpg * weights.rpg +
+    ratio.apg * weights.apg +
+    ratio.spg * weights.spg +
+    ratio.bpg * weights.bpg;
+
+  // Defense mode: prefer diagnosing RPG/SPG/BPG shortfalls first.
+  const diagEntries = simProfile === 'defense'
+    ? Object.entries(sRatio).filter(([k]) => k === 'rpg' || k === 'spg' || k === 'bpg')
+    : Object.entries(sRatio);
+  const weakestStatEntry = (diagEntries.length ? diagEntries : Object.entries(sRatio))
+    .reduce((min, e) => e[1] < min[1] ? e : min);
   const weakestStat      = weakestStatEntry[0];
   const minStarterRatio  = weakestStatEntry[1];
   const balancePenalty   = minStarterRatio < 0.82 ? (0.82 - minStarterRatio) * 0.8 : 0;
 
   const lossDiagnosis = buildLossDiagnosis(starters, weakestStat, balancePenalty, sRatio, STARTER_BASE);
 
-  const { chemBonus, chemScore, chemReport, lineupAssignment } = calculateChemistry(starters);
+  let { chemBonus, chemScore, chemReport, chemEntries, lineupAssignment } = calculateChemistry(starters, coach);
+
+  if (simProfile === 'defense') {
+    // Structured families replace the old label-regex sniffing, which silently
+    // broke whenever a synergy was renamed and misclassified edge cases
+    // (e.g. Two-Way Pillars never matched the defense pattern).
+    const hasDef = chemEntries.some(e => e.kind === 'synergy' && e.family === 'defense');
+    const hasOff = chemEntries.some(e => e.kind === 'synergy' && e.family === 'offense');
+    if (hasDef) chemBonus *= 1.35;
+    else if (hasOff) chemBonus *= 0.75;
+    chemScore = chemScoreFromBonus(chemBonus);
+  }
 
   // Unified coach boost — every coach has the same floor and the same
   // reachable ceiling; only the SYSTEM you must draft toward differs.
@@ -395,12 +423,10 @@ export function simulateSeason(starters, coach = null) {
   const baseStrength = Math.max(0, strength - balancePenalty + chemBonus + coachBoost);
 
   // ── Popularity / Fan-Hype modifier ───────────────────────────────────────
-  // Smoothly maps avg roster popularity (floor 35 → ceil 100) to a multiplier
-  // of 0.95x (low-key role-player team) up to 1.08x (all-time superstar lineup).
   const POP_FLOOR   = 35;
   const POP_CEIL    = 100;
-  const MUL_MIN     = 0.97;
-  const MUL_MAX     = 1.04;
+  const MUL_MIN     = simProfile === 'fans' ? 0.90 : 0.97;
+  const MUL_MAX     = simProfile === 'fans' ? 1.12 : 1.04;
   const allPlayers  = starters;
   const avgPop      = allPlayers.length
     ? allPlayers.reduce((s, p) => s + (p.popularity || 50), 0) / allPlayers.length
@@ -409,14 +435,9 @@ export function simulateSeason(starters, coach = null) {
   const popMul      = MUL_MIN + popNorm * (MUL_MAX - MUL_MIN);
 
   // ── Player-Rating modifier ────────────────────────────────────────────────
-  // The 0–100 `rating` (2K-style overall) feeds the sim as a bounded multiplier
-  // centered on a median roster, so it rewards genuinely high-rated lineups and
-  // penalizes weak ones without disturbing the calibrated additive core.
-  //   median roster (avg 76) → 1.00 · elite (avg 90+) → +RATING_AMP ·
-  //   weak (avg 62-) → -RATING_AMP.
-  const RATING_MID  = 76;   // avg roster rating that maps to a neutral 1.0x
-  const RATING_SPAN = 14;   // ± spread that reaches full amplitude
-  const RATING_AMP  = 0.04; // max ± strength swing (matches the popularity band)
+  const RATING_MID  = 76;
+  const RATING_SPAN = 14;
+  const RATING_AMP  = 0.04;
   const avgRating   = allPlayers.length
     ? allPlayers.reduce((s, p) => s + (p.rating ?? 70), 0) / allPlayers.length
     : 70;
@@ -424,16 +445,13 @@ export function simulateSeason(starters, coach = null) {
   const ratingMul   = 1 + ratingNorm * RATING_AMP;
 
   const adjustedStrength = baseStrength * popMul * ratingMul;
-  const popEloDelta    = +(baseStrength * (popMul - 1)).toFixed(3);            // signed delta (popularity only)
-  const ratingEloDelta = +(baseStrength * popMul * (ratingMul - 1)).toFixed(3); // signed delta (rating only)
+  const popEloDelta    = +(baseStrength * (popMul - 1)).toFixed(3);
+  const ratingEloDelta = +(baseStrength * popMul * (ratingMul - 1)).toFixed(3);
 
-  // Fan base size — power curve: 2M (avg=35) → ~20M (avg=70) → 40M (avg=100)
   const fansM = +(Math.pow(popNorm, 1.5) * 38 + 2).toFixed(1);
 
   const winPct = Math.min(WIN_CAP, 1 / (1 + Math.exp(-SIM_K * (adjustedStrength - SIM_CENTER))));
 
-  // Per-game log. Opponents, scores, and margins are presentational flavor
-  // layered on top of the win/loss draw.
   let wins = 0;
   const games = [];
   for (let i = 0; i < 82; i++) {
@@ -446,8 +464,9 @@ export function simulateSeason(starters, coach = null) {
 
   const totals = { ...sTotals };
 
-  // Per-player season lines — generated once, frozen into the result.
   const { playerStats, statLeaders, simTotals } = simulatePlayerStats(starters, winPct);
+
+  const teamStocks = +(sTotals.spg + sTotals.bpg).toFixed(1);
 
   return {
     wins,
@@ -457,7 +476,7 @@ export function simulateSeason(starters, coach = null) {
     baseStrength: +baseStrength.toFixed(3),
     totals, ratio, sTotals,
     balancePenalty: +balancePenalty.toFixed(4), weakestStat, lossDiagnosis,
-    chemScore, chemReport, lineupAssignment,
+    chemScore, chemReport, chemEntries, lineupAssignment,
     avgPopularity: +avgPop.toFixed(1),
     popEloDelta,
     avgRating:  +avgRating.toFixed(1),
@@ -467,6 +486,8 @@ export function simulateSeason(starters, coach = null) {
     fansM,
     coachBoost: +coachBoost.toFixed(3),
     games,
+    simProfile,
+    teamStocks,
   };
 }
 
@@ -478,10 +499,13 @@ export function simulateSeason(starters, coach = null) {
 function decorateSeasonGames(games, winPct) {
   let lastOpp = null;
   for (const g of games) {
-    let opp = pick(TEAMS);
+    // pickCosmetic, not pick: the daily seed governs draft OFFERS only —
+    // season dressing drawing from the seeded stream contradicted that
+    // invariant (documented in state.js) whenever a daily run simulated.
+    let opp = pickCosmetic(TEAMS);
     // Re-draw until the opponent differs from the previous game's (bounded —
     // a single retry still let back-to-back repeats slip through ~0.1% of rows)
-    for (let t = 0; t < 5 && opp === lastOpp; t++) opp = pick(TEAMS);
+    for (let t = 0; t < 5 && opp === lastOpp; t++) opp = pickCosmetic(TEAMS);
     lastOpp = opp;
 
     const r      = Math.random();
@@ -555,6 +579,43 @@ export function simulateHeadToHeadSeries(p1Starters, p1Coach, p2Starters, p2Coac
   };
 
   return { p1Season, p2Season, games, p1Wins, p2Wins, winner, series };
+}
+
+/**
+ * Best-of-7 vs a Dynasty Duel CPU team (no opposing roster cards).
+ * Returns the same shape as simulateHeadToHeadSeries for shared series UI.
+ */
+export function simulateDynastySeries(playerSeason, opponent) {
+  const p1Str = playerSeason.strength;
+  const p2Str = opponent.strength;
+  const p2Season = {
+    strength: p2Str,
+    chemScore: 88,
+    chemReport: [`🟢 Legendary dynasty: ${opponent.name}`],
+    wins: 70,
+    losses: 12,
+    avgPopularity: 92,
+    fansM: 38,
+    teamStocks: 0,
+  };
+
+  const games = [];
+  let p1Wins = 0, p2Wins = 0;
+  while (p1Wins < 4 && p2Wins < 4) {
+    const g = generateGameScore(p1Str, p2Str);
+    if (g.p1Won) p1Wins++; else p2Wins++;
+    games.push({ gameNum: games.length + 1, ...g, p1WinsAfter: p1Wins, p2WinsAfter: p2Wins });
+  }
+
+  const winner = p1Wins === 4 ? 'p1' : 'p2';
+  const series = {
+    playerWins: p1Wins,
+    oppWins:    p2Wins,
+    games:      games.map(g => g.p1Won ? 'W' : 'L'),
+    won:        winner === 'p1',
+  };
+
+  return { p1Season: playerSeason, p2Season, games, p1Wins, p2Wins, winner, series, opponent };
 }
 
 /**

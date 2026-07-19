@@ -12,16 +12,18 @@
 
 import {
   S, POSITIONS, ALL_POSITIONS, TOTAL_ROUNDS,
-  COACHES, ERA_DESC, TEAM_COLORS, ARCHETYPE_STYLE, DECADES, TEAMS, pick, SNAKE_ORDER,
+  COACHES, ERA_DESC, TEAM_COLORS, ARCHETYPE_STYLE, DECADES, TEAMS, pickCosmetic, SNAKE_ORDER,
   getUtcDateString,
 } from '../logic/state.js';
 import { calculateChemistry }                             from '../logic/chemistry.js';
 import { rosterFull, availableDecades, getLegendCatalog, getSkips } from '../logic/draft.js';
 import { coachSystemProgress }                            from '../logic/simulation.js';
 import { getBracketDisplayState }                         from '../logic/playoffs.js';
-import { markReturning, getCollectedLegends, getDailyStatus, currentDailyStreak } from '../utils/storage.js';
+import { markReturning, getCollectedLegends, getDailyStatus } from '../utils/storage.js';
 import { cgGameplayStart, cgGameplayStop, cgGetItem }     from '../utils/crazygames.js';
 import { getDailyChallenge, checkPickLegal, checkRosterConstraint } from '../logic/challenge.js';
+import { isDualDraft, seriesLabels, MORE_MODES, fansFirstScore } from '../logic/modes.js';
+import { fetchDailyCommunityStats, isFirebaseConfigured } from '../utils/firebase.js';
 import { bindEvents }                                     from '../ui/events.js'; // circular — safe (called inside functions only)
 
 // ── Mount point ───────────────────────────────────────────────────────────────
@@ -89,7 +91,7 @@ function fansBarCol(avg, dark = isDark()) {
 }
 
 function fansTierFromAvg(avg) {
-  if (!avg) return { tier: 'Draft players to build star power', barCol: '#cbd5e1' };
+  if (!avg) return { tier: '', barCol: '#cbd5e1' };
   return {
     tier:   avg >= 85 ? 'Superstar Lineup' : avg >= 70 ? 'Star Power' : avg >= 55 ? 'Solid Roster' : 'Under the Radar',
     barCol: fansBarCol(avg, false),
@@ -202,7 +204,7 @@ export function showToast(msg, duration = 2500) {
 
 // ── Shared chrome ─────────────────────────────────────────────────────────────
 function getActiveEra() {
-  if (S.mode === '1v1') return S.p1Era || S.p2Era || 'all';
+  if (isDualDraft()) return S.p1Era || S.p2Era || S.selectedEra || 'all';
   return S.selectedEra || 'all';
 }
 
@@ -255,8 +257,8 @@ function renderHeader(showRestart = false) {
       </button>`
     : `<span class="header-pill">${eraLabel}${S.eraLocked ? '<span class="header-pill__lock" aria-hidden="true">🔒</span>' : ''}</span>`;
 
-  // Daily Challenge is one attempt — never offer Restart mid-run (or it
-  // would let players abort a shared board and spin again before lock).
+  // Daily Challenge is one attempt — never offer Restart mid-run.
+  // Dynasty Duel is unlimited; Restart is fine.
   const canRestart = showRestart && S.mode !== 'daily';
   const restartBtn = canRestart
     ? `<button data-action="restart" type="button" class="header-pill header-pill--muted header-pill--restart">Restart</button>`
@@ -305,11 +307,130 @@ function renderFooter() {
 }
 
 // ── Mode selection ────────────────────────────────────────────────────────────
-function dailyResetInLabel() {
-  const now  = new Date();
-  const next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 0, 0, 0));
-  const hrs  = Math.max(1, Math.round((next - now) / 3600000));
-  return `new board in ~${hrs}h`;
+// Community pass-rate cache — one fetch per UTC day per page load.
+const COMMUNITY_STATS_MIN = 3; // hide until enough board submissions for the day
+let _communityStatsCache = { date: null, promise: null, data: null };
+
+function communityStatsLabels(stats) {
+  if (!stats || stats.pct == null || stats.attempts < COMMUNITY_STATS_MIN) return null;
+  return {
+    short: `${stats.pct}% passed today`,
+    full:  `${stats.pct}% of players passed today's challenge`,
+  };
+}
+
+/** Dual short/full copy — CSS shows short on mobile, full from sm up. */
+function communityStatsSpanHtml(labels, accent) {
+  return `<span class="daily-community-copy" style="color:${accent}">`
+    + `<span class="daily-community-copy__short">📊 ${labels.short}</span>`
+    + `<span class="daily-community-copy__full">📊 ${labels.full}</span>`
+    + `</span>`;
+}
+
+/**
+ * Own-line community slot (played Daily card).
+ * Always the short "X% passed today" copy so the post-play card stays three clean lines.
+ */
+function renderCommunityStatsLine() {
+  if (!isFirebaseConfigured()) return '';
+  const cached = (_communityStatsCache.date === getUtcDateString() && _communityStatsCache.data)
+    ? communityStatsLabels(_communityStatsCache.data)
+    : null;
+  if (_communityStatsCache.date === getUtcDateString() && _communityStatsCache.data && !cached) {
+    return '';
+  }
+  const accent = isDark() ? '#fdba74' : '#c2410c';
+  if (cached) {
+    return `<p id="daily-community-stats" class="text-[11px] font-bold mt-0.5 leading-snug" style="color:${accent}" data-slot="line" data-state="ready" aria-live="polite">📊 ${cached.short}</p>`;
+  }
+  return `<p id="daily-community-stats" class="text-[11px] font-bold mt-0.5 leading-snug" style="color:${accent};display:none" data-slot="line" data-state="loading" aria-live="polite" hidden></p>`;
+}
+
+/**
+ * Inline fragment merged into an existing line (unplayed card / results).
+ * e.g. " · 📊 73% passed today"
+ */
+function renderCommunityStatsMerged() {
+  if (!isFirebaseConfigured()) return '';
+  const cached = (_communityStatsCache.date === getUtcDateString() && _communityStatsCache.data)
+    ? communityStatsLabels(_communityStatsCache.data)
+    : null;
+  if (_communityStatsCache.date === getUtcDateString() && _communityStatsCache.data && !cached) {
+    return '';
+  }
+  const accent = isDark() ? '#fdba74' : '#c2410c';
+  if (cached) {
+    return ` · <span id="daily-community-stats" data-slot="merged" data-state="ready" aria-live="polite">${communityStatsSpanHtml(cached, accent)}</span>`;
+  }
+  return ` <span id="daily-community-stats" data-slot="merged" data-state="loading" aria-live="polite" hidden style="display:none"></span>`;
+}
+
+function paintCommunityStatsEl(el, stats) {
+  if (!el) return;
+  const labels = communityStatsLabels(stats);
+  const accent = isDark() ? '#fdba74' : '#c2410c';
+  if (!labels) {
+    if (el.dataset.slot === 'merged') {
+      const prev = el.previousSibling;
+      if (prev && prev.nodeType === 3 && /^\s*·\s*$/.test(prev.textContent)) prev.remove();
+    }
+    el.remove();
+    return;
+  }
+  el.dataset.state = 'ready';
+  el.hidden = false;
+  el.style.display = '';
+  if (el.dataset.slot === 'line') {
+    el.style.color = accent;
+    el.textContent = `📊 ${labels.short}`;
+    return;
+  }
+  if (el.dataset.slot === 'merged') {
+    const prev = el.previousSibling;
+    const hasDot = prev && prev.nodeType === 3 && prev.textContent.includes('·');
+    if (!hasDot) {
+      el.parentNode?.insertBefore(document.createTextNode(' · '), el);
+    }
+  }
+  el.innerHTML = communityStatsSpanHtml(labels, accent);
+}
+
+async function hydrateDailyCommunityStats() {
+  const el = document.getElementById('daily-community-stats');
+  if (!el || !isFirebaseConfigured()) return;
+  const date = getUtcDateString();
+  try {
+    if (_communityStatsCache.date !== date) {
+      _communityStatsCache = { date, promise: null, data: null };
+    }
+    if (_communityStatsCache.data) {
+      paintCommunityStatsEl(el, _communityStatsCache.data);
+      return;
+    }
+    if (!_communityStatsCache.promise) {
+      _communityStatsCache.promise = fetchDailyCommunityStats(date)
+        .then(data => {
+          _communityStatsCache.data = data;
+          return data;
+        })
+        .catch(err => {
+          _communityStatsCache.promise = null;
+          throw err;
+        });
+    }
+    const stats = await _communityStatsCache.promise;
+    const live = document.getElementById('daily-community-stats');
+    paintCommunityStatsEl(live, stats);
+  } catch (_) {
+    const live = document.getElementById('daily-community-stats');
+    if (live) {
+      if (live.dataset.slot === 'merged') {
+        const prev = live.previousSibling;
+        if (prev && prev.nodeType === 3 && /^\s*·\s*$/.test(prev.textContent)) prev.remove();
+      }
+      live.remove();
+    }
+  }
 }
 
 function renderDailyModeCard() {
@@ -319,50 +440,36 @@ function renderDailyModeCard() {
   // correctly for free instead of needing a bespoke gradient per mode.
   const status = getDailyStatus();
   const ch     = getDailyChallenge(getUtcDateString());
-  // Live streak — 0 the moment a day has been skipped, not just after the
-  // next play writes the reset.
-  const streak = currentDailyStreak(status.today);
-  const streakChip = streak > 0
-    ? `<span class="text-[10px] font-black px-2 py-0.5 rounded-full flex-shrink-0" style="background:var(--amber-badge-bg,#fef3c7);color:var(--amber-text,#b45309);border:1px solid var(--amber-border,#fcd34d)">🔥 ${streak}</span>`
-    : '';
   if (status.playedToday) {
     const r = status.result;
     // Recaps written before the challenge system have no `passed` field —
-    // fall back to the plain "Done" copy for those.
-    const verdict = ('passed' in r)
-      ? (r.passed
-          ? `<span style="color:#15803d;font-weight:900">PASSED ✅</span>`
-          : `<span style="color:#dc2626;font-weight:900">FAILED ✗</span>`)
-      : 'Done ✅';
+    // treat those as complete with a neutral tick.
+    const tick = !('passed' in r) || r.passed
+      ? `<span style="color:#15803d;font-weight:900" aria-label="Passed">✓</span>`
+      : `<span style="color:#dc2626;font-weight:900" aria-label="Failed">✗</span>`;
     return `
-    <div class="w-full rounded-2xl bg-white px-3 py-2 flex items-center gap-2 mb-3 card-shadow border border-slate-100">
+    <div class="w-full rounded-2xl bg-white px-3 py-2.5 flex items-center gap-2 mb-3 card-shadow border border-slate-100">
       <span class="text-2xl flex-shrink-0">${ch.emoji}</span>
       <div class="flex-1 min-w-0">
-        <p class="font-black text-sm text-foreground flex items-center gap-2">Daily Challenge — ${verdict} ${streakChip}</p>
-        <p class="text-[11px] text-muted-fg mt-0.5">${ch.title}: you went <span style="color:#f97316;font-weight:700">${r.wins}–${r.losses}</span> today · ${dailyResetInLabel()}</p>
+        <p class="font-black text-sm text-foreground flex flex-wrap items-center gap-x-2 gap-y-1">Daily Challenge ${tick}</p>
+        <p class="text-[11px] text-muted-fg mt-0.5 leading-snug">${ch.title}: you went <span style="color:#f97316;font-weight:700">${r.wins}–${r.losses}</span></p>
       </div>
-      <button data-action="open-daily-stats" class="text-[11px] font-bold px-2 py-1 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:var(--border);background:var(--card);color:var(--muted-fg)">Stats</button>
-      <button data-action="open-daily-leaderboard" class="text-[11px] font-bold px-2 py-1 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:#fdba74;background:var(--card);color:${isDark() ? '#fdba74' : '#c2410c'}">Board 🏅</button>
+      <button data-action="open-daily-stats" class="text-[11px] font-bold px-2 py-1.5 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:var(--border);background:var(--card);color:var(--muted-fg)" title="Daily Challenge Stats">Stats</button>
+      <button data-action="open-daily-leaderboard" class="text-[11px] font-bold px-2 py-1.5 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:var(--border);background:var(--card);color:var(--muted-fg)">Board</button>
     </div>`;
   }
+  const community = renderCommunityStatsMerged();
   return `
   <div class="mb-3">
     <button data-action="mode-daily"
       class="w-full rounded-2xl bg-white px-3 py-2 flex items-center gap-2 cursor-pointer card-shadow hover:shadow-md transition-all border border-slate-100 text-left">
       <span class="text-2xl flex-shrink-0" style="pointer-events:none">${ch.emoji}</span>
       <div class="flex-1 min-w-0" style="pointer-events:none">
-        <p class="font-black text-sm flex items-center gap-2" style="color:#f97316">Daily Challenge · ${ch.title} ${streakChip}</p>
-        <p class="text-[11px] text-muted-fg leading-snug mt-0.5">${ch.desc} Same draft board as every player today — one shot.</p>
+        <p class="font-black text-sm flex flex-wrap items-center gap-x-2 gap-y-1" style="color:#f97316">Daily Challenge · ${ch.title}</p>
+        <p class="text-[11px] text-muted-fg leading-snug mt-0.5">${ch.desc}${community}</p>
       </div>
       <span class="text-[11px] font-bold px-2 py-1 rounded-lg border flex-shrink-0" style="border-color:#fdba74;background:var(--card);color:${isDark() ? '#fdba74' : '#c2410c'};pointer-events:none">Play →</span>
     </button>
-    <div class="flex items-center justify-center gap-3 mt-1.5">
-      <button data-action="open-daily-stats" class="text-[11px] font-bold text-muted-fg hover:text-primary cursor-pointer border-0 bg-transparent">Statistics</button>
-      <span class="text-[11px] text-muted" aria-hidden="true">·</span>
-      <button data-action="open-daily-leaderboard" class="text-[11px] font-bold text-muted-fg hover:text-primary cursor-pointer border-0 bg-transparent">
-        Today's leaderboard →
-      </button>
-    </div>
   </div>`;
 }
 
@@ -379,7 +486,7 @@ function renderModeSelect() {
         <div class="w-20 mode-header__spacer"></div>
         <img src="logo-badge.svg" alt="82-0" class="mode-header__logo" style="height:52px;width:auto;margin-top:2px"/>
         <div class="flex items-center gap-1.5 justify-end mode-header__actions">
-          <button data-action="open-daily-stats" class="text-[11px] px-2 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Daily Statistics">📊</button>
+          <button data-action="open-daily-stats" class="text-[11px] px-2 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Daily Challenge Stats">📊</button>
           <button data-action="open-leaderboard" class="text-[11px] px-2 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Personal Best">🏅</button>
           <button data-action="open-global-leaderboard" class="text-[11px] px-2 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Global Leaderboard">🌍</button>
           <button data-action="toggle-theme" class="theme-toggle" title="Toggle Dark Mode">${themeIcon()}</button>
@@ -387,27 +494,22 @@ function renderModeSelect() {
       </div>
     </header>
 
-    <main class="flex-1 flex flex-col items-center px-4 pt-6 pb-8">
+    <main class="flex-1 flex flex-col items-center px-4 pt-3 pb-8">
       <div class="w-full max-w-md animate-fade-up">
-
-        <div class="text-center mb-5">
-          <p class="text-sm font-semibold text-muted-fg mb-0.5">Can you go 82-0?</p>
-          <h1 class="text-2xl font-black text-foreground mb-1">Choose Your Mode</h1>
-          <p class="text-sm text-muted-fg">How do you want to build your all-time team?</p>
-        </div>
 
         ${renderDailyModeCard()}
 
-        <!-- Classic + Ball IQ side by side -->
-        <div class="grid grid-cols-2 gap-3 mb-3">
-          <button data-action="mode-solo"
-            class="rounded-2xl bg-white p-4 flex flex-col items-center gap-2 cursor-pointer card-shadow hover:shadow-md transition-all border border-slate-100">
-            <span class="text-3xl" style="pointer-events:none">💯</span>
-            <p class="font-black text-base" style="color:#f97316;pointer-events:none">Classic</p>
-            <p class="text-xs text-muted-fg text-center leading-snug flex-1" style="pointer-events:none">Draft with full player stats visible — make informed picks.</p>
-            <div class="w-full py-2 rounded-xl font-bold text-sm text-white text-center mt-1" style="background:#f97316;pointer-events:none">Play Classic</div>
-          </button>
+        <!-- Classic full width -->
+        <button data-action="mode-solo"
+          class="w-full rounded-2xl bg-white px-5 py-4 flex flex-col items-center gap-2 cursor-pointer card-shadow hover:shadow-md transition-all border border-slate-100 mb-3">
+          <span class="text-3xl" style="pointer-events:none">💯</span>
+          <p class="font-black text-base" style="color:#f97316;pointer-events:none">Classic</p>
+          <p class="text-sm text-muted-fg text-center" style="pointer-events:none">Draft with full player stats visible — make informed picks.</p>
+          <div class="w-full py-2.5 rounded-xl font-bold text-sm text-white text-center mt-1" style="background:#f97316;pointer-events:none">Play Classic</div>
+        </button>
 
+        <!-- Ball IQ + 1v1 side by side -->
+        <div class="grid grid-cols-2 gap-3 mb-3">
           <button data-action="mode-blind"
             class="rounded-2xl bg-white p-4 flex flex-col items-center gap-2 cursor-pointer card-shadow hover:shadow-md transition-all border border-slate-100">
             <span class="text-3xl" style="pointer-events:none">🧠</span>
@@ -415,22 +517,74 @@ function renderModeSelect() {
             <p class="text-xs text-muted-fg text-center leading-snug flex-1" style="pointer-events:none">Names only — draft by memory and test your Ball IQ.</p>
             <div class="w-full py-2 rounded-xl font-bold text-sm text-white text-center mt-1" style="background:#f97316;pointer-events:none">Play Ball IQ</div>
           </button>
+
+          <button data-action="mode-1v1"
+            class="rounded-2xl bg-white p-4 flex flex-col items-center gap-2 cursor-pointer card-shadow hover:shadow-md transition-all border border-slate-100">
+            <span class="text-3xl" style="pointer-events:none">⚔️</span>
+            <p class="font-black text-base" style="color:#f97316;pointer-events:none">1v1</p>
+            <p class="text-xs text-muted-fg text-center leading-snug flex-1" style="pointer-events:none">Draft your team, then go head-to-head against a rival lineup.</p>
+            <div class="w-full py-2 rounded-xl font-bold text-sm text-white text-center mt-1" style="background:#f97316;pointer-events:none">Play</div>
+          </button>
         </div>
 
-        <!-- 1v1 full width -->
-        <button data-action="mode-1v1"
-          class="w-full rounded-2xl bg-white px-5 py-4 flex flex-col items-center gap-2 cursor-pointer card-shadow hover:shadow-md transition-all border border-slate-100 mb-3">
-          <span class="text-3xl" style="pointer-events:none">⚔️</span>
-          <p class="font-black text-base" style="color:#f97316;pointer-events:none">1v1</p>
-          <p class="text-sm text-muted-fg text-center" style="pointer-events:none">Draft your team, then go head-to-head against a rival lineup.</p>
-          <div class="w-full py-2.5 rounded-xl font-bold text-sm text-white text-center mt-1" style="background:#f97316;pointer-events:none">Play</div>
-        </button>
-
         <button data-action="view-trophies"
-          class="w-full py-3 rounded-xl font-bold text-sm border border-amber-200 bg-amber-50 text-amber-700 cursor-pointer transition-all hover:bg-amber-100 card-shadow">
+          class="w-full py-3 rounded-xl font-bold text-sm border border-amber-200 bg-amber-50 text-amber-700 cursor-pointer transition-all hover:bg-amber-100 card-shadow mb-3">
           🏆 Trophy Room${trophies.length > 0 ? ` · ${trophies.length} Championship${trophies.length === 1 ? '' : 's'}` : ''}
         </button>
 
+        ${renderMoreModesButton()}
+
+      </div>
+    </main>
+    ${renderFooter()}
+  </div>`;
+}
+
+/** Challenges entry — a button that opens the full challenge-select screen. */
+function renderMoreModesButton() {
+  return `
+  <button data-action="open-more-modes"
+    class="w-full mb-3 rounded-xl border border-border bg-white/80 px-4 py-3 flex items-center justify-between gap-3 cursor-pointer card-shadow hover:border-primary hover:bg-card2 transition-all">
+    <span class="flex items-center gap-2" style="pointer-events:none">
+      <span class="text-xl">🎮</span>
+      <span class="flex flex-col text-left">
+        <span class="text-[10px] font-bold uppercase tracking-widest text-muted-fg">Challenges</span>
+        <span class="text-sm font-bold text-foreground">Explore more game modes</span>
+      </span>
+    </span>
+    <span class="text-lg text-muted-fg" style="pointer-events:none">→</span>
+  </button>`;
+}
+
+/** Full-screen challenge picker — one card per secondary mode. */
+function renderMoreModesScreen() {
+  const cards = MORE_MODES.map(m => `
+    <button data-action="${m.action}"
+      class="w-full rounded-2xl bg-white px-5 py-4 flex items-center gap-4 cursor-pointer card-shadow hover:shadow-md transition-all border border-slate-100 text-left">
+      <span class="text-3xl flex-shrink-0" style="pointer-events:none">${m.emoji}</span>
+      <span class="flex flex-col gap-1 flex-1" style="pointer-events:none">
+        <span class="font-black text-base" style="color:#f97316">${m.label}</span>
+        <span class="text-sm text-muted-fg leading-snug">${m.desc}</span>
+      </span>
+      <span class="text-lg text-muted-fg flex-shrink-0" style="pointer-events:none">→</span>
+    </button>`).join('');
+
+  return `
+  <div class="flex flex-col min-h-screen main-gradient">
+    <header class="sticky top-0 z-50 w-full bg-white border-b border-border" style="box-shadow:0 1px 3px var(--header-shadow)">
+      <div class="mx-auto flex h-14 max-w-2xl items-center justify-between px-4">
+        <button data-action="more-modes-back" class="text-sm font-bold text-muted-fg hover:text-primary transition-all cursor-pointer">← Back</button>
+        <p class="text-sm font-black text-foreground">🎮 Challenges</p>
+        <div class="w-12"></div>
+      </div>
+    </header>
+    <main class="flex-1 flex flex-col items-center px-4 py-6">
+      <div class="w-full max-w-md flex flex-col gap-3 animate-fade-up">
+        <p class="text-center text-sm text-muted-fg mb-1">Pick a challenge mode to play.</p>
+        ${cards}
+        <button data-action="more-modes-back" class="w-full py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer card-shadow mt-1">
+          ← Back
+        </button>
       </div>
     </main>
     ${renderFooter()}
@@ -612,8 +766,34 @@ function dailyBoardDeadEnd() {
   );
 }
 
+function renderModeDraftBanner() {
+  if (S.mode === 'daily') return renderDailyDraftBanner();
+  if (S.mode === 'defense') {
+    return `<div class="rounded-xl border border-violet-200 bg-violet-50 px-3 py-2 text-xs text-violet-800 font-semibold">
+      🛡️ Defense Only — stocks &amp; boards carry this sim. Scoring volume matters less.
+    </div>`;
+  }
+  if (S.mode === 'fans') {
+    const starters = Object.values(S.roster || {}).filter(Boolean);
+    const avg = starters.length
+      ? starters.reduce((s, p) => s + (p.popularity || 50), 0) / starters.length
+      : 0;
+    const fansM = Math.pow(Math.max(0, Math.min(1, (avg - 35) / 65)), 1.5) * 38 + 2;
+    const proj = starters.length ? fansFirstScore(avg, fansM, 50) : null;
+    return `<div class="rounded-xl border border-pink-200 bg-pink-50 px-3 py-2 text-xs text-pink-800 font-semibold">
+      📣 Fans First — optimize star power. Score ≈ pop×10 + fansM×5 + wins×2${proj != null ? ` · live proj ~${Math.round(proj)}` : ''}.
+    </div>`;
+  }
+  if (S.mode === 'dynasty-duel' && S.dynastyOpponent) {
+    return `<div class="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 font-semibold">
+      👑 Dynasty Duel — beat the <strong>${S.dynastyOpponent.name}</strong> in a best-of-7. New random dynasty every run — play as often as you want.
+    </div>`;
+  }
+  return '';
+}
+
 function renderDrafting() {
-  if (S.mode === '1v1') return renderDrafting1v1();
+  if (isDualDraft()) return renderDrafting1v1();
   const full = rosterFull();
 
   if (isDesktopDraftLayout()) {
@@ -629,7 +809,7 @@ function renderDrafting() {
           ${renderChemDashboard()}
           <div class="draft-screen__center">
             ${renderColdOpenBanner()}
-            ${renderDailyDraftBanner()}
+            ${renderModeDraftBanner()}
             ${full ? renderSimulateCard() : ''}
             ${renderRoundBar()}
             ${renderCoachChip()}
@@ -649,7 +829,7 @@ function renderDrafting() {
     <main class="flex flex-col items-center px-4 pt-2 pb-8 draft-screen__main">
       <div class="w-full max-w-2xl flex flex-col gap-2 draft-screen__inner">
         ${renderColdOpenBanner()}
-        ${renderDailyDraftBanner()}
+        ${renderModeDraftBanner()}
         ${full ? renderSimulateCard() : ''}
         ${renderRoundBar()}
         ${renderCoachChip()}
@@ -696,7 +876,7 @@ function render1v1RosterPanel(roster, playerNum, isActive) {
   return `
   <div class="rounded-2xl border-2 bg-white p-3 card-shadow transition-all" style="border-color:${bdrCol}">
     <div class="flex items-center justify-between mb-1.5">
-      <p class="text-xs font-black uppercase tracking-wider" style="color:${color}">P${playerNum}</p>
+      <p class="text-xs font-black uppercase tracking-wider" style="color:${color}">${playerNum === 1 ? seriesLabels().p1 : seriesLabels().p2}</p>
       ${isActive
         ? `<span class="text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse-glow" style="background:${bg};color:${color}">${canPlace ? '👆 Pick a slot' : '🎯 ON CLOCK'}</span>`
         : `<span class="text-[10px] text-muted-fg font-medium">${(playerNum === 1 ? S.p1Round : S.p2Round)}/5</span>`}
@@ -707,13 +887,18 @@ function render1v1RosterPanel(roster, playerNum, isActive) {
 }
 
 function renderDrafting1v1() {
+  const labels = seriesLabels();
   const completedPicks = S.p1Round + S.p2Round;
   const totalPick      = completedPicks + 1;
   const totalPicks     = SNAKE_ORDER.length; // 10
   const isP1Turn       = S.currentPlayer === 1;
+  const isAiThinking   = S.mode === 'gm-ai' && !isP1Turn;
   const clockColor     = isP1Turn ? '#2563eb' : '#d97706';
   const clockBg        = isP1Turn ? '#eff6ff'  : '#fffbeb';
   const clockBdr       = isP1Turn ? '#bfdbfe'  : '#fde68a';
+  const turnLabel      = isAiThinking
+    ? '🤖 AI GM is picking…'
+    : `⚡ ${isP1Turn ? labels.p1 : labels.p2} On The Clock`;
 
   // Snake order tracker — shows all 10 pick slots with player colour coding
   const snakeDots = SNAKE_ORDER.map((player, idx) => {
@@ -730,12 +915,13 @@ function renderDrafting1v1() {
       : isCurrent
         ? '#ffffff'
         : '#94a3b8';
-    const label     = isCurrent ? `P${player}` : (isDone ? '✓' : `P${player}`);
+    const short = p1Pick ? labels.p1Short : labels.p2Short;
+    const label     = isCurrent ? short : (isDone ? '✓' : short);
     const ringStyle = isCurrent
       ? `box-shadow:0 0 0 2px ${p1Pick ? '#2563eb' : '#d97706'};`
       : '';
     return `<div class="flex flex-col items-center gap-0.5">
-      <div class="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-black transition-all"
+      <div class="w-6 h-6 rounded-full flex items-center justify-center text-[8px] font-black transition-all"
         style="background:${dotBg};color:${dotText};${ringStyle}">${label}</div>
       <span class="text-[8px] text-muted-fg font-semibold">${idx + 1}</span>
     </div>`;
@@ -744,12 +930,15 @@ function renderDrafting1v1() {
   // Recent picks log (last 5)
   const recentPicks = S.draftLog.slice(-5).reverse().map(entry => {
     const c = entry.playerNum === 1 ? '#2563eb' : '#d97706';
+    const who = entry.playerNum === 1 ? labels.p1Short : labels.p2Short;
     return `<div class="flex items-center gap-2 py-1 border-b border-border last:border-0">
-      <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full" style="background:${entry.playerNum === 1 ? '#eff6ff' : '#fffbeb'};color:${c}">P${entry.playerNum}</span>
+      <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full" style="background:${entry.playerNum === 1 ? '#eff6ff' : '#fffbeb'};color:${c}">${who}</span>
       <span class="text-xs text-foreground font-semibold truncate">${entry.name}</span>
       <span class="text-[10px] text-muted-fg ml-auto flex-shrink-0">Pick ${entry.pick}</span>
     </div>`;
   }).join('');
+
+  const aiCoach = COACHES.find(c => c.id === S.p2Coach);
 
   return `
   <div class="min-h-screen main-gradient">
@@ -757,10 +946,12 @@ function renderDrafting1v1() {
     <main class="flex flex-col items-center px-4 pt-2 pb-8">
       <div class="w-full max-w-3xl flex flex-col gap-3">
 
+        ${S.mode === 'gm-ai' ? renderCoachChip() : ''}
+
         <!-- ON THE CLOCK banner -->
         <div class="flex items-center justify-between px-4 py-2.5 rounded-xl font-black text-sm uppercase tracking-widest"
           style="background:${clockBg};color:${clockColor};border:2px solid ${clockBdr}">
-          <span>⚡ Player ${S.currentPlayer} On The Clock</span>
+          <span>${turnLabel}</span>
           <span class="text-xs font-bold opacity-70">Pick ${totalPick} of ${totalPicks}</span>
         </div>
 
@@ -771,9 +962,8 @@ function renderDrafting1v1() {
             ${snakeDots}
           </div>
           <div class="flex items-center gap-3 mt-2">
-            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full inline-block" style="background:#2563eb"></span><span class="text-[9px] text-muted-fg">Player 1</span></span>
-            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full inline-block" style="background:#d97706"></span><span class="text-[9px] text-muted-fg">Player 2</span></span>
-            <span class="flex items-center gap-1 ml-auto"><span class="text-[9px] text-muted-fg">Balances first-pick advantage</span></span>
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full inline-block" style="background:#2563eb"></span><span class="text-[9px] text-muted-fg">${labels.p1}</span></span>
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full inline-block" style="background:#d97706"></span><span class="text-[9px] text-muted-fg">${labels.p2}${aiCoach ? ` · ${aiCoach.name}` : ''}</span></span>
           </div>
         </div>
 
@@ -783,9 +973,9 @@ function renderDrafting1v1() {
           ${render1v1RosterPanel(S.p2Roster, 2, !isP1Turn)}
         </div>
 
-        <!-- Shared draft board -->
-        ${renderSlotMachine()}
-        ${S.spinState === 'done' ? renderDraftBoard() : ''}
+        <!-- Shared draft board (hidden while AI is picking) -->
+        ${isAiThinking ? '' : renderSlotMachine()}
+        ${!isAiThinking && S.spinState === 'done' ? renderDraftBoard() : ''}
 
         <!-- Recent picks -->
         ${S.draftLog.length > 0 ? `
@@ -835,12 +1025,14 @@ function renderRoundBar() {
 
 function renderPopularityBar() {
   const fans       = calcTeamFans(Object.values(S.roster));
-  const scoreLabel = ` · ${Math.round(fans.sum)}/${fans.max}`;
+  const badgeText  = fans.tier
+    ? `${fans.tier} · ${Math.round(fans.sum)}/${fans.max}`
+    : `${Math.round(fans.sum)}/${fans.max}`;
   return `
   <div class="rounded-xl border border-border bg-card px-4 py-3 card-shadow draft-pop-bar">
     <div class="flex items-center justify-between mb-2">
       <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg">Fans</p>
-      <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border" style="color:${fans.barCol};background:${fans.barCol}18;border-color:${fans.barCol}30">${fans.tier}${scoreLabel}</span>
+      <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border" style="color:${fans.barCol};background:${fans.barCol}18;border-color:${fans.barCol}30">${badgeText}</span>
     </div>
     <div class="h-1.5 rounded-full overflow-hidden bg-border">
       <div class="h-full rounded-full transition-all stat-bar-fill" style="width:${fans.pct}%;background:${fans.barCol}"></div>
@@ -870,13 +1062,13 @@ function renderSlotMachine() {
   const isDone    = S.spinState === 'done';
   const isSpin    = S.spinState === 'spinning';
   const tc        = isDone ? TEAM_COLORS[S.currentSpin.team] : null;
-  const activeEra = S.mode === '1v1'
+  const activeEra = isDualDraft()
     ? (S.currentPlayer === 1 ? (S.p1Era || 'all') : (S.p2Era || 'all'))
     : (S.selectedEra || 'all');
   const eraLocked = activeEra !== 'all';
   const decPool   = availableDecades();
   const skips = getSkips();
-  const boardLabel = S.mode === '1v1'
+  const boardLabel = isDualDraft()
     ? `Pick ${S.p1Round + S.p2Round + 1} of ${SNAKE_ORDER.length}`
     : `Round ${S.round + 1}`;
   return `
@@ -892,7 +1084,7 @@ function renderSlotMachine() {
         style="background:${isDone && tc ? tc.bg + '12' : 'var(--card2)'};border-color:${isDone && tc ? tc.bg + '88' : 'var(--border)'}">
         <span class="text-[10px] font-bold uppercase tracking-widest mb-2 text-muted-fg">TEAM</span>
         <span class="slot-badge text-xl font-black text-foreground" id="slot-team">
-          ${isDone ? S.currentSpin.team : isSpin ? pick(TEAMS) : '—'}
+          ${isDone ? S.currentSpin.team : isSpin ? pickCosmetic(TEAMS) : '—'}
         </span>
         ${isDone ? `<span class="mt-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary text-white uppercase tracking-wider">LOCKED</span>` : ''}
       </div>
@@ -900,7 +1092,7 @@ function renderSlotMachine() {
         style="background:${isDone ? 'var(--surface-blue)' : 'var(--card2)'};border-color:${isDone ? '#93c5fd' : 'var(--border)'}">
         <span class="text-[10px] font-bold uppercase tracking-widest mb-2 text-muted-fg">ERA</span>
         <span class="slot-badge text-xl font-black text-foreground" id="slot-decade">
-          ${isDone ? S.currentSpin.decade : isSpin ? (eraLocked ? activeEra : pick(decPool.length ? decPool : DECADES)) : '—'}
+          ${isDone ? S.currentSpin.decade : isSpin ? (eraLocked ? activeEra : pickCosmetic(decPool.length ? decPool : DECADES)) : '—'}
         </span>
         ${isDone ? `<span class="mt-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary text-white uppercase tracking-wider">LOCKED</span>` : ''}
       </div>
@@ -1100,7 +1292,7 @@ function renderChemDashboard() {
   return `
   <div class="rounded-xl border border-border bg-card px-4 py-3 card-shadow draft-chem-dashboard">
     <div class="flex items-center justify-between mb-2 draft-chem-dashboard__head">
-      <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg">Live Chemistry</p>
+      <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg">Chemistry</p>
       <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border" style="background:${scoreBg};color:${scoreColor};border-color:${scoreColor}30">${scoreLabel} · ${chemScore}%</span>
     </div>
     <div class="h-1.5 rounded-full overflow-hidden bg-border draft-chem-dashboard__meter mb-3">
@@ -1119,24 +1311,37 @@ function renderChemDashboard() {
 
 // ── Simulate card ─────────────────────────────────────────────────────────────
 function renderSimulateCard() {
-  const is1v1   = S.mode === '1v1';
+  const isDual  = isDualDraft();
   const isP1    = S.currentPlayer === 1;
-  const btnText = is1v1 && isP1
+  const isDynasty = S.mode === 'dynasty-duel';
+  const btnText = isDual && isP1
     ? 'Lock In Roster — Pass to Player 2 →'
-    : is1v1
+    : isDual
     ? 'Simulate Best-of-7 Series →'
+    : isDynasty
+    ? `Challenge ${S.dynastyOpponent?.name || 'Dynasty'} →`
+    : S.mode === 'defense'
+    ? 'Simulate Defense Season →'
+    : S.mode === 'fans'
+    ? 'Simulate Fans First Season →'
     : 'Simulate 82 Games →';
-  const btnColor = is1v1 && isP1 ? '#d97706' : '#2563eb';
-  const btnHover = is1v1 && isP1 ? '#b45309' : '#1d4ed8';
-  const subtitle = is1v1 && isP1
+  const btnColor = isDual && isP1 ? '#d97706' : isDynasty ? '#b45309' : '#2563eb';
+  const btnHover = isDual && isP1 ? '#b45309' : isDynasty ? '#92400e' : '#1d4ed8';
+  const subtitle = isDual && isP1
     ? 'All 5 spots locked in. Hand the device to Player 2.'
-    : is1v1
+    : isDual
     ? 'Both rosters set. Time to settle it on the court.'
+    : isDynasty
+    ? 'Skip the regular season — go straight at a legendary dynasty.'
+    : S.mode === 'defense'
+    ? 'Win probability leans on stocks, boards, and defensive chemistry.'
+    : S.mode === 'fans'
+    ? 'Star power scores the run — still need ~35 wins to look legit.'
     : 'All 5 spots locked in. Ready to run the season.';
   return `
   <div class="rounded-2xl border-2 border-primary bg-white p-5 text-center animate-scale-in card-shadow draft-simulate-card" style="border-color:${btnColor}20">
     <div class="flex justify-center mb-3">${iconBall('h-10 w-10 text-primary')}</div>
-    ${is1v1 ? `<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-2 text-xs font-bold" style="background:${isP1 ? '#eff6ff' : '#fffbeb'};color:${isP1 ? '#2563eb' : '#d97706'}">⚔️ Player ${S.currentPlayer}</div>` : ''}
+    ${isDual ? `<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-2 text-xs font-bold" style="background:${isP1 ? '#eff6ff' : '#fffbeb'};color:${isP1 ? '#2563eb' : '#d97706'}">⚔️ ${seriesLabels().p1} / ${seriesLabels().p2}</div>` : ''}
     <p class="font-black text-lg text-foreground mb-1">Roster Complete</p>
     <p class="text-sm text-muted-fg mb-4">${subtitle}</p>
     <button data-action="simulate" class="w-full py-3.5 rounded-xl font-black text-sm uppercase tracking-widest text-white transition-all cursor-pointer animate-pulse-glow"
@@ -1290,7 +1495,7 @@ function renderSeasonSim() {
   return `
   <div class="flex flex-col min-h-screen main-gradient">
     ${renderHeader(true)}
-    <main class="flex-1 flex flex-col items-center px-4 pt-8 pb-8">
+    <main class="flex-1 flex flex-col items-center px-4 pt-8 pb-24 season-sim-main">
       <div class="w-full max-w-md flex flex-col gap-4 animate-fade-up">
 
         <div class="text-center">
@@ -1324,11 +1529,11 @@ function renderSeasonSim() {
           </div>`;
         })() : ''}
 
-        <div id="sim-ticker" class="flex flex-col gap-1" style="min-height:120px">${renderSeasonTickerRows()}</div>
+        <div id="sim-ticker" class="flex flex-col gap-1 season-sim-ticker">${renderSeasonTickerRows()}</div>
 
         ${!done && !S.seasonPaused ? `
-        <button data-action="season-skip"
-          class="w-full py-2.5 rounded-xl font-bold text-xs border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">
+        <button data-action="season-skip" id="season-skip-btn"
+          class="season-skip-btn py-2.5 rounded-xl font-bold text-xs border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">
           Skip to Final Record ⏭
         </button>` : ''}
 
@@ -1395,9 +1600,9 @@ function renderDailyResultBanner() {
     <p class="text-xs font-black uppercase tracking-widest mb-1" style="color:${style.color}">${style.icon} Daily Challenge — ${style.head}</p>
     <p class="text-sm font-bold" style="color:#0f172a">${ch.emoji} ${ch.title}</p>
     <p class="text-xs mt-1" style="color:${style.color}">${dr.detail}${streakLine}</p>
-    <p class="text-[10px] mt-1.5" style="color:#64748b">Score ${dr.score} · new challenge tomorrow (midnight UTC)</p>
+    <p class="text-[10px] mt-1.5" style="color:#64748b">Score ${dr.score} · new challenge tomorrow (midnight UTC)${renderCommunityStatsMerged()}</p>
     <button data-action="open-daily-stats" class="mt-3 text-xs font-bold px-3 py-1.5 rounded-lg border cursor-pointer"
-      style="border-color:${style.border};background:var(--card);color:${style.color}">Statistics 📊</button>
+      style="border-color:${style.border};background:var(--card);color:${style.color}">Daily Challenge Stats 📊</button>
   </div>`;
 }
 
@@ -1415,8 +1620,8 @@ function renderDailySubmitCard() {
           <p class="font-black text-sm" style="color:${isDark() ? '#fdba74' : '#9a3412'}">On the daily board!</p>
           <p class="text-xs mt-0.5" style="color:${isDark() ? '#fed7aa' : '#c2410c'}">"${esc(S.teamName)}" &nbsp;·&nbsp; ${r.wins}–${r.losses}</p>
         </div>
-        <button data-action="open-daily-leaderboard" class="text-xs font-bold px-3 py-1.5 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:#fdba74;background:var(--card);color:${isDark() ? '#fdba74' : '#c2410c'}">
-          Board 🏅
+        <button data-action="open-daily-leaderboard" class="text-xs font-bold px-3 py-1.5 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:var(--border);background:var(--card);color:var(--muted-fg)">
+          Board
         </button>
       </div>
     </div>`;
@@ -1475,6 +1680,12 @@ function renderResults() {
   else if (isElite)    { label = 'Championship Contender'; labelColor = isDark() ? '#4ade80' : '#166534'; labelBg = isDark() ? 'rgba(34,197,94,0.12)' : '#f0fdf4'; emoji = '⭐'; }
   else if (isPlayoff)  { label = 'Playoff Contender';      labelColor = isDark() ? '#93c5fd' : '#1e40af'; labelBg = isDark() ? 'rgba(59,130,246,0.12)' : '#eff6ff'; emoji = '✅'; }
   else                 { label = 'Rebuild Required';       labelColor = isDark() ? '#f87171' : '#991b1b'; labelBg = isDark() ? 'rgba(239,68,68,0.12)' : '#fef2f2'; emoji = '📋'; }
+
+  const modeBadge = S.mode === 'defense'
+    ? `<span class="inline-block text-[11px] font-bold px-3 py-1 rounded-full mb-2 border border-violet-200 bg-violet-50 text-violet-800">🛡️ DEF profile · ${r.teamStocks ?? 0} stocks</span>`
+    : S.mode === 'fans'
+    ? `<span class="inline-block text-[11px] font-bold px-3 py-1 rounded-full mb-2 border border-pink-200 bg-pink-50 text-pink-800">📣 Fans First score ${r.fansScore ?? 0}${r.fansPassed ? ' · ✓' : ''}</span>`
+    : '';
 
   const winsColor = isPerfect || isHistoric ? (isDark() ? '#fbbf24' : '#d97706') : isElite ? (isDark() ? '#4ade80' : '#16a34a') : isPlayoff ? (isDark() ? '#60a5fa' : '#2563eb') : (isDark() ? '#f87171' : '#dc2626');
 
@@ -1627,6 +1838,7 @@ function renderResults() {
             <span class="text-muted-fg">${r.losses}</span>
           </div>
           <span class="inline-block text-sm font-bold px-4 py-1.5 rounded-full mb-2" style="background:${labelBg};color:${labelColor}">${emoji} ${label}</span>
+          ${modeBadge}
           <p class="text-xs text-muted-fg mb-2">Win% ${r.winPct}% &nbsp;·&nbsp; Team OVR ${teamOvr} &nbsp;·&nbsp; Strength Index ${r.strength}</p>
           <div class="flex items-center justify-center gap-2 flex-wrap">
             <span class="inline-flex items-center gap-1 text-[11px] font-black px-2.5 py-1 rounded-full border"
@@ -2244,6 +2456,7 @@ function renderTrophyRoom() {
 
 // ── 1v1 Series Result screen ──────────────────────────────────────────────────
 function renderSeriesResult() {
+  const labels = seriesLabels();
   const sr     = S.seriesResult;
   const winner = sr.winner; // 'p1' | 'p2'
   const p1s    = sr.p1Season;
@@ -2255,20 +2468,23 @@ function renderSeriesResult() {
 
   const winnerColor = p1Win ? '#2563eb' : '#d97706';
   const winnerBg    = p1Win ? '#eff6ff'  : '#fffbeb';
-  const loserLabel  = p1Win ? 'Player 2' : 'Player 1';
-  const winnerLabel = p1Win ? 'Player 1' : 'Player 2';
+  const loserLabel  = p1Win ? labels.p2 : labels.p1;
+  const winnerLabel = p1Win ? labels.p1 : labels.p2;
 
   const gameChips = series.games.map((g, i) => {
     const p1Won = g === 'W';
     return `<div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-black border-2"
       style="background:${p1Won ? '#eff6ff' : '#fffbeb'};color:${p1Won ? '#2563eb' : '#d97706'};border-color:${p1Won ? '#bfdbfe' : '#fde68a'}">
-      ${p1Won ? 'P1' : 'P2'}</div>`;
+      ${p1Won ? labels.p1Short : labels.p2Short}</div>`;
   }).join('');
 
   const p1CoachId = S.p1Coach || S.p1?.coach;
-  const p2CoachId = S.p2Coach || S.coach;
+  // No fallback to S.coach here — in Dynasty Duel S.coach is the PLAYER's
+  // coach and S.p2Coach is deliberately null (the CPU dynasty has no coach
+  // card), so falling back printed the player's own coach under the
+  // dynasty's roster column.
   const p1Coach   = COACHES.find(c => c.id === p1CoachId);
-  const p2Coach   = COACHES.find(c => c.id === p2CoachId);
+  const p2Coach   = COACHES.find(c => c.id === S.p2Coach);
 
   const rosterMini = (roster, positions) => positions.map(pos => {
     const p = roster[pos];
@@ -2315,8 +2531,8 @@ function renderSeriesResult() {
           <p class="text-xs font-bold uppercase tracking-widest text-muted-fg mb-3">Game-by-Game</p>
           <div class="flex gap-2 flex-wrap">${gameChips}</div>
           <div class="flex gap-4 mt-3 text-xs text-muted-fg">
-            <span><span class="font-bold" style="color:#2563eb">P1</span> = Player 1 won that game</span>
-            <span><span class="font-bold" style="color:#d97706">P2</span> = Player 2 won that game</span>
+            <span><span class="font-bold" style="color:#2563eb">${labels.p1Short}</span> = ${labels.p1} won that game</span>
+            <span><span class="font-bold" style="color:#d97706">${labels.p2Short}</span> = ${labels.p2} won that game</span>
           </div>
         </div>
 
@@ -2324,7 +2540,7 @@ function renderSeriesResult() {
         <div class="grid grid-cols-2 gap-3">
           <div class="rounded-2xl border p-4 card-shadow" style="border-color:#bfdbfe;background:var(--surface-sky)">
             <div class="flex items-center justify-between mb-3">
-              <p class="text-xs font-bold uppercase tracking-widest" style="color:#2563eb">Player 1</p>
+              <p class="text-xs font-bold uppercase tracking-widest" style="color:#2563eb">${labels.p1}</p>
               ${chemBadge(p1s.chemScore)}
             </div>
             ${p1Coach ? `<p class="text-[10px] text-muted-fg mb-2 font-medium">Coach: ${p1Coach.name}</p>` : ''}
@@ -2333,12 +2549,14 @@ function renderSeriesResult() {
           </div>
           <div class="rounded-2xl border p-4 card-shadow" style="border-color:#fde68a;background:var(--surface-cream)">
             <div class="flex items-center justify-between mb-3">
-              <p class="text-xs font-bold uppercase tracking-widest" style="color:#d97706">Player 2</p>
+              <p class="text-xs font-bold uppercase tracking-widest" style="color:#d97706">${labels.p2}</p>
               ${chemBadge(p2s.chemScore)}
             </div>
             ${p2Coach ? `<p class="text-[10px] text-muted-fg mb-2 font-medium">Coach: ${p2Coach.name}</p>` : ''}
             <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg/60 mb-1">Starting 5</p>
-            ${rosterMini(S.p2Roster || S.roster, ['PG','SG','SF','PF','C'])}
+            ${S.mode === 'dynasty-duel'
+              ? `<p class="text-xs text-muted-fg py-2">Legendary ${labels.p2} — strength ${p2s.strength.toFixed(2)}</p>`
+              : rosterMini(S.p2Roster || S.roster, ['PG','SG','SF','PF','C'])}
           </div>
         </div>
 
@@ -2352,11 +2570,11 @@ function renderSeriesResult() {
               const p2pct  = Math.round((p2s.strength / maxStr) * 100);
               return `
               <div>
-                <div class="flex justify-between text-xs mb-1"><span class="font-bold" style="color:#2563eb">Player 1</span><span class="font-semibold text-foreground">${p1s.strength.toFixed(3)}</span></div>
+                <div class="flex justify-between text-xs mb-1"><span class="font-bold" style="color:#2563eb">${labels.p1}</span><span class="font-semibold text-foreground">${p1s.strength.toFixed(3)}</span></div>
                 <div class="h-2.5 rounded-full bg-border overflow-hidden"><div class="h-full rounded-full" style="width:${p1pct}%;background:#2563eb"></div></div>
               </div>
               <div>
-                <div class="flex justify-between text-xs mb-1"><span class="font-bold" style="color:#d97706">Player 2</span><span class="font-semibold text-foreground">${p2s.strength.toFixed(3)}</span></div>
+                <div class="flex justify-between text-xs mb-1"><span class="font-bold" style="color:#d97706">${labels.p2}</span><span class="font-semibold text-foreground">${p2s.strength.toFixed(3)}</span></div>
                 <div class="h-2.5 rounded-full bg-border overflow-hidden"><div class="h-full rounded-full" style="width:${p2pct}%;background:#d97706"></div></div>
               </div>`;
             })()}
@@ -2377,11 +2595,13 @@ function renderSeriesResult() {
 
 // ── 1v1 Series Preview screen ─────────────────────────────────────────────────
 function renderSeriesPreview() {
+  const labels = seriesLabels();
   const sr   = S.seriesResult;
   const p1s  = sr.p1Season;
   const p2s  = sr.p2Season;
   const p1CoachObj = COACHES.find(c => c.id === S.p1Coach);
   const p2CoachObj = COACHES.find(c => c.id === S.p2Coach);
+  const isDynasty = S.mode === 'dynasty-duel';
   const maxStr  = Math.max(p1s.strength, p2s.strength, 0.01);
   const p1pct   = Math.round((p1s.strength / maxStr) * 100);
   const p2pct   = Math.round((p2s.strength / maxStr) * 100);
@@ -2413,7 +2633,7 @@ function renderSeriesPreview() {
           <div class="flex flex-col gap-2">
             <div>
               <div class="flex justify-between text-xs mb-1">
-                <span class="font-bold" style="color:#2563eb">Player 1${p1CoachObj ? ` · ${p1CoachObj.name}` : ''}</span>
+                <span class="font-bold" style="color:#2563eb">${labels.p1}${p1CoachObj ? ` · ${p1CoachObj.name}` : ''}</span>
                 <span class="font-semibold text-foreground">${p1s.strength.toFixed(3)}</span>
               </div>
               <div class="h-2.5 rounded-full bg-border overflow-hidden">
@@ -2422,7 +2642,7 @@ function renderSeriesPreview() {
             </div>
             <div>
               <div class="flex justify-between text-xs mb-1">
-                <span class="font-bold" style="color:#d97706">Player 2${p2CoachObj ? ` · ${p2CoachObj.name}` : ''}</span>
+                <span class="font-bold" style="color:#d97706">${labels.p2}${p2CoachObj ? ` · ${p2CoachObj.name}` : ''}</span>
                 <span class="font-semibold text-foreground">${p2s.strength.toFixed(3)}</span>
               </div>
               <div class="h-2.5 rounded-full bg-border overflow-hidden">
@@ -2435,12 +2655,14 @@ function renderSeriesPreview() {
         <!-- Side-by-side rosters -->
         <div class="grid grid-cols-2 gap-3">
           <div class="rounded-2xl border-2 bg-white p-3 card-shadow" style="border-color:#bfdbfe">
-            <p class="text-xs font-black uppercase tracking-wider mb-2" style="color:#2563eb">Player 1</p>
-            ${rosterMini(S.p1Roster, '#2563eb')}
+            <p class="text-xs font-black uppercase tracking-wider mb-2" style="color:#2563eb">${labels.p1}</p>
+            ${rosterMini(S.p1Roster || S.roster, '#2563eb')}
           </div>
           <div class="rounded-2xl border-2 bg-white p-3 card-shadow" style="border-color:#fde68a">
-            <p class="text-xs font-black uppercase tracking-wider mb-2" style="color:#d97706">Player 2</p>
-            ${rosterMini(S.p2Roster, '#d97706')}
+            <p class="text-xs font-black uppercase tracking-wider mb-2" style="color:#d97706">${labels.p2}</p>
+            ${isDynasty
+              ? `<p class="text-xs text-muted-fg leading-relaxed py-2">Legendary CPU dynasty. Strength ${p2s.strength.toFixed(2)}.</p>`
+              : rosterMini(S.p2Roster, '#d97706')}
           </div>
         </div>
 
@@ -2457,6 +2679,7 @@ function renderSeriesPreview() {
 
 // ── 1v1 Series Simulation screen ──────────────────────────────────────────────
 function renderSeriesSim() {
+  const labels   = seriesLabels();
   const sr       = S.seriesResult;
   const revealed = S.seriesRevealedCount ?? 0;
   const games    = sr.games; // array of { gameNum, p1Score, p2Score, p1Won, p1WinsAfter, p2WinsAfter }
@@ -2471,7 +2694,7 @@ function renderSeriesSim() {
     statusText  = 'Series Not Started';
     statusColor = 'var(--muted-fg)'; statusBg = 'var(--card3)'; statusBdr = 'var(--border)';
   } else if (seriesOver) {
-    const w = p1Wins === 4 ? 'Player 1' : 'Player 2';
+    const w = p1Wins === 4 ? labels.p1 : labels.p2;
     const wc = p1Wins === 4 ? '#2563eb' : '#d97706';
     statusText  = `🏆 ${w} wins the series ${p1Wins}–${p2Wins}!`;
     statusColor = wc; statusBg = p1Wins === 4 ? '#eff6ff' : '#fffbeb'; statusBdr = wc + '40';
@@ -2479,7 +2702,7 @@ function renderSeriesSim() {
     statusText  = `Series tied ${p1Wins}–${p2Wins}`;
     statusColor = 'var(--muted-fg)'; statusBg = 'var(--card3)'; statusBdr = 'var(--border)';
   } else {
-    const leader = p1Wins > p2Wins ? 'Player 1' : 'Player 2';
+    const leader = p1Wins > p2Wins ? labels.p1 : labels.p2;
     const lc     = p1Wins > p2Wins ? '#2563eb' : '#d97706';
     const lw = Math.max(p1Wins, p2Wins), ll = Math.min(p1Wins, p2Wins);
     statusText  = `${leader} leads ${lw}–${ll}`;
@@ -2524,12 +2747,12 @@ function renderSeriesSim() {
         <!-- Win counters -->
         <div class="grid grid-cols-2 gap-3">
           <div class="rounded-2xl border-2 p-4 text-center card-shadow" style="border-color:${p1Wins > p2Wins ? '#2563eb' : '#bfdbfe'};background:${p1Wins > p2Wins ? '#eff6ff' : '#f8fbff'}">
-            <p class="text-[10px] font-bold uppercase tracking-widest mb-1" style="color:#2563eb">Player 1</p>
+            <p class="text-[10px] font-bold uppercase tracking-widest mb-1" style="color:#2563eb">${labels.p1}</p>
             <p class="text-5xl font-black" style="color:#2563eb">${p1Wins}</p>
             <p class="text-[10px] text-muted-fg mt-1">${p1Wins === 1 ? 'win' : 'wins'}</p>
           </div>
           <div class="rounded-2xl border-2 p-4 text-center card-shadow" style="border-color:${p2Wins > p1Wins ? '#d97706' : '#fde68a'};background:${p2Wins > p1Wins ? '#fffbeb' : '#fffef8'}">
-            <p class="text-[10px] font-bold uppercase tracking-widest mb-1" style="color:#d97706">Player 2</p>
+            <p class="text-[10px] font-bold uppercase tracking-widest mb-1" style="color:#d97706">${labels.p2}</p>
             <p class="text-5xl font-black" style="color:#d97706">${p2Wins}</p>
             <p class="text-[10px] text-muted-fg mt-1">${p2Wins === 1 ? 'win' : 'wins'}</p>
           </div>
@@ -2582,6 +2805,7 @@ function updateCrazyGamesGameplayState() {
 export function render() {
   updateCrazyGamesGameplayState();
   if      (S.phase === 'mode-select')   $app.innerHTML = renderModeSelect();
+  else if (S.phase === 'more-modes')    $app.innerHTML = renderMoreModesScreen();
   else if (S.phase === 'drafting')      $app.innerHTML = renderDrafting();
   else if (S.phase === 'season-sim')    $app.innerHTML = renderSeasonSim();
   else if (S.phase === 'results')       $app.innerHTML = renderResults();
@@ -2624,5 +2848,13 @@ export function render() {
       update();
       dInput.addEventListener('input', update);
     }
+  }
+
+  // Community pass-rate for Daily Challenge (mode select + daily results)
+  if (
+    S.phase === 'mode-select'
+    || (S.phase === 'results' && S.mode === 'daily')
+  ) {
+    hydrateDailyCommunityStats();
   }
 }

@@ -86,6 +86,17 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Daily Challenge community pass-rate — short on mobile, full on sm+ */
+.daily-community-copy {
+  font-weight: 700;
+}
+.daily-community-copy__full { display: none; }
+.daily-community-copy__short { display: inline; }
+@media (min-width: 640px) {
+  .daily-community-copy__short { display: none; }
+  .daily-community-copy__full { display: inline; }
+}
+
 /* ── Scrollbar ─────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: var(--card2); }
@@ -917,11 +928,11 @@ body {
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    zoom: 0.8;
+    zoom: 0.68;
   }
 
   .draft-board-wrap__head {
-    margin-bottom: 0.25rem !important;
+    margin-bottom: 0.2rem !important;
     flex-shrink: 0;
   }
 
@@ -931,12 +942,12 @@ body {
 
   .draft-board-scroll {
     flex: 0 0 auto;
-    height: 30vh;
+    height: 24vh;
     -webkit-overflow-scrolling: touch;
   }
 
   .draft-board-scroll .grid {
-    gap: 0.3rem !important;
+    gap: 0.22rem !important;
   }
 
   .draft-board-grid {
@@ -949,45 +960,49 @@ body {
   }
 
   .draft-board-scroll--shell {
-    min-height: 5.5rem;
+    min-height: 4.25rem;
+  }
+
+  .draft-card {
+    border-radius: 0.5rem !important;
   }
 
   .draft-card .draft-card-body {
-    padding: 0.3rem 0.35rem !important;
+    padding: 0.22rem 0.28rem !important;
   }
 
   .draft-card-body--blind {
     min-height: 0 !important;
-    padding: 0.35rem !important;
+    padding: 0.28rem !important;
   }
 
   .draft-card__head {
-    margin-bottom: 0.125rem !important;
-    gap: 0.25rem !important;
+    margin-bottom: 0.1rem !important;
+    gap: 0.2rem !important;
   }
 
   .draft-card__pos {
-    font-size: 0.5rem !important;
-    padding: 0.0625rem 0.25rem !important;
+    font-size: 0.45rem !important;
+    padding: 0.04rem 0.2rem !important;
   }
 
   .draft-card__arch span {
-    font-size: 0.5rem !important;
-    padding: 0.0625rem 0.25rem !important;
+    font-size: 0.45rem !important;
+    padding: 0.04rem 0.2rem !important;
   }
 
   .draft-card__name {
-    font-size: 0.625rem !important;
-    margin-bottom: 0.125rem !important;
-    line-height: 1.15 !important;
+    font-size: 0.5625rem !important;
+    margin-bottom: 0.1rem !important;
+    line-height: 1.1 !important;
   }
 
   .draft-card__stats {
-    gap: 0.125rem 0.25rem !important;
+    gap: 0.1rem 0.2rem !important;
   }
 
   .draft-card__stats span {
-    font-size: 0.5rem !important;
+    font-size: 0.45rem !important;
   }
 
   .draft-card-traits {
@@ -995,52 +1010,45 @@ body {
   }
 
   .draft-card__actions {
-    padding: 0 0.3rem 0.3rem !important;
+    padding: 0 0.22rem 0.22rem !important;
   }
 
   .draft-card-btn {
-    padding-top: 0.2rem !important;
-    padding-bottom: 0.2rem !important;
-    font-size: 0.5rem !important;
-    line-height: 1.2;
+    padding-top: 0.15rem !important;
+    padding-bottom: 0.15rem !important;
+    font-size: 0.45rem !important;
+    line-height: 1.15;
+    border-radius: 0.35rem !important;
   }
 
-  .draft-pop-bar {
+  /* Fans + Live Chemistry — match height/padding/meter on mobile draft */
+  .draft-pop-bar,
+  .draft-chem-dashboard {
     flex-shrink: 0;
     padding: 0.35rem 0.5rem !important;
+    min-height: 2.5rem;
+    box-sizing: border-box;
   }
 
-  .draft-pop-bar .mb-2 {
+  .draft-pop-bar .mb-2,
+  .draft-chem-dashboard__head {
     margin-bottom: 0.25rem !important;
   }
 
-  .draft-pop-bar .h-1\.5 {
+  .draft-pop-bar .h-1\.5,
+  .draft-chem-dashboard__meter {
     height: 0.25rem !important;
+    margin-bottom: 0 !important;
   }
 
   .draft-pop-bar__hint {
     display: none;
   }
 
-  .draft-chem-dashboard {
-    flex-shrink: 0;
-    padding: 0.35rem 0.5rem !important;
-  }
-
-  .draft-chem-dashboard__head {
-    margin-bottom: 0.25rem !important;
-  }
-
-  .draft-chem-dashboard__head .text-xs {
+  .draft-chem-dashboard__head .text-xs,
+  .draft-chem-dashboard__head .text-\[10px\],
+  .draft-pop-bar .text-\[10px\] {
     font-size: 0.5625rem !important;
-  }
-
-  .draft-chem-dashboard__meter {
-    margin-bottom: 0 !important;
-  }
-
-  .draft-chem-dashboard__meter .h-2 {
-    height: 0.3rem !important;
   }
 
   .draft-chem-report,
@@ -1643,4 +1651,22 @@ body {
   .results-layout > .results-block--save {
     order: 30;
   }
+}
+
+/* Season sim — fixed skip button + stable ticker height */
+.season-sim-ticker {
+  min-height: 15.5rem;
+  height: 15.5rem;
+  overflow: hidden;
+}
+
+.season-skip-btn {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
+  z-index: 45;
+  width: min(28rem, calc(100% - 2rem));
+  box-shadow: 0 6px 24px var(--shadow);
+  background: var(--card) !important;
 }

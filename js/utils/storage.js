@@ -33,7 +33,7 @@
 
 import { S, COACHES, POSITIONS, getUtcDateString } from '../logic/state.js';
 import { getLegendCatalog }                      from '../logic/draft.js';
-import { fetchLeaderboard, fetchDailyLeaderboard } from '../utils/firebase.js';
+import { fetchLeaderboard, fetchDailyLeaderboard, fetchDailyCommunityStats } from '../utils/firebase.js';
 import { cgGetItem, cgSetItem }                    from '../utils/crazygames.js';
 import { getDailyChallenge }                       from '../logic/challenge.js';
 
@@ -147,6 +147,108 @@ export function saveLeaderboard() {
   } catch (e) {
     console.warn('[storage] leaderboard not saved', e);
   }
+}
+
+const MODE_LB_KEYS = {
+  defense: 'nba820_lb_defense',
+  fans: 'nba820_lb_fans',
+  'gm-ai': 'nba820_lb_gmai',
+  'dynasty-duel': 'nba820_lb_dynasty',
+};
+
+/**
+ * Persist a More Modes local leaderboard entry (top 20).
+ * @param {'defense'|'fans'|'gm-ai'|'dynasty-duel'} mode
+ * @param {object} entry
+ */
+export function saveModeLeaderboard(mode, entry) {
+  const key = MODE_LB_KEYS[mode];
+  if (!key || !entry) return;
+  let lb = [];
+  try { lb = JSON.parse(cgGetItem(key) || '[]'); } catch (e) {}
+  lb.push(entry);
+  if (mode === 'fans') {
+    lb.sort((a, b) => (b.score ?? 0) - (a.score ?? 0) || (b.wins ?? 0) - (a.wins ?? 0));
+  } else if (mode === 'dynasty-duel') {
+    lb.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+  } else if (mode === 'gm-ai') {
+    lb.sort((a, b) => (b.won === a.won ? 0 : b.won ? 1 : -1) || (b.margin ?? 0) - (a.margin ?? 0) || (b.strength ?? 0) - (a.strength ?? 0));
+  } else {
+    lb.sort((a, b) => (b.wins ?? 0) - (a.wins ?? 0) || (b.teamStocks ?? 0) - (a.teamStocks ?? 0));
+  }
+  if (lb.length > 20) lb = lb.slice(0, 20);
+  try { cgSetItem(key, JSON.stringify(lb)); } catch (e) {
+    console.warn('[storage] mode leaderboard not saved', e);
+  }
+}
+
+const DYNASTY_DUEL_KEY = 'nba820_dynasty_duel_last';
+const DYNASTY_DUEL_STREAK_KEY = 'nba820_dynasty_duel_streak';
+
+/**
+ * @returns {{ weekKey: string, result: object|null, lastOpponentName: string|null, streak: number }}
+ */
+export function getDynastyDuelStatus() {
+  const now = new Date();
+  const day = now.getUTCDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  const monday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + diff));
+  const weekKey = monday.toISOString().slice(0, 10);
+
+  let result = null;
+  try { result = JSON.parse(cgGetItem(DYNASTY_DUEL_KEY) || 'null'); } catch (e) {}
+  // Migrate legacy boss-week key once if present
+  if (!result) {
+    try {
+      result = JSON.parse(cgGetItem('nba820_boss_week_last') || 'null');
+      if (result) {
+        result.opponentName = result.opponentName || result.bossName || null;
+      }
+    } catch (e) {}
+  }
+
+  let streak = 0;
+  try {
+    const s = JSON.parse(cgGetItem(DYNASTY_DUEL_STREAK_KEY) || cgGetItem('nba820_boss_week_streak') || '{}');
+    streak = Number(s.streak) || 0;
+  } catch (e) {}
+
+  return {
+    weekKey,
+    result,
+    lastOpponentName: result?.opponentName || result?.bossName || null,
+    streak,
+  };
+}
+
+export function markDynastyDuelPlayed({ weekKey, opponentName, won, score, seriesWins, seriesLosses }) {
+  try {
+    cgSetItem(DYNASTY_DUEL_KEY, JSON.stringify({
+      weekKey, opponentName, won, score, seriesWins, seriesLosses, at: Date.now(),
+    }));
+  } catch (e) {}
+
+  try {
+    const prev = JSON.parse(cgGetItem(DYNASTY_DUEL_STREAK_KEY) || '{}');
+    if (won) {
+      const d = new Date(weekKey + 'T12:00:00Z');
+      d.setUTCDate(d.getUTCDate() - 7);
+      const prevWeek = d.toISOString().slice(0, 10);
+      const last = prev.lastWinWeek;
+      let streak = 1;
+      if (last === weekKey) {
+        streak = Number(prev.streak) || 1;
+      } else if (last === prevWeek) {
+        streak = (Number(prev.streak) || 0) + 1;
+      }
+      cgSetItem(DYNASTY_DUEL_STREAK_KEY, JSON.stringify({ streak, lastWinWeek: weekKey }));
+    } else {
+      cgSetItem(DYNASTY_DUEL_STREAK_KEY, JSON.stringify({
+        streak: 0,
+        lastWinWeek: prev.lastWinWeek || null,
+      }));
+    }
+  } catch (e) {}
 }
 
 // ── Save trophy room entry ────────────────────────────────────────────────────
@@ -889,17 +991,32 @@ function _dailyModalShellHtml(dateLabel) {
       <div id="daily-lb-table" style="display:flex;flex-direction:column;gap:8px">
         ${_globalLbLoadingHtml()}
       </div>
-      <p style="text-align:center;font-size:11px;color:var(--muted-fg);margin:12px 0 0;font-family:Fira Sans,sans-serif">Everyone drafts from the same board today — only your picks and your season differ</p>
+      <p id="daily-lb-community" style="text-align:center;font-size:12px;font-weight:700;color:var(--primary);margin:14px 0 0;font-family:Fira Sans,sans-serif;min-height:18px"></p>
+      <p style="text-align:center;font-size:11px;color:var(--muted-fg);margin:8px 0 0;font-family:Fira Sans,sans-serif">Everyone drafts from the same board today — only your picks and your season differ</p>
     </div>
   </div>`;
 }
 
 async function _loadDailyLb(date) {
   const tableEl = document.getElementById('daily-lb-table');
+  const communityEl = document.getElementById('daily-lb-community');
   if (tableEl) tableEl.innerHTML = _globalLbLoadingHtml();
   try {
-    const entries = await fetchDailyLeaderboard(date);
+    const [entries, community] = await Promise.all([
+      fetchDailyLeaderboard(date),
+      fetchDailyCommunityStats(date).catch(() => null),
+    ]);
     if (tableEl) tableEl.innerHTML = _dailyLbRowsHtml(entries);
+    if (communityEl) {
+      if (community && community.pct != null && community.attempts >= 3) {
+        communityEl.innerHTML = `<span class="daily-community-copy">`
+          + `<span class="daily-community-copy__short">📊 ${community.pct}% passed today</span>`
+          + `<span class="daily-community-copy__full">📊 ${community.pct}% of players passed today's challenge</span>`
+          + `</span>`;
+      } else {
+        communityEl.textContent = '';
+      }
+    }
   } catch (err) {
     const isPermission = err.message.includes('permission') || err.message.includes('Permission') || err.message.includes('PERMISSION');
     const msg = err.message.includes('not configured')
@@ -908,6 +1025,7 @@ async function _loadDailyLb(date) {
         ? 'Firestore permission denied — open Firebase Console → Firestore → Rules and publish the dailyLeaderboard rule.'
         : 'Failed to load — check your connection. <button onclick="window._retryDailyLb()" style="text-decoration:underline;cursor:pointer;font-family:Fira Sans,sans-serif">Retry</button>';
     if (tableEl) tableEl.innerHTML = `<p style="color:#dc2626;font-size:13px;text-align:center;padding:24px 0;font-family:Fira Sans,sans-serif">${msg}</p>`;
+    if (communityEl) communityEl.textContent = '';
   }
 }
 window._retryDailyLb = () => _loadDailyLb(getUtcDateString());
@@ -1008,8 +1126,8 @@ export function showDailyStatsModal() {
              font-family:Fira Sans,sans-serif;color:var(--fg);
              animation:scaleIn 0.2s ease-out;box-shadow:0 20px 60px var(--shadow)">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px">
-        <h2 id="daily-stats-title" style="font-size:16px;font-weight:800;margin:0;letter-spacing:0.12em;
-                   text-transform:uppercase;color:var(--fg);width:100%;text-align:center;padding-left:32px">Statistics</h2>
+        <h2 id="daily-stats-title" style="font-size:16px;font-weight:800;margin:0;letter-spacing:0.08em;
+                   text-transform:uppercase;color:var(--fg);width:100%;text-align:center;padding-left:32px">Daily Challenge Stats</h2>
         <button onclick="window.closeDailyStatsModal()" aria-label="Close"
           style="background:var(--card2);border:1px solid var(--border);color:var(--muted-fg);border-radius:999px;
                  width:32px;height:32px;font-size:16px;cursor:pointer;display:flex;

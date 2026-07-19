@@ -3,16 +3,17 @@
  */
 import { S, ALL_POSITIONS, TEAMS, DECADES, pick } from '../logic/state.js';
 import { DB }                                     from '../data/players.js';
+import { isDualDraft, getModeConfig }             from '../logic/modes.js';
 
 /** True once all slots are filled for the active context. */
 export function rosterFull() {
-  if (S.mode === '1v1') return false; // 1v1 auto-triggers on last pick — never show simulate card
+  if (isDualDraft()) return false; // dual draft auto-triggers on last pick — never show simulate card
   return ALL_POSITIONS.every(p => S.roster[p] !== null);
 }
 
 /** Decades still eligible for drafting in the current game. */
 export function availableDecades() {
-  const era = S.mode === '1v1'
+  const era = isDualDraft()
     ? (S.currentPlayer === 1 ? (S.p1Era || 'all') : (S.p2Era || 'all'))
     : (S.selectedEra || 'all');
   if (era !== 'all') return [era];
@@ -91,18 +92,21 @@ export function getAvailablePlayers(team, decade) {
 
 /** Remaining skips for the active drafter: { team, decade }. */
 export function getSkips() {
-  if (S.mode === '1v1') {
+  if (isDualDraft()) {
+    // AI never skips — hide skip UI on CPU turns
+    if (S.mode === 'gm-ai' && S.currentPlayer === 2) return { team: 0, decade: 0 };
     return S.currentPlayer === 1
       ? { team: S.p1TeamSkips ?? 0, decade: S.p1DecadeSkips ?? 0 }
       : { team: S.p2TeamSkips ?? 0, decade: S.p2DecadeSkips ?? 0 };
   }
-  return { team: S.teamSkips ?? 0, decade: S.decadeSkips ?? 0 };
+  const cfg = getModeConfig();
+  return { team: S.teamSkips ?? cfg.skips, decade: S.decadeSkips ?? cfg.skips };
 }
 
 /** Consumes one skip of the given kind for the active drafter. */
 export function useSkip(kind) {
   const field = kind === 'team' ? 'TeamSkips' : 'DecadeSkips';
-  if (S.mode === '1v1') {
+  if (isDualDraft()) {
     const key = `p${S.currentPlayer}${field}`;
     S[key] = Math.max(0, (S[key] ?? 0) - 1);
   } else if (kind === 'team') {
