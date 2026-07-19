@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Daily Challenge Archive — Can You Go 82-0? NBA Draft Challenges</title>
+  <meta name="description" content="Every day the 82-0 NBA team generator deals the whole world the same draft board and one special rule. Browse recent daily challenges and every challenge type — era locks, banned teams, and locked-legend builds." />
+  <link rel="canonical" href="https://canyougo820.com/daily.html" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+
+  <!-- Open Graph -->
+  <meta property="og:type"        content="website" />
+  <meta property="og:site_name"   content="Can You Go 82-0?" />
+  <meta property="og:url"         content="https://canyougo820.com/daily.html" />
+  <meta property="og:title"       content="Daily Challenge Archive — Can You Go 82-0?" />
+  <meta property="og:description" content="One shared NBA draft board per day, one attempt, one special rule. Browse the challenge archive." />
+  <meta property="og:image"       content="https://canyougo820.com/og-image.png" />
+
+  <!-- Fonts (same as the game; falls back to system fonts if blocked) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;500;600;700;900&display=swap" rel="stylesheet" />
+
+  <!-- Apply saved theme before first paint to prevent flash -->
+  <script>
+    try { if (localStorage.getItem('nba820_theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark'); } catch(e){}
+  </script>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <section class="seo-content">
+    <div class="seo-inner">
+      <h1>🗓️ Daily Challenge Archive</h1>
+      <p>
+        Once a day — at midnight UTC — <strong>Can You Go 82-0?</strong> deals every player in the
+        world the <strong>same draft board</strong> and one special rule. Same spins, same players,
+        one attempt each. Clear it to build your streak and climb the global daily leaderboard.
+      </p>
+      <p><a class="seo-cta" href="./">▶ Play Today's Challenge</a></p>
+
+      <h3>Recent challenges</h3>
+      <div id="recent-list">
+        <p>Loading the last seven days…</p>
+      </div>
+
+      <h3>How the Daily Challenge works</h3>
+      <ol>
+        <li><strong>One attempt per day.</strong> The day locks once you simulate your season — make the draft count.</li>
+        <li><strong>Everyone gets the same board.</strong> The draft wheel is seeded by the date, so your spins match every other player's on Earth.</li>
+        <li><strong>One special rule per day</strong> — a draft constraint, a season objective, or a locked legend to build around (all listed below).</li>
+        <li><strong>Streaks &amp; leaderboards.</strong> Consecutive clears grow your 🔥 streak, and every run posts to that day's global leaderboard.</li>
+        <li><strong>Resets at midnight UTC.</strong> A new challenge and a fresh board every day.</li>
+      </ol>
+
+      <h3>Draft constraints — rules that shape who you can pick</h3>
+      <div class="challenge-card"><span class="emoji">📼</span><div><p class="title">'90s Night</p><p class="desc">Only 1990s players — win 55+ games.</p></div></div>
+      <div class="challenge-card"><span class="emoji">💿</span><div><p class="title">Y2K Ball</p><p class="desc">Only 2000s players — win 55+ games.</p></div></div>
+      <div class="challenge-card"><span class="emoji">🎩</span><div><p class="title">Old School</p><p class="desc">Pre-1990 players only (60s–80s) — win 50+ games.</p></div></div>
+      <div class="challenge-card"><span class="emoji">🚀</span><div><p class="title">Modern Era</p><p class="desc">Only 2010s and 2020s players — win 55+ games.</p></div></div>
+      <div class="challenge-card"><span class="emoji">👎</span><div><p class="title">Boos Only</p><p class="desc">Total roster fans under 300 — win 50+ games.</p></div></div>
+      <div class="challenge-card"><span class="emoji">🙅</span><div><p class="title">Flyover Hoops</p><p class="desc">No Lakers, no Celtics — win 60+ games.</p></div></div>
+
+      <h3>Season objectives — draft anyone, hit the target</h3>
+      <div class="challenge-card"><span class="emoji">🎯</span><div><p class="title">65-Win Season</p><p class="desc">Any roster — win at least 65 games.</p></div></div>
+      <div class="challenge-card"><span class="emoji">🏔️</span><div><p class="title">Air Rare</p><p class="desc">Any roster — win at least 70 games.</p></div></div>
+      <div class="challenge-card"><span class="emoji">🔥</span><div><p class="title">Bucket Getter</p><p class="desc">A starter must average 30+ PPG this season — and win 50+ games.</p></div></div>
+      <div class="challenge-card"><span class="emoji">🖐️</span><div><p class="title">Swat Team</p><p class="desc">Your five must combine for 8+ blocks per game — and win 50+ games.</p></div></div>
+      <div class="challenge-card"><span class="emoji">🧪</span><div><p class="title">Chemistry Class</p><p class="desc">Reach 85+ team chemistry and win 55+ games.</p></div></div>
+      <div class="challenge-card"><span class="emoji">⚡</span><div><p class="title">Wire to Wire</p><p class="desc">Put together a 20-game win streak at some point in the season.</p></div></div>
+
+      <h3>Locked-legend builds — one superstar is pre-drafted for you</h3>
+      <div class="challenge-card"><span class="emoji">🪓</span><div><p class="title">Shaq Attack</p><p class="desc">Shaquille O'Neal ('94 Magic) is locked at center. Build around him — win 60+ games.</p></div></div>
+      <div class="challenge-card"><span class="emoji">👑</span><div><p class="title">The King's Court</p><p class="desc">LeBron James ('18 Lakers) is locked at small forward. Win 60+ games.</p></div></div>
+      <div class="challenge-card"><span class="emoji">🎩</span><div><p class="title">Showtime</p><p class="desc">Magic Johnson ('87 Lakers) is locked at point guard. Win 60+ games.</p></div></div>
+      <div class="challenge-card"><span class="emoji">🦌</span><div><p class="title">Greek Freak</p><p class="desc">Giannis ('19 Bucks) is locked at power forward. Win 60+ games.</p></div></div>
+
+      <p class="seo-links">
+        <a href="./">← Back to the game</a> &middot;
+        <a href="privacy.html">Privacy</a>
+      </p>
+    </div>
+  </section>
+
+  <!-- Fill "Recent challenges" from the same seeded selector the game uses —
+       past days only (today included), so nothing here can scout tomorrow. -->
+  <script type="module">
+    try {
+      const { loadDatabase }              = await import('./js/data/players.js');
+      const { getDailyChallenge }         = await import('./js/logic/challenge.js');
+      await loadDatabase();
+      const fmt  = ds => new Date(ds + 'T00:00:00Z')
+        .toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+      const rows = [];
+      for (let i = 0; i < 7; i++) {
+        const ds = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
+        const ch = getDailyChallenge(ds);
+        if (!ch) continue;
+        rows.push(`<div class="challenge-card"><span class="emoji">${ch.emoji}</span><div>
+          <p class="title">${ch.title}${i === 0 ? ' — <a href="./">play now</a>' : ''}</p>
+          <p class="desc">${ch.desc}</p></div>
+          <span class="date">${i === 0 ? 'Today' : fmt(ds)}</span></div>`);
+      }
+      if (rows.length) document.getElementById('recent-list').innerHTML = rows.join('');
+    } catch (e) {
+      document.getElementById('recent-list').innerHTML =
+        '<p>Open <a href="./">the game</a> to see today’s challenge.</p>';
+    }
+  </script>
+
+</body>
+</html>

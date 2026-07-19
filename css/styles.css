@@ -1670,3 +1670,51 @@ body {
   box-shadow: 0 6px 24px var(--shadow);
   background: var(--card) !important;
 }
+
+/* ── Static SEO content (index.html below-game guide + daily.html archive) ──
+   Plain CSS on the shared theme tokens — deliberately not Tailwind classes,
+   so these crawlable pages need no tailwind.css rebuild. */
+.seo-content {
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--fg);
+  padding: 48px 20px 40px;
+  line-height: 1.65;
+}
+.seo-inner { max-width: 760px; margin: 0 auto; }
+.seo-content h1, .seo-content h2 {
+  font-size: 22px; font-weight: 900; letter-spacing: -0.01em; margin: 0 0 12px;
+}
+.seo-content h3 { font-size: 16px; font-weight: 700; margin: 28px 0 10px; }
+.seo-content p, .seo-content li { font-size: 14.5px; color: var(--muted-fg); }
+.seo-content p strong, .seo-content li strong { color: var(--fg); }
+.seo-content ol { padding-left: 22px; margin: 0 0 8px; }
+.seo-content ol li { margin-bottom: 6px; }
+.seo-content a { color: var(--primary); font-weight: 600; text-decoration: none; }
+.seo-content a:hover { text-decoration: underline; }
+.seo-faq details {
+  border: 1px solid var(--border); border-radius: 12px;
+  background: var(--card); padding: 12px 16px; margin-bottom: 8px;
+}
+.seo-faq summary {
+  font-size: 14.5px; font-weight: 700; color: var(--fg);
+  cursor: pointer; list-style-position: inside;
+}
+.seo-faq details p { margin: 10px 0 2px; }
+.seo-links { margin-top: 28px; font-size: 13px; }
+/* daily.html challenge cards */
+.challenge-card {
+  display: flex; gap: 12px; align-items: flex-start;
+  border: 1px solid var(--border); border-radius: 12px;
+  background: var(--card); padding: 12px 16px; margin-bottom: 8px;
+}
+.challenge-card .emoji { font-size: 22px; line-height: 1.2; }
+.challenge-card .title { font-size: 14.5px; font-weight: 700; color: var(--fg); margin: 0; }
+.challenge-card .desc  { font-size: 13.5px; color: var(--muted-fg); margin: 2px 0 0; }
+.challenge-card .date  { margin-left: auto; font-size: 12px; color: var(--muted); white-space: nowrap; }
+.seo-cta {
+  display: inline-block; margin: 6px 0 24px; padding: 12px 22px;
+  border-radius: 12px; background: var(--primary); color: var(--primary-fg) !important;
+  font-weight: 800; font-size: 14px; letter-spacing: 0.02em;
+}
+.seo-cta:hover { text-decoration: none; opacity: 0.92; }
