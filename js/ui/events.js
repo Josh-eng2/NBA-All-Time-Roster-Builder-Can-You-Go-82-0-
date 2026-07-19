@@ -31,7 +31,7 @@ import {
 } from '../utils/storage.js';
 import { submitGlobalScore, submitDailyScore, logAnalyticsEvent, isFirebaseConfigured } from '../utils/firebase.js';
 import { cgGetItem, cgSetItem } from '../utils/crazygames.js';
-import { gdShowAd } from '../utils/gamedistribution.js';
+import { gdShowAd, gdShowRewardedAd } from '../utils/gamedistribution.js';
 import { buildShareCardBlob, buildShareCaption } from './shareCard.js';
 import { getDailyChallenge, checkPickLegal, evaluateObjective, dailyScore } from '../logic/challenge.js';
 import { pickDynastyForPlay, dynastyDuelScore } from '../logic/dynastyDuel.js';
@@ -204,6 +204,7 @@ function dispatch(action) {
   if (action === 'spin')         { doSpin();       return; }
   if (action === 'skip-team')    { doSkipTeam();   return; }
   if (action === 'skip-decade')  { doSkipDecade(); return; }
+  if (action === 'watch-ad-skips') { doWatchAdForSkips(); return; }
   if (action.startsWith('draft-pick-')) {
     if (S.spinState === 'spinning') return;
     const idx = parseInt(action.slice(11), 10);
@@ -539,6 +540,31 @@ function doSkipDecade() {
   if (!pool.length) { showToast(`No other era has ${S.currentSpin.team} players left`); render(); return; }
   useSkip('decade');
   animateSkipReveal({ team: S.currentSpin.team, decade: pick(pool) }, false, true);
+}
+
+// GameDistribution rewarded ad → +1 team & +1 era skip, once per draft.
+// Only offered where skips exist by design: daily and dynasty-duel zero
+// their budgets to keep boards fair, so no ad top-up there.
+let _rewardedAdBusy = false;
+async function doWatchAdForSkips() {
+  if (_rewardedAdBusy || S.adSkipsEarned) return;
+  if (S.mode === 'daily' || S.mode === 'dynasty-duel') return;
+  _rewardedAdBusy = true;
+  const watched = await gdShowRewardedAd();
+  _rewardedAdBusy = false;
+  if (!watched) { showToast('No ad available right now — try again later'); return; }
+  S.adSkipsEarned = true;
+  if (S.mode === '1v1' || S.mode === 'gm-ai') {
+    const k = `p${S.currentPlayer}`;
+    S[`${k}TeamSkips`]   = (S[`${k}TeamSkips`]   ?? 0) + 1;
+    S[`${k}DecadeSkips`] = (S[`${k}DecadeSkips`] ?? 0) + 1;
+  } else {
+    S.teamSkips   = (S.teamSkips   ?? 0) + 1;
+    S.decadeSkips = (S.decadeSkips ?? 0) + 1;
+  }
+  logAnalyticsEvent('rewarded_ad_skips', { mode: S.mode });
+  showToast('🎬 Reward earned — +1 Team Skip, +1 Era Skip!');
+  render();
 }
 
 function placePlayer(pos) {

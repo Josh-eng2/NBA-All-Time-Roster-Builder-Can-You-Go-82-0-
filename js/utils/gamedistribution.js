@@ -22,3 +22,32 @@ function ready() {
 export function gdShowAd() {
   if (ready()) gdsdk.showAd();
 }
+
+/** True when rewarded ads can even be attempted (i.e. gdsdk is live) —
+ *  gates the "watch ad" button so it never renders on other platforms. */
+export function gdRewardedAvailable() {
+  return ready();
+}
+
+// GD fires SDK_REWARDED_WATCH_COMPLETE through the GD_OPTIONS.onEvent hook
+// in index.html, which relays it here as a DOM event. The reward is granted
+// only when BOTH the showAd promise resolves and this event fired — per GD's
+// own guidance, a resolved promise alone can mean a skipped/errored ad.
+let _rewardedWatched = false;
+window.addEventListener('gd-rewarded-complete', () => { _rewardedWatched = true; });
+
+/**
+ * Preloads and shows a rewarded ad. Resolves true only when the viewer
+ * watched it to completion; false on no-fill, error, or early close.
+ */
+export async function gdShowRewardedAd() {
+  if (!ready() || typeof gdsdk.preloadAd !== 'function') return false;
+  _rewardedWatched = false;
+  try {
+    await gdsdk.preloadAd('rewarded');
+    await gdsdk.showAd('rewarded');
+  } catch (_) {
+    return false;
+  }
+  return _rewardedWatched;
+}

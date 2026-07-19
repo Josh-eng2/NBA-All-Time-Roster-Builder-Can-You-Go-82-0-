@@ -22,6 +22,11 @@
             break;
           case "SDK_GAME_START":
             break;
+          case "SDK_REWARDED_WATCH_COMPLETE":
+            // Relayed to js/utils/gamedistribution.js, which grants the
+            // reward only after this confirms a full watch.
+            window.dispatchEvent(new Event("gd-rewarded-complete"));
+            break;
         }
       }
     };
