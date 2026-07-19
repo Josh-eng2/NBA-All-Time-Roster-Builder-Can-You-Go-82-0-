@@ -2,7 +2,7 @@
  * js/utils/crazygames.js — CrazyGames HTML5 SDK v2 integration
  *
  * Depends on the SDK script tag in index.html:
- *   <script src="https://sdk.crazygames.com/crazygames-sdk-v2.js"></script>
+ *   <script src="https://sdk.crazygames.com/crazygames-sdk-v2.js" async …>
  *
  * The SDK reports one of three environments via getEnvironment():
  *   'crazygames' — embedded in the CrazyGames iframe
@@ -16,6 +16,21 @@
 
 const envPromise = (async () => {
   try {
+    // The SDK <script> is async so it can't block first paint or hang the
+    // page when its CDN is unreachable (see index.html). That means it may
+    // still be in flight when this module evaluates — wait for its
+    // load/error, with flags for the already-settled cases and a timeout so
+    // the game can never be held hostage by a slow SDK fetch.
+    if (!window.CrazyGames?.SDK && !window.__cgSdkFailed && !window.__cgSdkLoaded) {
+      const tag = document.getElementById('cg-sdk');
+      if (tag) {
+        await new Promise(resolve => {
+          tag.addEventListener('load',  resolve, { once: true });
+          tag.addEventListener('error', resolve, { once: true });
+          setTimeout(resolve, 5000);
+        });
+      }
+    }
     if (!window.CrazyGames?.SDK?.getEnvironment) return 'disabled';
     return await window.CrazyGames.SDK.getEnvironment();
   } catch (_) {
@@ -30,37 +45,48 @@ async function isActive() {
 
 /** Call as early as possible — right when the game starts loading. */
 export async function cgLoadingStart() {
-  if (await isActive()) window.CrazyGames.SDK.game.loadingStart();
+  try {
+    if (await isActive()) window.CrazyGames.SDK.game.loadingStart();
+  } catch (_) { /* SDK stub incomplete outside CrazyGames */ }
 }
 
 /** Call once the game is first playable (first real frame rendered). */
 export async function cgLoadingStop() {
-  if (await isActive()) window.CrazyGames.SDK.game.loadingStop();
+  try {
+    if (await isActive()) window.CrazyGames.SDK.game.loadingStop();
+  } catch (_) { /* SDK stub incomplete outside CrazyGames */ }
 }
 
 /** Call whenever the player starts or resumes active play. */
 export async function cgGameplayStart() {
-  if (await isActive()) window.CrazyGames.SDK.game.gameplayStart();
+  try {
+    if (await isActive()) window.CrazyGames.SDK.game.gameplayStart();
+  } catch (_) { /* SDK stub incomplete outside CrazyGames */ }
 }
 
 /** Call on every break from active play (menus, results, pauses). */
 export async function cgGameplayStop() {
-  if (await isActive()) window.CrazyGames.SDK.game.gameplayStop();
+  try {
+    if (await isActive()) window.CrazyGames.SDK.game.gameplayStop();
+  } catch (_) { /* SDK stub incomplete outside CrazyGames */ }
 }
 
 /**
- * Requests a midgame ad at a natural break point (e.g. after simulating a
- * season, before advancing to the playoffs). No-ops outside CrazyGames.
- * Ads stay disabled during Basic Launch review regardless of this call —
- * this just wires the hook up ahead of time for when ads are enabled.
+ * Requests a midgame ad at a natural break point. `onDone` fires when the ad
+ * finishes, errors, or (outside CrazyGames) immediately — callers gate the
+ * next beat of gameplay on it (e.g. doSimulate holds the season reveal until
+ * the ad is out of the way) so an ad never plays over live animation.
+ * Ads stay disabled during Basic Launch review regardless of this call.
  */
-export async function cgRequestMidgameAd() {
-  if (!(await isActive())) return;
-  window.CrazyGames.SDK.ad.requestAd('midgame', {
-    adFinished: () => {},
-    adError:    () => {},
-    adStarted:  () => {},
-  });
+export async function cgRequestMidgameAd(onDone = () => {}) {
+  if (!(await isActive())) { onDone(); return; }
+  try {
+    window.CrazyGames.SDK.ad.requestAd('midgame', {
+      adFinished: onDone,
+      adError:    onDone,
+      adStarted:  () => {},
+    });
+  } catch (_) { onDone(); }
 }
 
 // ── Data module (progress save) ───────────────────────────────────────────
@@ -77,24 +103,35 @@ export async function initCrazyGamesData() {
 }
 
 function usingCgData() {
-  return _dataEnv === 'crazygames' || _dataEnv === 'local';
+  // CrazyGames' local SDK stub reports env 'local' but does not ship the
+  // Data module — only the real iframe runtime has SDK.data. Fall back to
+  // localStorage whenever the module is missing so localhost (and any
+  // incomplete stub) still persists progress / daily locks.
+  return (_dataEnv === 'crazygames' || _dataEnv === 'local')
+    && !!window.CrazyGames?.SDK?.data;
 }
 
 /** Drop-in replacement for localStorage.getItem — routes through the
  *  CrazyGames Data Module when embedded there, else plain localStorage. */
 export function cgGetItem(key) {
-  if (usingCgData()) return window.CrazyGames.SDK.data.getItem(key);
+  if (usingCgData()) {
+    try { return window.CrazyGames.SDK.data.getItem(key); } catch (_) { /* fall through */ }
+  }
   try { return localStorage.getItem(key); } catch (_) { return null; }
 }
 
 /** Drop-in replacement for localStorage.setItem. */
 export function cgSetItem(key, value) {
-  if (usingCgData()) { window.CrazyGames.SDK.data.setItem(key, value); return; }
+  if (usingCgData()) {
+    try { window.CrazyGames.SDK.data.setItem(key, value); return; } catch (_) { /* fall through */ }
+  }
   localStorage.setItem(key, value);
 }
 
 /** Drop-in replacement for localStorage.removeItem. */
 export function cgRemoveItem(key) {
-  if (usingCgData()) { window.CrazyGames.SDK.data.removeItem(key); return; }
+  if (usingCgData()) {
+    try { window.CrazyGames.SDK.data.removeItem(key); return; } catch (_) { /* fall through */ }
+  }
   try { localStorage.removeItem(key); } catch (_) {}
 }

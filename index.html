@@ -3,10 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <!-- CrazyGames HTML5 v2 SDK — loaded first so window.CrazyGames exists
-       before js/main.js calls into js/utils/crazygames.js. No-ops (via
-       environment detection) when not running on crazygames.com. -->
-  <script src="https://sdk.crazygames.com/crazygames-sdk-v2.js"></script>
+  <!-- CrazyGames HTML5 v2 SDK — async so it can't block first paint, and so
+       a unreachable CDN can't hang the page. crazygames.js waits (bounded)
+       on load/error via #cg-sdk + window.__cgSdk* flags. No-ops via
+       environment detection when not running on crazygames.com. -->
+  <script src="https://sdk.crazygames.com/crazygames-sdk-v2.js" async id="cg-sdk"
+    onload="window.__cgSdkLoaded=1" onerror="window.__cgSdkFailed=1"></script>
   <title>Can You Go 82-0? NBA All-Time Roster Builder &amp; Season Simulator</title>
   <meta name="description" content="Can you go 82-0? Draft an all-time NBA roster from legends across every era, pick your coach, and run the season simulator to chase a perfect 82-0 record. Free to play in your browser." />
   <meta name="keywords" content="82-0, can you go 82-0, NBA simulator, NBA season simulator, NBA roster builder, all-time NBA team, basketball simulator, NBA all-time roster, fantasy NBA draft" />

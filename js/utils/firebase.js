@@ -93,7 +93,8 @@
  *                      && request.resource.data.score is number
  *                      && request.resource.data.score ==
  *                           request.resource.data.wins * 10
- *                           + (request.resource.data.passed ? 200 : 0);
+ *                           + (request.resource.data.passed ? 200 : 0)
+ *                      && request.resource.data.timestamp == request.time;
  *        allow update, delete: if false;
  *      }
  *
@@ -116,19 +117,13 @@
  *
  * Exports:
  *   isFirebaseConfigured()      — true only when real credentials are present
+ *   logAnalyticsEvent(name, p)  — fire-and-forget; queues until the SDK loads
  *   submitGlobalScore(entry)    — writes one document to 'leaderboard'
  *   fetchLeaderboard(filter)    — reads top entries; filter: 'alltime' | '24h' | 'weekly'
  *   submitDailyScore(entry)     — writes one document to 'dailyLeaderboard'
  *   fetchDailyLeaderboard(date) — reads top entries for a 'YYYY-MM-DD' day
  *   fetchDailyCommunityStats(date) — { attempts, passed, pct } for the day's board
  */
-
-import { initializeApp, getApps }   from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js';
-import {
-  getFirestore, collection, addDoc, getDocs,
-  query, orderBy, limit, where, serverTimestamp, Timestamp,
-} from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js';
-import { getAnalytics, logEvent } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-analytics.js';
 
 // ── Firebase project config ────────────────────────────────────────────────────
 const FIREBASE_CONFIG = {
@@ -149,39 +144,62 @@ export function isFirebaseConfigured() {
       && FIREBASE_CONFIG.projectId !== 'YOUR_PROJECT_ID';
 }
 
-// ── Singleton app / Firestore / Analytics instances ───────────────────────────
+// ── Lazy SDK loader ───────────────────────────────────────────────────────────
+// Dynamic import() keeps this module off the critical ES-module graph: a
+// failed gstatic fetch must never brick the whole game on an infinite spinner.
 
-let _db        = null;
-let _analytics = null;
+const SDK_BASE = 'https://www.gstatic.com/firebasejs/10.12.4';
 
-// Initialize the Firebase app and Analytics eagerly at module load so that
-// session tracking and page-view events fire immediately on page open.
-const _app = (() => {
-  if (!isFirebaseConfigured()) return null;
-  try {
-    const existing = getApps();
-    const app = existing.length ? existing[0] : initializeApp(FIREBASE_CONFIG);
-    try { _analytics = getAnalytics(app); } catch (_) { /* blocked by adblocker */ }
-    return app;
-  } catch (_) { return null; }
-})();
+let _loadPromise = null; // resolves to { fs, db } or null (unavailable)
+let _analytics   = null;
+let _logEvent    = null;
 
-function getDb() {
-  if (_db) return _db;
-  if (!_app) return null;
-  _db = getFirestore(_app);
-  return _db;
+function loadFirebase() {
+  if (_loadPromise) return _loadPromise;
+  _loadPromise = (async () => {
+    if (!isFirebaseConfigured()) return null;
+    try {
+      const [appMod, fsMod] = await Promise.all([
+        import(`${SDK_BASE}/firebase-app.js`),
+        import(`${SDK_BASE}/firebase-firestore.js`),
+      ]);
+      const existing = appMod.getApps();
+      const app = existing.length ? existing[0] : appMod.initializeApp(FIREBASE_CONFIG);
+      const db = fsMod.getFirestore(app);
+      try {
+        const aMod = await import(`${SDK_BASE}/firebase-analytics.js`);
+        _analytics = aMod.getAnalytics(app);
+        _logEvent  = aMod.logEvent;
+      } catch (_) { /* blocked by adblocker / offline */ }
+      return { fs: fsMod, db };
+    } catch (_) {
+      return null; // SDK unreachable — leaderboards degrade, game boots fine
+    }
+  })();
+  return _loadPromise;
 }
 
+// Kick the download off eagerly (non-blocking) so analytics is usually warm
+// before the first leaderboard call. Failure is absorbed by loadFirebase().
+loadFirebase();
+
 /**
- * Logs a Firebase Analytics event. Silently no-ops if Analytics is blocked.
+ * Logs a Firebase Analytics event. Fire-and-forget: queues behind the SDK
+ * load and silently no-ops if Analytics is blocked or the SDK never loads.
  * @param {string} eventName
  * @param {object} [params]
  */
 export function logAnalyticsEvent(eventName, params = {}) {
-  try {
-    if (_analytics) logEvent(_analytics, eventName, params);
-  } catch (_) { /* silently ignore */ }
+  loadFirebase().then(() => {
+    try { if (_analytics && _logEvent) _logEvent(_analytics, eventName, params); } catch (_) {}
+  });
+}
+
+async function requireFirestore() {
+  if (!isFirebaseConfigured()) throw new Error('Firebase not configured — see js/utils/firebase.js setup instructions');
+  const loaded = await loadFirebase();
+  if (!loaded) throw new Error('Leaderboard unavailable — check your connection.');
+  return loaded;
 }
 
 // ── Public API ────────────────────────────────────────────────────────────────
@@ -206,12 +224,11 @@ export function logAnalyticsEvent(eventName, params = {}) {
  * @returns {Promise<string>} Firestore document ID
  */
 export async function submitGlobalScore(entry) {
-  if (!isFirebaseConfigured()) throw new Error('Firebase not configured — see js/utils/firebase.js setup instructions');
   const wins = entry.wins ?? 0;
   if (wins < 0 || wins > 82) throw new Error('Invalid wins value');
-  const db  = getDb();
-  const col = collection(db, 'leaderboard');
-  const ref = await addDoc(col, {
+  const { fs, db } = await requireFirestore();
+  const col = fs.collection(db, 'leaderboard');
+  const ref = await fs.addDoc(col, {
     teamName:    (entry.teamName || 'Untitled Team').slice(0, 30),
     wins:         entry.wins        ?? 0,
     losses:       entry.losses      ?? 0,
@@ -226,7 +243,7 @@ export async function submitGlobalScore(entry) {
     // roster can never fail the whole write.
     starters:    (entry.starters    ?? '').slice(0, 100),
     timestampMs:  entry.timestampMs ?? 0,
-    timestamp:    serverTimestamp(),
+    timestamp:    fs.serverTimestamp(),
     // ── FUTURE: per-run stat leaders on the GLOBAL board ──────────────────
     // Per-player season stats already persist to the LOCAL leaderboard
     // (storage.js → packLeaders). To surface leaders globally too, add:
@@ -248,27 +265,26 @@ export async function submitGlobalScore(entry) {
  * @returns {Promise<object[]>}
  */
 export async function fetchLeaderboard(filter = 'alltime') {
-  if (!isFirebaseConfigured()) throw new Error('Firebase not configured — see js/utils/firebase.js setup instructions');
-  const db  = getDb();
-  const col = collection(db, 'leaderboard');
+  const { fs, db } = await requireFirestore();
+  const col = fs.collection(db, 'leaderboard');
 
   let q;
   if (filter === 'alltime') {
-    q = query(col, orderBy('wins', 'desc'), limit(10));
+    q = fs.query(col, fs.orderBy('wins', 'desc'), fs.limit(10));
   } else {
     const msInDay = 24 * 60 * 60 * 1000;
     // Filter on `timestamp` (server-stamped via serverTimestamp()), not the
     // client-reported `timestampMs` — this keeps the window authoritative
     // regardless of the reading device's own clock.
-    const cutoff = Timestamp.fromMillis(Date.now() - (filter === '24h' ? msInDay : 7 * msInDay));
+    const cutoff = fs.Timestamp.fromMillis(Date.now() - (filter === '24h' ? msInDay : 7 * msInDay));
     // Same-field where + orderBy — no composite index required. The window is
     // fetched newest-first then re-sorted by wins client-side, so the limit
     // bounds how many recent entries the top-10 is drawn from; 250 keeps a
     // busy week from dropping high-win runs off the board.
-    q = query(col, where('timestamp', '>', cutoff), orderBy('timestamp', 'desc'), limit(250));
+    q = fs.query(col, fs.where('timestamp', '>', cutoff), fs.orderBy('timestamp', 'desc'), fs.limit(250));
   }
 
-  const snap    = await getDocs(q);
+  const snap    = await fs.getDocs(q);
   const entries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   if (filter !== 'alltime') entries.sort((a, b) => b.wins - a.wins);
   return entries.slice(0, 10);
@@ -292,13 +308,12 @@ export async function fetchLeaderboard(filter = 'alltime') {
  * @returns {Promise<string>} Firestore document ID
  */
 export async function submitDailyScore(entry) {
-  if (!isFirebaseConfigured()) throw new Error('Firebase not configured — see js/utils/firebase.js setup instructions');
   const wins = entry.wins ?? 0;
   if (wins < 0 || wins > 82) throw new Error('Invalid wins value');
   if (!/^\d{4}-\d{2}-\d{2}$/.test(entry.date || '')) throw new Error('Invalid date');
-  const db  = getDb();
-  const col = collection(db, 'dailyLeaderboard');
-  const ref = await addDoc(col, {
+  const { fs, db } = await requireFirestore();
+  const col = fs.collection(db, 'dailyLeaderboard');
+  const ref = await fs.addDoc(col, {
     date:         entry.date,
     teamName:    (entry.teamName || 'Untitled Team').slice(0, 30),
     wins:         entry.wins        ?? 0,
@@ -309,7 +324,7 @@ export async function submitDailyScore(entry) {
     chemScore:    entry.chemScore   ?? 0,
     starters:    (entry.starters    ?? '').slice(0, 100),
     timestampMs:  entry.timestampMs ?? 0,
-    timestamp:    serverTimestamp(),
+    timestamp:    fs.serverTimestamp(),
     // Day's specific challenge (era rules, rating caps, win targets, …):
     // score = wins*10 + 200 pass bonus — the board's primary sort key.
     challengeId:  (entry.challengeId ?? '').slice(0, 40),
@@ -328,13 +343,16 @@ export async function submitDailyScore(entry) {
  * @returns {Promise<object[]>}
  */
 export async function fetchDailyLeaderboard(date) {
-  if (!isFirebaseConfigured()) throw new Error('Firebase not configured — see js/utils/firebase.js setup instructions');
-  const db  = getDb();
-  const col = collection(db, 'dailyLeaderboard');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date || '')) throw new Error('Invalid date');
+  const { fs, db } = await requireFirestore();
+  const col = fs.collection(db, 'dailyLeaderboard');
   // Single equality filter, no orderBy — needs no composite index. Sorted
   // client-side, same pattern fetchLeaderboard() uses for 24h/weekly.
-  const q    = query(col, where('date', '==', date), limit(500));
-  const snap = await getDocs(q);
+  // 150 caps the read cost per open (Firestore bills per document read).
+  const q    = fs.query(col, fs.where('date', '==', date), fs.limit(150));
+  const snap = await fs.getDocs(q);
+  const dayStart = Date.parse(`${date}T00:00:00Z`);
+  const dayEnd   = dayStart + (24 + 3) * 60 * 60 * 1000; // +3h submit grace
   let entries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
   // Defense-in-depth against hand-forged documents (writes only need the
@@ -343,6 +361,9 @@ export async function fetchDailyLeaderboard(date) {
   // determined by wins + passed (wins*10 + 200 pass bonus), so any row
   // where they disagree was not written by the game. Entries from before
   // the challenge system (no challengeId) keep the plain wins*10 path.
+  // Also drop rows whose SERVER write-time falls outside the claimed UTC
+  // day (+ grace) — a spoofer can claim any `date` string, but
+  // serverTimestamp() can't be forged.
   entries = entries.filter(e => {
     const wins = Number(e.wins);
     if (!Number.isInteger(wins) || wins < 0 || wins > 82) return false;
@@ -350,6 +371,8 @@ export async function fetchDailyLeaderboard(date) {
       const expected = wins * 10 + (e.passed === true ? 200 : 0);
       if (Number(e.score) !== expected) return false;
     }
+    const ms = e.timestamp?.toMillis?.();
+    if (ms == null || ms < dayStart || ms > dayEnd) return false;
     return true;
   });
 
@@ -367,12 +390,11 @@ export async function fetchDailyLeaderboard(date) {
  * @returns {Promise<{ attempts: number, passed: number, pct: number|null }>}
  */
 export async function fetchDailyCommunityStats(date) {
-  if (!isFirebaseConfigured()) throw new Error('Firebase not configured — see js/utils/firebase.js setup instructions');
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date || '')) throw new Error('Invalid date');
-  const db  = getDb();
-  const col = collection(db, 'dailyLeaderboard');
-  const q    = query(col, where('date', '==', date), limit(500));
-  const snap = await getDocs(q);
+  const { fs, db } = await requireFirestore();
+  const col = fs.collection(db, 'dailyLeaderboard');
+  const q    = fs.query(col, fs.where('date', '==', date), fs.limit(150));
+  const snap = await fs.getDocs(q);
   let attempts = 0;
   let passed   = 0;
   for (const d of snap.docs) {
