@@ -40,8 +40,8 @@
     }(document, 'script', 'gamedistribution-jssdk'));
   </script>
   <title>Can You Go 82-0? NBA All-Time Roster Builder &amp; Season Simulator</title>
-  <meta name="description" content="Can you go 82-0? Draft an all-time NBA roster from legends across every era, pick your coach, and run the season simulator to chase a perfect 82-0 record. Free to play in your browser." />
-  <meta name="keywords" content="82-0, can you go 82-0, NBA simulator, NBA season simulator, NBA roster builder, all-time NBA team, basketball simulator, NBA all-time roster, fantasy NBA draft" />
+  <meta name="description" content="Can you go 82-0? Free NBA team generator &amp; roster builder — draft all-time legends from every era, pick your coach, and run the 82-game season simulator to chase a perfect record." />
+  <meta name="keywords" content="82-0, can you go 82-0, 82-0 team generator, NBA team generator, 82-0 NBA team generator, NBA simulator, NBA season simulator, NBA roster builder, all-time NBA team, basketball simulator, NBA all-time roster, fantasy NBA draft" />
   <link rel="canonical" href="https://canyougo820.com/" />
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <meta name="google-site-verification" content="tKkqTKtQA1jcn-yFMIPN76kDNvCafVs3FgYTT7YojnY" />
@@ -143,6 +143,103 @@
 
   <!-- App mount point — all UI is injected here by js/ui/render.js -->
   <div id="app"></div>
+
+  <!-- Crawlable guide & FAQ — static text below the game, outside #app so the
+       app never touches it. Mirrors the FAQPage JSON-LD below. -->
+  <section class="seo-content" id="about">
+    <div class="seo-inner">
+      <h2>The Free 82-0 NBA Team Generator &amp; Roster Builder</h2>
+      <p>
+        <strong>Can You Go 82-0?</strong> is a free browser game built around a simple dare:
+        use the draft wheel — a random NBA team generator that deals you a franchise and an
+        era on every spin — to build an all-time roster of legends, then simulate a full
+        82-game season. Win them all and you've done what no real NBA team ever has:
+        a perfect <strong>82-0</strong>.
+      </p>
+
+      <h3>How to play</h3>
+      <ol>
+        <li><strong>Spin the wheel.</strong> The generator lands on a team + era combo (say, '90s Bulls or 2010s Warriors) and shows you that squad's players.</li>
+        <li><strong>Draft one player</strong> from the board and place him in your lineup. Skips are limited, so spend them wisely.</li>
+        <li><strong>Fill all five positions</strong> — PG, SG, SF, PF, C — balancing star power with team chemistry.</li>
+        <li><strong>Pick your coach.</strong> Each coach boosts a different style of roster.</li>
+        <li><strong>Simulate the 82-game season</strong> and see how far your record carries — then take an unbeaten team into the playoffs.</li>
+      </ol>
+
+      <h3>Frequently asked questions</h3>
+      <div class="seo-faq">
+        <details>
+          <summary>What is Can You Go 82-0?</summary>
+          <p>It's a free NBA roster builder and season simulator. You draft an all-time team of legends from every era using a randomized draft wheel, then simulate an 82-game season. The goal — and the name — is finishing a perfect 82-0.</p>
+        </details>
+        <details>
+          <summary>How does the 82-0 NBA team generator work?</summary>
+          <p>Every spin randomly generates a franchise and a decade (like '80s Celtics or 2000s Spurs), and you draft one player from that combination. Repeat until all five starting spots are filled. No two runs deal the same boards, so every roster is unique.</p>
+        </details>
+        <details>
+          <summary>What's the best team to go 82-0?</summary>
+          <p>Raw star power isn't enough — team chemistry matters. Rosters that spread across eras, pair a rim protector with shooters and a true playmaker, and match the coach's style win more games. A five-GOAT lineup with clashing play styles will drop games a balanced team wouldn't.</p>
+        </details>
+        <details>
+          <summary>What is the Daily Challenge?</summary>
+          <p>Once a day, every player in the world gets the same draft board and the same special rule — era locks, banned franchises, or building around a locked legend. You get one attempt per day, streaks for consecutive clears, and a global daily leaderboard. See the <a href="daily.html">Daily Challenge archive</a> for all the rules.</p>
+        </details>
+        <details>
+          <summary>Is Can You Go 82-0 free?</summary>
+          <p>Yes — completely free, no download, no sign-up. It runs in your browser on any device.</p>
+        </details>
+        <details>
+          <summary>Can I play on my phone?</summary>
+          <p>Yes. The game is fully responsive and plays the same on desktop, tablet, and mobile.</p>
+        </details>
+      </div>
+
+      <p class="seo-links">
+        <a href="daily.html">Daily Challenge archive</a> &middot;
+        <a href="privacy.html">Privacy</a>
+      </p>
+    </div>
+  </section>
+
+  <!-- FAQ rich-result markup — mirrors the visible FAQ above -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What is Can You Go 82-0?",
+        "acceptedAnswer": { "@type": "Answer", "text": "It's a free NBA roster builder and season simulator. You draft an all-time team of legends from every era using a randomized draft wheel, then simulate an 82-game season. The goal — and the name — is finishing a perfect 82-0." }
+      },
+      {
+        "@type": "Question",
+        "name": "How does the 82-0 NBA team generator work?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Every spin randomly generates a franchise and a decade (like '80s Celtics or 2000s Spurs), and you draft one player from that combination. Repeat until all five starting spots are filled. No two runs deal the same boards, so every roster is unique." }
+      },
+      {
+        "@type": "Question",
+        "name": "What's the best team to go 82-0?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Raw star power isn't enough — team chemistry matters. Rosters that spread across eras, pair a rim protector with shooters and a true playmaker, and match the coach's style win more games." }
+      },
+      {
+        "@type": "Question",
+        "name": "What is the Daily Challenge?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Once a day, every player in the world gets the same draft board and the same special rule — era locks, banned franchises, or building around a locked legend. One attempt per day, streaks for consecutive clears, and a global daily leaderboard." }
+      },
+      {
+        "@type": "Question",
+        "name": "Is Can You Go 82-0 free?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes — completely free, no download, no sign-up. It runs in your browser on any device." }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I play on my phone?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. The game is fully responsive and plays the same on desktop, tablet, and mobile." }
+      }
+    ]
+  }
+  </script>
 
   <!-- Single ES-module entry point — all other JS is imported from here -->
   <script type="module" src="js/main.js"></script>
