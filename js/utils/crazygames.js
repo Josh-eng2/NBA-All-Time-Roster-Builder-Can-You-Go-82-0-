@@ -45,22 +45,30 @@ async function isActive() {
 
 /** Call as early as possible — right when the game starts loading. */
 export async function cgLoadingStart() {
-  if (await isActive()) window.CrazyGames.SDK.game.loadingStart();
+  try {
+    if (await isActive()) window.CrazyGames.SDK.game.loadingStart();
+  } catch (_) { /* SDK stub incomplete outside CrazyGames */ }
 }
 
 /** Call once the game is first playable (first real frame rendered). */
 export async function cgLoadingStop() {
-  if (await isActive()) window.CrazyGames.SDK.game.loadingStop();
+  try {
+    if (await isActive()) window.CrazyGames.SDK.game.loadingStop();
+  } catch (_) { /* SDK stub incomplete outside CrazyGames */ }
 }
 
 /** Call whenever the player starts or resumes active play. */
 export async function cgGameplayStart() {
-  if (await isActive()) window.CrazyGames.SDK.game.gameplayStart();
+  try {
+    if (await isActive()) window.CrazyGames.SDK.game.gameplayStart();
+  } catch (_) { /* SDK stub incomplete outside CrazyGames */ }
 }
 
 /** Call on every break from active play (menus, results, pauses). */
 export async function cgGameplayStop() {
-  if (await isActive()) window.CrazyGames.SDK.game.gameplayStop();
+  try {
+    if (await isActive()) window.CrazyGames.SDK.game.gameplayStop();
+  } catch (_) { /* SDK stub incomplete outside CrazyGames */ }
 }
 
 /**
@@ -95,24 +103,35 @@ export async function initCrazyGamesData() {
 }
 
 function usingCgData() {
-  return _dataEnv === 'crazygames' || _dataEnv === 'local';
+  // CrazyGames' local SDK stub reports env 'local' but does not ship the
+  // Data module — only the real iframe runtime has SDK.data. Fall back to
+  // localStorage whenever the module is missing so localhost (and any
+  // incomplete stub) still persists progress / daily locks.
+  return (_dataEnv === 'crazygames' || _dataEnv === 'local')
+    && !!window.CrazyGames?.SDK?.data;
 }
 
 /** Drop-in replacement for localStorage.getItem — routes through the
  *  CrazyGames Data Module when embedded there, else plain localStorage. */
 export function cgGetItem(key) {
-  if (usingCgData()) return window.CrazyGames.SDK.data.getItem(key);
+  if (usingCgData()) {
+    try { return window.CrazyGames.SDK.data.getItem(key); } catch (_) { /* fall through */ }
+  }
   try { return localStorage.getItem(key); } catch (_) { return null; }
 }
 
 /** Drop-in replacement for localStorage.setItem. */
 export function cgSetItem(key, value) {
-  if (usingCgData()) { window.CrazyGames.SDK.data.setItem(key, value); return; }
+  if (usingCgData()) {
+    try { window.CrazyGames.SDK.data.setItem(key, value); return; } catch (_) { /* fall through */ }
+  }
   localStorage.setItem(key, value);
 }
 
 /** Drop-in replacement for localStorage.removeItem. */
 export function cgRemoveItem(key) {
-  if (usingCgData()) { window.CrazyGames.SDK.data.removeItem(key); return; }
+  if (usingCgData()) {
+    try { window.CrazyGames.SDK.data.removeItem(key); return; } catch (_) { /* fall through */ }
+  }
   try { localStorage.removeItem(key); } catch (_) {}
 }
