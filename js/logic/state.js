@@ -169,14 +169,24 @@ export const CPU_TEAMS = [
 
 // ── Utility ───────────────────────────────────────────────────────────────────
 
+// crypto.randomUUID needs a secure context AND Safari 15.4+/Chrome 92+.
+// gameId is only a staleness token for animation timers, so any unique-ish
+// string is an acceptable fallback — never let an old browser brick startGame.
+export const newGameId = () =>
+  (typeof crypto !== 'undefined' && crypto.randomUUID)
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random()}`;
+
 // mulberry32 — fast, deterministic 32-bit PRNG. Powers the Daily Challenge:
-// pick() is the single choke point every draft-random call goes through
-// (team/decade spins, skip re-rolls), so seeding just this one generator
-// off the UTC calendar date makes the entire draft sequence identical for
-// every player who plays that day, with no other call site needing to know
-// about it. Real gameplay (Math.random() elsewhere, e.g. season simulation)
-// is untouched — only which teams/decades/players get OFFERED is seeded,
-// not how a season actually plays out.
+// at daily start (js/ui/events.js mode-daily) pick() is seeded off the UTC
+// date just long enough to PRECOMPUTE the day's five (team, decade) spins
+// from the pristine player pool, then cleared again. Precomputing — rather
+// than leaving the seed live through the draft — is what makes the shared
+// board actually identical for every player: live spins consult
+// usedPlayerIds/draftedPlayerNames, which depend on WHICH players each user
+// drafted, so identical RNG draws could still land on different combos.
+// Real gameplay randomness (season simulation, spin flicker) always uses
+// Math.random().
 function mulberry32(seed) {
   return function () {
     seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
@@ -315,6 +325,8 @@ export function startGame(era = 'all') {
   const p1            = S.p1;
   const dailyChallenge = S.dailyChallenge ?? null; // daily mode context survives the reset
   const dailyDate      = S.dailyDate      ?? null;
+  const dailySpins     = S.dailySpins     ?? null; // precomputed shared board (mode-daily)
+  const dailyAttemptUsed = S.dailyAttemptUsed ?? false;
   const dynastyOpponent = S.dynastyOpponent ?? null;
   // Skips: daily/dynasty-duel = 0; classic-like = 1
   const skipBudget = (mode === 'daily' || mode === 'dynasty-duel') ? 0 : 1;
@@ -331,7 +343,7 @@ export function startGame(era = 'all') {
     seriesResult:     null,
     seriesRevealedCount: 0,
     selectedEra:      era,
-    gameId:           crypto.randomUUID(),
+    gameId:           newGameId(),
     round:            0,
     usedDecades:      [],
     usedPlayerIds:    [],
@@ -364,6 +376,8 @@ export function startGame(era = 'all') {
     // Daily Challenge context (null outside daily runs)
     dailyChallenge,
     dailyDate,
+    dailySpins,
+    dailyAttemptUsed,
     dailyResult: null,       // { pass, pending, detail, streak } — set at sim time
 
     // Dynasty Duel / More Modes extras
@@ -409,7 +423,7 @@ export function startGame1v1() {
     coachPickerOpen: false,
 
     // Shared draft-pool tracking
-    gameId:    crypto.randomUUID(),
+    gameId:    newGameId(),
     usedDecades: [],
     usedPlayerIds: [],
     draftedPlayerNames: new Set(),
