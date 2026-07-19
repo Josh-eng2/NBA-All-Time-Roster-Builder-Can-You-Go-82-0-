@@ -7,6 +7,33 @@
        before js/main.js calls into js/utils/crazygames.js. No-ops (via
        environment detection) when not running on crazygames.com. -->
   <script src="https://sdk.crazygames.com/crazygames-sdk-v2.js"></script>
+  <!-- GameDistribution HTML5 SDK — loaded early so window.gdsdk exists before
+       js/main.js/events.js call into js/utils/gamedistribution.js. Only
+       active when embedded on the GameDistribution network; harmless
+       elsewhere (showAd() calls simply return no fill). -->
+  <script>
+    window.GD_OPTIONS = {
+      gameId: "762d8b4c71364166b6be3905934fd410",
+      onEvent: function (event) {
+        switch (event.name) {
+          case "SDK_GAME_PAUSE":
+            // No audio/real-time loop in this game to pause — GD's ad
+            // overlay covers the screen on its own.
+            break;
+          case "SDK_GAME_START":
+            break;
+        }
+      }
+    };
+    (function (d, s, id) {
+      var js, fjs = d.getElementsByTagName(s)[0];
+      if (d.getElementById(id)) return;
+      js = d.createElement(s);
+      js.id = id;
+      js.src = 'https://html5.api.gamedistribution.com/main.min.js';
+      fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'gamedistribution-jssdk'));
+  </script>
   <title>Can You Go 82-0? NBA All-Time Roster Builder &amp; Season Simulator</title>
   <meta name="description" content="Can you go 82-0? Draft an all-time NBA roster from legends across every era, pick your coach, and run the season simulator to chase a perfect 82-0 record. Free to play in your browser." />
   <meta name="keywords" content="82-0, can you go 82-0, NBA simulator, NBA season simulator, NBA roster builder, all-time NBA team, basketball simulator, NBA all-time roster, fantasy NBA draft" />

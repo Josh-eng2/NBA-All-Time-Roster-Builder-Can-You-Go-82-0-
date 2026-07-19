@@ -31,6 +31,7 @@ import {
 } from '../utils/storage.js';
 import { submitGlobalScore, submitDailyScore, logAnalyticsEvent, isFirebaseConfigured } from '../utils/firebase.js';
 import { cgGetItem, cgSetItem } from '../utils/crazygames.js';
+import { gdShowAd } from '../utils/gamedistribution.js';
 import { buildShareCardBlob, buildShareCaption } from './shareCard.js';
 import { getDailyChallenge, checkPickLegal, evaluateObjective, dailyScore } from '../logic/challenge.js';
 import { pickDynastyForPlay, dynastyDuelScore } from '../logic/dynastyDuel.js';
@@ -181,17 +182,17 @@ function dispatch(action) {
   // Dynasty Duel is unlimited — Restart / new roster are allowed.
   if (action === 'restart') {
     if (S.mode === 'daily') return;
-    confirmLeave(() => { S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; S.dailyChallenge = null; S.dynastyOpponent = null; render(); }); return;
+    confirmLeave(() => { S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; S.dailyChallenge = null; S.dynastyOpponent = null; render(); gdShowAd(); }); return;
   }
   if (action === 'draft-new-roster') {
     if (S.mode === 'daily') return;
-    S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; S.dailyChallenge = null; S.dynastyOpponent = null; render(); return;
+    S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; S.dailyChallenge = null; S.dynastyOpponent = null; render(); gdShowAd(); return;
   }
   if (action === 'view-trophies')    { S.phase = 'trophy-room'; render(); return; }
   if (action === 'view-legends')     { S.legendsReturnPhase = S.phase; S.phase = 'legends'; render(); return; }
   if (action === 'legends-back')     { S.phase = S.legendsReturnPhase || 'mode-select'; render(); return; }
-  if (action === 'back-to-menu')     { S.mode = null; S.phase = 'mode-select'; S.p1 = null; S.dailyChallenge = null; S.dynastyOpponent = null; render(); return; }
-  if (action === 'series-play-again') { S.mode = null; S.phase = 'mode-select'; S.p1 = null; S.seriesResult = null; S.seriesRevealedCount = 0; S.dynastyOpponent = null; render(); return; }
+  if (action === 'back-to-menu')     { S.mode = null; S.phase = 'mode-select'; S.p1 = null; S.dailyChallenge = null; S.dynastyOpponent = null; render(); gdShowAd(); return; }
+  if (action === 'series-play-again') { S.mode = null; S.phase = 'mode-select'; S.p1 = null; S.seriesResult = null; S.seriesRevealedCount = 0; S.dynastyOpponent = null; render(); gdShowAd(); return; }
   if (action === 'begin-series') { S.phase = 'series-sim'; S.seriesRevealedCount = 0; render(); return; }
   if (action === 'sim-next-game') { S.seriesRevealedCount = Math.min((S.seriesRevealedCount || 0) + 1, S.seriesResult.games.length); render(); return; }
   // renderSeriesResult fires its own once-per-series confetti for every mode
