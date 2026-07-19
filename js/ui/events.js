@@ -30,7 +30,7 @@ import {
   saveModeLeaderboard, getDynastyDuelStatus, markDynastyDuelPlayed,
 } from '../utils/storage.js';
 import { submitGlobalScore, submitDailyScore, logAnalyticsEvent, isFirebaseConfigured } from '../utils/firebase.js';
-import { cgGetItem, cgSetItem } from '../utils/crazygames.js';
+import { cgGetItem, cgSetItem, cgRequestMidgameAd } from '../utils/crazygames.js';
 import { gdShowAd, gdShowRewardedAd } from '../utils/gamedistribution.js';
 import { buildShareCardBlob, buildShareCaption } from './shareCard.js';
 import { getDailyChallenge, checkPickLegal, evaluateObjective, dailyScore } from '../logic/challenge.js';
@@ -129,6 +129,8 @@ function dispatch(action) {
     // The day's challenge must be on S BEFORE startGame runs — locked-player
     // challenges pre-fill their star inside the state reset.
     S.dailyChallenge = ch;
+    S.dailySpins = null;
+    S.dailyAttemptUsed = false;
     doStartGame('all');
     // Fixed era + zero skips: every player must draw from the identical
     // decade pool in the identical order for the shared board to hold.
@@ -139,7 +141,25 @@ function dispatch(action) {
     S.eraLocked   = true;
     S.teamSkips   = 0;
     S.decadeSkips = 0;
+    // Precompute all five (team, decade) spins from the PRISTINE pool, then
+    // drop the seed. Live seeded spins consult draft-dependent state
+    // (usedPlayerIds / draftedPlayerNames), so players making different
+    // picks could diverge onto different boards from round 2. Precomputing
+    // once up front makes the shared board unconditional, and means renders
+    // during the spin animation (theme toggle, resize) can't desync anyone
+    // by burning seeded draws.
     seedDailyRng(today);
+    S.dailySpins = [];
+    for (let round = 0; round < 5; round++) {
+      const spin = round === 0 ? spinResultAtLeast('goat')
+                 : round <= 2  ? spinResultAtLeast('star')
+                 : spinResult();
+      if (!spin) break; // defensive — impossible with a populated DB
+      S.dailySpins.push(spin);
+      S.usedDecades.push(spin.decade); // consume the decade exactly as the live draft will
+    }
+    S.usedDecades = []; // the real draft re-consumes them pick by pick
+    clearDailyRng();
     logAnalyticsEvent('daily_started', { challenge: ch.id, date: today });
     render(); return;
   }
@@ -387,6 +407,14 @@ export function doSpin() {
     S.eraPickerOpen = false;
   }
 
+  // Daily Challenge: the first spin commits the attempt. Without this, a
+  // player could scout the shared board via restart/refresh and only lock
+  // on simulate — the attempt itself must be burned when they see the board.
+  if (S.mode === 'daily' && !S.dailyAttemptUsed) {
+    S.dailyAttemptUsed = true;
+    markDailyPlayed({ date: S.dailyDate }); // no record yet — doSimulate overwrites with the result
+  }
+
   S.spinState      = 'spinning';
   S.selectedPlayer = null;
   S.draftBoard     = [];
@@ -421,8 +449,16 @@ export function doSpin() {
       const rigGoat = usePity && (isDualDraft() ? false : S.round === 0);
       const rigStar = usePity && !rigGoat && !isDualDraft() && S.round <= 2;
       const pity    = usePity && !rigGoat && !rigStar && !isDualDraft() && (S.drySpins ?? 0) >= 1;
-      if (pity) logAnalyticsEvent('pity_spin_triggered', { round: S.round + 1 });
-      const spin = rigGoat ? spinResultAtLeast('goat')
+      if (pity && S.mode !== 'daily') logAnalyticsEvent('pity_spin_triggered', { round: S.round + 1 });
+      // Daily Challenge lands on the day's precomputed sequence (same for
+      // every player — see mode-daily in dispatch). The fallback only fires
+      // if this user's earlier picks emptied the predetermined bucket, which
+      // takes drafting its entire pool — effectively unreachable, but never
+      // strand the player on an empty board.
+      const dailySpin = S.mode === 'daily' ? S.dailySpins?.[S.round] : null;
+      const spin = (dailySpin && getAvailablePlayers(dailySpin.team, dailySpin.decade).length > 0)
+        ? dailySpin
+        : rigGoat ? spinResultAtLeast('goat')
         : (rigStar || pity) ? spinResultAtLeast('star')
         : spinResult();
       if (!spin) {
@@ -891,7 +927,9 @@ function doSimulate() {
 
   S.phase = 'season-sim';
   render();
-  runSeasonReveal();
+  // Hold the reveal until the midgame ad finishes (or immediately outside
+  // CrazyGames) so animation never plays under an ad overlay.
+  cgRequestMidgameAd(() => runSeasonReveal());
 }
 
 const STREAK_MILESTONES = [10, 20, 30, 40, 50, 60, 70, 80];

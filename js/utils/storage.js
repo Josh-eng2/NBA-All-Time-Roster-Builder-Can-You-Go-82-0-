@@ -828,9 +828,10 @@ export function getDailyStats() {
   }
 
   // If today's daily is already locked but never recorded into lifetime
-  // stats (upgrade mid-day), fold it in once.
+  // stats (upgrade mid-day), fold it in once — only for finished runs
+  // (wins set). First-spin locks leave wins null until simulate.
   const status = getDailyStatus();
-  if (status.playedToday && status.result && stats.lastPlayedDate !== status.today) {
+  if (status.playedToday && status.result && status.result.wins != null && stats.lastPlayedDate !== status.today) {
     stats.played += 1;
     if (status.result.passed) stats.wins += 1;
     const bin = _binKeyForWins(status.result.wins);
@@ -865,15 +866,22 @@ export function getDailyStats() {
  * used to burn the NEXT day's attempt while leaving the played day unlocked,
  * and credited the streak to the wrong date.
  *
- * @returns {number} the streak after this result
+ * Called with null wins/losses when the attempt is committed (first spin) and
+ * again with the real record at simulate time — the second write overwrites.
+ * First-spin locks must NOT touch streak/stats (those wait for a finished run).
+ *
+ * @returns {number} the streak after this result (0 on a lock-only write)
  */
-export function markDailyPlayed({ date, wins, losses, chemScore, champion, challengeId = null, passed = false, score = 0 }) {
+export function markDailyPlayed({ date, wins = null, losses = null, chemScore = null, champion = false, challengeId = null, passed = false, score = 0 }) {
   const day = (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) ? date : getUtcDateString();
   try {
     cgSetItem(DAILY_KEY, JSON.stringify({
       date: day, wins, losses, chemScore, champion, challengeId, passed, score, at: Date.now(),
     }));
   } catch (e) {}
+
+  // Lock-only write (first spin) — attempt is burned, but no result yet.
+  if (wins == null) return 0;
 
   let streakVal = 0;
   try {

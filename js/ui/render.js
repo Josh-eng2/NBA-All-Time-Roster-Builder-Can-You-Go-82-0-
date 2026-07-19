@@ -6,7 +6,6 @@
  *   $app            — the #app DOM node (shared with events.js)
  *   archetypeBadge  — archetype pill HTML helper
  *   fmtDecadeShort  — "1990s" → "90s"
- *   fmtPlayerLine   — "Jordan (Bulls 90s)"
  *   showToast       — ephemeral bottom toast notification
  */
 
@@ -114,9 +113,6 @@ function calcTeamFans(players) {
 function themeIcon() {
   return isDark() ? '☀️' : '🌙';
 }
-function iconPlus(cls = '') {
-  return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16m8-8H4"/></svg>`;
-}
 
 // ── Public helpers ────────────────────────────────────────────────────────────
 export function archetypeBadge(arch) {
@@ -137,12 +133,6 @@ export function fmtDecadeShort(decade) {
   if (!decade) return '';
   const m = decade.match(/(\d{2})(\d{2})s/);
   return m ? m[2] + 's' : decade;
-}
-
-export function fmtPlayerLine(p) {
-  if (!p) return '—';
-  const era = [p.team, p.decade ? fmtDecadeShort(p.decade) : ''].filter(Boolean).join(' ');
-  return era ? `${p.name} (${era})` : p.name;
 }
 
 // ── Team rating (0–100 overall) display helper ────────────────────────────────
@@ -446,19 +436,23 @@ function renderDailyModeCard() {
   const ch     = getDailyChallenge(getUtcDateString());
   if (status.playedToday) {
     const r = status.result;
+    const hasResult = r && r.wins != null;
     // Recaps written before the challenge system have no `passed` field —
     // treat those as complete with a neutral tick.
-    const tick = !('passed' in r) || r.passed
-      ? `<span style="color:#15803d;font-weight:900" aria-label="Passed">✓</span>`
-      : `<span style="color:#dc2626;font-weight:900" aria-label="Failed">✗</span>`;
+    const tick = !hasResult ? ''
+      : (!('passed' in r) || r.passed
+        ? `<span style="color:#15803d;font-weight:900" aria-label="Passed">✓</span>`
+        : `<span style="color:#dc2626;font-weight:900" aria-label="Failed">✗</span>`);
     return `
     <div class="w-full rounded-2xl bg-white px-3 py-2.5 flex items-center gap-2 mb-3 card-shadow border border-slate-100">
       <span class="text-2xl flex-shrink-0">${ch.emoji}</span>
       <div class="flex-1 min-w-0">
-        <p class="font-black text-sm text-foreground flex flex-wrap items-center gap-x-2 gap-y-1">Daily Challenge ${tick}</p>
-        <p class="text-[11px] text-muted-fg mt-0.5 leading-snug">${ch.title}: you went <span style="color:#f97316;font-weight:700">${r.wins}–${r.losses}</span></p>
+        <p class="font-black text-sm text-foreground flex flex-wrap items-center gap-x-2 gap-y-1">Daily Challenge ${hasResult ? tick : '— Attempt Used'}</p>
+        <p class="text-[11px] text-muted-fg mt-0.5 leading-snug">${hasResult
+          ? `${ch.title}: you went <span style="color:#f97316;font-weight:700">${r.wins}–${r.losses}</span>`
+          : `Today's attempt was started but not finished`}</p>
       </div>
-      <button data-action="open-daily-stats" class="text-[11px] font-bold px-2 py-1.5 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:var(--border);background:var(--card);color:var(--muted-fg)" title="Daily Challenge Stats">Stats</button>
+      ${hasResult ? `<button data-action="open-daily-stats" class="text-[11px] font-bold px-2 py-1.5 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:var(--border);background:var(--card);color:var(--muted-fg)" title="Daily Challenge Stats">Stats</button>` : ''}
       <button data-action="open-daily-leaderboard" class="text-[11px] font-bold px-2 py-1.5 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:var(--border);background:var(--card);color:var(--muted-fg)">Board</button>
     </div>`;
   }
@@ -1041,7 +1035,7 @@ function renderPopularityBar() {
     <div class="h-1.5 rounded-full overflow-hidden bg-border">
       <div class="h-full rounded-full transition-all stat-bar-fill" style="width:${fans.pct}%;background:${fans.barCol}"></div>
     </div>
-    <p class="text-[10px] mt-1.5 text-muted-fg draft-pop-bar__hint">More fans boost home-court advantage in close games</p>
+    <p class="text-[10px] mt-1.5 text-muted-fg draft-pop-bar__hint">Star power adds a small boost in close games</p>
   </div>`;
 }
 
@@ -1181,7 +1175,7 @@ function renderDraftCard(p, index) {
         ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs draft-card-btn" style="background:var(--card2);color:var(--muted);border:1.5px solid var(--border);cursor:not-allowed" ${dailyBlock ? `title="${dailyBlock}"` : ''}>${alreadyOnRoster ? 'Already on Roster' : '🚫 Off-Limits Today'}</button>`
         : `<button data-action="draft-pick-${index}"
             class="w-full py-2 rounded-lg font-bold text-xs transition-all cursor-pointer draft-card-btn"
-            style="background:${isSelected ? 'var(--primary)' : 'var(--card2)'};color:${isSelected ? 'var(--primary-fg)' : 'var(--primary)'};border:1.5px solid ${isSelected ? 'var(--primary)' : '#bfdbfe'}">
+            style="background:${isSelected ? 'var(--primary)' : 'var(--card2)'};color:${isSelected ? 'var(--primary-fg)' : 'var(--primary)'};border:1.5px solid ${isSelected ? 'var(--primary)' : 'var(--border)'}">
             ${pickLabel}
           </button>`
       }
@@ -1213,7 +1207,7 @@ function renderDraftCard(p, index) {
         ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs draft-card-btn" style="background:var(--card2);color:var(--muted);border:1.5px solid var(--border);cursor:not-allowed" ${dailyBlock ? `title="${dailyBlock}"` : ''}>${alreadyOnRoster ? 'Already on Roster' : '🚫 Off-Limits Today'}</button>`
         : `<button data-action="draft-pick-${index}"
             class="w-full py-2 rounded-lg font-bold text-xs transition-all cursor-pointer draft-card-btn"
-            style="background:${isSelected ? 'var(--primary)' : 'var(--card2)'};color:${isSelected ? 'var(--primary-fg)' : 'var(--primary)'};border:1.5px solid ${isSelected ? 'var(--primary)' : '#bfdbfe'}">
+            style="background:${isSelected ? 'var(--primary)' : 'var(--card2)'};color:${isSelected ? 'var(--primary-fg)' : 'var(--primary)'};border:1.5px solid ${isSelected ? 'var(--primary)' : 'var(--border)'}">
             ${pickLabel}
           </button>`
       }
@@ -2296,6 +2290,7 @@ function renderChampionship() {
           <p class="text-sm text-muted-fg mt-2">Regular Season: ${r.wins}–${r.losses} · Seed #${po.playerSeed}</p>
         </div>
         ${renderGlobalSubmitCard(true)}
+        ${renderDailySubmitCard()}
         <div class="flex flex-col gap-3 w-full">
           <button data-action="share" class="py-3 rounded-xl font-bold text-sm bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer card-shadow">Share Championship 🏆</button>
           <button data-action="draft-new-roster" class="py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer card-shadow">Draft New Roster</button>
@@ -2338,6 +2333,7 @@ function renderEliminated() {
           <p class="text-xl font-black text-amber-700">🏆 ${po.championTeam.name}</p>
         </div>` : ''}
         ${renderGlobalSubmitCard(false)}
+        ${renderDailySubmitCard()}
         <div class="flex flex-col gap-3 w-full">
           <button data-action="draft-new-roster" class="py-3 rounded-xl font-bold text-sm bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer card-shadow">Draft New Roster</button>
           <button data-action="share" class="py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer card-shadow">Share Result</button>
@@ -2795,7 +2791,7 @@ function renderSeriesSim() {
 // menu or a results/summary screen — drives the CrazyGames gameplayStart/Stop
 // calls so their platform knows when it's safe to show an ad.
 const CG_GAMEPLAY_PHASES = new Set(['drafting', 'season-sim', 'playoffs', 'series-sim']);
-let _cgGameplayActive = null;
+let _cgGameplayActive = false;
 
 function updateCrazyGamesGameplayState() {
   const active = CG_GAMEPLAY_PHASES.has(S.phase);
