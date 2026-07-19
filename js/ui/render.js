@@ -21,6 +21,7 @@ import { coachSystemProgress }                            from '../logic/simulat
 import { getBracketDisplayState }                         from '../logic/playoffs.js';
 import { markReturning, getCollectedLegends, getDailyStatus } from '../utils/storage.js';
 import { cgGameplayStart, cgGameplayStop, cgGetItem }     from '../utils/crazygames.js';
+import { gdRewardedAvailable }                            from '../utils/gamedistribution.js';
 import { getDailyChallenge, checkPickLegal, checkRosterConstraint } from '../logic/challenge.js';
 import { isDualDraft, seriesLabels, MORE_MODES, fansFirstScore } from '../logic/modes.js';
 import { fetchDailyCommunityStats, isFirebaseConfigured } from '../utils/firebase.js';
@@ -1077,7 +1078,10 @@ function renderSlotMachine() {
       <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Draft Board — ${boardLabel}</p>
       <div class="ml-auto flex gap-1.5">
         ${isDone && skips.team > 0 ? `<button data-action="skip-team" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">Skip Team (${skips.team})</button>` : ''}
-        ${isDone && skips.decade > 0 && !eraLocked ? `<button data-action="skip-decade" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">Skip Era (${skips.decade})</button>` : ''}      </div>
+        ${isDone && skips.decade > 0 && !eraLocked ? `<button data-action="skip-decade" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">Skip Era (${skips.decade})</button>` : ''}
+        ${isDone && skips.team <= 0 && skips.decade <= 0 && !S.adSkipsEarned
+            && S.mode !== 'daily' && S.mode !== 'dynasty-duel' && gdRewardedAvailable()
+          ? `<button data-action="watch-ad-skips" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">🎬 Watch Ad · +2 Skips</button>` : ''}      </div>
     </div>
     <div class="grid grid-cols-2 gap-3 mb-4 draft-slot-machine__grid ${isSpin ? 'slot-spinning' : ''}">
       <div class="rounded-xl border-2 p-4 flex flex-col items-center justify-center draft-slot-machine__cell transition-all"
