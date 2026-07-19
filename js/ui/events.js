@@ -30,6 +30,7 @@ import {
 } from '../utils/storage.js';
 import { submitGlobalScore, submitDailyScore, logAnalyticsEvent, isFirebaseConfigured } from '../utils/firebase.js';
 import { cgGetItem, cgSetItem } from '../utils/crazygames.js';
+import { gdShowAd } from '../utils/gamedistribution.js';
 import { buildShareCardBlob, buildShareCaption } from './shareCard.js';
 import { getDailyChallenge, checkPickLegal, evaluateObjective, dailyScore } from '../logic/challenge.js';
 import {
@@ -137,17 +138,17 @@ function dispatch(action) {
   // can't throw away a bad board and spin again before the day locks.
   if (action === 'restart') {
     if (S.mode === 'daily') return;
-    confirmLeave(() => { S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; S.dailyChallenge = null; render(); }); return;
+    confirmLeave(() => { S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; S.dailyChallenge = null; render(); gdShowAd(); }); return;
   }
   if (action === 'draft-new-roster') {
     if (S.mode === 'daily') return;
-    S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; S.dailyChallenge = null; render(); return;
+    S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; S.dailyChallenge = null; render(); gdShowAd(); return;
   }
   if (action === 'view-trophies')    { S.phase = 'trophy-room'; render(); return; }
   if (action === 'view-legends')     { S.legendsReturnPhase = S.phase; S.phase = 'legends'; render(); return; }
   if (action === 'legends-back')     { S.phase = S.legendsReturnPhase || 'mode-select'; render(); return; }
-  if (action === 'back-to-menu')     { S.mode = null; S.phase = 'mode-select'; S.p1 = null; S.dailyChallenge = null; render(); return; }
-  if (action === 'series-play-again') { S.mode = null; S.phase = 'mode-select'; S.p1 = null; S.seriesResult = null; S.seriesRevealedCount = 0; render(); return; }
+  if (action === 'back-to-menu')     { S.mode = null; S.phase = 'mode-select'; S.p1 = null; S.dailyChallenge = null; render(); gdShowAd(); return; }
+  if (action === 'series-play-again') { S.mode = null; S.phase = 'mode-select'; S.p1 = null; S.seriesResult = null; S.seriesRevealedCount = 0; render(); gdShowAd(); return; }
   if (action === 'begin-series') { S.phase = 'series-sim'; S.seriesRevealedCount = 0; render(); return; }
   if (action === 'sim-next-game') { S.seriesRevealedCount = Math.min((S.seriesRevealedCount || 0) + 1, S.seriesResult.games.length); render(); return; }
   if (action === 'series-to-recap') { S.phase = 'series-result'; render(); return; }
