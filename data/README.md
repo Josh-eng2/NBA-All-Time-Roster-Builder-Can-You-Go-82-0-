@@ -101,6 +101,36 @@ To rebuild after editing sources:
 `python3 scripts/match_2k_overalls.py data/nba2k_2000s_peak_ratings.json --decade 2000s`
 then the usual `inline_players.js` / `validate_players.js` steps.
 
+## `nba2k_1970s_peak_ratings.json`  (+ `nba2k_1970s_sources/`)
+
+Per-player peak NBA 2K overall for the 1970s, same classic/all-time-roster
+methodology as the 1960s file below (Classic Teams, All-Time Teams, All-Decade
+Teams) and the same web-search compilation method — see the 1960s section
+immediately below for the full access-method caveat (2kratings.com's
+Cloudflare protection blocks both direct HTTP and headless-browser automation,
+so this is compiled from attributed search results, not a bulk scrape).
+
+- **Provenance:** `data/nba2k_1970s_sources/2kratings_websearch_compiled.json`,
+  same real-and-attributed-but-not-exhaustive caveat as the 1960s file. A
+  handful of rows reuse a rating from a different team/decade card than the
+  target bucket (e.g. Earl Monroe's number comes from his All-Time Washington
+  Wizards card; no All-Time Knicks card surfaced for his 1971-74 Knicks stint)
+  — each such case is flagged inline in the source file's `source` field.
+- **Coverage:** 50 distinct players matched (58 of the 105 1970s team-era
+  entries in `players.json`). The 47 unmatched entries are mostly complementary
+  pieces on otherwise-legendary rosters that didn't surface an individual 2K
+  classic/all-time card in search — e.g. four of the 1976-77 "Blazer
+  Bunch" title-team rotation (Lionel Hollins, Bob Gross, Larry Steele, Dave
+  Twardzik) and several ABA-then-NBA role players (Roger Brown, Bob Netolicky,
+  Billy Keller).
+- **Consumed by:** `scripts/match_2k_overalls.py --decade 1970s`, isolated to
+  1970s entries only, same as every other decade.
+
+To rebuild after editing sources:
+`python3 scripts/build_1970s_peak_ratings.py` then
+`python3 scripts/match_2k_overalls.py data/nba2k_1970s_peak_ratings.json --decade 1970s`
+then the usual `inline_players.js` / `validate_players.js` steps.
+
 ## `nba2k_1960s_peak_ratings.json`  (+ `nba2k_1960s_sources/`)
 
 Per-player **peak** NBA 2K overall for the 1960s — but unlike the 2000s/2010s
