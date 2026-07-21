@@ -101,6 +101,34 @@ To rebuild after editing sources:
 `python3 scripts/match_2k_overalls.py data/nba2k_2000s_peak_ratings.json --decade 2000s`
 then the usual `inline_players.js` / `validate_players.js` steps.
 
+## `nba2k_1980s_peak_ratings.json`  (+ `nba2k_1980s_sources/`)
+
+Per-player peak NBA 2K overall for the 1980s, same classic/all-time-roster
+methodology and web-search compilation method as the 1960s/1970s files (see
+the 1960s section below for the full access-method caveat).
+
+- **Provenance:** `data/nba2k_1980s_sources/2kratings_websearch_compiled.json`.
+  As with the 1970s file, a couple of rows reuse the most team-appropriate
+  card available rather than a card literally labeled for that decade — e.g.
+  Bill Walton's number comes from his 1985-86 Boston Celtics card (his 1980s
+  team), not his higher All-Time Portland Trail Blazers or All-Decade 1970s
+  numbers, since those represent a different team/decade context.
+- **Coverage:** 69 distinct players matched (77 of the 119 1980s team-era
+  entries in `players.json`) — the highest match rate of any pre-2000s decade
+  so far, as expected: the 1980s produced an unusually large share of 2K's
+  marquee classic/all-time cornerstones (Magic, Bird, Jordan, Isiah, Hakeem,
+  Stockton, Malone, Ewing among them). The 42 unmatched entries are mostly
+  complementary role players (e.g. Andrew Toney, Bobby Jones, Marques Johnson,
+  Mike Gminski) who didn't surface an individual 2K classic/all-time card in
+  search.
+- **Consumed by:** `scripts/match_2k_overalls.py --decade 1980s`, isolated to
+  1980s entries only, same as every other decade.
+
+To rebuild after editing sources:
+`python3 scripts/build_1980s_peak_ratings.py` then
+`python3 scripts/match_2k_overalls.py data/nba2k_1980s_peak_ratings.json --decade 1980s`
+then the usual `inline_players.js` / `validate_players.js` steps.
+
 ## `nba2k_1970s_peak_ratings.json`  (+ `nba2k_1970s_sources/`)
 
 Per-player peak NBA 2K overall for the 1970s, same classic/all-time-roster
