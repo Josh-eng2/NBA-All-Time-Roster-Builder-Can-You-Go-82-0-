@@ -23,6 +23,13 @@ mean and spread and is rank-preserving within each decade; pooling every era
 into the reference (rather than picking one era as "correct") avoids treating
 any single era's rating philosophy as the baseline.
 
+Each decade's percentiles are ceiling-anchored (rescaled by the decade's own
+top percentile) so that every era's peak lands on the shared 99 ceiling —
+without this, an era that stacks several all-time greats at 2K's 99 cap (the
+1980s: Jordan, Magic, Bird, Kareem, Hakeem) would map its very best *below*
+99 while a lone-peak era kept 99, penalizing an era for its depth at the top.
+See the ceiling-anchor comment in main() for the full rationale.
+
 This is purely additive and display/reference-only: twoKOverall, rating,
 ratingRaw, and every stat field are left untouched, and nothing in js/ reads
 this new field yet (rating remains the load-bearing gameplay balance stat).
@@ -91,10 +98,27 @@ def main():
     adjusted_by_decade = {}
     for decade, bucket in by_decade.items():
         sorted_vals = decade_sorted[decade]
+        # Ceiling anchor. Under plain mid-rank, a decade's top-rated players sit
+        # at percentile p_hi < 1.0 — and the more players tie at the top, the
+        # further below 1.0 they're pulled. Left uncorrected, a deep-topped era
+        # maps its very best to *below* the pooled ceiling while a lone-peak era
+        # keeps the ceiling: e.g. the 1980s (five players tied at 2K's 99 cap —
+        # Jordan, Magic, Bird, Kareem, Hakeem) mapped to 98, while single-99
+        # peaks (Wilt '60s, Kareem '70s, LeBron '10s) mapped to 99. That
+        # penalizes an era precisely for having more all-time greats at the cap.
+        # Rescaling each decade's percentiles by its own p_hi puts every era's
+        # peak on the shared ceiling. The floor is deliberately left unanchored:
+        # 2K's 99 cap is a real shared maximum every era can reach, but a
+        # decade's *minimum* only reflects how many role players we scraped for
+        # it (32 in the 1960s vs 146 in the 2010s), not a meaningful 0, so
+        # forcing each era's worst onto the global floor would invent unfairness
+        # at the bottom to fix it at the top. p/p_hi is monotonic and
+        # tie-preserving, so within-era ordering is untouched.
+        p_hi = max(percentile_rank(ovr, sorted_vals) for ovr in bucket.values())
         adjusted = {}
         for name, ovr in bucket.items():
-            p = percentile_rank(ovr, sorted_vals)
-            adjusted[name] = round(pooled_value_at(p, pooled_sorted))
+            p = percentile_rank(ovr, sorted_vals) / p_hi
+            adjusted[name] = round(pooled_value_at(min(1.0, p), pooled_sorted))
         adjusted_by_decade[decade] = adjusted
 
     touched = 0

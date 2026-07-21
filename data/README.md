@@ -31,9 +31,18 @@ same caliber of player.
   2020s being lowest is partly because current players haven't accrued
   legacy/tribute status yet, not only rating-conservatism, so it shouldn't be
   treated as the canonical target either.
-- **Effect:** post-adjustment decade means cluster tightly at 86.6–87.0
-  (vs. the 83.9–91.5 raw spread), and every era's ceiling reads close to 99
-  again instead of 2020s topping out at 97.
+- **Ceiling anchor:** each decade's percentiles are rescaled by that decade's
+  own top percentile, so every era's peak lands on the shared 99 ceiling.
+  Without this, an era stacking several all-time greats at 2K's 99 cap gets
+  penalized for its own depth: under plain mid-rank the 1980s (Jordan, Magic,
+  Bird, Kareem, Hakeem all at 99) mapped to 98 while single-peak eras (Wilt
+  '60s, Kareem '70s, LeBron '10s) kept 99. The floor is left unanchored on
+  purpose — 99 is a real shared cap every era can reach, but a decade's
+  *minimum* only reflects how many role players were scraped for it (32 in the
+  1960s vs 146 in the 2010s), not a meaningful 0.
+- **Effect:** post-adjustment decade means cluster tightly at 86.7–87.2
+  (vs. the 83.9–91.5 raw spread), and every era's ceiling now reads exactly 99
+  — including the 2020s, whose raw top is only 97.
 - **Scope — display/reference only:** this is purely additive. `twoKOverall`,
   `rating`, `ratingRaw`, and every stat field are untouched, and nothing in
   `js/` reads this field — `rating` remains the sole gameplay-facing balance

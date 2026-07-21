@@ -19,7 +19,7 @@
       "rating": 84,
       "ratingRaw": 18.5,
       "twoKOverall": 98,
-      "twoKOverallEraAdjusted": 96
+      "twoKOverallEraAdjusted": 97
     },
     {
       "id": "baylor_68",
@@ -40,7 +40,7 @@
       "rating": 92,
       "ratingRaw": 22.4,
       "twoKOverall": 97,
-      "twoKOverallEraAdjusted": 94
+      "twoKOverallEraAdjusted": 95
     },
     {
       "id": "chamberlain_68",
@@ -278,7 +278,7 @@
       "rating": 92,
       "ratingRaw": 22.3,
       "twoKOverall": 99,
-      "twoKOverallEraAdjusted": 98
+      "twoKOverallEraAdjusted": 99
     },
     {
       "id": "kareem_87",
@@ -299,7 +299,7 @@
       "rating": 82,
       "ratingRaw": 17.9,
       "twoKOverall": 99,
-      "twoKOverallEraAdjusted": 98
+      "twoKOverallEraAdjusted": 99
     },
     {
       "id": "worthy_88",
@@ -360,7 +360,7 @@
       "rating": 69,
       "ratingRaw": 11.3,
       "twoKOverall": 86,
-      "twoKOverallEraAdjusted": 81
+      "twoKOverallEraAdjusted": 82
     },
     {
       "id": "mcadoo_82",
@@ -617,7 +617,7 @@
       "rating": 83,
       "ratingRaw": 18.2,
       "twoKOverall": 92,
-      "twoKOverallEraAdjusted": 91
+      "twoKOverallEraAdjusted": 92
     },
     {
       "id": "odom_04",
@@ -903,7 +903,7 @@
       "rating": 89,
       "ratingRaw": 21,
       "twoKOverall": 95,
-      "twoKOverallEraAdjusted": 97
+      "twoKOverallEraAdjusted": 98
     },
     {
       "id": "davis_23",
@@ -1028,7 +1028,7 @@
       "rating": 96,
       "ratingRaw": 24.5,
       "twoKOverall": 99,
-      "twoKOverallEraAdjusted": 98
+      "twoKOverallEraAdjusted": 99
     },
     {
       "id": "pippen_88",
@@ -1048,7 +1048,7 @@
       "rating": 77,
       "ratingRaw": 15.2,
       "twoKOverall": 97,
-      "twoKOverallEraAdjusted": 96
+      "twoKOverallEraAdjusted": 97
     },
     {
       "id": "grant_89",
@@ -1328,7 +1328,7 @@
       "rating": 71,
       "ratingRaw": 12.2,
       "twoKOverall": 83,
-      "twoKOverallEraAdjusted": 83
+      "twoKOverallEraAdjusted": 84
     },
     {
       "id": "hinrich_07",
@@ -1368,7 +1368,7 @@
       "rating": 68,
       "ratingRaw": 10.8,
       "twoKOverall": 84,
-      "twoKOverallEraAdjusted": 84
+      "twoKOverallEraAdjusted": 85
     },
     {
       "id": "brand_02",
@@ -1388,7 +1388,7 @@
       "rating": 84,
       "ratingRaw": 18.6,
       "twoKOverall": 96,
-      "twoKOverallEraAdjusted": 95
+      "twoKOverallEraAdjusted": 96
     },
     {
       "id": "chandler_02",
@@ -1747,7 +1747,7 @@
       "rating": 81,
       "ratingRaw": 17.2,
       "twoKOverall": 94,
-      "twoKOverallEraAdjusted": 93
+      "twoKOverallEraAdjusted": 94
     },
     {
       "id": "monta_09",
@@ -1787,7 +1787,7 @@
       "rating": 76,
       "ratingRaw": 14.7,
       "twoKOverall": 83,
-      "twoKOverallEraAdjusted": 83
+      "twoKOverallEraAdjusted": 84
     },
     {
       "id": "richardson_07",
@@ -2073,7 +2073,7 @@
       "rating": 83,
       "ratingRaw": 18.1,
       "twoKOverall": 95,
-      "twoKOverallEraAdjusted": 97
+      "twoKOverallEraAdjusted": 98
     },
     {
       "id": "thompson_22",
@@ -2196,7 +2196,7 @@
       "rating": 99,
       "ratingRaw": 31.5,
       "twoKOverall": 98,
-      "twoKOverallEraAdjusted": 96
+      "twoKOverallEraAdjusted": 97
     },
     {
       "id": "havlicek_68",
@@ -2455,7 +2455,7 @@
       "rating": 94,
       "ratingRaw": 23.4,
       "twoKOverall": 99,
-      "twoKOverallEraAdjusted": 98
+      "twoKOverallEraAdjusted": 99
     },
     {
       "id": "mchale_87",
@@ -2496,7 +2496,7 @@
       "rating": 84,
       "ratingRaw": 18.5,
       "twoKOverall": 93,
-      "twoKOverallEraAdjusted": 90
+      "twoKOverallEraAdjusted": 92
     },
     {
       "id": "ainge_87",
@@ -2536,7 +2536,7 @@
       "rating": 74,
       "ratingRaw": 13.6,
       "twoKOverall": 84,
-      "twoKOverallEraAdjusted": 79
+      "twoKOverallEraAdjusted": 80
     },
     {
       "id": "walton_86",
@@ -2708,7 +2708,7 @@
       "rating": 82,
       "ratingRaw": 17.7,
       "twoKOverall": 98,
-      "twoKOverallEraAdjusted": 97
+      "twoKOverallEraAdjusted": 98
     },
     {
       "id": "garnett_08",
@@ -2748,7 +2748,7 @@
       "rating": 71,
       "ratingRaw": 12.1,
       "twoKOverall": 92,
-      "twoKOverallEraAdjusted": 91
+      "twoKOverallEraAdjusted": 92
     },
     {
       "id": "rondo_09",
@@ -2994,7 +2994,7 @@
       "rating": 88,
       "ratingRaw": 20.4,
       "twoKOverall": 95,
-      "twoKOverallEraAdjusted": 97
+      "twoKOverallEraAdjusted": 98
     },
     {
       "id": "brown_24",
@@ -3014,7 +3014,7 @@
       "rating": 81,
       "ratingRaw": 17.3,
       "twoKOverall": 92,
-      "twoKOverallEraAdjusted": 95
+      "twoKOverallEraAdjusted": 96
     },
     {
       "id": "white_24",
@@ -3054,7 +3054,7 @@
       "rating": 78,
       "ratingRaw": 15.8,
       "twoKOverall": 87,
-      "twoKOverallEraAdjusted": 90
+      "twoKOverallEraAdjusted": 91
     },
     {
       "id": "holiday_24",
@@ -3075,7 +3075,7 @@
       "rating": 71,
       "ratingRaw": 12.4,
       "twoKOverall": 87,
-      "twoKOverallEraAdjusted": 90
+      "twoKOverallEraAdjusted": 91
     },
     {
       "id": "horford_24",
@@ -3274,7 +3274,7 @@
       "rating": 86,
       "ratingRaw": 19.5,
       "twoKOverall": 98,
-      "twoKOverallEraAdjusted": 97
+      "twoKOverallEraAdjusted": 98
     },
     {
       "id": "shaq_05",
@@ -3335,7 +3335,7 @@
       "rating": 71,
       "ratingRaw": 12.3,
       "twoKOverall": 96,
-      "twoKOverallEraAdjusted": 95
+      "twoKOverallEraAdjusted": 96
     },
     {
       "id": "posey_06",
@@ -3376,7 +3376,7 @@
       "rating": 62,
       "ratingRaw": 8,
       "twoKOverall": 97,
-      "twoKOverallEraAdjusted": 96
+      "twoKOverallEraAdjusted": 97
     }
   ],
   "Heat_2010s": [
@@ -3582,7 +3582,7 @@
       "rating": 84,
       "ratingRaw": 18.5,
       "twoKOverall": 88,
-      "twoKOverallEraAdjusted": 92
+      "twoKOverallEraAdjusted": 93
     },
     {
       "id": "herro_23",
@@ -3704,7 +3704,7 @@
       "rating": 80,
       "ratingRaw": 16.9,
       "twoKOverall": 94,
-      "twoKOverallEraAdjusted": 92
+      "twoKOverallEraAdjusted": 93
     },
     {
       "id": "mitchell_85",
@@ -3800,7 +3800,7 @@
       "rating": 97,
       "ratingRaw": 24.7,
       "twoKOverall": 96,
-      "twoKOverallEraAdjusted": 94
+      "twoKOverallEraAdjusted": 95
     },
     {
       "id": "elliott_95",
@@ -3959,7 +3959,7 @@
       "rating": 73,
       "ratingRaw": 13.2,
       "twoKOverall": 91,
-      "twoKOverallEraAdjusted": 89
+      "twoKOverallEraAdjusted": 90
     },
     {
       "id": "bowen_03",
@@ -4016,7 +4016,7 @@
       "rating": 64,
       "ratingRaw": 9.1,
       "twoKOverall": 83,
-      "twoKOverallEraAdjusted": 83
+      "twoKOverallEraAdjusted": 84
     },
     {
       "id": "nesterovic_04",
@@ -4077,7 +4077,7 @@
       "rating": 81,
       "ratingRaw": 17,
       "twoKOverall": 88,
-      "twoKOverallEraAdjusted": 91
+      "twoKOverallEraAdjusted": 92
     },
     {
       "id": "parker_12",
@@ -4097,7 +4097,7 @@
       "rating": 69,
       "ratingRaw": 11.5,
       "twoKOverall": 88,
-      "twoKOverallEraAdjusted": 91
+      "twoKOverallEraAdjusted": 92
     },
     {
       "id": "duncan_14",
@@ -4385,7 +4385,7 @@
       "rating": 91,
       "ratingRaw": 21.9,
       "twoKOverall": 95,
-      "twoKOverallEraAdjusted": 93
+      "twoKOverallEraAdjusted": 94
     },
     {
       "id": "starks_94",
@@ -4483,7 +4483,7 @@
       "rating": 68,
       "ratingRaw": 10.7,
       "twoKOverall": 84,
-      "twoKOverallEraAdjusted": 78
+      "twoKOverallEraAdjusted": 79
     },
     {
       "id": "ward_99",
@@ -4543,7 +4543,7 @@
       "rating": 72,
       "ratingRaw": 13,
       "twoKOverall": 83,
-      "twoKOverallEraAdjusted": 83
+      "twoKOverallEraAdjusted": 84
     },
     {
       "id": "lee_09",
@@ -4748,7 +4748,7 @@
       "rating": 89,
       "ratingRaw": 21.1,
       "twoKOverall": 97,
-      "twoKOverallEraAdjusted": 96
+      "twoKOverallEraAdjusted": 97
     },
     {
       "id": "stockton_88",
@@ -4768,7 +4768,7 @@
       "rating": 78,
       "ratingRaw": 15.8,
       "twoKOverall": 97,
-      "twoKOverallEraAdjusted": 96
+      "twoKOverallEraAdjusted": 97
     },
     {
       "id": "griffith_85",
@@ -4825,7 +4825,7 @@
       "rating": 80,
       "ratingRaw": 16.9,
       "twoKOverall": 89,
-      "twoKOverallEraAdjusted": 87
+      "twoKOverallEraAdjusted": 88
     },
     {
       "id": "bailey_87",
@@ -4907,7 +4907,7 @@
       "rating": 70,
       "ratingRaw": 12,
       "twoKOverall": 84,
-      "twoKOverallEraAdjusted": 78
+      "twoKOverallEraAdjusted": 79
     },
     {
       "id": "ostertag_97",
@@ -5024,7 +5024,7 @@
       "rating": 78,
       "ratingRaw": 15.5,
       "twoKOverall": 94,
-      "twoKOverallEraAdjusted": 93
+      "twoKOverallEraAdjusted": 94
     },
     {
       "id": "okur_07",
@@ -5127,7 +5127,7 @@
       "rating": 72,
       "ratingRaw": 12.7,
       "twoKOverall": 88,
-      "twoKOverallEraAdjusted": 91
+      "twoKOverallEraAdjusted": 92
     },
     {
       "id": "gobert_17",
@@ -5147,7 +5147,7 @@
       "rating": 79,
       "ratingRaw": 16.3,
       "twoKOverall": 88,
-      "twoKOverallEraAdjusted": 91
+      "twoKOverallEraAdjusted": 92
     },
     {
       "id": "mitchell_19",
@@ -5167,7 +5167,7 @@
       "rating": 78,
       "ratingRaw": 15.7,
       "twoKOverall": 88,
-      "twoKOverallEraAdjusted": 91
+      "twoKOverallEraAdjusted": 92
     },
     {
       "id": "ingles_18",
@@ -5290,7 +5290,7 @@
       "rating": 69,
       "ratingRaw": 11.6,
       "twoKOverall": 93,
-      "twoKOverallEraAdjusted": 90
+      "twoKOverallEraAdjusted": 92
     },
     {
       "id": "laimbeer_89",
@@ -5330,7 +5330,7 @@
       "rating": 72,
       "ratingRaw": 12.7,
       "twoKOverall": 89,
-      "twoKOverallEraAdjusted": 87
+      "twoKOverallEraAdjusted": 88
     },
     {
       "id": "dantley_87",
@@ -5530,7 +5530,7 @@
       "rating": 74,
       "ratingRaw": 14,
       "twoKOverall": 92,
-      "twoKOverallEraAdjusted": 91
+      "twoKOverallEraAdjusted": 92
     },
     {
       "id": "rasheed_04",
@@ -5550,7 +5550,7 @@
       "rating": 76,
       "ratingRaw": 14.7,
       "twoKOverall": 93,
-      "twoKOverallEraAdjusted": 92
+      "twoKOverallEraAdjusted": 93
     },
     {
       "id": "hamilton_04",
@@ -5590,7 +5590,7 @@
       "rating": 69,
       "ratingRaw": 11.5,
       "twoKOverall": 83,
-      "twoKOverallEraAdjusted": 83
+      "twoKOverallEraAdjusted": 84
     },
     {
       "id": "ben_04",
@@ -5610,7 +5610,7 @@
       "rating": 84,
       "ratingRaw": 18.7,
       "twoKOverall": 92,
-      "twoKOverallEraAdjusted": 91
+      "twoKOverallEraAdjusted": 92
     },
     {
       "id": "hunter_04",
@@ -5650,7 +5650,7 @@
       "rating": 70,
       "ratingRaw": 11.7,
       "twoKOverall": 92,
-      "twoKOverallEraAdjusted": 91
+      "twoKOverallEraAdjusted": 92
     }
   ],
   "Magic_1990s": [
@@ -5807,7 +5807,7 @@
       "rating": 87,
       "ratingRaw": 20.1,
       "twoKOverall": 98,
-      "twoKOverallEraAdjusted": 97
+      "twoKOverallEraAdjusted": 98
     },
     {
       "id": "dwight_09",
@@ -5827,7 +5827,7 @@
       "rating": 89,
       "ratingRaw": 21.1,
       "twoKOverall": 94,
-      "twoKOverallEraAdjusted": 93
+      "twoKOverallEraAdjusted": 94
     },
     {
       "id": "turkoglu_08",
@@ -5887,7 +5887,7 @@
       "rating": 70,
       "ratingRaw": 11.8,
       "twoKOverall": 95,
-      "twoKOverallEraAdjusted": 94
+      "twoKOverallEraAdjusted": 95
     },
     {
       "id": "bogans_09",
@@ -6277,7 +6277,7 @@
       "rating": 79,
       "ratingRaw": 16,
       "twoKOverall": 96,
-      "twoKOverallEraAdjusted": 95
+      "twoKOverallEraAdjusted": 96
     },
     {
       "id": "amare_06",
@@ -6297,7 +6297,7 @@
       "rating": 82,
       "ratingRaw": 17.7,
       "twoKOverall": 95,
-      "twoKOverallEraAdjusted": 94
+      "twoKOverallEraAdjusted": 95
     },
     {
       "id": "marion_06",
@@ -6317,7 +6317,7 @@
       "rating": 87,
       "ratingRaw": 20.1,
       "twoKOverall": 92,
-      "twoKOverallEraAdjusted": 91
+      "twoKOverallEraAdjusted": 92
     },
     {
       "id": "barbosa_07",
@@ -6460,7 +6460,7 @@
       "rating": 75,
       "ratingRaw": 14.2,
       "twoKOverall": 85,
-      "twoKOverallEraAdjusted": 88
+      "twoKOverallEraAdjusted": 89
     },
     {
       "id": "bridges_22",
@@ -6543,7 +6543,7 @@
       "rating": 83,
       "ratingRaw": 18.3,
       "twoKOverall": 93,
-      "twoKOverallEraAdjusted": 90
+      "twoKOverallEraAdjusted": 92
     },
     {
       "id": "lever_88",
@@ -6563,7 +6563,7 @@
       "rating": 87,
       "ratingRaw": 19.9,
       "twoKOverall": 92,
-      "twoKOverallEraAdjusted": 89
+      "twoKOverallEraAdjusted": 90
     },
     {
       "id": "rasmussen_88",
@@ -6601,7 +6601,7 @@
       "rating": 78,
       "ratingRaw": 15.5,
       "twoKOverall": 89,
-      "twoKOverallEraAdjusted": 87
+      "twoKOverallEraAdjusted": 88
     },
     {
       "id": "issel_85",
@@ -6621,7 +6621,7 @@
       "rating": 78,
       "ratingRaw": 15.8,
       "twoKOverall": 92,
-      "twoKOverallEraAdjusted": 89
+      "twoKOverallEraAdjusted": 90
     },
     {
       "id": "dunn_87",
@@ -6661,7 +6661,7 @@
       "rating": 79,
       "ratingRaw": 16.3,
       "twoKOverall": 94,
-      "twoKOverallEraAdjusted": 93
+      "twoKOverallEraAdjusted": 94
     },
     {
       "id": "iverson_07",
@@ -6681,7 +6681,7 @@
       "rating": 81,
       "ratingRaw": 17.2,
       "twoKOverall": 98,
-      "twoKOverallEraAdjusted": 97
+      "twoKOverallEraAdjusted": 98
     },
     {
       "id": "camby_07",
@@ -6942,7 +6942,7 @@
       "rating": 80,
       "ratingRaw": 16.6,
       "twoKOverall": 87,
-      "twoKOverallEraAdjusted": 90
+      "twoKOverallEraAdjusted": 91
     },
     {
       "id": "porter_23",
@@ -7141,7 +7141,7 @@
       "rating": 84,
       "ratingRaw": 18.7,
       "twoKOverall": 94,
-      "twoKOverallEraAdjusted": 92
+      "twoKOverallEraAdjusted": 93
     },
     {
       "id": "malone_83",
@@ -7161,7 +7161,7 @@
       "rating": 92,
       "ratingRaw": 22.7,
       "twoKOverall": 97,
-      "twoKOverallEraAdjusted": 96
+      "twoKOverallEraAdjusted": 97
     },
     {
       "id": "cheeks_87",
@@ -7181,7 +7181,7 @@
       "rating": 76,
       "ratingRaw": 14.6,
       "twoKOverall": 86,
-      "twoKOverallEraAdjusted": 81
+      "twoKOverallEraAdjusted": 82
     },
     {
       "id": "toney_83",
@@ -7293,7 +7293,7 @@
       "rating": 82,
       "ratingRaw": 17.7,
       "twoKOverall": 96,
-      "twoKOverallEraAdjusted": 94
+      "twoKOverallEraAdjusted": 95
     },
     {
       "id": "coleman_93",
@@ -7371,7 +7371,7 @@
       "rating": 81,
       "ratingRaw": 17.4,
       "twoKOverall": 98,
-      "twoKOverallEraAdjusted": 97
+      "twoKOverallEraAdjusted": 98
     },
     {
       "id": "webber_05",
@@ -7391,7 +7391,7 @@
       "rating": 80,
       "ratingRaw": 16.5,
       "twoKOverall": 95,
-      "twoKOverallEraAdjusted": 94
+      "twoKOverallEraAdjusted": 95
     },
     {
       "id": "iguodala_09",
@@ -7615,7 +7615,7 @@
       "rating": 80,
       "ratingRaw": 16.9,
       "twoKOverall": 96,
-      "twoKOverallEraAdjusted": 94
+      "twoKOverallEraAdjusted": 95
     },
     {
       "id": "horry_95",
@@ -7692,7 +7692,7 @@
       "rating": 83,
       "ratingRaw": 18,
       "twoKOverall": 94,
-      "twoKOverallEraAdjusted": 93
+      "twoKOverallEraAdjusted": 94
     },
     {
       "id": "tmac_04",
@@ -7712,7 +7712,7 @@
       "rating": 81,
       "ratingRaw": 17,
       "twoKOverall": 98,
-      "twoKOverallEraAdjusted": 97
+      "twoKOverallEraAdjusted": 98
     },
     {
       "id": "scola_07",
@@ -7994,7 +7994,7 @@
       "rating": 80,
       "ratingRaw": 16.8,
       "twoKOverall": 95,
-      "twoKOverallEraAdjusted": 93
+      "twoKOverallEraAdjusted": 94
     },
     {
       "id": "kemp_96",
@@ -8199,7 +8199,7 @@
       "rating": 87,
       "ratingRaw": 20.2,
       "twoKOverall": 96,
-      "twoKOverallEraAdjusted": 98
+      "twoKOverallEraAdjusted": 99
     },
     {
       "id": "williams_24",
@@ -8261,7 +8261,7 @@
       "rating": 82,
       "ratingRaw": 17.6,
       "twoKOverall": 87,
-      "twoKOverallEraAdjusted": 90
+      "twoKOverallEraAdjusted": 91
     }
   ],
   "Bucks_1970s": [
@@ -8477,7 +8477,7 @@
       "rating": 77,
       "ratingRaw": 15.1,
       "twoKOverall": 92,
-      "twoKOverallEraAdjusted": 91
+      "twoKOverallEraAdjusted": 92
     },
     {
       "id": "redd_06",
@@ -8617,7 +8617,7 @@
       "rating": 76,
       "ratingRaw": 14.9,
       "twoKOverall": 85,
-      "twoKOverallEraAdjusted": 88
+      "twoKOverallEraAdjusted": 89
     },
     {
       "id": "portis_22",
@@ -8720,7 +8720,7 @@
       "rating": 74,
       "ratingRaw": 14,
       "twoKOverall": 89,
-      "twoKOverallEraAdjusted": 87
+      "twoKOverallEraAdjusted": 88
     },
     {
       "id": "perkins_88",
@@ -8760,7 +8760,7 @@
       "rating": 86,
       "ratingRaw": 19.4,
       "twoKOverall": 97,
-      "twoKOverallEraAdjusted": 96
+      "twoKOverallEraAdjusted": 97
     },
     {
       "id": "nash_02",
@@ -8780,7 +8780,7 @@
       "rating": 74,
       "ratingRaw": 13.9,
       "twoKOverall": 96,
-      "twoKOverallEraAdjusted": 95
+      "twoKOverallEraAdjusted": 96
     },
     {
       "id": "finley_02",
@@ -8800,7 +8800,7 @@
       "rating": 75,
       "ratingRaw": 14.1,
       "twoKOverall": 95,
-      "twoKOverallEraAdjusted": 94
+      "twoKOverallEraAdjusted": 95
     },
     {
       "id": "walker_02",
@@ -8841,7 +8841,7 @@
       "rating": 71,
       "ratingRaw": 12.3,
       "twoKOverall": 84,
-      "twoKOverallEraAdjusted": 84
+      "twoKOverallEraAdjusted": 85
     }
   ],
   "Mavericks_2010s": [
@@ -8863,7 +8863,7 @@
       "rating": 74,
       "ratingRaw": 13.7,
       "twoKOverall": 88,
-      "twoKOverallEraAdjusted": 91
+      "twoKOverallEraAdjusted": 92
     },
     {
       "id": "kidd_12",
@@ -8988,7 +8988,7 @@
       "rating": 82,
       "ratingRaw": 17.7,
       "twoKOverall": 92,
-      "twoKOverallEraAdjusted": 95
+      "twoKOverallEraAdjusted": 96
     },
     {
       "id": "washington_24",
@@ -9050,7 +9050,7 @@
       "rating": 74,
       "ratingRaw": 13.8,
       "twoKOverall": 93,
-      "twoKOverallEraAdjusted": 90
+      "twoKOverallEraAdjusted": 92
     },
     {
       "id": "daugherty_89",
@@ -9090,7 +9090,7 @@
       "rating": 76,
       "ratingRaw": 14.7,
       "twoKOverall": 89,
-      "twoKOverallEraAdjusted": 87
+      "twoKOverallEraAdjusted": 88
     },
     {
       "id": "ehlo_89",
@@ -9270,7 +9270,7 @@
       "rating": 76,
       "ratingRaw": 14.9,
       "twoKOverall": 84,
-      "twoKOverallEraAdjusted": 84
+      "twoKOverallEraAdjusted": 85
     },
     {
       "id": "hughes_07",
@@ -9457,7 +9457,7 @@
       "rating": 83,
       "ratingRaw": 18.1,
       "twoKOverall": 92,
-      "twoKOverallEraAdjusted": 95
+      "twoKOverallEraAdjusted": 96
     },
     {
       "id": "garland_24",
@@ -9841,7 +9841,7 @@
       "rating": 70,
       "ratingRaw": 12,
       "twoKOverall": 88,
-      "twoKOverallEraAdjusted": 91
+      "twoKOverallEraAdjusted": 92
     },
     {
       "id": "lowry_19",
@@ -9985,7 +9985,7 @@
       "rating": 84,
       "ratingRaw": 18.7,
       "twoKOverall": 96,
-      "twoKOverallEraAdjusted": 95
+      "twoKOverallEraAdjusted": 96
     },
     {
       "id": "carter_v_05",
@@ -10006,7 +10006,7 @@
       "rating": 82,
       "ratingRaw": 17.5,
       "twoKOverall": 96,
-      "twoKOverallEraAdjusted": 95
+      "twoKOverallEraAdjusted": 96
     },
     {
       "id": "jefferson_r_04",
@@ -10026,7 +10026,7 @@
       "rating": 74,
       "ratingRaw": 13.6,
       "twoKOverall": 84,
-      "twoKOverallEraAdjusted": 84
+      "twoKOverallEraAdjusted": 85
     },
     {
       "id": "martin_k_03",
@@ -10090,7 +10090,7 @@
       "rating": 85,
       "ratingRaw": 19.3,
       "twoKOverall": 95,
-      "twoKOverallEraAdjusted": 94
+      "twoKOverallEraAdjusted": 95
     },
     {
       "id": "peja_02",
@@ -10110,7 +10110,7 @@
       "rating": 73,
       "ratingRaw": 13.3,
       "twoKOverall": 92,
-      "twoKOverallEraAdjusted": 91
+      "twoKOverallEraAdjusted": 92
     },
     {
       "id": "bibby_02",
@@ -10268,7 +10268,7 @@
       "rating": 81,
       "ratingRaw": 17.2,
       "twoKOverall": 97,
-      "twoKOverallEraAdjusted": 94
+      "twoKOverallEraAdjusted": 95
     },
     {
       "id": "debusschere_knk_69",
@@ -11313,7 +11313,7 @@
       "rating": 77,
       "ratingRaw": 15.3,
       "twoKOverall": 89,
-      "twoKOverallEraAdjusted": 87
+      "twoKOverallEraAdjusted": 88
     },
     {
       "id": "pshort_84",
@@ -11337,7 +11337,7 @@
       "rating": 77,
       "ratingRaw": 15.2,
       "twoKOverall": 86,
-      "twoKOverallEraAdjusted": 81
+      "twoKOverallEraAdjusted": 82
     },
     {
       "id": "jbcarroll_83",
@@ -11378,7 +11378,7 @@
       "rating": 80,
       "ratingRaw": 16.7,
       "twoKOverall": 89,
-      "twoKOverallEraAdjusted": 87
+      "twoKOverallEraAdjusted": 88
     },
     {
       "id": "ewing_89",
@@ -11484,7 +11484,7 @@
       "rating": 85,
       "ratingRaw": 19.2,
       "twoKOverall": 89,
-      "twoKOverallEraAdjusted": 87
+      "twoKOverallEraAdjusted": 88
     }
   ],
   "Rockets_1980s": [
@@ -11507,7 +11507,7 @@
       "rating": 99,
       "ratingRaw": 26.2,
       "twoKOverall": 99,
-      "twoKOverallEraAdjusted": 98
+      "twoKOverallEraAdjusted": 99
     },
     {
       "id": "rsampson_86",
@@ -11531,7 +11531,7 @@
       "rating": 88,
       "ratingRaw": 20.8,
       "twoKOverall": 89,
-      "twoKOverallEraAdjusted": 87
+      "twoKOverallEraAdjusted": 88
     },
     {
       "id": "rreid_84",
@@ -11575,7 +11575,7 @@
       "rating": 81,
       "ratingRaw": 17.4,
       "twoKOverall": 89,
-      "twoKOverallEraAdjusted": 87
+      "twoKOverallEraAdjusted": 88
     },
     {
       "id": "jsikma_85",
@@ -11595,7 +11595,7 @@
       "rating": 87,
       "ratingRaw": 20,
       "twoKOverall": 89,
-      "twoKOverallEraAdjusted": 87
+      "twoKOverallEraAdjusted": 88
     },
     {
       "id": "dellis_88",
@@ -11840,7 +11840,7 @@
       "rating": 79,
       "ratingRaw": 16.3,
       "twoKOverall": 92,
-      "twoKOverallEraAdjusted": 91
+      "twoKOverallEraAdjusted": 92
     },
     {
       "id": "rlewis_06",
@@ -11884,7 +11884,7 @@
       "rating": 85,
       "ratingRaw": 18.9,
       "twoKOverall": 97,
-      "twoKOverallEraAdjusted": 96
+      "twoKOverallEraAdjusted": 97
     }
   ],
   "Pistons_2010s": [
@@ -12138,7 +12138,7 @@
       "rating": 82,
       "ratingRaw": 17.7,
       "twoKOverall": 87,
-      "twoKOverallEraAdjusted": 90
+      "twoKOverallEraAdjusted": 91
     },
     {
       "id": "vucevic_21",
@@ -12236,7 +12236,7 @@
       "rating": 77,
       "ratingRaw": 15.2,
       "twoKOverall": 87,
-      "twoKOverallEraAdjusted": 90
+      "twoKOverallEraAdjusted": 91
     }
   ],
   "Knicks_2020s": [
@@ -12283,7 +12283,7 @@
       "rating": 86,
       "ratingRaw": 19.8,
       "twoKOverall": 85,
-      "twoKOverallEraAdjusted": 88
+      "twoKOverallEraAdjusted": 89
     },
     {
       "id": "rjbarrett_23",
@@ -12330,7 +12330,7 @@
       "rating": 82,
       "ratingRaw": 17.5,
       "twoKOverall": 92,
-      "twoKOverallEraAdjusted": 95
+      "twoKOverallEraAdjusted": 96
     },
     {
       "id": "rgobert_21",
@@ -12351,7 +12351,7 @@
       "rating": 89,
       "ratingRaw": 20.9,
       "twoKOverall": 85,
-      "twoKOverallEraAdjusted": 88
+      "twoKOverallEraAdjusted": 89
     },
     {
       "id": "markkanen_23",
@@ -12540,7 +12540,7 @@
       "rating": 91,
       "ratingRaw": 22.2,
       "twoKOverall": 96,
-      "twoKOverallEraAdjusted": 98
+      "twoKOverallEraAdjusted": 99
     },
     {
       "id": "maxey_24",
@@ -12632,7 +12632,7 @@
       "rating": 82,
       "ratingRaw": 17.8,
       "twoKOverall": 85,
-      "twoKOverallEraAdjusted": 88
+      "twoKOverallEraAdjusted": 89
     },
     {
       "id": "jsmith_23",
@@ -12897,7 +12897,7 @@
       "rating": 77,
       "ratingRaw": 15.3,
       "twoKOverall": 84,
-      "twoKOverallEraAdjusted": 79
+      "twoKOverallEraAdjusted": 80
     },
     {
       "id": "willis_85",
@@ -12958,7 +12958,7 @@
       "rating": 73,
       "ratingRaw": 13.5,
       "twoKOverall": 84,
-      "twoKOverallEraAdjusted": 79
+      "twoKOverallEraAdjusted": 80
     }
   ],
   "Hawks_1990s": [
@@ -12981,7 +12981,7 @@
       "rating": 86,
       "ratingRaw": 19.5,
       "twoKOverall": 95,
-      "twoKOverallEraAdjusted": 93
+      "twoKOverallEraAdjusted": 94
     },
     {
       "id": "blaylock_95",
@@ -13162,7 +13162,7 @@
       "rating": 77,
       "ratingRaw": 15,
       "twoKOverall": 84,
-      "twoKOverallEraAdjusted": 84
+      "twoKOverallEraAdjusted": 85
     }
   ],
   "Hawks_2010s": [
@@ -13814,7 +13814,7 @@
       "rating": 85,
       "ratingRaw": 18.9,
       "twoKOverall": 92,
-      "twoKOverallEraAdjusted": 95
+      "twoKOverallEraAdjusted": 96
     },
     {
       "id": "harden_bk_21",
@@ -14005,7 +14005,7 @@
       "rating": 78,
       "ratingRaw": 15.8,
       "twoKOverall": 84,
-      "twoKOverallEraAdjusted": 84
+      "twoKOverallEraAdjusted": 85
     },
     {
       "id": "okafor_e_05",
@@ -14047,7 +14047,7 @@
       "rating": 80,
       "ratingRaw": 16.5,
       "twoKOverall": 83,
-      "twoKOverallEraAdjusted": 83
+      "twoKOverallEraAdjusted": 84
     },
     {
       "id": "diaw_07",
@@ -14110,7 +14110,7 @@
       "rating": 77,
       "ratingRaw": 15.4,
       "twoKOverall": 88,
-      "twoKOverallEraAdjusted": 91
+      "twoKOverallEraAdjusted": 92
     },
     {
       "id": "batum_15",
@@ -14214,7 +14214,7 @@
       "rating": 83,
       "ratingRaw": 18.2,
       "twoKOverall": 87,
-      "twoKOverallEraAdjusted": 90
+      "twoKOverallEraAdjusted": 91
     },
     {
       "id": "bridges_mi_22",
@@ -14606,7 +14606,7 @@
       "rating": 84,
       "ratingRaw": 18.8,
       "twoKOverall": 94,
-      "twoKOverallEraAdjusted": 93
+      "twoKOverallEraAdjusted": 94
     },
     {
       "id": "miller_r_03",
@@ -14689,7 +14689,7 @@
       "rating": 72,
       "ratingRaw": 12.8,
       "twoKOverall": 83,
-      "twoKOverallEraAdjusted": 83
+      "twoKOverallEraAdjusted": 84
     }
   ],
   "Pacers_2010s": [
@@ -14795,7 +14795,7 @@
       "rating": 81,
       "ratingRaw": 17.4,
       "twoKOverall": 88,
-      "twoKOverallEraAdjusted": 91
+      "twoKOverallEraAdjusted": 92
     }
   ],
   "Pacers_2020s": [
@@ -14818,7 +14818,7 @@
       "rating": 83,
       "ratingRaw": 18.2,
       "twoKOverall": 90,
-      "twoKOverallEraAdjusted": 94
+      "twoKOverallEraAdjusted": 95
     },
     {
       "id": "turner_m_23",
@@ -14860,7 +14860,7 @@
       "rating": 79,
       "ratingRaw": 16.4,
       "twoKOverall": 88,
-      "twoKOverallEraAdjusted": 92
+      "twoKOverallEraAdjusted": 93
     },
     {
       "id": "hield_23",
@@ -15020,7 +15020,7 @@
       "rating": 79,
       "ratingRaw": 16.2,
       "twoKOverall": 89,
-      "twoKOverallEraAdjusted": 87
+      "twoKOverallEraAdjusted": 88
     },
     {
       "id": "cummings_83",
@@ -15061,7 +15061,7 @@
       "rating": 75,
       "ratingRaw": 14.4,
       "twoKOverall": 86,
-      "twoKOverallEraAdjusted": 81
+      "twoKOverallEraAdjusted": 82
     },
     {
       "id": "johnson_mq_84",
@@ -15216,7 +15216,7 @@
       "rating": 88,
       "ratingRaw": 20.6,
       "twoKOverall": 96,
-      "twoKOverallEraAdjusted": 95
+      "twoKOverallEraAdjusted": 96
     },
     {
       "id": "maggette_04",
@@ -15426,7 +15426,7 @@
       "rating": 83,
       "ratingRaw": 18.3,
       "twoKOverall": 92,
-      "twoKOverallEraAdjusted": 95
+      "twoKOverallEraAdjusted": 96
     },
     {
       "id": "george_p_21",
@@ -15859,7 +15859,7 @@
       "rating": 87,
       "ratingRaw": 19.9,
       "twoKOverall": 88,
-      "twoKOverallEraAdjusted": 92
+      "twoKOverallEraAdjusted": 93
     },
     {
       "id": "gobert_r_23",
@@ -15880,7 +15880,7 @@
       "rating": 82,
       "ratingRaw": 17.6,
       "twoKOverall": 85,
-      "twoKOverallEraAdjusted": 88
+      "twoKOverallEraAdjusted": 89
     },
     {
       "id": "conley_m_23",
@@ -15965,7 +15965,7 @@
       "rating": 75,
       "ratingRaw": 14.1,
       "twoKOverall": 94,
-      "twoKOverallEraAdjusted": 93
+      "twoKOverallEraAdjusted": 94
     },
     {
       "id": "stojakovic_p_07",
@@ -15986,7 +15986,7 @@
       "rating": 66,
       "ratingRaw": 10,
       "twoKOverall": 92,
-      "twoKOverallEraAdjusted": 91
+      "twoKOverallEraAdjusted": 92
     },
     {
       "id": "mashburn_03",
@@ -16089,7 +16089,7 @@
       "rating": 77,
       "ratingRaw": 15,
       "twoKOverall": 88,
-      "twoKOverallEraAdjusted": 91
+      "twoKOverallEraAdjusted": 92
     },
     {
       "id": "gordon_e_15",
@@ -16153,7 +16153,7 @@
       "rating": 81,
       "ratingRaw": 17.2,
       "twoKOverall": 88,
-      "twoKOverallEraAdjusted": 92
+      "twoKOverallEraAdjusted": 93
     },
     {
       "id": "ingram_b_22",
@@ -16174,7 +16174,7 @@
       "rating": 80,
       "ratingRaw": 16.7,
       "twoKOverall": 85,
-      "twoKOverallEraAdjusted": 88
+      "twoKOverallEraAdjusted": 89
     },
     {
       "id": "mccollum_cj_22",
@@ -16259,7 +16259,7 @@
       "rating": 85,
       "ratingRaw": 19,
       "twoKOverall": 96,
-      "twoKOverallEraAdjusted": 95
+      "twoKOverallEraAdjusted": 96
     },
     {
       "id": "vandeweghe_88",
@@ -16279,7 +16279,7 @@
       "rating": 73,
       "ratingRaw": 13.4,
       "twoKOverall": 89,
-      "twoKOverallEraAdjusted": 87
+      "twoKOverallEraAdjusted": 88
     },
     {
       "id": "porter_t_87",
@@ -16361,7 +16361,7 @@
       "rating": 85,
       "ratingRaw": 19.3,
       "twoKOverall": 96,
-      "twoKOverallEraAdjusted": 94
+      "twoKOverallEraAdjusted": 95
     },
     {
       "id": "sabonis_97",
@@ -16482,7 +16482,7 @@
       "rating": 74,
       "ratingRaw": 13.9,
       "twoKOverall": 84,
-      "twoKOverallEraAdjusted": 84
+      "twoKOverallEraAdjusted": 85
     },
     {
       "id": "pippen_s_01",
@@ -16583,7 +16583,7 @@
       "rating": 82,
       "ratingRaw": 17.9,
       "twoKOverall": 88,
-      "twoKOverallEraAdjusted": 91
+      "twoKOverallEraAdjusted": 92
     },
     {
       "id": "mccollum_cj_16",
@@ -16773,7 +16773,7 @@
       "rating": 95,
       "ratingRaw": 24.1,
       "twoKOverall": 98,
-      "twoKOverallEraAdjusted": 96
+      "twoKOverallEraAdjusted": 97
     },
     {
       "id": "lucas_j_66",
@@ -16969,7 +16969,7 @@
       "rating": 79,
       "ratingRaw": 16,
       "twoKOverall": 86,
-      "twoKOverallEraAdjusted": 81
+      "twoKOverallEraAdjusted": 82
     },
     {
       "id": "johnson_e_87",
@@ -17271,7 +17271,7 @@
       "rating": 82,
       "ratingRaw": 17.8,
       "twoKOverall": 88,
-      "twoKOverallEraAdjusted": 92
+      "twoKOverallEraAdjusted": 93
     },
     {
       "id": "sabonis_d_23",
@@ -17292,7 +17292,7 @@
       "rating": 91,
       "ratingRaw": 22.1,
       "twoKOverall": 88,
-      "twoKOverallEraAdjusted": 92
+      "twoKOverallEraAdjusted": 93
     },
     {
       "id": "monk_m_23",
@@ -17512,7 +17512,7 @@
       "rating": 76,
       "ratingRaw": 14.8,
       "twoKOverall": 96,
-      "twoKOverallEraAdjusted": 95
+      "twoKOverallEraAdjusted": 96
     },
     {
       "id": "raptors_00s_2",
@@ -17532,7 +17532,7 @@
       "rating": 83,
       "ratingRaw": 18.1,
       "twoKOverall": 92,
-      "twoKOverallEraAdjusted": 91
+      "twoKOverallEraAdjusted": 92
     },
     {
       "id": "raptors_00s_3",
@@ -17553,7 +17553,7 @@
       "rating": 82,
       "ratingRaw": 17.7,
       "twoKOverall": 98,
-      "twoKOverallEraAdjusted": 97
+      "twoKOverallEraAdjusted": 98
     },
     {
       "id": "raptors_00s_4",
@@ -17652,7 +17652,7 @@
       "rating": 84,
       "ratingRaw": 18.8,
       "twoKOverall": 88,
-      "twoKOverallEraAdjusted": 92
+      "twoKOverallEraAdjusted": 93
     },
     {
       "id": "raptors_20s_2",
@@ -17694,7 +17694,7 @@
       "rating": 83,
       "ratingRaw": 18.2,
       "twoKOverall": 85,
-      "twoKOverallEraAdjusted": 88
+      "twoKOverallEraAdjusted": 89
     },
     {
       "id": "raptors_20s_4",
@@ -17839,7 +17839,7 @@
       "rating": 72,
       "ratingRaw": 12.9,
       "twoKOverall": 84,
-      "twoKOverallEraAdjusted": 78
+      "twoKOverallEraAdjusted": 79
     },
     {
       "id": "grizzlies_90s_4",
@@ -17916,7 +17916,7 @@
       "rating": 84,
       "ratingRaw": 18.4,
       "twoKOverall": 92,
-      "twoKOverallEraAdjusted": 91
+      "twoKOverallEraAdjusted": 92
     },
     {
       "id": "grizzlies_00s_2",
@@ -17937,7 +17937,7 @@
       "rating": 71,
       "ratingRaw": 12.1,
       "twoKOverall": 84,
-      "twoKOverallEraAdjusted": 84
+      "twoKOverallEraAdjusted": 85
     },
     {
       "id": "grizzlies_00s_3",
@@ -17977,7 +17977,7 @@
       "rating": 69,
       "ratingRaw": 11.4,
       "twoKOverall": 84,
-      "twoKOverallEraAdjusted": 84
+      "twoKOverallEraAdjusted": 85
     },
     {
       "id": "grizzlies_00s_5",
@@ -18202,7 +18202,7 @@
       "rating": 82,
       "ratingRaw": 17.7,
       "twoKOverall": 90,
-      "twoKOverallEraAdjusted": 94
+      "twoKOverallEraAdjusted": 95
     },
     {
       "id": "grizzlies_20s_2",
@@ -18223,7 +18223,7 @@
       "rating": 81,
       "ratingRaw": 17,
       "twoKOverall": 87,
-      "twoKOverallEraAdjusted": 90
+      "twoKOverallEraAdjusted": 91
     },
     {
       "id": "grizzlies_20s_3",
@@ -18584,7 +18584,7 @@
       "rating": 76,
       "ratingRaw": 14.7,
       "twoKOverall": 89,
-      "twoKOverallEraAdjusted": 87
+      "twoKOverallEraAdjusted": 88
     },
     {
       "id": "wizards_80s_3",
@@ -18799,7 +18799,7 @@
       "rating": 77,
       "ratingRaw": 15.3,
       "twoKOverall": 96,
-      "twoKOverallEraAdjusted": 95
+      "twoKOverallEraAdjusted": 96
     },
     {
       "id": "wizards_00s_2",
@@ -18819,7 +18819,7 @@
       "rating": 77,
       "ratingRaw": 15,
       "twoKOverall": 91,
-      "twoKOverallEraAdjusted": 89
+      "twoKOverallEraAdjusted": 90
     },
     {
       "id": "wizards_00s_3",
@@ -18943,7 +18943,7 @@
       "rating": 76,
       "ratingRaw": 14.6,
       "twoKOverall": 88,
-      "twoKOverallEraAdjusted": 91
+      "twoKOverallEraAdjusted": 92
     },
     {
       "id": "wizards_10s_3",
@@ -19047,7 +19047,7 @@
       "rating": 80,
       "ratingRaw": 16.9,
       "twoKOverall": 85,
-      "twoKOverallEraAdjusted": 88
+      "twoKOverallEraAdjusted": 89
     },
     {
       "id": "wizards_20s_2",
@@ -19088,7 +19088,7 @@
       "rating": 84,
       "ratingRaw": 18.8,
       "twoKOverall": 87,
-      "twoKOverallEraAdjusted": 90
+      "twoKOverallEraAdjusted": 91
     },
     {
       "id": "wizards_20s_4",
