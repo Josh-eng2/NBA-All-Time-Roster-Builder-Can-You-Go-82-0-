@@ -100,3 +100,58 @@ To rebuild after editing sources:
 `python3 scripts/build_2000s_peak_ratings.py` then
 `python3 scripts/match_2k_overalls.py data/nba2k_2000s_peak_ratings.json --decade 2000s`
 then the usual `inline_players.js` / `validate_players.js` steps.
+
+## `nba2k_1960s_peak_ratings.json`  (+ `nba2k_1960s_sources/`)
+
+Per-player **peak** NBA 2K overall for the 1960s — but unlike the 2000s/2010s
+files above, this isn't a peak across in-era editions (NBA 2K didn't exist
+before 1999, so there's no season-accurate rating to peak across). It's the
+highest overall a player has reached on any of 2K's **classic/all-time roster**
+appearances: Classic Teams (a specific vintage season, e.g. "1964-65 Boston
+Celtics"), All-Time Teams (a franchise's greatest players across its whole
+history), and All-Decade Teams (the league's best in a given decade). Same
+`name` + `overallAttribute` shape as the other ratings files, so the same
+matcher consumes it.
+
+- **Provenance — read this before trusting the numbers:** 2kratings.com sits
+  behind Cloudflare bot-management that blocks both plain HTTP requests
+  (serves an interactive "Just a moment..." JS challenge, unsolvable without a
+  real browser) and headless-browser automation (hard `ERR_CONNECTION_RESET`
+  on every attempt, consistent with fingerprinting of automated browsers —
+  confirmed via direct curl and a Playwright/Chromium session, both from an
+  environment where the site is otherwise network-allowlisted). No bulk
+  scrape or GitHub mirror of the classic/all-time pages exists (the one
+  current-roster mirror this repo already used, MikeYan01/nba2k-player-ratings,
+  only contains current-team data). Every other candidate source site
+  (hoopshype.com, gaming-press roster roundups, even Wikipedia) is unreachable
+  from this environment's network policy.
+
+  So `data/nba2k_1960s_sources/2kratings_websearch_compiled.json` was compiled
+  one targeted web search at a time instead: each row is a single
+  (player, roster) rating transcribed from a real, attributed 2kratings.com
+  search result (a specific player-page title naming the roster and NBA 2K
+  edition, e.g. "Bill Russell NBA 2K27 Rating (All-Time Boston Celtics)").
+  Every number is real and attributed — nothing here is a model guess or
+  estimate — but this method depends on what search results surface, not an
+  exhaustive per-roster crawl, so it's strictly lower-confidence and
+  lower-coverage than the 2000s/2010s/current files: a player absent here may
+  simply not have surfaced in search rather than being confirmed absent from
+  2K. If direct or archival access to 2kratings.com ever becomes available,
+  re-deriving this file from a full scrape (same shape, same build script)
+  would be a strict improvement.
+- **Coverage:** 32 distinct players matched (36 of the 58 1960s team-era
+  entries in `players.json`, since a few players like Wilt Chamberlain have
+  multiple 1960s entries across teams they played for). The 22 unmatched
+  entries are mostly deeper-bench role players (e.g. Adrian Smith, Art
+  Williams, Bob Ferry, Gus Johnson, Sam Jones, Guy Rodgers) who didn't surface
+  a 2K classic/all-time rating in search — expected, since 2K's classic/all-time
+  rosters only cover a curated subset of each team's history, skewed hardest
+  against the 1960s of any decade in this pipeline.
+- **Consumed by:** `scripts/match_2k_overalls.py --decade 1960s`, which stamps
+  `twoKOverall` onto the matching 1960s entries only, same isolation guarantee
+  as every other decade.
+
+To rebuild after editing sources:
+`python3 scripts/build_1960s_peak_ratings.py` then
+`python3 scripts/match_2k_overalls.py data/nba2k_1960s_peak_ratings.json --decade 1960s`
+then the usual `inline_players.js` / `validate_players.js` steps.
