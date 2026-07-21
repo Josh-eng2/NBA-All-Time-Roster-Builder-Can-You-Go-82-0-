@@ -43,13 +43,10 @@ same caliber of player.
 - **Effect:** post-adjustment decade means cluster tightly at 86.7–87.2
   (vs. the 83.9–91.5 raw spread), and every era's ceiling now reads exactly 99
   — including the 2020s, whose raw top is only 97.
-- **Scope — display/reference only:** this is purely additive. `twoKOverall`,
-  `rating`, `ratingRaw`, and every stat field are untouched, and nothing in
-  `js/` reads this field — `rating` remains the sole gameplay-facing balance
-  stat (simulation win-probability, AI draft scoring, draft tier bucketing,
-  challenge rating caps all key off `rating`, which is already era-fair by
-  construction). This field exists for fair cross-era comparisons (e.g.
-  "top 10 by era" lists), not to change how the game plays.
+- **Scope:** originally shipped display/reference-only; that decision was
+  reversed — gameplay now keys off this rating via the unified `overall`
+  field (next section). `twoKOverall`, `rating`, `ratingRaw`, and every stat
+  field remain untouched by the normalization itself.
 - **Produced by:** `scripts/normalize_2k_overalls_by_era.py`, run once after
   every decade's `twoKOverall` pass is complete (it needs the full cross-era
   pool to build a meaningful reference). Only touches entries that already
@@ -58,6 +55,39 @@ same caliber of player.
 To rebuild after any decade's `twoKOverall` source data changes:
 `python3 scripts/normalize_2k_overalls_by_era.py` then the usual
 `inline_players.js` / `validate_players.js` steps.
+
+## `overall` (unified gameplay rating)
+
+The number the game logic actually plays on — simulation strength modifier
+(`simulation.js`), AI draft scoring and tie-breaks (`aiDraft.js`), star/GOAT
+draft tiers (`draft.js`), and challenge rating caps (`challenge.js`), plus the
+post-sim Team OVR badge colors (`render.js`). The stats-derived `rating` is
+now display/derivation-only.
+
+- **Definition:** `overall = twoKOverallEraAdjusted` where a real 2K rating
+  exists (724 of 937 entries). For the 213 entries 2K never made a
+  classic/all-time card for — mostly role players, plus a few stars whose
+  cards 2K literally hasn't added (Reggie Miller, Charles Barkley) — it falls
+  back to an OLS fit of `rating` onto the 2K-adjusted scale
+  (`overall ≈ 0.526·rating + 47`, r=0.667 on the 724 in-data pairs). The fit
+  is recomputed live from the data each run (self-adjusting anchors, same
+  convention as `add_rating.js`), keeping every player on one scale with no
+  gameplay holes.
+- **Distribution:** mean 86.8, sd 6.1, range 72–99 across all 937 entries —
+  a different scale from `rating` (mean 76.8, sd 8.3), which is why every
+  gameplay constant that used to be tuned to `rating` was remapped to its
+  **percentile equivalent** rather than reused: sim `RATING_MID/SPAN` 76/14 →
+  87/10, AI-draft scoring window 60–95 → 74–99, star/GOAT tier cutoffs
+  82/90 → 92/97, badge color tiers 74/82/90 → 85/92/97. Verified by
+  simulation over random 5-starter lineups: the sim's rating-modifier
+  distribution is statistically unchanged (sd 0.263 → 0.273), and star/GOAT
+  pool sizes hold (23%→24% / 6%→8%). What *does* change — intentionally — is
+  **which** players fill those pools: 2K's opinion of a player now outranks
+  the box-score formula (e.g. 38 team-decade boards whose only "star" was a
+  stats-inflated line no longer count as star-bearing for guarantee spins,
+  which fall back gracefully).
+- **Produced by:** the same `scripts/normalize_2k_overalls_by_era.py` run —
+  it writes `twoKOverallEraAdjusted` and `overall` together.
 
 ## `nba2k_current_ratings.json`
 

@@ -52,6 +52,8 @@ function minPopularity() {
 // restricts which decades count as available (multi-decade windows).
 // Locked `playerId`s must exist in players.json — getDailyChallenge skips
 // entries whose id has drifted after a data regeneration.
+// `maxRating` caps (none currently in the catalog) are on the `overall` scale
+// (era-adjusted 2K rating, mean ≈87), NOT the stats-derived `rating` scale.
 export const CHALLENGES = [
   // ── Draft constraints ──
   { id: 'nineties-only',  type: 'constraint', emoji: '📼', title: "'90s Night",
@@ -236,8 +238,8 @@ export function checkPickLegal(challenge, player, filled = []) {
   const P = challenge?.params;
   if (!P) return { legal: true, reason: null };
 
-  if (P.maxRating != null && (player.rating ?? 70) > P.maxRating) {
-    return { legal: false, reason: `Rated ${player.rating} — today's cap is ${P.maxRating}` };
+  if (P.maxRating != null && (player.overall ?? 82) > P.maxRating) {
+    return { legal: false, reason: `Rated ${player.overall} — today's cap is ${P.maxRating}` };
   }
   if (P.excludeTeams && player.team && P.excludeTeams.includes(player.team)) {
     return { legal: false, reason: `No ${player.team} players today` };
@@ -273,9 +275,9 @@ export function checkRosterConstraint(challenge, starters) {
       : { pass: false, detail: `Fans ${sum} — over the ${P.maxPopTotal} budget` };
   }
   if (P.maxRating != null) {
-    const bad = starters.find(p => (p.rating ?? 70) > P.maxRating);
+    const bad = starters.find(p => (p.overall ?? 82) > P.maxRating);
     return bad
-      ? { pass: false, detail: `${bad.name} (${bad.rating} OVR) breaks the ${P.maxRating} cap` }
+      ? { pass: false, detail: `${bad.name} (${bad.overall} OVR) breaks the ${P.maxRating} cap` }
       : { pass: true,  detail: `All starters under ${P.maxRating + 1} OVR` };
   }
   if (P.excludeTeams) {

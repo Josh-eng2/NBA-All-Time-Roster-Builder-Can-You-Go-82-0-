@@ -145,12 +145,14 @@ export function fmtPlayerLine(p) {
 }
 
 // ── Team rating (0–100 overall) display helper ────────────────────────────────
-/** 2K-style tier color for a 0–100 rating. */
+/** 2K-style tier color for a 0–100 overall. Cutoffs 97/92/85 are the old
+ * rating-scale 90/82/74 tiers' percentile equivalents on the `overall`
+ * (era-adjusted 2K) scale the sim now averages. */
 export function ovrColor(rating) {
   const r = rating ?? 0;
-  if (r >= 90) return '#d97706'; // gold — GOAT tier
-  if (r >= 82) return '#2563eb'; // blue — star
-  if (r >= 74) return '#0f766e'; // teal — solid starter
+  if (r >= 97) return '#d97706'; // gold — GOAT tier
+  if (r >= 92) return '#2563eb'; // blue — star
+  if (r >= 85) return '#0f766e'; // teal — solid starter
   return '#64748b';              // slate — role player
 }
 

@@ -117,15 +117,18 @@ export function useSkip(kind) {
 }
 
 // ── Player tiers ──────────────────────────────────────────────────────────────
-// Quality tier keyed to the 0–100 player rating (2K-style overall). This is the
-// on-court quality signal the draft steers toward when seeking stars/GOATs.
+// Quality tier keyed to `overall` (the era-adjusted real-2K rating). This is
+// the on-court quality signal the draft steers toward when seeking stars/GOATs.
 const TIER_RANK = { starter: 0, star: 1, goat: 2 };
 
-/** Quality tier derived from the player's 0–100 rating. */
+/** Quality tier derived from the player's `overall` (era-adjusted 2K rating).
+ * Cutoffs 92/97 are the old rating-scale 82/90 cutoffs' percentile
+ * equivalents, keeping the star/goat pool sizes essentially unchanged
+ * (~24% / ~8% of all entries). */
 export function playerTier(p) {
-  const rating = p.rating ?? 70;
-  if (rating >= 90) return 'goat';
-  if (rating >= 82) return 'star';
+  const overall = p.overall ?? 82;
+  if (overall >= 97) return 'goat';
+  if (overall >= 92) return 'star';
   return 'starter';
 }
 

@@ -30,9 +30,17 @@ without this, an era that stacks several all-time greats at 2K's 99 cap (the
 99 while a lone-peak era kept 99, penalizing an era for its depth at the top.
 See the ceiling-anchor comment in main() for the full rationale.
 
-This is purely additive and display/reference-only: twoKOverall, rating,
-ratingRaw, and every stat field are left untouched, and nothing in js/ reads
-this new field yet (rating remains the load-bearing gameplay balance stat).
+The script also emits `overall`, the unified gameplay rating the game logic
+reads (simulation strength modifier, AI draft scoring, draft tiers, challenge
+rating caps): equal to twoKOverallEraAdjusted where a real 2K rating exists
+(724 entries), else an OLS fit of the stats-derived `rating` onto the
+2K-adjusted scale, computed live from the in-data pairs so it self-adjusts
+(same convention as add_rating.js's data-derived anchors). The fallback keeps
+the 213 entries 2K never made classic cards for — mostly role players, plus a
+few stars whose cards 2K literally hasn't added (Reggie Miller, Charles
+Barkley) — on the same scale instead of leaving gameplay holes. twoKOverall,
+rating, ratingRaw, and every stat field are left untouched; `rating` is now
+display/derivation-only.
 
 Usage:
     python3 scripts/normalize_2k_overalls_by_era.py
@@ -132,6 +140,31 @@ def main():
             p["twoKOverallEraAdjusted"] = adjusted[p["name"]]
             touched += 1
 
+    # ── Unified gameplay `overall` ────────────────────────────────────────────
+    # OLS fit of rating -> twoKOverallEraAdjusted over the entries that have
+    # both, then applied to the entries with no 2K rating so every player gets
+    # a value on the same scale. Fit is recomputed from the live data each run
+    # (self-adjusting anchors, same convention as add_rating.js).
+    pairs = [(p["rating"], p["twoKOverallEraAdjusted"])
+             for plist in jdata.values() for p in plist
+             if p.get("twoKOverallEraAdjusted") is not None]
+    n_pairs = len(pairs)
+    mean_x = sum(x for x, _ in pairs) / n_pairs
+    mean_y = sum(y for _, y in pairs) / n_pairs
+    var_x = sum((x - mean_x) ** 2 for x, _ in pairs) / n_pairs
+    cov = sum((x - mean_x) * (y - mean_y) for x, y in pairs) / n_pairs
+    slope = cov / var_x
+    intercept = mean_y - slope * mean_x
+
+    fallback_count = 0
+    for plist in jdata.values():
+        for p in plist:
+            if p.get("twoKOverallEraAdjusted") is not None:
+                p["overall"] = p["twoKOverallEraAdjusted"]
+            else:
+                p["overall"] = round(slope * p["rating"] + intercept)
+                fallback_count += 1
+
     total_entries = sum(len(v) for v in jdata.values())
     assert total_entries == expected_entries, (
         f"Entry count changed! Expected {expected_entries}, got {total_entries}")
@@ -141,6 +174,13 @@ def main():
         f.write("\n")
 
     print(f"Entries touched (twoKOverallEraAdjusted written): {touched}")
+    print(f"Unified `overall` written to all {total_entries} entries "
+          f"({fallback_count} via rating fallback, fit: "
+          f"overall = {slope:.3f}*rating + {intercept:.1f})")
+    all_overalls = [p["overall"] for plist in jdata.values() for p in plist]
+    ovr_mean = sum(all_overalls) / len(all_overalls)
+    print(f"`overall` distribution: mean={ovr_mean:.1f} "
+          f"range={min(all_overalls)}-{max(all_overalls)}")
     print()
     print(f"{'decade':<8}{'n':>5}{'raw mean':>10}{'adj mean':>10}{'raw max':>9}{'adj max':>9}")
     decade_order = ["1960s", "1970s", "1980s", "1990s", "2000s", "2010s", "2020s"]
