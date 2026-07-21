@@ -101,6 +101,43 @@ To rebuild after editing sources:
 `python3 scripts/match_2k_overalls.py data/nba2k_2000s_peak_ratings.json --decade 2000s`
 then the usual `inline_players.js` / `validate_players.js` steps.
 
+## `nba2k_1990s_peak_ratings.json`  (+ `nba2k_1990s_sources/`)
+
+Per-player peak NBA 2K overall for the 1990s, same classic/all-time-roster
+methodology and web-search compilation method as the 1960s/1970s/1980s files
+(see the 1960s section further below for the full access-method caveat).
+
+- **Provenance:** `data/nba2k_1990s_sources/2kratings_websearch_compiled.json`.
+  This is the largest decade (161 team-era entries, 143 distinct players), so
+  it also has the most cross-team/cross-decade card reuse — flagged inline in
+  the source file's `source` field in every case. A few examples: Shaquille
+  O'Neal's number is his higher All-Time Lakers card, applied to his Magic
+  bucket entry too, since the matcher (like every decade) keys on name only,
+  not team; several players whose 1980s-side research already turned up a
+  real card (Joe Dumars, Mark Price, Larry Nance, Dominique Wilkins, Clyde
+  Drexler, Mark Eaton, John Paxson) carry that same number into their 1990s
+  entry where the team matches, or as a same-player fallback where it doesn't
+  (e.g. Doc Rivers' 1985-86 Atlanta Hawks card standing in for his 1990s
+  Knicks entry, since no Knicks-specific card surfaced). A couple of players
+  confirmed to have **no current 2K card at all** (Charles Barkley, Reggie
+  Miller — 2kratings.com's own pages say "yet to be added in the game") are
+  correctly left out rather than guessed.
+- **Coverage:** 70 distinct players matched (83 of the 161 1990s team-era
+  entries in `players.json`) — the lowest match rate of the four pre-2000s
+  decades by percentage, but only because the 1990s bucket is by far the
+  largest and deepest (it includes many more complementary role players per
+  team than the other decades' entries do). The 78 unmatched entries are
+  almost entirely those role players (e.g. Luc Longley, B.J. Armstrong,
+  Voshon Lenard, Othella Harrington) who didn't surface an individual 2K
+  classic/all-time card in search.
+- **Consumed by:** `scripts/match_2k_overalls.py --decade 1990s`, isolated to
+  1990s entries only, same as every other decade.
+
+To rebuild after editing sources:
+`python3 scripts/build_1990s_peak_ratings.py` then
+`python3 scripts/match_2k_overalls.py data/nba2k_1990s_peak_ratings.json --decade 1990s`
+then the usual `inline_players.js` / `validate_players.js` steps.
+
 ## `nba2k_1980s_peak_ratings.json`  (+ `nba2k_1980s_sources/`)
 
 Per-player peak NBA 2K overall for the 1980s, same classic/all-time-roster
