@@ -4,6 +4,52 @@ Source data used by the pipeline scripts in `scripts/`. These files are
 inputs — the game ships from `js/data/players.js`, which is regenerated from
 `players.json`.
 
+## `twoKOverallEraAdjusted` (cross-era fairness correction)
+
+`twoKOverall` (added per-decade by the sections below) isn't rated on one
+consistent scale across eras — it's not a data bug, it's how 2K itself rates
+things. 1960s–1990s uses 2K's retrospective Classic/All-Time/All-Decade cards
+(generous nostalgia-driven tribute ratings); 2000s/2010s uses in-era
+contemporaneous per-season ratings from whatever edition shipped at the time;
+2020s uses current-roster ratings, 2K's most conservative, competitively
+cautious philosophy. The result is a steady drift with no gameplay
+justification: mean `twoKOverall` (deduped per player per decade) falls from
+**91.5 (1960s) → 91.1 (1970s) → 88.7 (1980s) → 89.4 (1990s) → 86.9 (2000s) →
+84.5 (2010s) → 83.9 (2020s)**. A "95" in 1965 and a "95" in 2024 aren't the
+same caliber of player.
+
+- **What it is:** each player's percentile rank within their own decade's
+  `twoKOverall` population, remapped onto the pooled cross-era `twoKOverall`
+  distribution (quantile normalization) — the same family of technique
+  `scripts/add_rating.js` already uses for the stats-derived `rating` field
+  (percentile-anchor remapping derived from the live data, so it self-adjusts
+  if the underlying data changes), just applied per-era instead of once
+  globally, since the per-era distributions are what's biased here. Rank-
+  preserving within each decade (verified: zero inversions) and fixes both
+  the mean *and* the spread, unlike a flat per-decade offset. Pools every era
+  into one reference rather than anointing a single "correct" era baseline —
+  2020s being lowest is partly because current players haven't accrued
+  legacy/tribute status yet, not only rating-conservatism, so it shouldn't be
+  treated as the canonical target either.
+- **Effect:** post-adjustment decade means cluster tightly at 86.6–87.0
+  (vs. the 83.9–91.5 raw spread), and every era's ceiling reads close to 99
+  again instead of 2020s topping out at 97.
+- **Scope — display/reference only:** this is purely additive. `twoKOverall`,
+  `rating`, `ratingRaw`, and every stat field are untouched, and nothing in
+  `js/` reads this field — `rating` remains the sole gameplay-facing balance
+  stat (simulation win-probability, AI draft scoring, draft tier bucketing,
+  challenge rating caps all key off `rating`, which is already era-fair by
+  construction). This field exists for fair cross-era comparisons (e.g.
+  "top 10 by era" lists), not to change how the game plays.
+- **Produced by:** `scripts/normalize_2k_overalls_by_era.py`, run once after
+  every decade's `twoKOverall` pass is complete (it needs the full cross-era
+  pool to build a meaningful reference). Only touches entries that already
+  have `twoKOverall`; never fabricates one where `twoKOverall` is absent.
+
+To rebuild after any decade's `twoKOverall` source data changes:
+`python3 scripts/normalize_2k_overalls_by_era.py` then the usual
+`inline_players.js` / `validate_players.js` steps.
+
 ## `nba2k_current_ratings.json`
 
 Current-roster NBA 2K Play Now ratings (the live 2K27 database), one record
