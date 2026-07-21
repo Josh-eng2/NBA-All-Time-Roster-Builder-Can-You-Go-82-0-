@@ -1,21 +1,30 @@
 #!/usr/bin/env python3
 """
-scripts/match_2k_overalls.py — stamp real NBA 2K overalls onto current-era
-players.json entries.
+scripts/match_2k_overalls.py — stamp real NBA 2K overalls onto players.json
+entries for one decade at a time.
 
-Reads a current-roster NBA 2K ratings file (see data/nba2k_current_ratings.json)
-and writes a `twoKOverall` field onto every matching **2020s-decade** entry in
-players.json. It never touches ppg/rpg/apg/spg/bpg or the stats-derived
-`rating`; it only adds the one field.
+Reads a decade-appropriate NBA 2K ratings file and writes a `twoKOverall` field
+onto every matching entry in the target decade. It never touches
+ppg/rpg/apg/spg/bpg or the stats-derived `rating`; it only adds the one field,
+and it only ever touches entries in the decade it's run for — so running it for
+one decade never disturbs another decade's values.
 
-Why 2020s only: an NBA 2K overall is a *current-season* number. It describes a
-player as they are now, so it can only be applied to the current-era (2020s)
-bucket. Applying today's rating to a player's 1990s or 2000s stint would be
-historically wrong, so those entries are deliberately left without a 2K overall.
+Why one decade at a time: an NBA 2K overall is a *season* number.
+  - 2020s uses data/nba2k_current_ratings.json (the current 2K roster) — one
+    current rating per player.
+  - 2010s uses data/nba2k_2010s_peak_ratings.json (built by
+    scripts/build_2010s_peak_ratings.py) — each player's PEAK 2K overall across
+    the decade, since players.json has one entry per player per decade.
+Applying a current rating to a 1990s stint would be historically wrong, so each
+decade is matched only against its own era's ratings.
 
 Usage:
+    # 2020s (default decade):
     python3 scripts/match_2k_overalls.py data/nba2k_current_ratings.json
-    python3 scripts/match_2k_overalls.py data/nba2k_current_ratings.json --report out.json
+    # 2010s:
+    python3 scripts/match_2k_overalls.py data/nba2k_2010s_peak_ratings.json --decade 2010s
+    # optional report:
+    python3 scripts/match_2k_overalls.py <ratings.json> --decade 2010s --report out.json
 
 After running, regenerate the inlined DB the game ships:
     node scripts/inline_players.js
@@ -29,16 +38,23 @@ import unicodedata
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 JSON_PATH = os.path.join(ROOT, "players.json")
 
-# Only entries in this decade bucket get a 2K overall (see module docstring).
-TARGET_DECADE = "2020s"
+# Decade matched when --decade is not given (keeps the original 2020s command
+# working unchanged).
+DEFAULT_DECADE = "2020s"
 
 # players.json display name -> NBA 2K roster name, for the ones that differ by
 # more than punctuation/spacing (nicknames, added words, suffixes). Pure
 # apostrophe/spacing variants (De'Andre, R.J., C.J.) are handled by normalize().
+# The corrected name is tried first, then the raw name, so a correction that
+# only applies in one decade's data can't break a match in another.
 NAME_CORRECTIONS = {
+    # 2020s roster variants
     "Lu Dort": "Luguentz Dort",
     "Herb Jones": "Herbert Jones",
     "Terry Rozier": "Terry Rozier III",
+    # 2010s roster variants
+    "Mike Dunleavy Jr.": "Mike Dunleavy",
+    "Patty Mills": "Patrick Mills",
 }
 
 
@@ -67,11 +83,15 @@ def load_2k_ratings(path):
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     if not args:
-        sys.exit("Usage: python3 scripts/match_2k_overalls.py <2k_ratings.json> [--report out.json]")
+        sys.exit("Usage: python3 scripts/match_2k_overalls.py <2k_ratings.json> "
+                 "[--decade 2020s|2010s] [--report out.json]")
     ratings_path = args[0]
     report_path = None
     if "--report" in sys.argv:
         report_path = sys.argv[sys.argv.index("--report") + 1]
+    target_decade = DEFAULT_DECADE
+    if "--decade" in sys.argv:
+        target_decade = sys.argv[sys.argv.index("--decade") + 1]
 
     ratings = load_2k_ratings(ratings_path)
 
@@ -86,20 +106,28 @@ def main():
     for bucket_key, plist in jdata.items():
         team, decade = bucket_key.rsplit("_", 1)
         for p in plist:
-            if decade != TARGET_DECADE:
-                # Never carry a stale 2K overall on a non-2020s entry.
-                p.pop("twoKOverall", None)
+            if decade != target_decade:
+                # Leave other decades' entries completely untouched, so running
+                # one decade's pass never wipes another decade's twoKOverall.
                 skipped_other_decade += 1
                 continue
             json_name = p["name"]
-            lookup_name = NAME_CORRECTIONS.get(json_name, json_name)
-            ovr = ratings.get(normalize(lookup_name))
+            # Try the corrected name first, then the raw name.
+            candidates = []
+            if json_name in NAME_CORRECTIONS:
+                candidates.append(NAME_CORRECTIONS[json_name])
+            candidates.append(json_name)
+            ovr = None
+            for cand in candidates:
+                ovr = ratings.get(normalize(cand))
+                if ovr is not None:
+                    break
             if ovr is not None:
                 p["twoKOverall"] = ovr
                 matched.append({"bucket": bucket_key, "name": json_name, "twoKOverall": ovr})
             else:
-                # No current 2K rating (e.g. retired mid-decade, or not on a
-                # current roster) — leave the entry without the field.
+                # No 2K rating for this era (e.g. retired before the data window,
+                # or never rated) — leave the entry without the field.
                 p.pop("twoKOverall", None)
                 unmatched.append({"bucket": bucket_key, "name": json_name})
 
@@ -117,7 +145,7 @@ def main():
     if report_path:
         with open(report_path, "w") as f:
             json.dump({
-                "target_decade": TARGET_DECADE,
+                "target_decade": target_decade,
                 "matched_count": len(matched),
                 "unmatched_count": len(unmatched),
                 "matched": sorted(matched, key=lambda m: -m["twoKOverall"]),
@@ -125,16 +153,16 @@ def main():
                 "validation_problems": problems,
             }, f, indent=2)
 
-    print(f"Target decade: {TARGET_DECADE}")
+    print(f"Target decade: {target_decade}")
     print(f"Matched (twoKOverall written): {len(matched)}")
-    print(f"Unmatched {TARGET_DECADE} entries (left without field): {len(unmatched)}")
+    print(f"Unmatched {target_decade} entries (left without field): {len(unmatched)}")
     print(f"Other-decade entries skipped: {skipped_other_decade}")
     print(f"Validation problems: {len(problems)}")
     for pr in problems:
         print("  PROBLEM:", pr)
     if unmatched:
         print()
-        print(f"Unmatched {TARGET_DECADE} entries:")
+        print(f"Unmatched {target_decade} entries:")
         for u in unmatched:
             print(f"  {u['bucket']} | {u['name']}")
 
