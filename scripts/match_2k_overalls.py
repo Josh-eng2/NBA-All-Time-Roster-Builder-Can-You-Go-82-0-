@@ -15,6 +15,9 @@ Why one decade at a time: an NBA 2K overall is a *season* number.
   - 2010s uses data/nba2k_2010s_peak_ratings.json (built by
     scripts/build_2010s_peak_ratings.py) — each player's PEAK 2K overall across
     the decade, since players.json has one entry per player per decade.
+  - 2000s uses data/nba2k_2000s_peak_ratings.json (built by
+    scripts/build_2000s_peak_ratings.py) — same peak-of-decade approach, from
+    the NBA 2K1..2K10 editions (2000-01 .. 2009-10 seasons).
 Applying a current rating to a 1990s stint would be historically wrong, so each
 decade is matched only against its own era's ratings.
 
@@ -23,6 +26,8 @@ Usage:
     python3 scripts/match_2k_overalls.py data/nba2k_current_ratings.json
     # 2010s:
     python3 scripts/match_2k_overalls.py data/nba2k_2010s_peak_ratings.json --decade 2010s
+    # 2000s:
+    python3 scripts/match_2k_overalls.py data/nba2k_2000s_peak_ratings.json --decade 2000s
     # optional report:
     python3 scripts/match_2k_overalls.py <ratings.json> --decade 2010s --report out.json
 

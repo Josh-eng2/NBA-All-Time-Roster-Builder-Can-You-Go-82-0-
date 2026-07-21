@@ -539,7 +539,8 @@
       ],
       "popularity": 98,
       "rating": 86,
-      "ratingRaw": 19.4
+      "ratingRaw": 19.4,
+      "twoKOverall": 99
     },
     {
       "id": "shaq_02",
@@ -558,7 +559,8 @@
       ],
       "popularity": 97,
       "rating": 91,
-      "ratingRaw": 21.8
+      "ratingRaw": 21.8,
+      "twoKOverall": 99
     },
     {
       "id": "gasol_09",
@@ -577,7 +579,8 @@
       ],
       "popularity": 74,
       "rating": 83,
-      "ratingRaw": 18.2
+      "ratingRaw": 18.2,
+      "twoKOverall": 92
     },
     {
       "id": "odom_04",
@@ -595,7 +598,8 @@
       ],
       "popularity": 60,
       "rating": 80,
-      "ratingRaw": 16.7
+      "ratingRaw": 16.7,
+      "twoKOverall": 89
     },
     {
       "id": "fisher_02",
@@ -614,7 +618,8 @@
       ],
       "popularity": 55,
       "rating": 65,
-      "ratingRaw": 9.4
+      "ratingRaw": 9.4,
+      "twoKOverall": 85
     },
     {
       "id": "horry_02",
@@ -1230,7 +1235,8 @@
       ],
       "popularity": 58,
       "rating": 75,
-      "ratingRaw": 14.1
+      "ratingRaw": 14.1,
+      "twoKOverall": 85
     },
     {
       "id": "gordon_06",
@@ -1248,7 +1254,8 @@
       ],
       "popularity": 52,
       "rating": 71,
-      "ratingRaw": 12.2
+      "ratingRaw": 12.2,
+      "twoKOverall": 83
     },
     {
       "id": "hinrich_07",
@@ -1266,7 +1273,8 @@
       ],
       "popularity": 50,
       "rating": 73,
-      "ratingRaw": 13.1
+      "ratingRaw": 13.1,
+      "twoKOverall": 85
     },
     {
       "id": "nocioni_06",
@@ -1284,7 +1292,8 @@
       ],
       "popularity": 42,
       "rating": 68,
-      "ratingRaw": 10.8
+      "ratingRaw": 10.8,
+      "twoKOverall": 84
     },
     {
       "id": "brand_02",
@@ -1302,7 +1311,8 @@
       ],
       "popularity": 55,
       "rating": 84,
-      "ratingRaw": 18.6
+      "ratingRaw": 18.6,
+      "twoKOverall": 96
     },
     {
       "id": "chandler_02",
@@ -1320,7 +1330,8 @@
       ],
       "popularity": 58,
       "rating": 70,
-      "ratingRaw": 11.7
+      "ratingRaw": 11.7,
+      "twoKOverall": 81
     },
     {
       "id": "duhon_07",
@@ -1338,7 +1349,8 @@
       ],
       "popularity": 40,
       "rating": 64,
-      "ratingRaw": 8.8
+      "ratingRaw": 8.8,
+      "twoKOverall": 77
     }
   ],
   "Bulls_2010s": [
@@ -1641,7 +1653,8 @@
       ],
       "popularity": 65,
       "rating": 81,
-      "ratingRaw": 17.2
+      "ratingRaw": 17.2,
+      "twoKOverall": 94
     },
     {
       "id": "monta_09",
@@ -1659,7 +1672,8 @@
       ],
       "popularity": 55,
       "rating": 71,
-      "ratingRaw": 12.5
+      "ratingRaw": 12.5,
+      "twoKOverall": 87
     },
     {
       "id": "jackson_04",
@@ -1677,7 +1691,8 @@
       ],
       "popularity": 50,
       "rating": 76,
-      "ratingRaw": 14.7
+      "ratingRaw": 14.7,
+      "twoKOverall": 83
     },
     {
       "id": "richardson_07",
@@ -1695,7 +1710,8 @@
       ],
       "popularity": 52,
       "rating": 75,
-      "ratingRaw": 14.1
+      "ratingRaw": 14.1,
+      "twoKOverall": 88
     },
     {
       "id": "pietrus_07",
@@ -1713,7 +1729,8 @@
       ],
       "popularity": 40,
       "rating": 62,
-      "ratingRaw": 7.8
+      "ratingRaw": 7.8,
+      "twoKOverall": 77
     },
     {
       "id": "harrington_07",
@@ -1731,7 +1748,8 @@
       ],
       "popularity": 42,
       "rating": 72,
-      "ratingRaw": 12.8
+      "ratingRaw": 12.8,
+      "twoKOverall": 82
     },
     {
       "id": "foyle_07",
@@ -2543,7 +2561,8 @@
       ],
       "popularity": 85,
       "rating": 82,
-      "ratingRaw": 17.7
+      "ratingRaw": 17.7,
+      "twoKOverall": 98
     },
     {
       "id": "garnett_08",
@@ -2561,7 +2580,8 @@
       ],
       "popularity": 88,
       "rating": 78,
-      "ratingRaw": 15.7
+      "ratingRaw": 15.7,
+      "twoKOverall": 99
     },
     {
       "id": "allen_08",
@@ -2579,7 +2599,8 @@
       ],
       "popularity": 82,
       "rating": 71,
-      "ratingRaw": 12.1
+      "ratingRaw": 12.1,
+      "twoKOverall": 92
     },
     {
       "id": "rondo_09",
@@ -2597,7 +2618,8 @@
       ],
       "popularity": 68,
       "rating": 75,
-      "ratingRaw": 14.1
+      "ratingRaw": 14.1,
+      "twoKOverall": 87
     },
     {
       "id": "perkins_08",
@@ -2616,7 +2638,8 @@
       ],
       "popularity": 55,
       "rating": 66,
-      "ratingRaw": 9.8
+      "ratingRaw": 9.8,
+      "twoKOverall": 76
     },
     {
       "id": "powe_08",
@@ -2634,7 +2657,8 @@
       ],
       "popularity": 37,
       "rating": 59,
-      "ratingRaw": 6.6
+      "ratingRaw": 6.6,
+      "twoKOverall": 76
     },
     {
       "id": "house_08",
@@ -2652,7 +2676,8 @@
       ],
       "popularity": 40,
       "rating": 61,
-      "ratingRaw": 7.3
+      "ratingRaw": 7.3,
+      "twoKOverall": 76
     }
   ],
   "Celtics_2010s": [
@@ -3073,7 +3098,8 @@
       ],
       "popularity": 95,
       "rating": 86,
-      "ratingRaw": 19.5
+      "ratingRaw": 19.5,
+      "twoKOverall": 98
     },
     {
       "id": "shaq_05",
@@ -3091,7 +3117,8 @@
       ],
       "popularity": 97,
       "rating": 82,
-      "ratingRaw": 17.6
+      "ratingRaw": 17.6,
+      "twoKOverall": 99
     },
     {
       "id": "haslem_07",
@@ -3109,7 +3136,8 @@
       ],
       "popularity": 44,
       "rating": 71,
-      "ratingRaw": 12.1
+      "ratingRaw": 12.1,
+      "twoKOverall": 82
     },
     {
       "id": "mourning_06",
@@ -3128,7 +3156,8 @@
       ],
       "popularity": 75,
       "rating": 71,
-      "ratingRaw": 12.3
+      "ratingRaw": 12.3,
+      "twoKOverall": 96
     },
     {
       "id": "posey_06",
@@ -3147,7 +3176,8 @@
       ],
       "popularity": 41,
       "rating": 65,
-      "ratingRaw": 9.5
+      "ratingRaw": 9.5,
+      "twoKOverall": 81
     },
     {
       "id": "payton_06",
@@ -3165,7 +3195,8 @@
       ],
       "popularity": 78,
       "rating": 62,
-      "ratingRaw": 8
+      "ratingRaw": 8,
+      "twoKOverall": 97
     }
   ],
   "Heat_2010s": [
@@ -3679,7 +3710,8 @@
       ],
       "popularity": 92,
       "rating": 91,
-      "ratingRaw": 21.9
+      "ratingRaw": 21.9,
+      "twoKOverall": 99
     },
     {
       "id": "parker_07",
@@ -3697,7 +3729,8 @@
       ],
       "popularity": 78,
       "rating": 73,
-      "ratingRaw": 13.2
+      "ratingRaw": 13.2,
+      "twoKOverall": 90
     },
     {
       "id": "ginobili_05",
@@ -3715,7 +3748,8 @@
       ],
       "popularity": 82,
       "rating": 73,
-      "ratingRaw": 13.2
+      "ratingRaw": 13.2,
+      "twoKOverall": 91
     },
     {
       "id": "bowen_03",
@@ -3770,7 +3804,8 @@
       ],
       "popularity": 50,
       "rating": 64,
-      "ratingRaw": 9.1
+      "ratingRaw": 9.1,
+      "twoKOverall": 83
     },
     {
       "id": "nesterovic_04",
@@ -4242,7 +4277,8 @@
       ],
       "popularity": 62,
       "rating": 75,
-      "ratingRaw": 14.2
+      "ratingRaw": 14.2,
+      "twoKOverall": 90
     },
     {
       "id": "crawford_06",
@@ -4260,7 +4296,8 @@
       ],
       "popularity": 55,
       "rating": 72,
-      "ratingRaw": 13
+      "ratingRaw": 13,
+      "twoKOverall": 83
     },
     {
       "id": "lee_09",
@@ -4278,7 +4315,8 @@
       ],
       "popularity": 45,
       "rating": 76,
-      "ratingRaw": 14.6
+      "ratingRaw": 14.6,
+      "twoKOverall": 82
     },
     {
       "id": "curry_07",
@@ -4296,7 +4334,8 @@
       ],
       "popularity": 40,
       "rating": 66,
-      "ratingRaw": 10.1
+      "ratingRaw": 10.1,
+      "twoKOverall": 79
     },
     {
       "id": "james_07",
@@ -4314,7 +4353,8 @@
       ],
       "popularity": 48,
       "rating": 64,
-      "ratingRaw": 9.1
+      "ratingRaw": 9.1,
+      "twoKOverall": 78
     }
   ],
   "Knicks_2010s": [
@@ -4691,7 +4731,8 @@
       ],
       "popularity": 56,
       "rating": 83,
-      "ratingRaw": 18.1
+      "ratingRaw": 18.1,
+      "twoKOverall": 90
     },
     {
       "id": "deron_08",
@@ -4709,7 +4750,8 @@
       ],
       "popularity": 68,
       "rating": 78,
-      "ratingRaw": 15.5
+      "ratingRaw": 15.5,
+      "twoKOverall": 94
     },
     {
       "id": "okur_07",
@@ -4727,7 +4769,8 @@
       ],
       "popularity": 48,
       "rating": 75,
-      "ratingRaw": 14.5
+      "ratingRaw": 14.5,
+      "twoKOverall": 85
     },
     {
       "id": "kirilenko_07",
@@ -4746,7 +4789,8 @@
       ],
       "popularity": 63,
       "rating": 77,
-      "ratingRaw": 15.3
+      "ratingRaw": 15.3,
+      "twoKOverall": 89
     },
     {
       "id": "harpring_07",
@@ -4764,7 +4808,8 @@
       ],
       "popularity": 44,
       "rating": 66,
-      "ratingRaw": 9.8
+      "ratingRaw": 9.8,
+      "twoKOverall": 82
     },
     {
       "id": "maynor_09",
@@ -4782,7 +4827,8 @@
       ],
       "popularity": 39,
       "rating": 59,
-      "ratingRaw": 6.5
+      "ratingRaw": 6.5,
+      "twoKOverall": 66
     }
   ],
   "Jazz_2010s": [
@@ -5176,7 +5222,8 @@
       ],
       "popularity": 70,
       "rating": 74,
-      "ratingRaw": 14
+      "ratingRaw": 14,
+      "twoKOverall": 92
     },
     {
       "id": "rasheed_04",
@@ -5194,7 +5241,8 @@
       ],
       "popularity": 67,
       "rating": 76,
-      "ratingRaw": 14.7
+      "ratingRaw": 14.7,
+      "twoKOverall": 93
     },
     {
       "id": "hamilton_04",
@@ -5212,7 +5260,8 @@
       ],
       "popularity": 63,
       "rating": 72,
-      "ratingRaw": 13
+      "ratingRaw": 13,
+      "twoKOverall": 89
     },
     {
       "id": "prince_04",
@@ -5230,7 +5279,8 @@
       ],
       "popularity": 57,
       "rating": 69,
-      "ratingRaw": 11.5
+      "ratingRaw": 11.5,
+      "twoKOverall": 83
     },
     {
       "id": "ben_04",
@@ -5248,7 +5298,8 @@
       ],
       "popularity": 68,
       "rating": 84,
-      "ratingRaw": 18.7
+      "ratingRaw": 18.7,
+      "twoKOverall": 92
     },
     {
       "id": "hunter_04",
@@ -5266,7 +5317,8 @@
       ],
       "popularity": 41,
       "rating": 57,
-      "ratingRaw": 5.4
+      "ratingRaw": 5.4,
+      "twoKOverall": 79
     },
     {
       "id": "mcdyess_06",
@@ -5284,7 +5336,8 @@
       ],
       "popularity": 52,
       "rating": 70,
-      "ratingRaw": 11.7
+      "ratingRaw": 11.7,
+      "twoKOverall": 92
     }
   ],
   "Magic_1990s": [
@@ -5433,7 +5486,8 @@
       ],
       "popularity": 84,
       "rating": 87,
-      "ratingRaw": 20.1
+      "ratingRaw": 20.1,
+      "twoKOverall": 98
     },
     {
       "id": "dwight_09",
@@ -5451,7 +5505,8 @@
       ],
       "popularity": 75,
       "rating": 89,
-      "ratingRaw": 21.1
+      "ratingRaw": 21.1,
+      "twoKOverall": 94
     },
     {
       "id": "turkoglu_08",
@@ -5469,7 +5524,8 @@
       ],
       "popularity": 52,
       "rating": 73,
-      "ratingRaw": 13.2
+      "ratingRaw": 13.2,
+      "twoKOverall": 85
     },
     {
       "id": "lewis_09",
@@ -5487,7 +5543,8 @@
       ],
       "popularity": 51,
       "rating": 73,
-      "ratingRaw": 13.3
+      "ratingRaw": 13.3,
+      "twoKOverall": 88
     },
     {
       "id": "arenas_04",
@@ -5505,7 +5562,8 @@
       ],
       "popularity": 78,
       "rating": 70,
-      "ratingRaw": 11.8
+      "ratingRaw": 11.8,
+      "twoKOverall": 95
     },
     {
       "id": "bogans_09",
@@ -5523,7 +5581,8 @@
       ],
       "popularity": 38,
       "rating": 60,
-      "ratingRaw": 7.1
+      "ratingRaw": 7.1,
+      "twoKOverall": 73
     },
     {
       "id": "pietrus_09",
@@ -5541,7 +5600,8 @@
       ],
       "popularity": 40,
       "rating": 62,
-      "ratingRaw": 8.2
+      "ratingRaw": 8.2,
+      "twoKOverall": 77
     }
   ],
   "Magic_2010s": [
@@ -5878,7 +5938,8 @@
       ],
       "popularity": 82,
       "rating": 79,
-      "ratingRaw": 16
+      "ratingRaw": 16,
+      "twoKOverall": 96
     },
     {
       "id": "amare_06",
@@ -5896,7 +5957,8 @@
       ],
       "popularity": 72,
       "rating": 82,
-      "ratingRaw": 17.7
+      "ratingRaw": 17.7,
+      "twoKOverall": 95
     },
     {
       "id": "marion_06",
@@ -5914,7 +5976,8 @@
       ],
       "popularity": 68,
       "rating": 87,
-      "ratingRaw": 20.1
+      "ratingRaw": 20.1,
+      "twoKOverall": 92
     },
     {
       "id": "barbosa_07",
@@ -5932,7 +5995,8 @@
       ],
       "popularity": 52,
       "rating": 65,
-      "ratingRaw": 9.3
+      "ratingRaw": 9.3,
+      "twoKOverall": 86
     },
     {
       "id": "richardson_06",
@@ -5950,7 +6014,8 @@
       ],
       "popularity": 47,
       "rating": 73,
-      "ratingRaw": 13.2
+      "ratingRaw": 13.2,
+      "twoKOverall": 81
     },
     {
       "id": "jones_06",
@@ -5968,7 +6033,8 @@
       ],
       "popularity": 40,
       "rating": 61,
-      "ratingRaw": 7.5
+      "ratingRaw": 7.5,
+      "twoKOverall": 75
     },
     {
       "id": "tmac_suns",
@@ -5987,7 +6053,8 @@
       ],
       "popularity": 55,
       "rating": 72,
-      "ratingRaw": 12.9
+      "ratingRaw": 12.9,
+      "twoKOverall": 78
     }
   ],
   "Suns_2020s": [
@@ -6234,7 +6301,8 @@
       ],
       "popularity": 88,
       "rating": 79,
-      "ratingRaw": 16.3
+      "ratingRaw": 16.3,
+      "twoKOverall": 94
     },
     {
       "id": "iverson_07",
@@ -6252,7 +6320,8 @@
       ],
       "popularity": 98,
       "rating": 81,
-      "ratingRaw": 17.2
+      "ratingRaw": 17.2,
+      "twoKOverall": 98
     },
     {
       "id": "camby_07",
@@ -6270,7 +6339,8 @@
       ],
       "popularity": 58,
       "rating": 81,
-      "ratingRaw": 17.4
+      "ratingRaw": 17.4,
+      "twoKOverall": 87
     },
     {
       "id": "martin_07",
@@ -6288,7 +6358,8 @@
       ],
       "popularity": 54,
       "rating": 73,
-      "ratingRaw": 13.1
+      "ratingRaw": 13.1,
+      "twoKOverall": 85
     },
     {
       "id": "nene_06",
@@ -6324,7 +6395,8 @@
       ],
       "popularity": 44,
       "rating": 66,
-      "ratingRaw": 9.9
+      "ratingRaw": 9.9,
+      "twoKOverall": 75
     },
     {
       "id": "anthony_09",
@@ -6907,7 +6979,8 @@
       ],
       "popularity": 98,
       "rating": 81,
-      "ratingRaw": 17.4
+      "ratingRaw": 17.4,
+      "twoKOverall": 98
     },
     {
       "id": "webber_05",
@@ -6925,7 +6998,8 @@
       ],
       "popularity": 76,
       "rating": 80,
-      "ratingRaw": 16.5
+      "ratingRaw": 16.5,
+      "twoKOverall": 95
     },
     {
       "id": "iguodala_09",
@@ -6943,7 +7017,8 @@
       ],
       "popularity": 68,
       "rating": 79,
-      "ratingRaw": 16.1
+      "ratingRaw": 16.1,
+      "twoKOverall": 87
     },
     {
       "id": "mckinley_03",
@@ -6980,7 +7055,8 @@
       ],
       "popularity": 41,
       "rating": 73,
-      "ratingRaw": 13.2
+      "ratingRaw": 13.2,
+      "twoKOverall": 81
     }
   ],
   "Sixers_2010s": [
@@ -7210,7 +7286,8 @@
       ],
       "popularity": 90,
       "rating": 83,
-      "ratingRaw": 18
+      "ratingRaw": 18,
+      "twoKOverall": 94
     },
     {
       "id": "tmac_04",
@@ -7228,7 +7305,8 @@
       ],
       "popularity": 84,
       "rating": 81,
-      "ratingRaw": 17
+      "ratingRaw": 17,
+      "twoKOverall": 98
     },
     {
       "id": "scola_07",
@@ -7246,7 +7324,8 @@
       ],
       "popularity": 48,
       "rating": 74,
-      "ratingRaw": 13.6
+      "ratingRaw": 13.6,
+      "twoKOverall": 79
     },
     {
       "id": "alston_07",
@@ -7264,7 +7343,8 @@
       ],
       "popularity": 42,
       "rating": 73,
-      "ratingRaw": 13.1
+      "ratingRaw": 13.1,
+      "twoKOverall": 79
     },
     {
       "id": "hayes_07",
@@ -7283,7 +7363,8 @@
       ],
       "popularity": 38,
       "rating": 63,
-      "ratingRaw": 8.3
+      "ratingRaw": 8.3,
+      "twoKOverall": 73
     }
   ],
   "Rockets_2010s": [
@@ -7951,7 +8032,8 @@
       ],
       "popularity": 82,
       "rating": 77,
-      "ratingRaw": 15.1
+      "ratingRaw": 15.1,
+      "twoKOverall": 92
     },
     {
       "id": "redd_06",
@@ -7969,7 +8051,8 @@
       ],
       "popularity": 57,
       "rating": 72,
-      "ratingRaw": 12.6
+      "ratingRaw": 12.6,
+      "twoKOverall": 89
     },
     {
       "id": "cassell_01",
@@ -7987,7 +8070,8 @@
       ],
       "popularity": 62,
       "rating": 77,
-      "ratingRaw": 15
+      "ratingRaw": 15,
+      "twoKOverall": 90
     },
     {
       "id": "mason_01",
@@ -8217,7 +8301,8 @@
       ],
       "popularity": 94,
       "rating": 86,
-      "ratingRaw": 19.4
+      "ratingRaw": 19.4,
+      "twoKOverall": 97
     },
     {
       "id": "nash_02",
@@ -8235,7 +8320,8 @@
       ],
       "popularity": 82,
       "rating": 74,
-      "ratingRaw": 13.9
+      "ratingRaw": 13.9,
+      "twoKOverall": 96
     },
     {
       "id": "finley_02",
@@ -8253,7 +8339,8 @@
       ],
       "popularity": 56,
       "rating": 75,
-      "ratingRaw": 14.1
+      "ratingRaw": 14.1,
+      "twoKOverall": 95
     },
     {
       "id": "walker_02",
@@ -8271,7 +8358,8 @@
       ],
       "popularity": 52,
       "rating": 72,
-      "ratingRaw": 13
+      "ratingRaw": 13,
+      "twoKOverall": 88
     },
     {
       "id": "terry_07",
@@ -8290,7 +8378,8 @@
       ],
       "popularity": 57,
       "rating": 71,
-      "ratingRaw": 12.3
+      "ratingRaw": 12.3,
+      "twoKOverall": 84
     }
   ],
   "Mavericks_2010s": [
@@ -8672,7 +8761,8 @@
       ],
       "popularity": 99,
       "rating": 92,
-      "ratingRaw": 22.3
+      "ratingRaw": 22.3,
+      "twoKOverall": 99
     },
     {
       "id": "ilg_06",
@@ -8690,7 +8780,8 @@
       ],
       "popularity": 48,
       "rating": 76,
-      "ratingRaw": 14.9
+      "ratingRaw": 14.9,
+      "twoKOverall": 84
     },
     {
       "id": "hughes_07",
@@ -8708,7 +8799,8 @@
       ],
       "popularity": 42,
       "rating": 72,
-      "ratingRaw": 12.9
+      "ratingRaw": 12.9,
+      "twoKOverall": 86
     },
     {
       "id": "gooden_07",
@@ -8726,7 +8818,8 @@
       ],
       "popularity": 41,
       "rating": 74,
-      "ratingRaw": 13.9
+      "ratingRaw": 13.9,
+      "twoKOverall": 79
     }
   ],
   "Cavaliers_2010s": [
@@ -9373,7 +9466,8 @@
       ],
       "popularity": 78,
       "rating": 84,
-      "ratingRaw": 18.7
+      "ratingRaw": 18.7,
+      "twoKOverall": 96
     },
     {
       "id": "carter_v_05",
@@ -9392,7 +9486,8 @@
       ],
       "popularity": 35,
       "rating": 82,
-      "ratingRaw": 17.5
+      "ratingRaw": 17.5,
+      "twoKOverall": 96
     },
     {
       "id": "jefferson_r_04",
@@ -9410,7 +9505,8 @@
       ],
       "popularity": 55,
       "rating": 74,
-      "ratingRaw": 13.6
+      "ratingRaw": 13.6,
+      "twoKOverall": 84
     },
     {
       "id": "martin_k_03",
@@ -9429,7 +9525,8 @@
       ],
       "popularity": 54,
       "rating": 77,
-      "ratingRaw": 15
+      "ratingRaw": 15,
+      "twoKOverall": 85
     },
     {
       "id": "lopez_br_09",
@@ -9448,7 +9545,8 @@
       ],
       "popularity": 55,
       "rating": 80,
-      "ratingRaw": 16.9
+      "ratingRaw": 16.9,
+      "twoKOverall": 77
     }
   ],
   "Kings_2000s": [
@@ -9468,7 +9566,8 @@
       ],
       "popularity": 76,
       "rating": 85,
-      "ratingRaw": 19.3
+      "ratingRaw": 19.3,
+      "twoKOverall": 95
     },
     {
       "id": "peja_02",
@@ -9486,7 +9585,8 @@
       ],
       "popularity": 65,
       "rating": 73,
-      "ratingRaw": 13.3
+      "ratingRaw": 13.3,
+      "twoKOverall": 92
     },
     {
       "id": "bibby_02",
@@ -9504,7 +9604,8 @@
       ],
       "popularity": 58,
       "rating": 75,
-      "ratingRaw": 14.1
+      "ratingRaw": 14.1,
+      "twoKOverall": 89
     },
     {
       "id": "divac_02",
@@ -9522,7 +9623,8 @@
       ],
       "popularity": 62,
       "rating": 77,
-      "ratingRaw": 15
+      "ratingRaw": 15,
+      "twoKOverall": 86
     },
     {
       "id": "christie_02",
@@ -9576,7 +9678,8 @@
       ],
       "popularity": 52,
       "rating": 62,
-      "ratingRaw": 7.9
+      "ratingRaw": 7.9,
+      "twoKOverall": 85
     },
     {
       "id": "jackson_02",
@@ -11100,7 +11203,8 @@
       ],
       "popularity": 82,
       "rating": 79,
-      "ratingRaw": 16.3
+      "ratingRaw": 16.3,
+      "twoKOverall": 92
     },
     {
       "id": "rlewis_06",
@@ -11121,7 +11225,8 @@
       ],
       "popularity": 51,
       "rating": 75,
-      "ratingRaw": 14.4
+      "ratingRaw": 14.4,
+      "twoKOverall": 88
     },
     {
       "id": "gpayton_02",
@@ -11140,7 +11245,8 @@
       ],
       "popularity": 78,
       "rating": 85,
-      "ratingRaw": 18.9
+      "ratingRaw": 18.9,
+      "twoKOverall": 97
     }
   ],
   "Pistons_2010s": [
@@ -12275,7 +12381,8 @@
       ],
       "popularity": 44,
       "rating": 79,
-      "ratingRaw": 16.2
+      "ratingRaw": 16.2,
+      "twoKOverall": 89
     },
     {
       "id": "smith_j_05",
@@ -12294,7 +12401,8 @@
       ],
       "popularity": 35,
       "rating": 82,
-      "ratingRaw": 17.8
+      "ratingRaw": 17.8,
+      "twoKOverall": 86
     },
     {
       "id": "horford_08",
@@ -12312,7 +12420,8 @@
       ],
       "popularity": 62,
       "rating": 78,
-      "ratingRaw": 15.8
+      "ratingRaw": 15.8,
+      "twoKOverall": 80
     },
     {
       "id": "bibby_08",
@@ -12330,7 +12439,8 @@
       ],
       "popularity": 58,
       "rating": 69,
-      "ratingRaw": 11.6
+      "ratingRaw": 11.6,
+      "twoKOverall": 89
     },
     {
       "id": "terry_02",
@@ -12349,7 +12459,8 @@
       ],
       "popularity": 57,
       "rating": 77,
-      "ratingRaw": 15
+      "ratingRaw": 15,
+      "twoKOverall": 84
     }
   ],
   "Hawks_2010s": [
@@ -13150,7 +13261,8 @@
       ],
       "popularity": 37,
       "rating": 78,
-      "ratingRaw": 15.8
+      "ratingRaw": 15.8,
+      "twoKOverall": 84
     },
     {
       "id": "okafor_e_05",
@@ -13169,7 +13281,8 @@
       ],
       "popularity": 35,
       "rating": 82,
-      "ratingRaw": 17.5
+      "ratingRaw": 17.5,
+      "twoKOverall": 86
     },
     {
       "id": "jackson_s_07",
@@ -13188,7 +13301,8 @@
       ],
       "popularity": 50,
       "rating": 80,
-      "ratingRaw": 16.5
+      "ratingRaw": 16.5,
+      "twoKOverall": 83
     },
     {
       "id": "diaw_07",
@@ -13206,7 +13320,8 @@
       ],
       "popularity": 55,
       "rating": 74,
-      "ratingRaw": 14
+      "ratingRaw": 14,
+      "twoKOverall": 78
     },
     {
       "id": "felton_06",
@@ -13224,7 +13339,8 @@
       ],
       "popularity": 44,
       "rating": 74,
-      "ratingRaw": 13.7
+      "ratingRaw": 13.7,
+      "twoKOverall": 80
     }
   ],
   "Hornets_2010s": [
@@ -13723,7 +13839,8 @@
       ],
       "popularity": 40,
       "rating": 84,
-      "ratingRaw": 18.8
+      "ratingRaw": 18.8,
+      "twoKOverall": 94
     },
     {
       "id": "miller_r_03",
@@ -13742,7 +13859,8 @@
       ],
       "popularity": 35,
       "rating": 68,
-      "ratingRaw": 10.9
+      "ratingRaw": 10.9,
+      "twoKOverall": 87
     },
     {
       "id": "artest_03",
@@ -13761,7 +13879,8 @@
       ],
       "popularity": 37,
       "rating": 75,
-      "ratingRaw": 14.3
+      "ratingRaw": 14.3,
+      "twoKOverall": 88
     },
     {
       "id": "granger_07",
@@ -13780,7 +13899,8 @@
       ],
       "popularity": 35,
       "rating": 75,
-      "ratingRaw": 14.3
+      "ratingRaw": 14.3,
+      "twoKOverall": 85
     },
     {
       "id": "jackson_s_04",
@@ -13798,7 +13918,8 @@
       ],
       "popularity": 50,
       "rating": 72,
-      "ratingRaw": 12.8
+      "ratingRaw": 12.8,
+      "twoKOverall": 83
     }
   ],
   "Pacers_2010s": [
@@ -14303,7 +14424,8 @@
       ],
       "popularity": 55,
       "rating": 88,
-      "ratingRaw": 20.6
+      "ratingRaw": 20.6,
+      "twoKOverall": 96
     },
     {
       "id": "maggette_04",
@@ -14321,7 +14443,8 @@
       ],
       "popularity": 43,
       "rating": 71,
-      "ratingRaw": 12.4
+      "ratingRaw": 12.4,
+      "twoKOverall": 88
     },
     {
       "id": "cassell_s_06",
@@ -14340,7 +14463,8 @@
       ],
       "popularity": 62,
       "rating": 70,
-      "ratingRaw": 11.8
+      "ratingRaw": 11.8,
+      "twoKOverall": 90
     },
     {
       "id": "kaman_06",
@@ -14358,7 +14482,8 @@
       ],
       "popularity": 35,
       "rating": 74,
-      "ratingRaw": 13.9
+      "ratingRaw": 13.9,
+      "twoKOverall": 86
     },
     {
       "id": "livingston_s_06",
@@ -14376,7 +14501,8 @@
       ],
       "popularity": 44,
       "rating": 68,
-      "ratingRaw": 10.7
+      "ratingRaw": 10.7,
+      "twoKOverall": 75
     }
   ],
   "Clippers_2010s": [
@@ -14694,7 +14820,8 @@
       ],
       "popularity": 88,
       "rating": 96,
-      "ratingRaw": 24.3
+      "ratingRaw": 24.3,
+      "twoKOverall": 99
     },
     {
       "id": "cassell_s_04",
@@ -14713,7 +14840,8 @@
       ],
       "popularity": 62,
       "rating": 71,
-      "ratingRaw": 12.5
+      "ratingRaw": 12.5,
+      "twoKOverall": 90
     },
     {
       "id": "sprewell_04",
@@ -14768,7 +14896,8 @@
       ],
       "popularity": 35,
       "rating": 62,
-      "ratingRaw": 8.2
+      "ratingRaw": 8.2,
+      "twoKOverall": 79
     }
   ],
   "Timberwolves_2010s": [
@@ -14991,7 +15120,8 @@
       ],
       "popularity": 78,
       "rating": 83,
-      "ratingRaw": 18
+      "ratingRaw": 18,
+      "twoKOverall": 99
     },
     {
       "id": "davis_b_03",
@@ -15010,7 +15140,8 @@
       ],
       "popularity": 65,
       "rating": 75,
-      "ratingRaw": 14.1
+      "ratingRaw": 14.1,
+      "twoKOverall": 94
     },
     {
       "id": "stojakovic_p_07",
@@ -15029,7 +15160,8 @@
       ],
       "popularity": 65,
       "rating": 66,
-      "ratingRaw": 10
+      "ratingRaw": 10,
+      "twoKOverall": 92
     },
     {
       "id": "mashburn_03",
@@ -15065,7 +15197,8 @@
       ],
       "popularity": 43,
       "rating": 75,
-      "ratingRaw": 14.1
+      "ratingRaw": 14.1,
+      "twoKOverall": 88
     }
   ],
   "Pelicans_2010s": [
@@ -15477,7 +15610,8 @@
       ],
       "popularity": 45,
       "rating": 74,
-      "ratingRaw": 14
+      "ratingRaw": 14,
+      "twoKOverall": 88
     },
     {
       "id": "aldridge_la_09",
@@ -15495,7 +15629,8 @@
       ],
       "popularity": 63,
       "rating": 74,
-      "ratingRaw": 13.9
+      "ratingRaw": 13.9,
+      "twoKOverall": 84
     },
     {
       "id": "pippen_s_01",
@@ -15532,7 +15667,8 @@
       ],
       "popularity": 36,
       "rating": 72,
-      "ratingRaw": 12.9
+      "ratingRaw": 12.9,
+      "twoKOverall": 86
     },
     {
       "id": "stoudamire_d_02",
@@ -16475,7 +16611,8 @@
       ],
       "popularity": 39,
       "rating": 76,
-      "ratingRaw": 14.8
+      "ratingRaw": 14.8,
+      "twoKOverall": 96
     },
     {
       "id": "raptors_00s_2",
@@ -16493,7 +16630,8 @@
       ],
       "popularity": 72,
       "rating": 83,
-      "ratingRaw": 18.1
+      "ratingRaw": 18.1,
+      "twoKOverall": 92
     },
     {
       "id": "raptors_00s_3",
@@ -16512,7 +16650,8 @@
       ],
       "popularity": 84,
       "rating": 82,
-      "ratingRaw": 17.7
+      "ratingRaw": 17.7,
+      "twoKOverall": 98
     },
     {
       "id": "raptors_00s_4",
@@ -16530,7 +16669,8 @@
       ],
       "popularity": 35,
       "rating": 68,
-      "ratingRaw": 10.7
+      "ratingRaw": 10.7,
+      "twoKOverall": 87
     },
     {
       "id": "raptors_00s_5",
@@ -16548,7 +16688,8 @@
       ],
       "popularity": 35,
       "rating": 67,
-      "ratingRaw": 10.6
+      "ratingRaw": 10.6,
+      "twoKOverall": 80
     },
     {
       "id": "raptors_00s_6",
@@ -16856,7 +16997,8 @@
       ],
       "popularity": 74,
       "rating": 84,
-      "ratingRaw": 18.4
+      "ratingRaw": 18.4,
+      "twoKOverall": 92
     },
     {
       "id": "grizzlies_00s_2",
@@ -16875,7 +17017,8 @@
       ],
       "popularity": 35,
       "rating": 71,
-      "ratingRaw": 12.1
+      "ratingRaw": 12.1,
+      "twoKOverall": 84
     },
     {
       "id": "grizzlies_00s_3",
@@ -16893,7 +17036,8 @@
       ],
       "popularity": 41,
       "rating": 70,
-      "ratingRaw": 12
+      "ratingRaw": 12,
+      "twoKOverall": 82
     },
     {
       "id": "grizzlies_00s_4",
@@ -16911,7 +17055,8 @@
       ],
       "popularity": 35,
       "rating": 69,
-      "ratingRaw": 11.4
+      "ratingRaw": 11.4,
+      "twoKOverall": 84
     },
     {
       "id": "grizzlies_00s_5",
@@ -16947,7 +17092,8 @@
       ],
       "popularity": 41,
       "rating": 68,
-      "ratingRaw": 11
+      "ratingRaw": 11,
+      "twoKOverall": 81
     },
     {
       "id": "grizzlies_00s_7",
@@ -17691,7 +17837,8 @@
       ],
       "popularity": 50,
       "rating": 77,
-      "ratingRaw": 15.3
+      "ratingRaw": 15.3,
+      "twoKOverall": 96
     },
     {
       "id": "wizards_00s_2",
@@ -17709,7 +17856,8 @@
       ],
       "popularity": 35,
       "rating": 77,
-      "ratingRaw": 15
+      "ratingRaw": 15,
+      "twoKOverall": 91
     },
     {
       "id": "wizards_00s_3",
@@ -17727,7 +17875,8 @@
       ],
       "popularity": 52,
       "rating": 80,
-      "ratingRaw": 16.9
+      "ratingRaw": 16.9,
+      "twoKOverall": 88
     },
     {
       "id": "wizards_00s_4",
@@ -17745,7 +17894,8 @@
       ],
       "popularity": 42,
       "rating": 74,
-      "ratingRaw": 14
+      "ratingRaw": 14,
+      "twoKOverall": 86
     },
     {
       "id": "wizards_00s_5",
@@ -17763,7 +17913,8 @@
       ],
       "popularity": 35,
       "rating": 68,
-      "ratingRaw": 11
+      "ratingRaw": 11,
+      "twoKOverall": 80
     },
     {
       "id": "wizards_00s_6",
@@ -17781,7 +17932,8 @@
       ],
       "popularity": 35,
       "rating": 62,
-      "ratingRaw": 8
+      "ratingRaw": 8,
+      "twoKOverall": 77
     }
   ],
   "Wizards_2010s": [

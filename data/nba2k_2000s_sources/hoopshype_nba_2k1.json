@@ -1,0 +1,602 @@
+[
+  {
+    "name": "Kevin Garnett",
+    "sortName": "Kevin Garnett",
+    "rating": 99,
+    "season": 2000,
+    "playerID": "2989",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Kobe Bryant",
+    "sortName": "Kobe Bryant",
+    "rating": 98,
+    "season": 2000,
+    "playerID": "3100",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Allen Iverson",
+    "sortName": "Allen Iverson",
+    "rating": 96,
+    "season": 2000,
+    "playerID": "3076",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Jason Kidd",
+    "sortName": "Jason Kidd",
+    "rating": 96,
+    "season": 2000,
+    "playerID": "2616",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Shaquille O'Neal",
+    "sortName": "Shaquille O'Neal",
+    "rating": 96,
+    "season": 2000,
+    "playerID": "847",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Grant Hill",
+    "sortName": "Grant Hill",
+    "rating": 95,
+    "season": 2000,
+    "playerID": "2617",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Karl Malone",
+    "sortName": "Karl Malone",
+    "rating": 95,
+    "season": 2000,
+    "playerID": "213",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Michael Finley",
+    "sortName": "Michael Finley",
+    "rating": 95,
+    "season": 2000,
+    "playerID": "3005",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Tim Duncan",
+    "sortName": "Tim Duncan",
+    "rating": 95,
+    "season": 2000,
+    "playerID": "3155",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Tracy McGrady",
+    "sortName": "Tracy McGrady",
+    "rating": 94,
+    "season": 2000,
+    "playerID": "3161",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Chris Webber",
+    "sortName": "Chris Webber",
+    "rating": 93,
+    "season": 2000,
+    "playerID": "1272",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Vince Carter",
+    "sortName": "Vince Carter",
+    "rating": 93,
+    "season": 2000,
+    "playerID": "3230",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Antonio McDyess",
+    "sortName": "Antonio McDyess",
+    "rating": 92,
+    "season": 2000,
+    "playerID": "2986",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "David Robinson",
+    "sortName": "David Robinson",
+    "rating": 92,
+    "season": 2000,
+    "playerID": "288",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Dirk Nowitzki",
+    "sortName": "Dirk Nowitzki",
+    "rating": 91,
+    "season": 2000,
+    "playerID": "3234",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "John Stockton",
+    "sortName": "John Stockton",
+    "rating": 90,
+    "season": 2000,
+    "playerID": "326",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Paul Pierce",
+    "sortName": "Paul Pierce",
+    "rating": 90,
+    "season": 2000,
+    "playerID": "3235",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Rasheed Wallace",
+    "sortName": "Rasheed Wallace",
+    "rating": 90,
+    "season": 2000,
+    "playerID": "2988",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Lamar Odom",
+    "sortName": "Lamar Odom",
+    "rating": 89,
+    "season": 2000,
+    "playerID": "3309",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Elton Brand",
+    "sortName": "Elton Brand",
+    "rating": 88,
+    "season": 2000,
+    "playerID": "3306",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Stephon Marbury",
+    "sortName": "Stephon Marbury",
+    "rating": 88,
+    "season": 2000,
+    "playerID": "3081",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Jerry Stackhouse",
+    "sortName": "Jerry Stackhouse",
+    "rating": 87,
+    "season": 2000,
+    "playerID": "2987",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Andre Miller",
+    "sortName": "Andre Miller",
+    "rating": 86,
+    "season": 2000,
+    "playerID": "3313",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Larry Hughes",
+    "sortName": "Larry Hughes",
+    "rating": 86,
+    "season": 2000,
+    "playerID": "3233",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Marcus Camby",
+    "sortName": "Marcus Camby",
+    "rating": 86,
+    "season": 2000,
+    "playerID": "3066",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Kenyon Martin",
+    "sortName": "Kenyon Martin",
+    "rating": 85,
+    "season": 2000,
+    "playerID": "3381",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Baron Davis",
+    "sortName": "Baron Davis",
+    "rating": 84,
+    "season": 2000,
+    "playerID": "3308",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Jermaine O'Neal",
+    "sortName": "Jermaine O'Neal",
+    "rating": 84,
+    "season": 2000,
+    "playerID": "3102",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Steve Nash",
+    "sortName": "Steve Nash",
+    "rating": 84,
+    "season": 2000,
+    "playerID": "3085",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Theo Ratliff",
+    "sortName": "Theo Ratliff",
+    "rating": 84,
+    "season": 2000,
+    "playerID": "3002",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Mike Bibby",
+    "sortName": "Mike Bibby",
+    "rating": 82,
+    "season": 2000,
+    "playerID": "3227",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Mike Miller",
+    "sortName": "Mike Miller",
+    "rating": 82,
+    "season": 2000,
+    "playerID": "3385",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Shawn Marion",
+    "sortName": "Shawn Marion",
+    "rating": 82,
+    "season": 2000,
+    "playerID": "3314",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Ben Wallace",
+    "sortName": "Ben Wallace",
+    "rating": 81,
+    "season": 2000,
+    "playerID": "3131",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "James Posey",
+    "sortName": "James Posey",
+    "rating": 81,
+    "season": 2000,
+    "playerID": "3323",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Jason Williams",
+    "sortName": "Jason Williams",
+    "rating": 81,
+    "season": 2000,
+    "playerID": "3232",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Jason Terry",
+    "sortName": "Jason Terry",
+    "rating": 79,
+    "season": 2000,
+    "playerID": "3315",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Joe Smith",
+    "sortName": "Joe Smith",
+    "rating": 79,
+    "season": 2000,
+    "playerID": "2985",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Lindsey Hunter",
+    "sortName": "Lindsey Hunter",
+    "rating": 79,
+    "season": 2000,
+    "playerID": "1281",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Metta World Peace",
+    "sortName": "Metta World Peace",
+    "rating": 79,
+    "season": 2000,
+    "playerID": "3321",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Pau Gasol",
+    "sortName": "Pau Gasol",
+    "rating": 79,
+    "season": 2000,
+    "playerID": "3494",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Antawn Jamison",
+    "sortName": "Antawn Jamison",
+    "rating": 78,
+    "season": 2000,
+    "playerID": "3229",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Antonio Daniels",
+    "sortName": "Antonio Daniels",
+    "rating": 78,
+    "season": 2000,
+    "playerID": "3157",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Brad Miller",
+    "sortName": "Brad Miller",
+    "rating": 78,
+    "season": 2000,
+    "playerID": "3287",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Tim Thomas",
+    "sortName": "Tim Thomas",
+    "rating": 78,
+    "season": 2000,
+    "playerID": "3152",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Zydrunas Ilgauskas",
+    "sortName": "Zydrunas Ilgauskas",
+    "rating": 77,
+    "season": 2000,
+    "playerID": "3103",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Brian Skinner",
+    "sortName": "Brian Skinner",
+    "rating": 76,
+    "season": 2000,
+    "playerID": "3247",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Corey Maggette",
+    "sortName": "Corey Maggette",
+    "rating": 76,
+    "season": 2000,
+    "playerID": "3318",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Erick Dampier",
+    "sortName": "Erick Dampier",
+    "rating": 76,
+    "season": 2000,
+    "playerID": "3099",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Kurt Thomas",
+    "sortName": "Kurt Thomas",
+    "rating": 76,
+    "season": 2000,
+    "playerID": "2994",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Anthony Carter",
+    "sortName": "Anthony Carter",
+    "rating": 75,
+    "season": 2000,
+    "playerID": "3377",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Chauncey Billups",
+    "sortName": "Chauncey Billups",
+    "rating": 75,
+    "season": 2000,
+    "playerID": "3156",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Quentin Richardson",
+    "sortName": "Quentin Richardson",
+    "rating": 75,
+    "season": 2000,
+    "playerID": "3398",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Chucky Atkins",
+    "sortName": "Chucky Atkins",
+    "rating": 74,
+    "season": 2000,
+    "playerID": "3372",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Rashard Lewis",
+    "sortName": "Rashard Lewis",
+    "rating": 74,
+    "season": 2000,
+    "playerID": "3257",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Tony Battie",
+    "sortName": "Tony Battie",
+    "rating": 74,
+    "season": 2000,
+    "playerID": "3158",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Matt Harpring",
+    "sortName": "Matt Harpring",
+    "rating": 73,
+    "season": 2000,
+    "playerID": "3240",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Speedy Claxton",
+    "sortName": "Speedy Claxton",
+    "rating": 73,
+    "season": 2000,
+    "playerID": "3400",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Jeff Foster",
+    "sortName": "Jeff Foster",
+    "rating": 72,
+    "season": 2000,
+    "playerID": "3326",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Kenny Thomas",
+    "sortName": "Kenny Thomas",
+    "rating": 72,
+    "season": 2000,
+    "playerID": "3327",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Keyon Dooling",
+    "sortName": "Keyon Dooling",
+    "rating": 72,
+    "season": 2000,
+    "playerID": "3390",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Kwame Brown",
+    "sortName": "Kwame Brown",
+    "rating": 72,
+    "season": 2000,
+    "playerID": "3492",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Brendan Haywood",
+    "sortName": "Brendan Haywood",
+    "rating": 71,
+    "season": 2000,
+    "playerID": "3513",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Etan Thomas",
+    "sortName": "Etan Thomas",
+    "rating": 70,
+    "season": 2000,
+    "playerID": "3392",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Joel Przybilla",
+    "sortName": "Joel Przybilla",
+    "rating": 70,
+    "season": 2000,
+    "playerID": "3389",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Al Harrington",
+    "sortName": "Al Harrington",
+    "rating": 69,
+    "season": 2000,
+    "playerID": "3250",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Jaren Jackson",
+    "sortName": "Jaren Jackson",
+    "rating": 68,
+    "season": 2000,
+    "playerID": "480",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Caron Butler",
+    "sortName": "Caron Butler",
+    "rating": 66,
+    "season": 2000,
+    "playerID": "168016",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Nazr Mohammed",
+    "sortName": "Nazr Mohammed",
+    "rating": 66,
+    "season": 2000,
+    "playerID": "3254",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Primoz Brezec",
+    "sortName": "Primoz Brezec",
+    "rating": 66,
+    "season": 2000,
+    "playerID": "3407",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Rafer Alston",
+    "sortName": "Rafer Alston",
+    "rating": 66,
+    "season": 2000,
+    "playerID": "3264",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Ricky Davis",
+    "sortName": "Ricky Davis",
+    "rating": 66,
+    "season": 2000,
+    "playerID": "3246",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Kevin Ollie",
+    "sortName": "Kevin Ollie",
+    "rating": 65,
+    "season": 2000,
+    "playerID": "3219",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Steven Hunter",
+    "sortName": "Steven Hunter",
+    "rating": 65,
+    "season": 2000,
+    "playerID": "3506",
+    "videoGame": "NBA 2K1"
+  },
+  {
+    "name": "Malik Allen",
+    "sortName": "Malik Allen",
+    "rating": 61,
+    "season": 2000,
+    "playerID": "3488",
+    "videoGame": "NBA 2K1"
+  }
+]

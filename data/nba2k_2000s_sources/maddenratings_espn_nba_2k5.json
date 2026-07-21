@@ -1,0 +1,247 @@
+{
+  "videoGame": "ESPN NBA 2K5",
+  "season": "2004-05",
+  "source": "maddenratings.weebly.com",
+  "players": [
+    {
+      "name": "Kobe Bryant",
+      "pos": "SG",
+      "rating": 99,
+      "team": "Lakers"
+    },
+    {
+      "name": "Kevin Garnett",
+      "pos": "PF",
+      "rating": 99,
+      "team": "Timberwolves"
+    },
+    {
+      "name": "Tim Duncan",
+      "pos": "PF",
+      "rating": 98,
+      "team": "Spurs"
+    },
+    {
+      "name": "Tracy McGrady",
+      "pos": "SG",
+      "rating": 98,
+      "team": "Rockets"
+    },
+    {
+      "name": "Shaquille O'Neal",
+      "pos": "C",
+      "rating": 95,
+      "team": "Heat"
+    },
+    {
+      "name": "Jason Kidd",
+      "pos": "PG",
+      "rating": 94,
+      "team": "Nets"
+    },
+    {
+      "name": "Jermaine O'Neal",
+      "pos": "PF",
+      "rating": 94,
+      "team": "Pacers"
+    },
+    {
+      "name": "Allen Iverson",
+      "pos": "SG",
+      "rating": 93,
+      "team": "76ers"
+    },
+    {
+      "name": "Dirk Nowitzki",
+      "pos": "PF",
+      "rating": 93,
+      "team": "Mavericks"
+    },
+    {
+      "name": "Ray Allen",
+      "pos": "SG",
+      "rating": 92,
+      "team": "SuperSonics"
+    },
+    {
+      "name": "Paul Pierce",
+      "pos": "SG",
+      "rating": 92,
+      "team": "Celtics"
+    },
+    {
+      "name": "Vince Carter",
+      "pos": "SG",
+      "rating": 91,
+      "team": "Raptors"
+    },
+    {
+      "name": "Elton Brand",
+      "pos": "PF",
+      "rating": 91,
+      "team": "Clippers"
+    },
+    {
+      "name": "Sam Cassell",
+      "pos": "PG",
+      "rating": 90,
+      "team": "Timberwolves"
+    },
+    {
+      "name": "Peja Stojaković",
+      "pos": "SF",
+      "rating": 89,
+      "team": "Kings"
+    },
+    {
+      "name": "Andrei Kirilenko",
+      "pos": "SF",
+      "rating": 89,
+      "team": "Jazz"
+    },
+    {
+      "name": "LeBron James",
+      "pos": "SG",
+      "rating": 88,
+      "team": "Cavaliers"
+    },
+    {
+      "name": "Stephon Marbury",
+      "pos": "PG",
+      "rating": 88,
+      "team": "Knicks"
+    },
+    {
+      "name": "Steve Francis",
+      "pos": "PG",
+      "rating": 88,
+      "team": "Magic"
+    },
+    {
+      "name": "Michael Redd",
+      "pos": "SG",
+      "rating": 88,
+      "team": "Bucks"
+    },
+    {
+      "name": "Chris Webber",
+      "pos": "PF",
+      "rating": 88,
+      "team": "Kings"
+    },
+    {
+      "name": "Ben Wallace",
+      "pos": "C",
+      "rating": 87,
+      "team": "Pistons"
+    },
+    {
+      "name": "Yao Ming",
+      "pos": "C",
+      "rating": 87,
+      "team": "Rockets"
+    },
+    {
+      "name": "Carmelo Anthony",
+      "pos": "SF",
+      "rating": 87,
+      "team": "Nuggets"
+    },
+    {
+      "name": "Dwyane Wade",
+      "pos": "PG",
+      "rating": 86,
+      "team": "Heat"
+    },
+    {
+      "name": "Pau Gasol",
+      "pos": "PF",
+      "rating": 86,
+      "team": "Grizzlies"
+    },
+    {
+      "name": "Richard Hamilton",
+      "pos": "SG",
+      "rating": 86,
+      "team": "Pistons"
+    },
+    {
+      "name": "Rasheed Wallace",
+      "pos": "PF",
+      "rating": 86,
+      "team": "Pistons"
+    },
+    {
+      "name": "Lamar Odom",
+      "pos": "SF",
+      "rating": 85,
+      "team": "Lakers"
+    },
+    {
+      "name": "Shawn Marion",
+      "pos": "SF",
+      "rating": 85,
+      "team": "Suns"
+    },
+    {
+      "name": "Chauncey Billups",
+      "pos": "PG",
+      "rating": 85,
+      "team": "Pistons"
+    },
+    {
+      "name": "Gilbert Arenas",
+      "pos": "PG",
+      "rating": 84,
+      "team": "Wizards"
+    },
+    {
+      "name": "Mike Bibby",
+      "pos": "PG",
+      "rating": 84,
+      "team": "Kings"
+    },
+    {
+      "name": "Richard Jefferson",
+      "pos": "SF",
+      "rating": 84,
+      "team": "Nets"
+    },
+    {
+      "name": "Allan Houston",
+      "pos": "SG",
+      "rating": 83,
+      "team": "Knicks"
+    },
+    {
+      "name": "Grant Hill",
+      "pos": "SF",
+      "rating": 83,
+      "team": "Magic"
+    },
+    {
+      "name": "Steve Nash",
+      "pos": "PG",
+      "rating": 83,
+      "team": "Suns"
+    },
+    {
+      "name": "Amar'e Stoudemire",
+      "pos": "PF",
+      "rating": 83,
+      "team": "Suns"
+    },
+    {
+      "name": "Manu Ginobili",
+      "pos": "SG",
+      "rating": 83,
+      "team": "Spurs"
+    },
+    {
+      "name": "Antawn Jamison",
+      "pos": "PF",
+      "rating": 83,
+      "team": "Wizards"
+    }
+  ]
+}

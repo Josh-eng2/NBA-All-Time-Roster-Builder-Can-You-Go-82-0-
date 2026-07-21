@@ -1,0 +1,1618 @@
+[
+  {
+    "name": "Dwyane Wade",
+    "sortName": "Dwyane Wade",
+    "rating": 98,
+    "season": 2006,
+    "playerID": "61849",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Tim Duncan",
+    "sortName": "Tim Duncan",
+    "rating": 98,
+    "season": 2006,
+    "playerID": "3155",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Dirk Nowitzki",
+    "sortName": "Dirk Nowitzki",
+    "rating": 97,
+    "season": 2006,
+    "playerID": "3234",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "LeBron James",
+    "sortName": "LeBron James",
+    "rating": 97,
+    "season": 2006,
+    "playerID": "214152",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Kevin Garnett",
+    "sortName": "Kevin Garnett",
+    "rating": 96,
+    "season": 2006,
+    "playerID": "2989",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Kobe Bryant",
+    "sortName": "Kobe Bryant",
+    "rating": 96,
+    "season": 2006,
+    "playerID": "3100",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Allen Iverson",
+    "sortName": "Allen Iverson",
+    "rating": 94,
+    "season": 2006,
+    "playerID": "3076",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Gilbert Arenas",
+    "sortName": "Gilbert Arenas",
+    "rating": 93,
+    "season": 2006,
+    "playerID": "3521",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Chauncey Billups",
+    "sortName": "Chauncey Billups",
+    "rating": 92,
+    "season": 2006,
+    "playerID": "3156",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Elton Brand",
+    "sortName": "Elton Brand",
+    "rating": 92,
+    "season": 2006,
+    "playerID": "3306",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Jason Kidd",
+    "sortName": "Jason Kidd",
+    "rating": 92,
+    "season": 2006,
+    "playerID": "2616",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Pau Gasol",
+    "sortName": "Pau Gasol",
+    "rating": 92,
+    "season": 2006,
+    "playerID": "3494",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Shaquille O'Neal",
+    "sortName": "Shaquille O'Neal",
+    "rating": 92,
+    "season": 2006,
+    "playerID": "847",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Tracy McGrady",
+    "sortName": "Tracy McGrady",
+    "rating": 92,
+    "season": 2006,
+    "playerID": "3161",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Carmelo Anthony",
+    "sortName": "Carmelo Anthony",
+    "rating": 91,
+    "season": 2006,
+    "playerID": "172890",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Jermaine O'Neal",
+    "sortName": "Jermaine O'Neal",
+    "rating": 91,
+    "season": 2006,
+    "playerID": "3102",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Paul Pierce",
+    "sortName": "Paul Pierce",
+    "rating": 91,
+    "season": 2006,
+    "playerID": "3235",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Shawn Marion",
+    "sortName": "Shawn Marion",
+    "rating": 91,
+    "season": 2006,
+    "playerID": "3314",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Steve Nash",
+    "sortName": "Steve Nash",
+    "rating": 91,
+    "season": 2006,
+    "playerID": "3085",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Yao Ming",
+    "sortName": "Yao Ming",
+    "rating": 91,
+    "season": 2006,
+    "playerID": "168064",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Baron Davis",
+    "sortName": "Baron Davis",
+    "rating": 89,
+    "season": 2006,
+    "playerID": "3308",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Ben Wallace",
+    "sortName": "Ben Wallace",
+    "rating": 89,
+    "season": 2006,
+    "playerID": "3131",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Michael Redd",
+    "sortName": "Michael Redd",
+    "rating": 89,
+    "season": 2006,
+    "playerID": "3423",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Vince Carter",
+    "sortName": "Vince Carter",
+    "rating": 89,
+    "season": 2006,
+    "playerID": "3230",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Chris Bosh",
+    "sortName": "Chris Bosh",
+    "rating": 88,
+    "season": 2006,
+    "playerID": "172631",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Dwight Howard",
+    "sortName": "Dwight Howard",
+    "rating": 88,
+    "season": 2006,
+    "playerID": "253975",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Rashard Lewis",
+    "sortName": "Rashard Lewis",
+    "rating": 88,
+    "season": 2006,
+    "playerID": "3257",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Rasheed Wallace",
+    "sortName": "Rasheed Wallace",
+    "rating": 88,
+    "season": 2006,
+    "playerID": "2988",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Chris Paul",
+    "sortName": "Chris Paul",
+    "rating": 87,
+    "season": 2006,
+    "playerID": "229598",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Richard Hamilton",
+    "sortName": "Richard Hamilton",
+    "rating": 87,
+    "season": 2006,
+    "playerID": "3312",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Jason Richardson",
+    "sortName": "Jason Richardson",
+    "rating": 86,
+    "season": 2006,
+    "playerID": "3496",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Lamar Odom",
+    "sortName": "Lamar Odom",
+    "rating": 86,
+    "season": 2006,
+    "playerID": "3309",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Manu Ginobili",
+    "sortName": "Manu Ginobili",
+    "rating": 86,
+    "season": 2006,
+    "playerID": "3361",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Marcus Camby",
+    "sortName": "Marcus Camby",
+    "rating": 86,
+    "season": 2006,
+    "playerID": "3066",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Metta World Peace",
+    "sortName": "Metta World Peace",
+    "rating": 86,
+    "season": 2006,
+    "playerID": "3321",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Mike Bibby",
+    "sortName": "Mike Bibby",
+    "rating": 86,
+    "season": 2006,
+    "playerID": "3227",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Tony Parker",
+    "sortName": "Tony Parker",
+    "rating": 86,
+    "season": 2006,
+    "playerID": "3508",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Joe Johnson",
+    "sortName": "Joe Johnson",
+    "rating": 85,
+    "season": 2006,
+    "playerID": "3501",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Kevin Martin",
+    "sortName": "Kevin Martin",
+    "rating": 85,
+    "season": 2006,
+    "playerID": "66903",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Andrei Kirilenko",
+    "sortName": "Andrei Kirilenko",
+    "rating": 84,
+    "season": 2006,
+    "playerID": "3329",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Andres Nocioni",
+    "sortName": "Andres Nocioni",
+    "rating": 84,
+    "season": 2006,
+    "playerID": "267096",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Chris Webber",
+    "sortName": "Chris Webber",
+    "rating": 84,
+    "season": 2006,
+    "playerID": "1272",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Jason Terry",
+    "sortName": "Jason Terry",
+    "rating": 84,
+    "season": 2006,
+    "playerID": "3315",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Kirk Hinrich",
+    "sortName": "Kirk Hinrich",
+    "rating": 84,
+    "season": 2006,
+    "playerID": "57820",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Mike James",
+    "sortName": "Mike James",
+    "rating": 84,
+    "season": 2006,
+    "playerID": "567497",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Stephon Marbury",
+    "sortName": "Stephon Marbury",
+    "rating": 84,
+    "season": 2006,
+    "playerID": "3081",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Ben Gordon",
+    "sortName": "Ben Gordon",
+    "rating": 83,
+    "season": 2006,
+    "playerID": "65900",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Emeka Okafor",
+    "sortName": "Emeka Okafor",
+    "rating": 83,
+    "season": 2006,
+    "playerID": "65903",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Josh Howard",
+    "sortName": "Josh Howard",
+    "rating": 83,
+    "season": 2006,
+    "playerID": "58063",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Mehmet Okur",
+    "sortName": "Mehmet Okur",
+    "rating": 83,
+    "season": 2006,
+    "playerID": "3528",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Richard Jefferson",
+    "sortName": "Richard Jefferson",
+    "rating": 83,
+    "season": 2006,
+    "playerID": "3504",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Tayshaun Prince",
+    "sortName": "Tayshaun Prince",
+    "rating": 83,
+    "season": 2006,
+    "playerID": "168029",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Chris Kaman",
+    "sortName": "Chris Kaman",
+    "rating": 82,
+    "season": 2006,
+    "playerID": "62176",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Grant Hill",
+    "sortName": "Grant Hill",
+    "rating": 82,
+    "season": 2006,
+    "playerID": "2617",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Leandro Barbosa",
+    "sortName": "Leandro Barbosa",
+    "rating": 82,
+    "season": 2006,
+    "playerID": "214163",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Mike Miller",
+    "sortName": "Mike Miller",
+    "rating": 82,
+    "season": 2006,
+    "playerID": "3385",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Ricky Davis",
+    "sortName": "Ricky Davis",
+    "rating": 82,
+    "season": 2006,
+    "playerID": "3246",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Antonio McDyess",
+    "sortName": "Antonio McDyess",
+    "rating": 81,
+    "season": 2006,
+    "playerID": "2986",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Corey Maggette",
+    "sortName": "Corey Maggette",
+    "rating": 81,
+    "season": 2006,
+    "playerID": "3318",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "David West",
+    "sortName": "David West",
+    "rating": 81,
+    "season": 2006,
+    "playerID": "57934",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Jamal Crawford",
+    "sortName": "Jamal Crawford",
+    "rating": 81,
+    "season": 2006,
+    "playerID": "3388",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Kyle Korver",
+    "sortName": "Kyle Korver",
+    "rating": 81,
+    "season": 2006,
+    "playerID": "58293",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Larry Hughes",
+    "sortName": "Larry Hughes",
+    "rating": 81,
+    "season": 2006,
+    "playerID": "3233",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Samuel Dalembert",
+    "sortName": "Samuel Dalembert",
+    "rating": 81,
+    "season": 2006,
+    "playerID": "3515",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Troy Murphy",
+    "sortName": "Troy Murphy",
+    "rating": 81,
+    "season": 2006,
+    "playerID": "3505",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Zach Randolph",
+    "sortName": "Zach Randolph",
+    "rating": 81,
+    "season": 2006,
+    "playerID": "3512",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Andre Iguodala",
+    "sortName": "Andre Iguodala",
+    "rating": 80,
+    "season": 2006,
+    "playerID": "173004",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Carlos Boozer",
+    "sortName": "Carlos Boozer",
+    "rating": 80,
+    "season": 2006,
+    "playerID": "168040",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Delonte West",
+    "sortName": "Delonte West",
+    "rating": 80,
+    "season": 2006,
+    "playerID": "66244",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Jamaal Magloire",
+    "sortName": "Jamaal Magloire",
+    "rating": 80,
+    "season": 2006,
+    "playerID": "3399",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Jamaal Tinsley",
+    "sortName": "Jamaal Tinsley",
+    "rating": 80,
+    "season": 2006,
+    "playerID": "3509",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Morris Peterson",
+    "sortName": "Morris Peterson",
+    "rating": 80,
+    "season": 2006,
+    "playerID": "3401",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Randy Foye",
+    "sortName": "Randy Foye",
+    "rating": 80,
+    "season": 2006,
+    "playerID": "172692",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Zydrunas Ilgauskas",
+    "sortName": "Zydrunas Ilgauskas",
+    "rating": 80,
+    "season": 2006,
+    "playerID": "3103",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Channing Frye",
+    "sortName": "Channing Frye",
+    "rating": 79,
+    "season": 2006,
+    "playerID": "65871",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Charlie Villanueva",
+    "sortName": "Charlie Villanueva",
+    "rating": 79,
+    "season": 2006,
+    "playerID": "229764",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Devin Harris",
+    "sortName": "Devin Harris",
+    "rating": 79,
+    "season": 2006,
+    "playerID": "65820",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Jarrett Jack",
+    "sortName": "Jarrett Jack",
+    "rating": 79,
+    "season": 2006,
+    "playerID": "178537",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Kurt Thomas",
+    "sortName": "Kurt Thomas",
+    "rating": 79,
+    "season": 2006,
+    "playerID": "2994",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Luol Deng",
+    "sortName": "Luol Deng",
+    "rating": 79,
+    "season": 2006,
+    "playerID": "229569",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Mark Blount",
+    "sortName": "Mark Blount",
+    "rating": 79,
+    "season": 2006,
+    "playerID": "3204",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Mike Dunleavy",
+    "sortName": "Mike Dunleavy",
+    "rating": 79,
+    "season": 2006,
+    "playerID": "168066",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Rudy Gay",
+    "sortName": "Rudy Gay",
+    "rating": 79,
+    "season": 2006,
+    "playerID": "266358",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Andrew Bogut",
+    "sortName": "Andrew Bogut",
+    "rating": 78,
+    "season": 2006,
+    "playerID": "229912",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Bobby Simmons",
+    "sortName": "Bobby Simmons",
+    "rating": 78,
+    "season": 2006,
+    "playerID": "3532",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Boris Diaw",
+    "sortName": "Boris Diaw",
+    "rating": 78,
+    "season": 2006,
+    "playerID": "214157",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Brad Miller",
+    "sortName": "Brad Miller",
+    "rating": 78,
+    "season": 2006,
+    "playerID": "3287",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Danny Granger",
+    "sortName": "Danny Granger",
+    "rating": 78,
+    "season": 2006,
+    "playerID": "66433",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Deron Williams",
+    "sortName": "Deron Williams",
+    "rating": 78,
+    "season": 2006,
+    "playerID": "172537",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Drew Gooden",
+    "sortName": "Drew Gooden",
+    "rating": 78,
+    "season": 2006,
+    "playerID": "168010",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Erick Dampier",
+    "sortName": "Erick Dampier",
+    "rating": 78,
+    "season": 2006,
+    "playerID": "3099",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Jerry Stackhouse",
+    "sortName": "Jerry Stackhouse",
+    "rating": 78,
+    "season": 2006,
+    "playerID": "2987",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Kenyon Martin",
+    "sortName": "Kenyon Martin",
+    "rating": 78,
+    "season": 2006,
+    "playerID": "3381",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Luke Ridnour",
+    "sortName": "Luke Ridnour",
+    "rating": 78,
+    "season": 2006,
+    "playerID": "62414",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Raja Bell",
+    "sortName": "Raja Bell",
+    "rating": 78,
+    "season": 2006,
+    "playerID": "3448",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Vladimir Radmanovic",
+    "sortName": "Vladimir Radmanovic",
+    "rating": 78,
+    "season": 2006,
+    "playerID": "3503",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Chris Duhon",
+    "sortName": "Chris Duhon",
+    "rating": 77,
+    "season": 2006,
+    "playerID": "62845",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "David Lee",
+    "sortName": "David Lee",
+    "rating": 77,
+    "season": 2006,
+    "playerID": "65840",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Hakim Warrick",
+    "sortName": "Hakim Warrick",
+    "rating": 77,
+    "season": 2006,
+    "playerID": "65926",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Matt Harpring",
+    "sortName": "Matt Harpring",
+    "rating": 77,
+    "season": 2006,
+    "playerID": "3240",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Michael Finley",
+    "sortName": "Michael Finley",
+    "rating": 77,
+    "season": 2006,
+    "playerID": "3005",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Rafer Alston",
+    "sortName": "Rafer Alston",
+    "rating": 77,
+    "season": 2006,
+    "playerID": "3264",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Shane Battier",
+    "sortName": "Shane Battier",
+    "rating": 77,
+    "season": 2006,
+    "playerID": "3497",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Tim Thomas",
+    "sortName": "Tim Thomas",
+    "rating": 77,
+    "season": 2006,
+    "playerID": "3152",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Trenton Hassell",
+    "sortName": "Trenton Hassell",
+    "rating": 77,
+    "season": 2006,
+    "playerID": "3520",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Brandon Roy",
+    "sortName": "Brandon Roy",
+    "rating": 76,
+    "season": 2006,
+    "playerID": "172998",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Carlos Delfino",
+    "sortName": "Carlos Delfino",
+    "rating": 76,
+    "season": 2006,
+    "playerID": "214160",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Charlie Bell",
+    "sortName": "Charlie Bell",
+    "rating": 76,
+    "season": 2006,
+    "playerID": "66924",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Chris Wilcox",
+    "sortName": "Chris Wilcox",
+    "rating": 76,
+    "season": 2006,
+    "playerID": "168014",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Chucky Atkins",
+    "sortName": "Chucky Atkins",
+    "rating": 76,
+    "season": 2006,
+    "playerID": "3372",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Earl Watson",
+    "sortName": "Earl Watson",
+    "rating": 76,
+    "season": 2006,
+    "playerID": "3530",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Eddy Curry",
+    "sortName": "Eddy Curry",
+    "rating": 76,
+    "season": 2006,
+    "playerID": "3495",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Luke Walton",
+    "sortName": "Luke Walton",
+    "rating": 76,
+    "season": 2006,
+    "playerID": "54865",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Monta Ellis",
+    "sortName": "Monta Ellis",
+    "rating": 76,
+    "season": 2006,
+    "playerID": "292397",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Nenad Krstic",
+    "sortName": "Nenad Krstic",
+    "rating": 76,
+    "season": 2006,
+    "playerID": "168030",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Quentin Richardson",
+    "sortName": "Quentin Richardson",
+    "rating": 76,
+    "season": 2006,
+    "playerID": "3398",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Rasual Butler",
+    "sortName": "Rasual Butler",
+    "rating": 76,
+    "season": 2006,
+    "playerID": "168058",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Ryan Gomes",
+    "sortName": "Ryan Gomes",
+    "rating": 76,
+    "season": 2006,
+    "playerID": "65910",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Tyrus Thomas",
+    "sortName": "Tyrus Thomas",
+    "rating": 76,
+    "season": 2006,
+    "playerID": "263902",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Al Jefferson",
+    "sortName": "Al Jefferson",
+    "rating": 75,
+    "season": 2006,
+    "playerID": "253995",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Anderson Varejao",
+    "sortName": "Anderson Varejao",
+    "rating": 75,
+    "season": 2006,
+    "playerID": "254009",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Anthony Parker",
+    "sortName": "Anthony Parker",
+    "rating": 75,
+    "season": 2006,
+    "playerID": "3153",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "DeSagana Diop",
+    "sortName": "DeSagana Diop",
+    "rating": 75,
+    "season": 2006,
+    "playerID": "3499",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Earl Boykins",
+    "sortName": "Earl Boykins",
+    "rating": 75,
+    "season": 2006,
+    "playerID": "3293",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Francisco Elson",
+    "sortName": "Francisco Elson",
+    "rating": 75,
+    "season": 2006,
+    "playerID": "3345",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Jeff Foster",
+    "sortName": "Jeff Foster",
+    "rating": 75,
+    "season": 2006,
+    "playerID": "3326",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Juwan Howard",
+    "sortName": "Juwan Howard",
+    "rating": 75,
+    "season": 2006,
+    "playerID": "2619",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Kenny Thomas",
+    "sortName": "Kenny Thomas",
+    "rating": 75,
+    "season": 2006,
+    "playerID": "3327",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Kwame Brown",
+    "sortName": "Kwame Brown",
+    "rating": 75,
+    "season": 2006,
+    "playerID": "3492",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "LaMarcus Aldridge",
+    "sortName": "LaMarcus Aldridge",
+    "rating": 75,
+    "season": 2006,
+    "playerID": "266554",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Lindsey Hunter",
+    "sortName": "Lindsey Hunter",
+    "rating": 75,
+    "season": 2006,
+    "playerID": "1281",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Marquis Daniels",
+    "sortName": "Marquis Daniels",
+    "rating": 75,
+    "season": 2006,
+    "playerID": "225415",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Maurice Evans",
+    "sortName": "Maurice Evans",
+    "rating": 75,
+    "season": 2006,
+    "playerID": "66922",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Nazr Mohammed",
+    "sortName": "Nazr Mohammed",
+    "rating": 75,
+    "season": 2006,
+    "playerID": "3254",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Quinton Ross",
+    "sortName": "Quinton Ross",
+    "rating": 75,
+    "season": 2006,
+    "playerID": "229163",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Sebastian Telfair",
+    "sortName": "Sebastian Telfair",
+    "rating": 75,
+    "season": 2006,
+    "playerID": "253992",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Travis Outlaw",
+    "sortName": "Travis Outlaw",
+    "rating": 75,
+    "season": 2006,
+    "playerID": "214159",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Andrew Bynum",
+    "sortName": "Andrew Bynum",
+    "rating": 74,
+    "season": 2006,
+    "playerID": "292387",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Derek Fisher",
+    "sortName": "Derek Fisher",
+    "rating": 74,
+    "season": 2006,
+    "playerID": "3107",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Fabricio Oberto",
+    "sortName": "Fabricio Oberto",
+    "rating": 74,
+    "season": 2006,
+    "playerID": "296441",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Francisco Garcia",
+    "sortName": "Francisco Garcia",
+    "rating": 74,
+    "season": 2006,
+    "playerID": "174054",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Jannero Pargo",
+    "sortName": "Jannero Pargo",
+    "rating": 74,
+    "season": 2006,
+    "playerID": "171438",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Jose Calderon",
+    "sortName": "Jose Calderon",
+    "rating": 74,
+    "season": 2006,
+    "playerID": "296475",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Malik Allen",
+    "sortName": "Malik Allen",
+    "rating": 74,
+    "season": 2006,
+    "playerID": "3488",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Marko Jaric",
+    "sortName": "Marko Jaric",
+    "rating": 74,
+    "season": 2006,
+    "playerID": "3410",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Mickael Pietrus",
+    "sortName": "Mickael Pietrus",
+    "rating": 74,
+    "season": 2006,
+    "playerID": "214154",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Nick Collison",
+    "sortName": "Nick Collison",
+    "rating": 74,
+    "season": 2006,
+    "playerID": "57819",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Steven Hunter",
+    "sortName": "Steven Hunter",
+    "rating": 74,
+    "season": 2006,
+    "playerID": "3506",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Thabo Sefolosha",
+    "sortName": "Thabo Sefolosha",
+    "rating": 74,
+    "season": 2006,
+    "playerID": "329187",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Andris Biedrins",
+    "sortName": "Andris Biedrins",
+    "rating": 73,
+    "season": 2006,
+    "playerID": "253989",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Anthony Johnson",
+    "sortName": "Anthony Johnson",
+    "rating": 73,
+    "season": 2006,
+    "playerID": "3189",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Ersan Ilyasova",
+    "sortName": "Ersan Ilyasova",
+    "rating": 73,
+    "season": 2006,
+    "playerID": "292396",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Joey Graham",
+    "sortName": "Joey Graham",
+    "rating": 73,
+    "season": 2006,
+    "playerID": "63432",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Jordan Farmar",
+    "sortName": "Jordan Farmar",
+    "rating": 73,
+    "season": 2006,
+    "playerID": "263231",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Matt Bonner",
+    "sortName": "Matt Bonner",
+    "rating": 73,
+    "season": 2006,
+    "playerID": "57782",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Paul Millsap",
+    "sortName": "Paul Millsap",
+    "rating": 73,
+    "season": 2006,
+    "playerID": "237675",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Rajon Rondo",
+    "sortName": "Rajon Rondo",
+    "rating": 73,
+    "season": 2006,
+    "playerID": "262882",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Renaldo Balkman",
+    "sortName": "Renaldo Balkman",
+    "rating": 73,
+    "season": 2006,
+    "playerID": "229879",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Shannon Brown",
+    "sortName": "Shannon Brown",
+    "rating": 73,
+    "season": 2006,
+    "playerID": "230001",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Andrea Bargnani",
+    "sortName": "Andrea Bargnani",
+    "rating": 72,
+    "season": 2006,
+    "playerID": "329185",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Brian Cook",
+    "sortName": "Brian Cook",
+    "rating": 72,
+    "season": 2006,
+    "playerID": "58102",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Chuck Hayes",
+    "sortName": "Chuck Hayes",
+    "rating": 72,
+    "season": 2006,
+    "playerID": "65844",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Craig Smith",
+    "sortName": "Craig Smith",
+    "rating": 72,
+    "season": 2006,
+    "playerID": "172884",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Damien Wilkins",
+    "sortName": "Damien Wilkins",
+    "rating": 72,
+    "season": 2006,
+    "playerID": "57795",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Dan Gadzuric",
+    "sortName": "Dan Gadzuric",
+    "rating": 72,
+    "season": 2006,
+    "playerID": "168039",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Daniel Gibson",
+    "sortName": "Daniel Gibson",
+    "rating": 72,
+    "season": 2006,
+    "playerID": "266557",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Eduardo Najera",
+    "sortName": "Eduardo Najera",
+    "rating": 72,
+    "season": 2006,
+    "playerID": "3418",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Joel Przybilla",
+    "sortName": "Joel Przybilla",
+    "rating": 72,
+    "season": 2006,
+    "playerID": "3389",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Martell Webster",
+    "sortName": "Martell Webster",
+    "rating": 72,
+    "season": 2006,
+    "playerID": "292385",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Reggie Evans",
+    "sortName": "Reggie Evans",
+    "rating": 72,
+    "season": 2006,
+    "playerID": "173147",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Shavlik Randolph",
+    "sortName": "Shavlik Randolph",
+    "rating": 72,
+    "season": 2006,
+    "playerID": "172642",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Theo Ratliff",
+    "sortName": "Theo Ratliff",
+    "rating": 72,
+    "season": 2006,
+    "playerID": "3002",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Tony Allen",
+    "sortName": "Tony Allen",
+    "rating": 72,
+    "season": 2006,
+    "playerID": "172922",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Willie Green",
+    "sortName": "Willie Green",
+    "rating": 72,
+    "season": 2006,
+    "playerID": "58948",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Antoine Wright",
+    "sortName": "Antoine Wright",
+    "rating": 71,
+    "season": 2006,
+    "playerID": "172962",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Jared Jeffries",
+    "sortName": "Jared Jeffries",
+    "rating": 71,
+    "season": 2006,
+    "playerID": "168017",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Josh Powell",
+    "sortName": "Josh Powell",
+    "rating": 71,
+    "season": 2006,
+    "playerID": "65750",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Kendrick Perkins",
+    "sortName": "Kendrick Perkins",
+    "rating": 71,
+    "season": 2006,
+    "playerID": "214162",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Kevin Ollie",
+    "sortName": "Kevin Ollie",
+    "rating": 71,
+    "season": 2006,
+    "playerID": "3219",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Kris Humphries",
+    "sortName": "Kris Humphries",
+    "rating": 71,
+    "season": 2006,
+    "playerID": "229649",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Brian Cardinal",
+    "sortName": "Brian Cardinal",
+    "rating": 70,
+    "season": 2006,
+    "playerID": "3424",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Brian Scalabrine",
+    "sortName": "Brian Scalabrine",
+    "rating": 70,
+    "season": 2006,
+    "playerID": "3525",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Kyle Lowry",
+    "sortName": "Kyle Lowry",
+    "rating": 70,
+    "season": 2006,
+    "playerID": "266394",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Marcus Banks",
+    "sortName": "Marcus Banks",
+    "rating": 70,
+    "season": 2006,
+    "playerID": "58067",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Gerald Green",
+    "sortName": "Gerald Green",
+    "rating": 69,
+    "season": 2006,
+    "playerID": "292391",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Hilton Armstrong",
+    "sortName": "Hilton Armstrong",
+    "rating": 69,
+    "season": 2006,
+    "playerID": "172881",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Ike Diogu",
+    "sortName": "Ike Diogu",
+    "rating": 69,
+    "season": 2006,
+    "playerID": "172546",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Kelenna Azubuike",
+    "sortName": "Kelenna Azubuike",
+    "rating": 69,
+    "season": 2006,
+    "playerID": "172528",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Linas Kleiza",
+    "sortName": "Linas Kleiza",
+    "rating": 69,
+    "season": 2006,
+    "playerID": "229768",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Mardy Collins",
+    "sortName": "Mardy Collins",
+    "rating": 69,
+    "season": 2006,
+    "playerID": "174867",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Shawne Williams",
+    "sortName": "Shawne Williams",
+    "rating": 69,
+    "season": 2006,
+    "playerID": "264019",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Jarron Collins",
+    "sortName": "Jarron Collins",
+    "rating": 68,
+    "season": 2006,
+    "playerID": "3543",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "John Lucas III",
+    "sortName": "John Lucas",
+    "rating": 68,
+    "season": 2006,
+    "playerID": "65759",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Brian Skinner",
+    "sortName": "Brian Skinner",
+    "rating": 67,
+    "season": 2006,
+    "playerID": "3247",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Jerome James",
+    "sortName": "Jerome James",
+    "rating": 67,
+    "season": 2006,
+    "playerID": "3261",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Amir Johnson",
+    "sortName": "Amir Johnson",
+    "rating": 66,
+    "season": 2006,
+    "playerID": "292407",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Devean George",
+    "sortName": "Devean George",
+    "rating": 66,
+    "season": 2006,
+    "playerID": "3328",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Devin Brown",
+    "sortName": "Devin Brown",
+    "rating": 66,
+    "season": 2006,
+    "playerID": "173253",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Jason Maxiell",
+    "sortName": "Jason Maxiell",
+    "rating": 66,
+    "season": 2006,
+    "playerID": "65968",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Sasha Vujacic",
+    "sortName": "Sasha Vujacic",
+    "rating": 66,
+    "season": 2006,
+    "playerID": "254006",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Sean Marks",
+    "sortName": "Sean Marks",
+    "rating": 66,
+    "season": 2006,
+    "playerID": "3269",
+    "videoGame": "NBA 2K7"
+  },
+  {
+    "name": "Johan Petro",
+    "sortName": "Johan Petro",
+    "rating": 64,
+    "season": 2006,
+    "playerID": "292392",
+    "videoGame": "NBA 2K7"
+  }
+]

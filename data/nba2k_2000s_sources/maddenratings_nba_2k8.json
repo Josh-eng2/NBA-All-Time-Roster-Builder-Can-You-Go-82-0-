@@ -1,0 +1,313 @@
+{
+  "videoGame": "NBA 2K8",
+  "season": "2007-08",
+  "source": "maddenratings.weebly.com",
+  "players": [
+    {
+      "name": "Kobe Bryant",
+      "pos": "SG",
+      "rating": 98,
+      "team": "Lakers"
+    },
+    {
+      "name": "Tim Duncan",
+      "pos": "PF",
+      "rating": 98,
+      "team": "Spurs"
+    },
+    {
+      "name": "LeBron James",
+      "pos": "SF",
+      "rating": 97,
+      "team": "Cavaliers"
+    },
+    {
+      "name": "Kevin Garnett",
+      "pos": "PF",
+      "rating": 97,
+      "team": "Celtics"
+    },
+    {
+      "name": "Dwyane Wade",
+      "pos": "SG",
+      "rating": 97,
+      "team": "Heat"
+    },
+    {
+      "name": "Steve Nash",
+      "pos": "PG",
+      "rating": 96,
+      "team": "Suns"
+    },
+    {
+      "name": "Gilbert Arenas",
+      "pos": "PG",
+      "rating": 96,
+      "team": "Wizards"
+    },
+    {
+      "name": "Dirk Nowitzki",
+      "pos": "PF",
+      "rating": 95,
+      "team": "Mavericks"
+    },
+    {
+      "name": "Amar'e Stoudemire",
+      "pos": "C",
+      "rating": 95,
+      "team": "Suns"
+    },
+    {
+      "name": "Carmelo Anthony",
+      "pos": "SF",
+      "rating": 94,
+      "team": "Nuggets"
+    },
+    {
+      "name": "Allen Iverson",
+      "pos": "SG",
+      "rating": 93,
+      "team": "Nuggets"
+    },
+    {
+      "name": "Tracy McGrady",
+      "pos": "SG",
+      "rating": 93,
+      "team": "Rockets"
+    },
+    {
+      "name": "Ray Allen",
+      "pos": "SG",
+      "rating": 92,
+      "team": "Celtics"
+    },
+    {
+      "name": "Yao Ming",
+      "pos": "C",
+      "rating": 92,
+      "team": "Rockets"
+    },
+    {
+      "name": "Jason Kidd",
+      "pos": "PG",
+      "rating": 92,
+      "team": "Nets"
+    },
+    {
+      "name": "Elton Brand",
+      "pos": "PF",
+      "rating": 92,
+      "team": "Clippers"
+    },
+    {
+      "name": "Chris Bosh",
+      "pos": "PF",
+      "rating": 92,
+      "team": "Raptors"
+    },
+    {
+      "name": "Shawn Marion",
+      "pos": "SF",
+      "rating": 92,
+      "team": "Suns"
+    },
+    {
+      "name": "Chris Paul",
+      "pos": "PG",
+      "rating": 91,
+      "team": "Hornets"
+    },
+    {
+      "name": "Pau Gasol",
+      "pos": "PF",
+      "rating": 91,
+      "team": "Grizzlies"
+    },
+    {
+      "name": "Dwight Howard",
+      "pos": "C",
+      "rating": 91,
+      "team": "Magic"
+    },
+    {
+      "name": "Paul Pierce",
+      "pos": "SF",
+      "rating": 91,
+      "team": "Celtics"
+    },
+    {
+      "name": "Vince Carter",
+      "pos": "SG",
+      "rating": 90,
+      "team": "Nets"
+    },
+    {
+      "name": "Tony Parker",
+      "pos": "PG",
+      "rating": 90,
+      "team": "Spurs"
+    },
+    {
+      "name": "Deron Williams",
+      "pos": "PG",
+      "rating": 90,
+      "team": "Jazz"
+    },
+    {
+      "name": "Jermaine O'Neal",
+      "pos": "PF",
+      "rating": 90,
+      "team": "Pacers"
+    },
+    {
+      "name": "Carlos Boozer",
+      "pos": "PF",
+      "rating": 90,
+      "team": "Jazz"
+    },
+    {
+      "name": "Chauncey Billups",
+      "pos": "PG",
+      "rating": 89,
+      "team": "Pistons"
+    },
+    {
+      "name": "Joe Johnson",
+      "pos": "SG",
+      "rating": 89,
+      "team": "Hawks"
+    },
+    {
+      "name": "Al Jefferson",
+      "pos": "PF",
+      "rating": 89,
+      "team": "Timberwolves"
+    },
+    {
+      "name": "Caron Butler",
+      "pos": "SF",
+      "rating": 88,
+      "team": "Wizards"
+    },
+    {
+      "name": "Michael Redd",
+      "pos": "SG",
+      "rating": 88,
+      "team": "Bucks"
+    },
+    {
+      "name": "Shaquille O'Neal",
+      "pos": "C",
+      "rating": 87,
+      "team": "Heat"
+    },
+    {
+      "name": "Lamar Odom",
+      "pos": "SF",
+      "rating": 87,
+      "team": "Lakers"
+    },
+    {
+      "name": "Richard Hamilton",
+      "pos": "SG",
+      "rating": 87,
+      "team": "Pistons"
+    },
+    {
+      "name": "Manu Ginobili",
+      "pos": "SG",
+      "rating": 87,
+      "team": "Spurs"
+    },
+    {
+      "name": "Ron Artest",
+      "pos": "SF",
+      "rating": 86,
+      "team": "Kings"
+    },
+    {
+      "name": "Antawn Jamison",
+      "pos": "PF",
+      "rating": 86,
+      "team": "Wizards"
+    },
+    {
+      "name": "Rasheed Wallace",
+      "pos": "PF",
+      "rating": 86,
+      "team": "Pistons"
+    },
+    {
+      "name": "Josh Howard",
+      "pos": "SF",
+      "rating": 86,
+      "team": "Mavericks"
+    },
+    {
+      "name": "Emeka Okafor",
+      "pos": "PF",
+      "rating": 86,
+      "team": "Bobcats"
+    },
+    {
+      "name": "Kirk Hinrich",
+      "pos": "PG",
+      "rating": 85,
+      "team": "Bulls"
+    },
+    {
+      "name": "Leandro Barbosa",
+      "pos": "SG",
+      "rating": 85,
+      "team": "Suns"
+    },
+    {
+      "name": "Mehmet Okur",
+      "pos": "PF",
+      "rating": 85,
+      "team": "Jazz"
+    },
+    {
+      "name": "Monta Ellis",
+      "pos": "SG",
+      "rating": 84,
+      "team": "Warriors"
+    },
+    {
+      "name": "Luol Deng",
+      "pos": "SF",
+      "rating": 84,
+      "team": "Bulls"
+    },
+    {
+      "name": "Mike Bibby",
+      "pos": "PG",
+      "rating": 84,
+      "team": "Kings"
+    },
+    {
+      "name": "Ben Wallace",
+      "pos": "C",
+      "rating": 84,
+      "team": "Bulls"
+    },
+    {
+      "name": "Josh Smith",
+      "pos": "SF",
+      "rating": 84,
+      "team": "Hawks"
+    },
+    {
+      "name": "Jason Terry",
+      "pos": "PG",
+      "rating": 83,
+      "team": "Mavericks"
+    },
+    {
+      "name": "Andre Iguodala",
+      "pos": "SG",
+      "rating": 83,
+      "team": "76ers"
+    }
+  ]
+}

@@ -1,0 +1,169 @@
+{
+  "videoGame": "NBA 2K10",
+  "season": "2009-10",
+  "source": "maddenratings.weebly.com",
+  "players": [
+    {
+      "name": "Kobe Bryant",
+      "pos": "SG",
+      "rating": 97,
+      "team": "Lakers"
+    },
+    {
+      "name": "LeBron James",
+      "pos": "SF",
+      "rating": 96,
+      "team": "Cavaliers"
+    },
+    {
+      "name": "Dwyane Wade",
+      "pos": "SG",
+      "rating": 96,
+      "team": "Heat"
+    },
+    {
+      "name": "Chris Paul",
+      "pos": "PG",
+      "rating": 94,
+      "team": "Hornets"
+    },
+    {
+      "name": "Dwight Howard",
+      "pos": "C",
+      "rating": 89,
+      "team": "Magic"
+    },
+    {
+      "name": "Kevin Garnett",
+      "pos": "PF",
+      "rating": 89,
+      "team": "Celtics"
+    },
+    {
+      "name": "Deron Williams",
+      "pos": "PG",
+      "rating": 89,
+      "team": "Jazz"
+    },
+    {
+      "name": "Tim Duncan",
+      "pos": "PF",
+      "rating": 88,
+      "team": "Spurs"
+    },
+    {
+      "name": "Carmelo Anthony",
+      "pos": "SF",
+      "rating": 88,
+      "team": "Nuggets"
+    },
+    {
+      "name": "Brandon Roy",
+      "pos": "SG",
+      "rating": 87,
+      "team": "Trail Blazers"
+    },
+    {
+      "name": "Rajon Rondo",
+      "pos": "PG",
+      "rating": 87,
+      "team": "Celtics"
+    },
+    {
+      "name": "Devin Harris",
+      "pos": "PG",
+      "rating": 86,
+      "team": "Nets"
+    },
+    {
+      "name": "Chauncey Billups",
+      "pos": "PG",
+      "rating": 85,
+      "team": "Nuggets"
+    },
+    {
+      "name": "Chris Bosh",
+      "pos": "PF",
+      "rating": 84,
+      "team": "Raptors"
+    },
+    {
+      "name": "Pau Gasol",
+      "pos": "PF",
+      "rating": 84,
+      "team": "Lakers"
+    },
+    {
+      "name": "Al Jefferson",
+      "pos": "PF",
+      "rating": 84,
+      "team": "Timberwolves"
+    },
+    {
+      "name": "Carlos Boozers",
+      "pos": "PF",
+      "rating": 84,
+      "team": "Jazz"
+    },
+    {
+      "name": "Danny Granger",
+      "pos": "SF",
+      "rating": 84,
+      "team": "Pacers"
+    },
+    {
+      "name": "Paul Pierce",
+      "pos": "SF",
+      "rating": 84,
+      "team": "Celtics"
+    },
+    {
+      "name": "Andre Iguodala",
+      "pos": "SF",
+      "rating": 84,
+      "team": "76ers"
+    },
+    {
+      "name": "Tony Parker",
+      "pos": "PG",
+      "rating": 84,
+      "team": "Spurs"
+    },
+    {
+      "name": "Gilbert Arenas",
+      "pos": "PG",
+      "rating": 84,
+      "team": "Wizards"
+    },
+    {
+      "name": "Dirk Nowitzki",
+      "pos": "PF",
+      "rating": 83,
+      "team": "Mavericks"
+    },
+    {
+      "name": "Yao Ming",
+      "pos": "C",
+      "rating": 83,
+      "team": "Rockets"
+    },
+    {
+      "name": "Joe Johnson",
+      "pos": "SG",
+      "rating": 83,
+      "team": "Hawks"
+    },
+    {
+      "name": "Manu Ginobili",
+      "pos": "SG",
+      "rating": 83,
+      "team": "Spurs"
+    },
+    {
+      "name": "Caron Butler",
+      "pos": "SF",
+      "rating": 83,
+      "team": "Wizards"
+    }
+  ]
+}
