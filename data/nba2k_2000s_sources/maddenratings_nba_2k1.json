@@ -1,0 +1,139 @@
+{
+  "videoGame": "NBA 2K1",
+  "season": "2000-01",
+  "source": "maddenratings.weebly.com",
+  "players": [
+    {
+      "name": "Kevin Garnett",
+      "pos": "PF",
+      "rating": 99,
+      "team": "Timberwolves"
+    },
+    {
+      "name": "Kobe Bryant",
+      "pos": "SG",
+      "rating": 98,
+      "team": "Lakers"
+    },
+    {
+      "name": "Tim Duncan",
+      "pos": "PF",
+      "rating": 98,
+      "team": "Spurs"
+    },
+    {
+      "name": "Shaquille O'Neal",
+      "pos": "C",
+      "rating": 98,
+      "team": "Lakers"
+    },
+    {
+      "name": "Gary Payton",
+      "pos": "PG",
+      "rating": 97,
+      "team": "SuperSonics"
+    },
+    {
+      "name": "Allen Iverson",
+      "pos": "SG",
+      "rating": 96,
+      "team": "76ers"
+    },
+    {
+      "name": "Alonzo Mourning",
+      "pos": "C",
+      "rating": 96,
+      "team": "Heat"
+    },
+    {
+      "name": "Jason Kidd",
+      "pos": "PG",
+      "rating": 96,
+      "team": "Suns"
+    },
+    {
+      "name": "Karl Malone",
+      "pos": "PF",
+      "rating": 95,
+      "team": "Jazz"
+    },
+    {
+      "name": "Vince Carter",
+      "pos": "SG",
+      "rating": 95,
+      "team": "Raptors"
+    },
+    {
+      "name": "Chris Webber",
+      "pos": "PF",
+      "rating": 93,
+      "team": "Kings"
+    },
+    {
+      "name": "David Robinson",
+      "pos": "C",
+      "rating": 92,
+      "team": "Spurs"
+    },
+    {
+      "name": "Grant Hill",
+      "pos": "SF",
+      "rating": 90,
+      "team": "Magic"
+    },
+    {
+      "name": "Penny Hardaway",
+      "pos": "SG",
+      "rating": 90,
+      "team": "Suns"
+    },
+    {
+      "name": "Ray Allen",
+      "pos": "SG",
+      "rating": 89,
+      "team": "Bucks"
+    },
+    {
+      "name": "Dikembe Mutombo",
+      "pos": "C",
+      "rating": 89,
+      "team": "Hawks"
+    },
+    {
+      "name": "Steve Francis",
+      "pos": "PG",
+      "rating": 89,
+      "team": "Rockets"
+    },
+    {
+      "name": "Reggie Miller",
+      "pos": "SG",
+      "rating": 87,
+      "team": "Pacers"
+    },
+    {
+      "name": "Jerry Stackhouse",
+      "pos": "SG",
+      "rating": 87,
+      "team": "Pistons"
+    },
+    {
+      "name": "Tracy McGrady",
+      "pos": "SG",
+      "rating": 86,
+      "team": "Magic"
+    },
+    {
+      "name": "Shareef Abdur-Rahim",
+      "pos": "SF",
+      "rating": 86,
+      "team": "Grizzlies"
+    },
+    {
+      "name": "Dirk Nowitzki",
+      "pos": "SF",
+      "rating": 84,
+      "team": "Mavericks"
+    }
+  ]
+}

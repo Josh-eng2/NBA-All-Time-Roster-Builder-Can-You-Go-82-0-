@@ -1,0 +1,4242 @@
+[
+  {
+    "name": "LeBron James",
+    "overallAttribute": 99
+  },
+  {
+    "name": "Giannis Antetokounmpo",
+    "overallAttribute": 97
+  },
+  {
+    "name": "Kawhi Leonard",
+    "overallAttribute": 97
+  },
+  {
+    "name": "Kevin Durant",
+    "overallAttribute": 97
+  },
+  {
+    "name": "Dwight Howard",
+    "overallAttribute": 96
+  },
+  {
+    "name": "James Harden",
+    "overallAttribute": 96
+  },
+  {
+    "name": "Anthony Davis",
+    "overallAttribute": 95
+  },
+  {
+    "name": "Stephen Curry",
+    "overallAttribute": 95
+  },
+  {
+    "name": "Chris Paul",
+    "overallAttribute": 94
+  },
+  {
+    "name": "Damian Lillard",
+    "overallAttribute": 94
+  },
+  {
+    "name": "Luka Doncic",
+    "overallAttribute": 94
+  },
+  {
+    "name": "Russell Westbrook",
+    "overallAttribute": 94
+  },
+  {
+    "name": "Dwyane Wade",
+    "overallAttribute": 93
+  },
+  {
+    "name": "Kobe Bryant",
+    "overallAttribute": 93
+  },
+  {
+    "name": "Kyrie Irving",
+    "overallAttribute": 93
+  },
+  {
+    "name": "Paul George",
+    "overallAttribute": 93
+  },
+  {
+    "name": "Carmelo Anthony",
+    "overallAttribute": 92
+  },
+  {
+    "name": "DeMarcus Cousins",
+    "overallAttribute": 92
+  },
+  {
+    "name": "Derrick Rose",
+    "overallAttribute": 92
+  },
+  {
+    "name": "Joel Embiid",
+    "overallAttribute": 91
+  },
+  {
+    "name": "Karl-Anthony Towns",
+    "overallAttribute": 91
+  },
+  {
+    "name": "Deron Williams",
+    "overallAttribute": 90
+  },
+  {
+    "name": "Draymond Green",
+    "overallAttribute": 90
+  },
+  {
+    "name": "Jimmy Butler",
+    "overallAttribute": 90
+  },
+  {
+    "name": "John Wall",
+    "overallAttribute": 90
+  },
+  {
+    "name": "Klay Thompson",
+    "overallAttribute": 90
+  },
+  {
+    "name": "Nikola Jokic",
+    "overallAttribute": 90
+  },
+  {
+    "name": "Rajon Rondo",
+    "overallAttribute": 90
+  },
+  {
+    "name": "Tim Duncan",
+    "overallAttribute": 90
+  },
+  {
+    "name": "Blake Griffin",
+    "overallAttribute": 89
+  },
+  {
+    "name": "DeMar DeRozan",
+    "overallAttribute": 89
+  },
+  {
+    "name": "Isaiah Thomas",
+    "overallAttribute": 89
+  },
+  {
+    "name": "Kevin Love",
+    "overallAttribute": 89
+  },
+  {
+    "name": "Marc Gasol",
+    "overallAttribute": 89
+  },
+  {
+    "name": "Bradley Beal",
+    "overallAttribute": 88
+  },
+  {
+    "name": "Dirk Nowitzki",
+    "overallAttribute": 88
+  },
+  {
+    "name": "Donovan Mitchell",
+    "overallAttribute": 88
+  },
+  {
+    "name": "Gordon Hayward",
+    "overallAttribute": 88
+  },
+  {
+    "name": "Jrue Holiday",
+    "overallAttribute": 88
+  },
+  {
+    "name": "Kemba Walker",
+    "overallAttribute": 88
+  },
+  {
+    "name": "Kristaps Porzingis",
+    "overallAttribute": 88
+  },
+  {
+    "name": "LaMarcus Aldridge",
+    "overallAttribute": 88
+  },
+  {
+    "name": "Pascal Siakam",
+    "overallAttribute": 88
+  },
+  {
+    "name": "Rudy Gobert",
+    "overallAttribute": 88
+  },
+  {
+    "name": "Tony Parker",
+    "overallAttribute": 88
+  },
+  {
+    "name": "Trae Young",
+    "overallAttribute": 88
+  },
+  {
+    "name": "Victor Oladipo",
+    "overallAttribute": 88
+  },
+  {
+    "name": "Al Jefferson",
+    "overallAttribute": 87
+  },
+  {
+    "name": "Andre Drummond",
+    "overallAttribute": 87
+  },
+  {
+    "name": "Andre Iguodala",
+    "overallAttribute": 87
+  },
+  {
+    "name": "Ben Simmons",
+    "overallAttribute": 87
+  },
+  {
+    "name": "C.J. McCollum",
+    "overallAttribute": 87
+  },
+  {
+    "name": "D'Angelo Russell",
+    "overallAttribute": 87
+  },
+  {
+    "name": "DeAndre Jordan",
+    "overallAttribute": 87
+  },
+  {
+    "name": "Devin Booker",
+    "overallAttribute": 87
+  },
+  {
+    "name": "Hassan Whiteside",
+    "overallAttribute": 87
+  },
+  {
+    "name": "Jayson Tatum",
+    "overallAttribute": 87
+  },
+  {
+    "name": "Joakim Noah",
+    "overallAttribute": 87
+  },
+  {
+    "name": "Josh Smith",
+    "overallAttribute": 87
+  },
+  {
+    "name": "Kyle Lowry",
+    "overallAttribute": 87
+  },
+  {
+    "name": "Manu Ginobili",
+    "overallAttribute": 87
+  },
+  {
+    "name": "Mike Conley",
+    "overallAttribute": 87
+  },
+  {
+    "name": "Pau Gasol",
+    "overallAttribute": 87
+  },
+  {
+    "name": "Paul Millsap",
+    "overallAttribute": 87
+  },
+  {
+    "name": "Rudy Gay",
+    "overallAttribute": 87
+  },
+  {
+    "name": "Steve Nash",
+    "overallAttribute": 87
+  },
+  {
+    "name": "Al Horford",
+    "overallAttribute": 86
+  },
+  {
+    "name": "Andrew Bynum",
+    "overallAttribute": 86
+  },
+  {
+    "name": "Andrew Wiggins",
+    "overallAttribute": 86
+  },
+  {
+    "name": "Bam Adebayo",
+    "overallAttribute": 86
+  },
+  {
+    "name": "Brandon Ingram",
+    "overallAttribute": 86
+  },
+  {
+    "name": "Chris Bosh",
+    "overallAttribute": 86
+  },
+  {
+    "name": "De'Aaron Fox",
+    "overallAttribute": 86
+  },
+  {
+    "name": "Khris Middleton",
+    "overallAttribute": 86
+  },
+  {
+    "name": "Lance Stephenson",
+    "overallAttribute": 86
+  },
+  {
+    "name": "Monta Ellis",
+    "overallAttribute": 86
+  },
+  {
+    "name": "Nikola Vucevic",
+    "overallAttribute": 86
+  },
+  {
+    "name": "Zion Williamson",
+    "overallAttribute": 86
+  },
+  {
+    "name": "Clint Capela",
+    "overallAttribute": 85
+  },
+  {
+    "name": "Derrick Favors",
+    "overallAttribute": 85
+  },
+  {
+    "name": "Domantas Sabonis",
+    "overallAttribute": 85
+  },
+  {
+    "name": "Eric Bledsoe",
+    "overallAttribute": 85
+  },
+  {
+    "name": "Eric Gordon",
+    "overallAttribute": 85
+  },
+  {
+    "name": "Fred VanVleet",
+    "overallAttribute": 85
+  },
+  {
+    "name": "Goran Dragic",
+    "overallAttribute": 85
+  },
+  {
+    "name": "Ja Morant",
+    "overallAttribute": 85
+  },
+  {
+    "name": "Jamal Murray",
+    "overallAttribute": 85
+  },
+  {
+    "name": "Joe Johnson",
+    "overallAttribute": 85
+  },
+  {
+    "name": "John Collins",
+    "overallAttribute": 85
+  },
+  {
+    "name": "Tobias Harris",
+    "overallAttribute": 85
+  },
+  {
+    "name": "Ty Lawson",
+    "overallAttribute": 85
+  },
+  {
+    "name": "Zach LaVine",
+    "overallAttribute": 85
+  },
+  {
+    "name": "Amare Stoudemire",
+    "overallAttribute": 84
+  },
+  {
+    "name": "Brook Lopez",
+    "overallAttribute": 84
+  },
+  {
+    "name": "Buddy Hield",
+    "overallAttribute": 84
+  },
+  {
+    "name": "Danny Granger",
+    "overallAttribute": 84
+  },
+  {
+    "name": "Deandre Ayton",
+    "overallAttribute": 84
+  },
+  {
+    "name": "J.R. Smith",
+    "overallAttribute": 84
+  },
+  {
+    "name": "Jaylen Brown",
+    "overallAttribute": 84
+  },
+  {
+    "name": "Jusuf Nurkic",
+    "overallAttribute": 84
+  },
+  {
+    "name": "Kevin Garnett",
+    "overallAttribute": 84
+  },
+  {
+    "name": "Kyle Kuzma",
+    "overallAttribute": 84
+  },
+  {
+    "name": "Myles Turner",
+    "overallAttribute": 84
+  },
+  {
+    "name": "Paul Pierce",
+    "overallAttribute": 84
+  },
+  {
+    "name": "Serge Ibaka",
+    "overallAttribute": 84
+  },
+  {
+    "name": "Shai Gilgeous-Alexander",
+    "overallAttribute": 84
+  },
+  {
+    "name": "Steven Adams",
+    "overallAttribute": 84
+  },
+  {
+    "name": "Zach Randolph",
+    "overallAttribute": 84
+  },
+  {
+    "name": "Avery Bradley",
+    "overallAttribute": 83
+  },
+  {
+    "name": "Bojan Bogdanovic",
+    "overallAttribute": 83
+  },
+  {
+    "name": "Brandon Jennings",
+    "overallAttribute": 83
+  },
+  {
+    "name": "Caris LeVert",
+    "overallAttribute": 83
+  },
+  {
+    "name": "Danilo Gallinari",
+    "overallAttribute": 83
+  },
+  {
+    "name": "Gary Harris",
+    "overallAttribute": 83
+  },
+  {
+    "name": "Jaren Jackson Jr.",
+    "overallAttribute": 83
+  },
+  {
+    "name": "Jeff Teague",
+    "overallAttribute": 83
+  },
+  {
+    "name": "Julius Randle",
+    "overallAttribute": 83
+  },
+  {
+    "name": "Lauri Markkanen",
+    "overallAttribute": 83
+  },
+  {
+    "name": "Luol Deng",
+    "overallAttribute": 83
+  },
+  {
+    "name": "Malcolm Brogdon",
+    "overallAttribute": 83
+  },
+  {
+    "name": "Marvin Bagley III",
+    "overallAttribute": 83
+  },
+  {
+    "name": "Montrezl Harrell",
+    "overallAttribute": 83
+  },
+  {
+    "name": "Spencer Dinwiddie",
+    "overallAttribute": 83
+  },
+  {
+    "name": "Aaron Gordon",
+    "overallAttribute": 82
+  },
+  {
+    "name": "Chauncey Billups",
+    "overallAttribute": 82
+  },
+  {
+    "name": "David Lee",
+    "overallAttribute": 82
+  },
+  {
+    "name": "George Hill",
+    "overallAttribute": 82
+  },
+  {
+    "name": "Greg Monroe",
+    "overallAttribute": 82
+  },
+  {
+    "name": "Harrison Barnes",
+    "overallAttribute": 82
+  },
+  {
+    "name": "Iman Shumpert",
+    "overallAttribute": 82
+  },
+  {
+    "name": "Jonas Valanciunas",
+    "overallAttribute": 82
+  },
+  {
+    "name": "Jonathan Isaac",
+    "overallAttribute": 82
+  },
+  {
+    "name": "Marcus Smart",
+    "overallAttribute": 82
+  },
+  {
+    "name": "O.J. Mayo",
+    "overallAttribute": 82
+  },
+  {
+    "name": "Reggie Jackson",
+    "overallAttribute": 82
+  },
+  {
+    "name": "Tyreke Evans",
+    "overallAttribute": 82
+  },
+  {
+    "name": "Brandon Knight",
+    "overallAttribute": 81
+  },
+  {
+    "name": "Caron Butler",
+    "overallAttribute": 81
+  },
+  {
+    "name": "Dennis Schroder",
+    "overallAttribute": 81
+  },
+  {
+    "name": "Gerald Wallace",
+    "overallAttribute": 81
+  },
+  {
+    "name": "Jabari Parker",
+    "overallAttribute": 81
+  },
+  {
+    "name": "Jae Crowder",
+    "overallAttribute": 81
+  },
+  {
+    "name": "Jarrett Allen",
+    "overallAttribute": 81
+  },
+  {
+    "name": "Kelly Oubre Jr.",
+    "overallAttribute": 81
+  },
+  {
+    "name": "Kenneth Faried",
+    "overallAttribute": 81
+  },
+  {
+    "name": "Kevin Martin",
+    "overallAttribute": 81
+  },
+  {
+    "name": "Marcin Gortat",
+    "overallAttribute": 81
+  },
+  {
+    "name": "Michael Porter Jr.",
+    "overallAttribute": 81
+  },
+  {
+    "name": "Mitchell Robinson",
+    "overallAttribute": 81
+  },
+  {
+    "name": "Nate Robinson",
+    "overallAttribute": 81
+  },
+  {
+    "name": "Nikola Pekovic",
+    "overallAttribute": 81
+  },
+  {
+    "name": "Otto Porter Jr.",
+    "overallAttribute": 81
+  },
+  {
+    "name": "Roy Hibbert",
+    "overallAttribute": 81
+  },
+  {
+    "name": "Tristan Thompson",
+    "overallAttribute": 81
+  },
+  {
+    "name": "Wilson Chandler",
+    "overallAttribute": 81
+  },
+  {
+    "name": "Andrew Bogut",
+    "overallAttribute": 80
+  },
+  {
+    "name": "Austin Rivers",
+    "overallAttribute": 80
+  },
+  {
+    "name": "Brandon Clarke",
+    "overallAttribute": 80
+  },
+  {
+    "name": "Brandon Roy",
+    "overallAttribute": 80
+  },
+  {
+    "name": "Caron Buter",
+    "overallAttribute": 80
+  },
+  {
+    "name": "Christian Wood",
+    "overallAttribute": 80
+  },
+  {
+    "name": "Collin Sexton",
+    "overallAttribute": 80
+  },
+  {
+    "name": "David West",
+    "overallAttribute": 80
+  },
+  {
+    "name": "Dejounte Murray",
+    "overallAttribute": 80
+  },
+  {
+    "name": "Dion Waiters",
+    "overallAttribute": 80
+  },
+  {
+    "name": "Enes Kanter",
+    "overallAttribute": 80
+  },
+  {
+    "name": "Evan Fournier",
+    "overallAttribute": 80
+  },
+  {
+    "name": "J.J. Redick",
+    "overallAttribute": 80
+  },
+  {
+    "name": "Jamal Crawford",
+    "overallAttribute": 80
+  },
+  {
+    "name": "Jason Kidd",
+    "overallAttribute": 80
+  },
+  {
+    "name": "Josh Richardson",
+    "overallAttribute": 80
+  },
+  {
+    "name": "Michael Carter-Williams",
+    "overallAttribute": 80
+  },
+  {
+    "name": "Michael Conley",
+    "overallAttribute": 80
+  },
+  {
+    "name": "Nene",
+    "overallAttribute": 80
+  },
+  {
+    "name": "Robert Covington",
+    "overallAttribute": 80
+  },
+  {
+    "name": "Rodney Hood",
+    "overallAttribute": 80
+  },
+  {
+    "name": "Rodney Stuckey",
+    "overallAttribute": 80
+  },
+  {
+    "name": "Taj Gibson",
+    "overallAttribute": 80
+  },
+  {
+    "name": "Tim Hardaway Jr.",
+    "overallAttribute": 80
+  },
+  {
+    "name": "Arron Afflalo",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Bobby Portis",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Bogdan Bogdanovic",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Chandler Parsons",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Daniel Theis",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Dario Saric",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Darren Collison",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Davis Bertans",
+    "overallAttribute": 79
+  },
+  {
+    "name": "DeMarre Carroll",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Derrick White",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Devonte' Graham",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Eric Paschall",
+    "overallAttribute": 79
+  },
+  {
+    "name": "JaVale McGee",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Jahlil Okafor",
+    "overallAttribute": 79
+  },
+  {
+    "name": "James Johnson",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Jarrett Jack",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Jeff Green",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Jeremy Lamb",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Joe Ingles",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Kentavious Caldwell-Pope ",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Kyle Korver",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Larry Nance Jr.",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Larry Sanders",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Lonzo Ball",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Louis Williams",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Luis Scola",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Michael Beasley",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Michael Kidd-Gilchrist",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Nicolas Batum",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Nikola Mirotic",
+    "overallAttribute": 79
+  },
+  {
+    "name": "OG Anunoby",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Patrick Beverley",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Ray Allen",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Raymond Felton",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Ricky Rubio ",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Rui Hachimura",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Ryan Anderson",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Shawn Marion",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Stephen Jackson",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Taurean Prince",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Terrence Ross",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Terry Rozier",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Thaddeus Young",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Thomas Bryant",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Tyson Chandler",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Vince Carter",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Wendell Carter Jr.",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Wesley Matthews",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Will Barton",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Willie Cauley-Stein",
+    "overallAttribute": 79
+  },
+  {
+    "name": "Aaron Jackson",
+    "overallAttribute": 78
+  },
+  {
+    "name": "Aron Baynes",
+    "overallAttribute": 78
+  },
+  {
+    "name": "Boris Diaw",
+    "overallAttribute": 78
+  },
+  {
+    "name": "Carlos Boozer",
+    "overallAttribute": 78
+  },
+  {
+    "name": "Cody Zeller",
+    "overallAttribute": 78
+  },
+  {
+    "name": "Danny Green",
+    "overallAttribute": 78
+  },
+  {
+    "name": "Dennis Smith Jr.",
+    "overallAttribute": 78
+  },
+  {
+    "name": "Duncan Robinson",
+    "overallAttribute": 78
+  },
+  {
+    "name": "Elton Brand",
+    "overallAttribute": 78
+  },
+  {
+    "name": "Emeka Okafor",
+    "overallAttribute": 78
+  },
+  {
+    "name": "Gerald Green",
+    "overallAttribute": 78
+  },
+  {
+    "name": "Gerald Henderson",
+    "overallAttribute": 78
+  },
+  {
+    "name": "Ivica Zubac",
+    "overallAttribute": 78
+  },
+  {
+    "name": "JaMychal Green",
+    "overallAttribute": 78
+  },
+  {
+    "name": "Jared Sullinger",
+    "overallAttribute": 78
+  },
+  {
+    "name": "Jeremy Lin",
+    "overallAttribute": 78
+  },
+  {
+    "name": "Joe Harris",
+    "overallAttribute": 78
+  },
+  {
+    "name": "Jordan Clarkson",
+    "overallAttribute": 78
+  },
+  {
+    "name": "Jose Calderon",
+    "overallAttribute": 78
+  },
+  {
+    "name": "Justise Winslow",
+    "overallAttribute": 78
+  },
+  {
+    "name": "Kelly Olynyk",
+    "overallAttribute": 78
+  },
+  {
+    "name": "Kent Bazemore",
+    "overallAttribute": 78
+  },
+  {
+    "name": "Kris Dunn",
+    "overallAttribute": 78
+  },
+  {
+    "name": "Luke Kennard",
+    "overallAttribute": 78
+  },
+  {
+    "name": "Marcus Morris Sr.",
+    "overallAttribute": 78
+  },
+  {
+    "name": "Markieff Morris",
+    "overallAttribute": 78
+  },
+  {
+    "name": "Marvin Williams",
+    "overallAttribute": 78
+  },
+  {
+    "name": "Mason Plumlee",
+    "overallAttribute": 78
+  },
+  {
+    "name": "Miles Plumlee",
+    "overallAttribute": 78
+  },
+  {
+    "name": "Mo Williams",
+    "overallAttribute": 78
+  },
+  {
+    "name": "Nemanja Bjelica",
+    "overallAttribute": 78
+  },
+  {
+    "name": "Nerlens Noel",
+    "overallAttribute": 78
+  },
+  {
+    "name": "Nick Young",
+    "overallAttribute": 78
+  },
+  {
+    "name": "Richaun Holmes",
+    "overallAttribute": 78
+  },
+  {
+    "name": "Rondae Hollis-Jefferson",
+    "overallAttribute": 78
+  },
+  {
+    "name": "Seth Curry",
+    "overallAttribute": 78
+  },
+  {
+    "name": "Tony Allen",
+    "overallAttribute": 78
+  },
+  {
+    "name": "Trevor Ariza",
+    "overallAttribute": 78
+  },
+  {
+    "name": "Troy Brown Jr.",
+    "overallAttribute": 78
+  },
+  {
+    "name": "Tyler Herro",
+    "overallAttribute": 78
+  },
+  {
+    "name": "Aaron Brooks",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Al-Farouq Aminu",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Alec Burks",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Alex Len",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Amir Johnson",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Anderson Varejao",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Andrei Kirilenko",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Antawn Jamison",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Bismack Biyombo",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Chris Boucher",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Coby White",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Delon Wright",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Dewayne Dedmon",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Dillon Brooks",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Donte DiVincenzo",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Dwight Powell",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Ed Davis",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Elfrid Payton",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Ersan Ilyasova",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Evan Turner",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Gary Trent Jr.",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Gilbert Arenas",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Gorgui Dieng",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Grant Hill",
+    "overallAttribute": 77
+  },
+  {
+    "name": "J.J. Hickson",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Jakob Poeltl",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Jalen Brunson",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Jason Terry",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Jerami Grant",
+    "overallAttribute": 77
+  },
+  {
+    "name": "John Henson",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Jonathon Simmons",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Jordan Bell",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Josh Jackson",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Kevon Looney",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Kyle Anderson",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Malik Beasley",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Markelle Fultz",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Mikal Bridges",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Miles Bridges",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Mo Bamba",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Monte Morris",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Norman Powell",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Patrick Mills",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Robin Lopez",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Shannon Brown",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Terrence Jones",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Tiago Splitter",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Timofey Mozgov",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Tyler Johnson",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Willy Hernangomez",
+    "overallAttribute": 77
+  },
+  {
+    "name": "Aaron Holiday",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Allen Crabbe",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Andre Miller",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Andre Roberson",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Anthony Bennett",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Ben Gordon",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Brandan Wright",
+    "overallAttribute": 76
+  },
+  {
+    "name": "C.J. Miles",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Cameron Johnson",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Carl Landry",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Channing Frye",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Chris Kaman",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Corey Brewer",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Courtney Lee",
+    "overallAttribute": 76
+  },
+  {
+    "name": "D.J. Augustin",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Danuel House Jr.",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Delonte West",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Denzel Valentine",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Devin Harris",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Dorian Finney-Smith",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Doug McDermott",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Emmanuel Mudiay",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Festus Ezeli",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Frank Kaminsky",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Greivis Vasquez",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Ian Mahinmi",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Jameer Nelson",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Jared Dudley",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Jaxson Hayes",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Jordan Crawford",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Jordan Hill",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Josh Hart",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Keldon Johnson",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Kendrick Nunn",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Kenyon Martin",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Kevin Huerter",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Kevin Knox II",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Kirk Hinrich",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Kosta Koufos",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Kyle O'Quinn",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Landry Shamet",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Luc Mbah a Moute",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Marco Belinelli",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Marcus Thornton",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Mario Hezonja",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Marquese Chriss",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Marreese Speights",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Matt Barnes",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Maxi Kleber",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Meyers Leonard",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Mike Scott",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Mirza Teletovic",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Moritz Wagner",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Omer Asik",
+    "overallAttribute": 76
+  },
+  {
+    "name": "P.J. Tucker",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Patrick Patterson",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Ramon Sessions",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Reggie Bullock",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Salah Mejri",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Samuel Dalembert",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Shabazz Napier",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Shaun Livingston",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Skal Labissiere",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Spencer Hawes",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Terence Davis",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Terrence Williams",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Thabo Sefolosha",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Tomas Satoransky",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Treveon Graham",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Trevor Booker",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Trey Burke",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Trey Lyles",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Tyler Zeller",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Tyus Jones",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Victor Olapido",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Wayne Ellington",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Zaza Pachulia",
+    "overallAttribute": 76
+  },
+  {
+    "name": "Alan Williams",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Allonzo Trier",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Andrea Bargnani",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Beno Udrih",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Boban Marjanovic",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Brandon Bass",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Brandon Wright",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Bryn Forbes",
+    "overallAttribute": 75
+  },
+  {
+    "name": "C.J. Watson",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Cedi Osman",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Chandler Hutchison",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Chris Andersen",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Cory Joseph",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Damyean Dotson",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Daniel Gafford",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Darrell Arthur",
+    "overallAttribute": 75
+  },
+  {
+    "name": "De'Andre Hunter",
+    "overallAttribute": 75
+  },
+  {
+    "name": "De'Anthony Melton",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Derrick Jones Jr.",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Donatas Motiejunas",
+    "overallAttribute": 75
+  },
+  {
+    "name": "E'Twaun Moore",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Ekpe Udoh",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Furkan Korkmaz",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Gary Neal",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Glen Davis",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Glenn Robinson III",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Harry Giles III",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Ish Smith",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Jake Layman",
+    "overallAttribute": 75
+  },
+  {
+    "name": "James Ennis III",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Jason Thompson",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Joffrey Lauvergne",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Jon Leuer",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Jonas Jerebko",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Justin Holiday",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Kevin Porter Jr.",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Langston Galloway",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Leandro Barbosa",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Malik Monk",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Marcus Morris",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Mario Chalmers",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Matisse Thybulle",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Matthew Dellavedova",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Nate Wolters",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Nicolo Melli",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Noah Vonleh",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Norris Cole",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Omari Johnson",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Omri Casspi",
+    "overallAttribute": 75
+  },
+  {
+    "name": "RJ Barrett",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Rodions Kurucs",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Shabazz Muhammad",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Shake Milton",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Shane Battier",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Solomon Hill",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Stanley Johnson",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Tayshaun Prince",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Thomas Robinson",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Thon Maker",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Tony Bradley",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Tony Snell",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Tony Wroten",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Troy Daniels",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Tyler Ulis",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Zach Collins",
+    "overallAttribute": 75
+  },
+  {
+    "name": "Alex Abrines",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Alex Caruso",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Alexis Ajinca",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Andray Blatche",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Andrew Harrison",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Anthony Tolliver",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Baron Davis",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Ben McLemore",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Brian Roberts",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Bruce Brown",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Cameron Payne",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Cheick Diallo",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Cole Aldrich",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Corey Maggette",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Damian Jones",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Damion Lee",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Dante Exum",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Darius Garland",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Frank Ntilikina",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Garrett Temple",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Ian Clark",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Ivan Rabb",
+    "overallAttribute": 74
+  },
+  {
+    "name": "J.J. Barea",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Jarrett Culver",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Jason Richardson",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Jeff Withey",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Jerian Grant",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Jerryd Bayless",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Jodie Meeks",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Jonny Flynn",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Jordan McLaughlin",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Jordan McRae",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Josh McRoberts",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Josh Okogie",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Justin Jackson",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Kendall Marshall",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Kendrick Perkins",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Kevin Seraphin",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Khem Birch",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Kris Humphries",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Kyle Singler",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Landry Fields",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Luguentz Dort",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Malcolm Delaney",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Matt Thomas",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Maurice Harkless",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Metta World Peace",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Mike Dunleavey",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Mike Miller",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Mike Muscala",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Milos Teodosic",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Nick Collison",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Nik Stauskas",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Omari Spellman",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Otto Porter",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Pat Connaughton",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Quinn Cook",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Randy Foye",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Ray McCallum",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Reggie Evans",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Richard Hamilton",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Richard Jefferson",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Robert Williams III",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Rodney McGruder",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Ronnie Brewer",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Royce O'Neale",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Sean Kilpatrick",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Shelvin Mack",
+    "overallAttribute": 74
+  },
+  {
+    "name": "TJ Leaf",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Timothe Luwawu-Cabarrot",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Torrey Craig",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Wayne Selden",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Willie Reed",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Yogi Ferrell",
+    "overallAttribute": 74
+  },
+  {
+    "name": "Andrew Nicholson",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Ante Zizic",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Anthony Morrow",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Brad Wanamaker",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Bruno Fernando",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Cam Reddish",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Chimezie Metu",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Chris Clemons",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Chuck Hayes",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Cristiano Felicio",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Dahntay Jones",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Darius Bazley",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Darius Miller",
+    "overallAttribute": 73
+  },
+  {
+    "name": "David Nwaba",
+    "overallAttribute": 73
+  },
+  {
+    "name": "DeAndre' Bembry",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Derrick Williams",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Deyonta Davis",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Donald Sloan",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Dragan Bender",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Dwayne Bacon",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Georges Niang",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Goga Bitadze",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Hedo Turkoglu",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Isaiah Canaan",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Isaiah Hartenstein",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Isaiah Whitehead",
+    "overallAttribute": 73
+  },
+  {
+    "name": "JaKarr Sampson",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Jarell Martin",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Jason Smith",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Jermaine O'Neal",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Jerome Robinson",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Jevon Carter",
+    "overallAttribute": 73
+  },
+  {
+    "name": "John Salmons",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Jonah Bolden",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Justin Anderson",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Lonnie Walker IV",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Lucas Nogueira",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Luke Kornet",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Marcus Camby",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Marshon Brooks",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Martell Webster",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Matt Bonner",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Mike Dunleavy",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Mindaugas Kuzminskas",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Mitch McGary",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Nicolas Claxton",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Patrick McCaw",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Raul Neto",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Ron Baker",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Sam Dekker",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Semi Ojeleye",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Shaquille Harrison",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Sterling Brown",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Tarik Black",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Tim Frazier",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Toney Douglas",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Tyler Hansbrough",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Vincent Poirier",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Wesley Johnson",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Xavier Henry",
+    "overallAttribute": 73
+  },
+  {
+    "name": "Al Harrington",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Alfonzo McKinnie",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Anfernee Simons",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Antonio Blakeney",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Anzejs Pasecniks",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Archie Goodwin",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Brandon Rush",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Bruno Caboclo",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Charlie Villanueva",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Chris Chiozza",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Cody Martin",
+    "overallAttribute": 72
+  },
+  {
+    "name": "DaJuan Blair",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Dante Cunningham",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Dorell Wright",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Eric Moreland",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Gary Clark",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Gary Payton II",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Georgios Papagiannis",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Grayson Allen",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Hollis Thompson",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Isaac Bonga",
+    "overallAttribute": 72
+  },
+  {
+    "name": "James Jones",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Jarnell Stokes",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Javonte Green",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Jeff Taylor",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Jimmer Fredette",
+    "overallAttribute": 72
+  },
+  {
+    "name": "John Konchar",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Johnathan Motley",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Jonathan Gibson",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Jordan Farmar",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Jordan Poole",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Justin Hamilton",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Kadeem Allen",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Kenrich Williams",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Lamar Odom",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Lance Thomas",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Lavoy Allen",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Luka Samanic",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Luke Ridnour",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Marcelo Huertas",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Mfiondu Kabengele",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Mickael Pietrus",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Nassir Little",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Naz Reid",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Nick Calathes",
+    "overallAttribute": 72
+  },
+  {
+    "name": "PJ Dozier",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Pablo Prigioni",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Quincy Acy",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Quincy Pondexter",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Rodrigue Beaubois",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Ryan Arcidiacono",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Ryan Broekhoff",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Sekou Doumbouya",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Shane Larkin",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Sindarius Thornwell",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Steve Novak",
+    "overallAttribute": 72
+  },
+  {
+    "name": "T.J. Warren",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Talen Horton-Tucker",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Tracy McGrady",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Tyler Cavanaugh",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Tyler Ennis",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Tyrus Thomas",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Udonis Haslem",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Vitor Faverani",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Zhaire Smith",
+    "overallAttribute": 72
+  },
+  {
+    "name": "Abdel Nader",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Admiral Schofield",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Adreian Payne",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Alan Anderson",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Alen Smailagic",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Alonzo Gee",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Anthony Randolph",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Brandon Goodwin",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Chase Budinger",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Chasson Randle",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Chris Copeland",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Daniel Green",
+    "overallAttribute": 71
+  },
+  {
+    "name": "DeJuan Blair",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Dzanan Musa",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Edmond Sumner",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Elie Okobo",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Frank Jackson",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Frank Mason",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Garrison Mathews",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Grant Williams",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Henry Ellenson",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Henry Sims",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Ishmael Smith",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Jacob Evans",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Jason Maxiell",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Jaylen Nowell",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Jeff Adrien",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Jordan Adams",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Jordan Mickey",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Justin James",
+    "overallAttribute": 71
+  },
+  {
+    "name": "KZ Okpala",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Keita Bates-Diop",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Kelenna Azubuike",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Ky Bowman",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Luc Richard Mbah a Moute",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Maurice Evans",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Nick Johnson",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Nickeil Alexander-Walker",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Norvel Pelle",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Orlando Johnson",
+    "overallAttribute": 71
+  },
+  {
+    "name": "P.J. Hairston",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Paul Zipser",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Quentin Richardson",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Raja Bell",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Ryan Hollins",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Ryan Kelly",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Steve Blake",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Terance Mann",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Terrance Ferguson",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Troy Williams",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Ty Jerome",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Will Bynum",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Willie Green",
+    "overallAttribute": 71
+  },
+  {
+    "name": "Alexey Shved",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Alize Johnson",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Anthony Brown",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Briante Weber",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Brice Johnson",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Caleb Swanigan",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Carlos Delfino",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Carsen Edwards",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Cartier Martin",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Cleanthony Early",
+    "overallAttribute": 70
+  },
+  {
+    "name": "DaQuan Jeffries",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Damion James",
+    "overallAttribute": 70
+  },
+  {
+    "name": "DeShawn Stevenson",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Dean Wade",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Deonte Burton",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Diamond Stone",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Donta Hall",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Drew Gooden",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Earl Clark",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Elliot Williams",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Epke Udoh",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Greg Oden",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Hamidou Diallo",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Ignas Brazdeikis",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Isaiah Roby",
+    "overallAttribute": 70
+  },
+  {
+    "name": "JaJuan Johnson",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Jalen McDaniels",
+    "overallAttribute": 70
+  },
+  {
+    "name": "James Ennis",
+    "overallAttribute": 70
+  },
+  {
+    "name": "James Young",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Jarred Vanderbilt",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Jemerrio Jones",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Jeremy Evans",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Johnathan Williams",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Jordan Hamilton",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Justin Patton",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Juwan Morgan",
+    "overallAttribute": 70
+  },
+  {
+    "name": "KJ McDaniels",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Keith Bogans",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Luke Babbitt",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Malachi Richardson",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Mareese Speights",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Melvin Frazier Jr.",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Michael Gbinije",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Phil Pressey",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Rashad Vaughn",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Romeo Langford",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Semaj Christon",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Sergey Karasev",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Tacko Fall",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Thanasis Antetokounmpo",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Tyler Dorsey",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Tyler Lydon",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Vlatko Cancar",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Wenyen Gabriel",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Yante Maten",
+    "overallAttribute": 70
+  },
+  {
+    "name": "Alex Poythress",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Amile Jefferson",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Caleb Martin",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Chinanu Onuaku",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Chris Douglas-Roberts",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Chris Duhon",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Chris McCullough",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Chris Singleton",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Cory Jefferson",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Darius Johnson-Odom",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Darrun Hilliard",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Derek Fisher",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Derrick Walton Jr.",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Devontae Cacok",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Furkan Aldemir",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Glen Rice",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Guerschon Yabusele",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Ivan Johnson",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Jamaal Franklin",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Jamaal Tinsley",
+    "overallAttribute": 69
+  },
+  {
+    "name": "James Michael McAdoo",
+    "overallAttribute": 69
+  },
+  {
+    "name": "James White",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Jawun Evans",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Jaylen Hoard",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Jeremy Pargo",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Joel Bolomboy",
+    "overallAttribute": 69
+  },
+  {
+    "name": "John Jenkins",
+    "overallAttribute": 69
+  },
+  {
+    "name": "John Lucas",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Josh Huestis",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Kay Felder",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Kelan Martin",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Khyri Thomas",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Kostas Antetokounmpo",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Kyle Guy",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Lorenzo Brown",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Malcolm Miller",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Marko Guduric",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Marquis Teague",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Okaro White",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Pero Antic",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Perry Jones",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Perry Jones III",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Rashard Lewis",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Rayjon Tucker",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Ricky Ledo",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Robert Sacre",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Roger Mason",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Ronnie Price",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Russ Smith",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Sasha Vujacic",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Theo Pinson",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Travis Outlaw",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Tremont Waters",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Tyrone Wallace",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Vic Law",
+    "overallAttribute": 69
+  },
+  {
+    "name": "Wade Baldwin IV",
+    "overallAttribute": 69
+  },
+  {
+    "name": "AJ Hammons",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Adam Mokoka",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Amir Coffey",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Antonio Daniels",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Arnett Moultrie",
+    "overallAttribute": 68
+  },
+  {
+    "name": "BJ Johnson",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Brian Bowen II",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Byron Mullens",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Carrick Felix",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Damjan Rudez",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Daryl Macon",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Davon Reed",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Demetrius Jackson",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Dennis Schroeder",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Dewan Hernandez",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Drew Eubanks",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Dusty Hannahs",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Eric Maynor",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Eric Mika",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Francisco Garcia",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Ike Anigbogu",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Isaiah Taylor",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Jalen Jones",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Jalen Lecque",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Joe Chealey",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Joel Freeland",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Jordan Bone",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Josh Childress",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Josh Magette",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Kevin Hervey",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Keyon Dooling",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Kyle Alexander",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Louis King",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Malik Newman",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Markel Brown",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Marques Bolden",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Marquis Daniels",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Marshall Plumlee",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Matt Mooney",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Max Strus",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Michael Frazier",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Miye Oni",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Mychal Mulder",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Naz Mitrou-Long",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Nicolas Brussino",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Quincy Miller",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Quinndary Weatherspoon",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Robbie Hummel",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Ronny Turiaf",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Royce White",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Sebastian Telfair",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Shamorie Ponds",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Stanton Kidd",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Tariq Owens",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Tony Mitchell",
+    "overallAttribute": 68
+  },
+  {
+    "name": "TyShawn Taylor",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Tyler Cook",
+    "overallAttribute": 68
+  },
+  {
+    "name": "William Howard",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Yuta Watanabe",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Zach Norvell Jr.",
+    "overallAttribute": 68
+  },
+  {
+    "name": "Aaron Gray",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Allan Crabbe",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Antonius Cleveland",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Austin Daye",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Brendan Haywood",
+    "overallAttribute": 67
+  },
+  {
+    "name": "C.J. Wilcox",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Cory Higgins",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Devin Robinson",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Devon Hall",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Devyn Marble",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Diante Garrett",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Earl Watson",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Gabe Vincent",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Gal Mekel",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Gary Forbes",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Greg Smith",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Jamario Moon",
+    "overallAttribute": 67
+  },
+  {
+    "name": "James Anderson",
+    "overallAttribute": 67
+  },
+  {
+    "name": "James Posey",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Jannero Pargo",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Jared Cunningham",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Jared Harper",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Jarell Eddie",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Jarrell Brantley",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Jarrod Uthoff",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Jarvis Varnado",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Jeff Ayres",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Jeremiah Martin",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Jeremy Tyler",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Jerry Stackhouse",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Johnny O'Bryant",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Josh Gray",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Josh Powell",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Josh Reaves",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Justin Robinson",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Justin Wright-Foreman",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Louis Amundson",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Luigi Datome",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Malcolm Lee",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Marcus Georges-Hunt",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Marial Shayok",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Miroslav Raduljica",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Moses Brown",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Nemanja Nedovic",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Nolan Smith",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Ognjen Kuzmic",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Oshae Brissett",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Paul Watson",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Sam Young",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Shayne Whittington",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Stephen Zimmerman",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Tim Quarterman",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Zylan Cheatham",
+    "overallAttribute": 67
+  },
+  {
+    "name": "Armon Johnson",
+    "overallAttribute": 66
+  },
+  {
+    "name": "Cameron Bairstow",
+    "overallAttribute": 66
+  },
+  {
+    "name": "Chris Wilcox",
+    "overallAttribute": 66
+  },
+  {
+    "name": "Daniel Hamilton",
+    "overallAttribute": 66
+  },
+  {
+    "name": "Daniel Ochefu",
+    "overallAttribute": 66
+  },
+  {
+    "name": "Darius Morris",
+    "overallAttribute": 66
+  },
+  {
+    "name": "Dominic McGuire",
+    "overallAttribute": 66
+  },
+  {
+    "name": "Jabari Bird",
+    "overallAttribute": 66
+  },
+  {
+    "name": "Jaylen Morris",
+    "overallAttribute": 66
+  },
+  {
+    "name": "Joel Anthony",
+    "overallAttribute": 66
+  },
+  {
+    "name": "John Holland",
+    "overallAttribute": 66
+  },
+  {
+    "name": "Luke Walton",
+    "overallAttribute": 66
+  },
+  {
+    "name": "Malcolm Thomas",
+    "overallAttribute": 66
+  },
+  {
+    "name": "Peyton Silva",
+    "overallAttribute": 66
+  },
+  {
+    "name": "Rakeem Christmas",
+    "overallAttribute": 66
+  },
+  {
+    "name": "Reggie Williams",
+    "overallAttribute": 66
+  },
+  {
+    "name": "Travis Wear",
+    "overallAttribute": 66
+  },
+  {
+    "name": "Troy Murphy",
+    "overallAttribute": 66
+  },
+  {
+    "name": "Victor Claver",
+    "overallAttribute": 66
+  },
+  {
+    "name": "Zhou Qi",
+    "overallAttribute": 66
+  },
+  {
+    "name": "Aaron Harrison",
+    "overallAttribute": 65
+  },
+  {
+    "name": "Antoine Wright",
+    "overallAttribute": 65
+  },
+  {
+    "name": "Bill Walker",
+    "overallAttribute": 65
+  },
+  {
+    "name": "Brandon Davies",
+    "overallAttribute": 65
+  },
+  {
+    "name": "Daniel Gibson",
+    "overallAttribute": 65
+  },
+  {
+    "name": "Devin Ebanks",
+    "overallAttribute": 65
+  },
+  {
+    "name": "Erick Green",
+    "overallAttribute": 65
+  },
+  {
+    "name": "Hakim Warrick",
+    "overallAttribute": 65
+  },
+  {
+    "name": "Hasheem Thabeet",
+    "overallAttribute": 65
+  },
+  {
+    "name": "Isaiah Hicks",
+    "overallAttribute": 65
+  },
+  {
+    "name": "Josh Selby",
+    "overallAttribute": 65
+  },
+  {
+    "name": "Kris Joseph",
+    "overallAttribute": 65
+  },
+  {
+    "name": "Mike James",
+    "overallAttribute": 65
+  },
+  {
+    "name": "Nando De Colo",
+    "overallAttribute": 65
+  },
+  {
+    "name": "RJ Hunter",
+    "overallAttribute": 65
+  },
+  {
+    "name": "Reggie Hearn",
+    "overallAttribute": 65
+  },
+  {
+    "name": "Ryan Gomes",
+    "overallAttribute": 65
+  },
+  {
+    "name": "Sherron Collins",
+    "overallAttribute": 65
+  },
+  {
+    "name": "Tyler Honeycutt",
+    "overallAttribute": 65
+  },
+  {
+    "name": "Chris Johnson",
+    "overallAttribute": 64
+  },
+  {
+    "name": "Damien Wilkins",
+    "overallAttribute": 64
+  },
+  {
+    "name": "Gustavo Ayon",
+    "overallAttribute": 64
+  },
+  {
+    "name": "Jan Vesely",
+    "overallAttribute": 64
+  },
+  {
+    "name": "Jared Jeffries",
+    "overallAttribute": 64
+  },
+  {
+    "name": "Jeff Pendergraph",
+    "overallAttribute": 64
+  },
+  {
+    "name": "Johnny O'Bryant III",
+    "overallAttribute": 64
+  },
+  {
+    "name": "Josh Akognon",
+    "overallAttribute": 64
+  },
+  {
+    "name": "Kurt Thomas",
+    "overallAttribute": 64
+  },
+  {
+    "name": "Linas Kleiza",
+    "overallAttribute": 64
+  },
+  {
+    "name": "Nazr Mohammed",
+    "overallAttribute": 64
+  },
+  {
+    "name": "Shavlik Randolph",
+    "overallAttribute": 64
+  },
+  {
+    "name": "Trey Thompkins",
+    "overallAttribute": 64
+  },
+  {
+    "name": "Andris Biedrins",
+    "overallAttribute": 63
+  },
+  {
+    "name": "DJ White",
+    "overallAttribute": 63
+  },
+  {
+    "name": "Daequan Cook",
+    "overallAttribute": 63
+  },
+  {
+    "name": "DeQuan Jones",
+    "overallAttribute": 63
+  },
+  {
+    "name": "Donte Greene",
+    "overallAttribute": 63
+  },
+  {
+    "name": "Maalik Wayns",
+    "overallAttribute": 63
+  },
+  {
+    "name": "Travis Leslie",
+    "overallAttribute": 63
+  },
+  {
+    "name": "Andrew Goudelock",
+    "overallAttribute": 62
+  },
+  {
+    "name": "Charles Jenkins",
+    "overallAttribute": 62
+  },
+  {
+    "name": "DeAndre Liggins",
+    "overallAttribute": 62
+  },
+  {
+    "name": "Doron Lamb",
+    "overallAttribute": 62
+  },
+  {
+    "name": "Greg Stiemsma",
+    "overallAttribute": 62
+  },
+  {
+    "name": "Lazar Hayward",
+    "overallAttribute": 62
+  },
+  {
+    "name": "Quinton Ross",
+    "overallAttribute": 62
+  },
+  {
+    "name": "Samardo Samuels",
+    "overallAttribute": 62
+  },
+  {
+    "name": "Ben Uzoh",
+    "overallAttribute": 61
+  },
+  {
+    "name": "DaJuan Summers",
+    "overallAttribute": 61
+  },
+  {
+    "name": "Dominique Jones",
+    "overallAttribute": 61
+  },
+  {
+    "name": "Joel Przybilla",
+    "overallAttribute": 61
+  },
+  {
+    "name": "Luke Zeller",
+    "overallAttribute": 61
+  },
+  {
+    "name": "Rodney Carney",
+    "overallAttribute": 61
+  },
+  {
+    "name": "Christian Eyenga",
+    "overallAttribute": 60
+  },
+  {
+    "name": "Darington Hobson",
+    "overallAttribute": 60
+  },
+  {
+    "name": "Giannis Adetokunbo",
+    "overallAttribute": 60
+  },
+  {
+    "name": "Kim English",
+    "overallAttribute": 60
+  },
+  {
+    "name": "Kwame Brown",
+    "overallAttribute": 60
+  },
+  {
+    "name": "Kyle Weaver",
+    "overallAttribute": 60
+  },
+  {
+    "name": "Melvin Ely",
+    "overallAttribute": 60
+  },
+  {
+    "name": "Rasual Butler",
+    "overallAttribute": 60
+  },
+  {
+    "name": "Bernard James",
+    "overallAttribute": 59
+  },
+  {
+    "name": "Bobby Simmons",
+    "overallAttribute": 59
+  },
+  {
+    "name": "Dexter Pittman",
+    "overallAttribute": 59
+  },
+  {
+    "name": "Hamed Haddadi",
+    "overallAttribute": 59
+  },
+  {
+    "name": "Justin Harper",
+    "overallAttribute": 59
+  },
+  {
+    "name": "Juwan Howard",
+    "overallAttribute": 59
+  },
+  {
+    "name": "Mickell Gladness",
+    "overallAttribute": 59
+  },
+  {
+    "name": "Shawne Williams",
+    "overallAttribute": 59
+  },
+  {
+    "name": "Tornike Shengelia",
+    "overallAttribute": 59
+  },
+  {
+    "name": "Daniel Orton",
+    "overallAttribute": 58
+  },
+  {
+    "name": "Jordan Williams",
+    "overallAttribute": 58
+  },
+  {
+    "name": "Matt Carroll",
+    "overallAttribute": 58
+  },
+  {
+    "name": "Andy Rautins",
+    "overallAttribute": 57
+  },
+  {
+    "name": "Chris Quinn",
+    "overallAttribute": 57
+  },
+  {
+    "name": "Dan Gadzuric",
+    "overallAttribute": 57
+  },
+  {
+    "name": "Earl Barron",
+    "overallAttribute": 57
+  },
+  {
+    "name": "Josh Harrellson",
+    "overallAttribute": 57
+  },
+  {
+    "name": "Luke Harangody",
+    "overallAttribute": 57
+  },
+  {
+    "name": "Malik Allen",
+    "overallAttribute": 57
+  },
+  {
+    "name": "Viacheslav Kravtsov",
+    "overallAttribute": 57
+  },
+  {
+    "name": "AJ Price",
+    "overallAttribute": 56
+  },
+  {
+    "name": "Brian Cook",
+    "overallAttribute": 56
+  },
+  {
+    "name": "Erik Murphy",
+    "overallAttribute": 56
+  },
+  {
+    "name": "Johan Petro",
+    "overallAttribute": 56
+  },
+  {
+    "name": "Jon Brockman",
+    "overallAttribute": 56
+  },
+  {
+    "name": "Ronald Dupree",
+    "overallAttribute": 56
+  },
+  {
+    "name": "Sasha Pavlovic",
+    "overallAttribute": 56
+  },
+  {
+    "name": "Solomon Alabi",
+    "overallAttribute": 56
+  },
+  {
+    "name": "Vladimir Radmanovic",
+    "overallAttribute": 55
+  },
+  {
+    "name": "Brian Skinner",
+    "overallAttribute": 54
+  },
+  {
+    "name": "DeSagana Diop",
+    "overallAttribute": 54
+  },
+  {
+    "name": "Francisco Elson",
+    "overallAttribute": 54
+  },
+  {
+    "name": "Jordan Petro",
+    "overallAttribute": 54
+  },
+  {
+    "name": "Royal Ivey",
+    "overallAttribute": 54
+  },
+  {
+    "name": "Fab Melo",
+    "overallAttribute": 53
+  },
+  {
+    "name": "Orien Greene",
+    "overallAttribute": 53
+  },
+  {
+    "name": "Brian Cardinal",
+    "overallAttribute": 52
+  },
+  {
+    "name": "DJ Mbenga",
+    "overallAttribute": 52
+  },
+  {
+    "name": "Darnell Jackson",
+    "overallAttribute": 52
+  },
+  {
+    "name": "Kyrylo Fesenko",
+    "overallAttribute": 52
+  },
+  {
+    "name": "Solomon Jones",
+    "overallAttribute": 52
+  },
+  {
+    "name": "Jason Collins",
+    "overallAttribute": 50
+  }
+]

@@ -1,0 +1,151 @@
+{
+  "videoGame": "ESPN NBA Basketball",
+  "season": "2003-04",
+  "source": "maddenratings.weebly.com",
+  "players": [
+    {
+      "name": "Tim Duncan",
+      "pos": "PF",
+      "rating": 99,
+      "team": "Spurs"
+    },
+    {
+      "name": "Shaquille O'Neal",
+      "pos": "C",
+      "rating": 98,
+      "team": "Lakers"
+    },
+    {
+      "name": "Kevin Garnett",
+      "pos": "PF",
+      "rating": 97,
+      "team": "Timberwolves"
+    },
+    {
+      "name": "Kobe Bryant",
+      "pos": "SG",
+      "rating": 96,
+      "team": "Lakers"
+    },
+    {
+      "name": "Tracy McGrady",
+      "pos": "SG",
+      "rating": 96,
+      "team": "Magic"
+    },
+    {
+      "name": "Jason Kidd",
+      "pos": "PG",
+      "rating": 94,
+      "team": "Nets"
+    },
+    {
+      "name": "Chris Webber",
+      "pos": "PF",
+      "rating": 93,
+      "team": "Kings"
+    },
+    {
+      "name": "Dirk Nowitzki",
+      "pos": "PF",
+      "rating": 93,
+      "team": "Mavericks"
+    },
+    {
+      "name": "Paul Pierce",
+      "pos": "SG",
+      "rating": 93,
+      "team": "Celtics"
+    },
+    {
+      "name": "Allen Iverson",
+      "pos": "SG",
+      "rating": 92,
+      "team": "76ers"
+    },
+    {
+      "name": "Shawn Marion",
+      "pos": "SF",
+      "rating": 90,
+      "team": "Suns"
+    },
+    {
+      "name": "Steve Francis",
+      "pos": "PG",
+      "rating": 89,
+      "team": "Rockets"
+    },
+    {
+      "name": "Jermaine O'Neal",
+      "pos": "PF",
+      "rating": 89,
+      "team": "Pacers"
+    },
+    {
+      "name": "Elton Brand",
+      "pos": "PF",
+      "rating": 89,
+      "team": "Clippers"
+    },
+    {
+      "name": "Vince Carter",
+      "pos": "SG",
+      "rating": 88,
+      "team": "Raptors"
+    },
+    {
+      "name": "Ray Allen",
+      "pos": "SG",
+      "rating": 88,
+      "team": "SuperSonics"
+    },
+    {
+      "name": "Steve Nash",
+      "pos": "PG",
+      "rating": 88,
+      "team": "Mavericks"
+    },
+    {
+      "name": "Richard Hamilton",
+      "pos": "SG",
+      "rating": 85,
+      "team": "Pistons"
+    },
+    {
+      "name": "Ben Wallace",
+      "pos": "C",
+      "rating": 85,
+      "team": "Pistons"
+    },
+    {
+      "name": "Peja Stojaković",
+      "pos": "SF",
+      "rating": 85,
+      "team": "Kings"
+    },
+    {
+      "name": "Sam Cassell",
+      "pos": "PG",
+      "rating": 84,
+      "team": "Timberwolves"
+    },
+    {
+      "name": "Mike Bibby",
+      "pos": "PG",
+      "rating": 84,
+      "team": "Kings"
+    },
+    {
+      "name": "Allan Houston",
+      "pos": "SG",
+      "rating": 83,
+      "team": "Knicks"
+    },
+    {
+      "name": "Grant Hill",
+      "pos": "SF",
+      "rating": 83,
+      "team": "Magic"
+    }
+  ]
+}

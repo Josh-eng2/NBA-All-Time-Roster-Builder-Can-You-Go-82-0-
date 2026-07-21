@@ -1,0 +1,1386 @@
+[
+  {
+    "name": "Tim Duncan",
+    "sortName": "Tim Duncan",
+    "rating": 99,
+    "season": 2004,
+    "playerID": "3155",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Kevin Garnett",
+    "sortName": "Kevin Garnett",
+    "rating": 97,
+    "season": 2004,
+    "playerID": "2989",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Shaquille O'Neal",
+    "sortName": "Shaquille O'Neal",
+    "rating": 96,
+    "season": 2004,
+    "playerID": "847",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Kobe Bryant",
+    "sortName": "Kobe Bryant",
+    "rating": 95,
+    "season": 2004,
+    "playerID": "3100",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Dirk Nowitzki",
+    "sortName": "Dirk Nowitzki",
+    "rating": 94,
+    "season": 2004,
+    "playerID": "3234",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Elton Brand",
+    "sortName": "Elton Brand",
+    "rating": 94,
+    "season": 2004,
+    "playerID": "3306",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Allen Iverson",
+    "sortName": "Allen Iverson",
+    "rating": 93,
+    "season": 2004,
+    "playerID": "3076",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Paul Pierce",
+    "sortName": "Paul Pierce",
+    "rating": 92,
+    "season": 2004,
+    "playerID": "3235",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Shawn Marion",
+    "sortName": "Shawn Marion",
+    "rating": 92,
+    "season": 2004,
+    "playerID": "3314",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Tracy McGrady",
+    "sortName": "Tracy McGrady",
+    "rating": 91,
+    "season": 2004,
+    "playerID": "3161",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Vince Carter",
+    "sortName": "Vince Carter",
+    "rating": 91,
+    "season": 2004,
+    "playerID": "3230",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Baron Davis",
+    "sortName": "Baron Davis",
+    "rating": 90,
+    "season": 2004,
+    "playerID": "3308",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Ben Wallace",
+    "sortName": "Ben Wallace",
+    "rating": 90,
+    "season": 2004,
+    "playerID": "3131",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Chris Webber",
+    "sortName": "Chris Webber",
+    "rating": 90,
+    "season": 2004,
+    "playerID": "1272",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Jason Kidd",
+    "sortName": "Jason Kidd",
+    "rating": 90,
+    "season": 2004,
+    "playerID": "2616",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "LeBron James",
+    "sortName": "LeBron James",
+    "rating": 90,
+    "season": 2004,
+    "playerID": "214152",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Andrei Kirilenko",
+    "sortName": "Andrei Kirilenko",
+    "rating": 89,
+    "season": 2004,
+    "playerID": "3329",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Carmelo Anthony",
+    "sortName": "Carmelo Anthony",
+    "rating": 89,
+    "season": 2004,
+    "playerID": "172890",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Jermaine O'Neal",
+    "sortName": "Jermaine O'Neal",
+    "rating": 89,
+    "season": 2004,
+    "playerID": "3102",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Manu Ginobili",
+    "sortName": "Manu Ginobili",
+    "rating": 89,
+    "season": 2004,
+    "playerID": "3361",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Michael Redd",
+    "sortName": "Michael Redd",
+    "rating": 89,
+    "season": 2004,
+    "playerID": "3423",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Pau Gasol",
+    "sortName": "Pau Gasol",
+    "rating": 89,
+    "season": 2004,
+    "playerID": "3494",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Richard Hamilton",
+    "sortName": "Richard Hamilton",
+    "rating": 89,
+    "season": 2004,
+    "playerID": "3312",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Yao Ming",
+    "sortName": "Yao Ming",
+    "rating": 89,
+    "season": 2004,
+    "playerID": "168064",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Corey Maggette",
+    "sortName": "Corey Maggette",
+    "rating": 88,
+    "season": 2004,
+    "playerID": "3318",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Dwyane Wade",
+    "sortName": "Dwyane Wade",
+    "rating": 88,
+    "season": 2004,
+    "playerID": "61849",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Jason Richardson",
+    "sortName": "Jason Richardson",
+    "rating": 88,
+    "season": 2004,
+    "playerID": "3496",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Stephon Marbury",
+    "sortName": "Stephon Marbury",
+    "rating": 88,
+    "season": 2004,
+    "playerID": "3081",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Steve Nash",
+    "sortName": "Steve Nash",
+    "rating": 88,
+    "season": 2004,
+    "playerID": "3085",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Mike Bibby",
+    "sortName": "Mike Bibby",
+    "rating": 87,
+    "season": 2004,
+    "playerID": "3227",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Rashard Lewis",
+    "sortName": "Rashard Lewis",
+    "rating": 87,
+    "season": 2004,
+    "playerID": "3257",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Carlos Boozer",
+    "sortName": "Carlos Boozer",
+    "rating": 86,
+    "season": 2004,
+    "playerID": "168040",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Rasheed Wallace",
+    "sortName": "Rasheed Wallace",
+    "rating": 86,
+    "season": 2004,
+    "playerID": "2988",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Zach Randolph",
+    "sortName": "Zach Randolph",
+    "rating": 86,
+    "season": 2004,
+    "playerID": "3512",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Brad Miller",
+    "sortName": "Brad Miller",
+    "rating": 85,
+    "season": 2004,
+    "playerID": "3287",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Chauncey Billups",
+    "sortName": "Chauncey Billups",
+    "rating": 85,
+    "season": 2004,
+    "playerID": "3156",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Derek Fisher",
+    "sortName": "Derek Fisher",
+    "rating": 85,
+    "season": 2004,
+    "playerID": "3107",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Joe Johnson",
+    "sortName": "Joe Johnson",
+    "rating": 85,
+    "season": 2004,
+    "playerID": "3501",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Marcus Camby",
+    "sortName": "Marcus Camby",
+    "rating": 85,
+    "season": 2004,
+    "playerID": "3066",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Tony Parker",
+    "sortName": "Tony Parker",
+    "rating": 85,
+    "season": 2004,
+    "playerID": "3508",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Andre Miller",
+    "sortName": "Andre Miller",
+    "rating": 84,
+    "season": 2004,
+    "playerID": "3313",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Antawn Jamison",
+    "sortName": "Antawn Jamison",
+    "rating": 84,
+    "season": 2004,
+    "playerID": "3229",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Emeka Okafor",
+    "sortName": "Emeka Okafor",
+    "rating": 84,
+    "season": 2004,
+    "playerID": "65903",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Grant Hill",
+    "sortName": "Grant Hill",
+    "rating": 84,
+    "season": 2004,
+    "playerID": "2617",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Lamar Odom",
+    "sortName": "Lamar Odom",
+    "rating": 84,
+    "season": 2004,
+    "playerID": "3309",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Metta World Peace",
+    "sortName": "Metta World Peace",
+    "rating": 84,
+    "season": 2004,
+    "playerID": "3321",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Zydrunas Ilgauskas",
+    "sortName": "Zydrunas Ilgauskas",
+    "rating": 84,
+    "season": 2004,
+    "playerID": "3103",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Jamal Crawford",
+    "sortName": "Jamal Crawford",
+    "rating": 83,
+    "season": 2004,
+    "playerID": "3388",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Michael Finley",
+    "sortName": "Michael Finley",
+    "rating": 83,
+    "season": 2004,
+    "playerID": "3005",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Mike Dunleavy",
+    "sortName": "Mike Dunleavy",
+    "rating": 83,
+    "season": 2004,
+    "playerID": "168066",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Troy Murphy",
+    "sortName": "Troy Murphy",
+    "rating": 83,
+    "season": 2004,
+    "playerID": "3505",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Antonio McDyess",
+    "sortName": "Antonio McDyess",
+    "rating": 82,
+    "season": 2004,
+    "playerID": "2986",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Caron Butler",
+    "sortName": "Caron Butler",
+    "rating": 82,
+    "season": 2004,
+    "playerID": "168016",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Jason Terry",
+    "sortName": "Jason Terry",
+    "rating": 82,
+    "season": 2004,
+    "playerID": "3315",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Jerry Stackhouse",
+    "sortName": "Jerry Stackhouse",
+    "rating": 82,
+    "season": 2004,
+    "playerID": "2987",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Kenyon Martin",
+    "sortName": "Kenyon Martin",
+    "rating": 82,
+    "season": 2004,
+    "playerID": "3381",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Matt Harpring",
+    "sortName": "Matt Harpring",
+    "rating": 82,
+    "season": 2004,
+    "playerID": "3240",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Mehmet Okur",
+    "sortName": "Mehmet Okur",
+    "rating": 82,
+    "season": 2004,
+    "playerID": "3528",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Ricky Davis",
+    "sortName": "Ricky Davis",
+    "rating": 82,
+    "season": 2004,
+    "playerID": "3246",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Tayshaun Prince",
+    "sortName": "Tayshaun Prince",
+    "rating": 82,
+    "season": 2004,
+    "playerID": "168029",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Chris Bosh",
+    "sortName": "Chris Bosh",
+    "rating": 81,
+    "season": 2004,
+    "playerID": "172631",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Chris Kaman",
+    "sortName": "Chris Kaman",
+    "rating": 81,
+    "season": 2004,
+    "playerID": "62176",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Gilbert Arenas",
+    "sortName": "Gilbert Arenas",
+    "rating": 81,
+    "season": 2004,
+    "playerID": "3521",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Larry Hughes",
+    "sortName": "Larry Hughes",
+    "rating": 81,
+    "season": 2004,
+    "playerID": "3233",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Primoz Brezec",
+    "sortName": "Primoz Brezec",
+    "rating": 81,
+    "season": 2004,
+    "playerID": "3407",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Quentin Richardson",
+    "sortName": "Quentin Richardson",
+    "rating": 81,
+    "season": 2004,
+    "playerID": "3398",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Al Harrington",
+    "sortName": "Al Harrington",
+    "rating": 80,
+    "season": 2004,
+    "playerID": "3250",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Dwight Howard",
+    "sortName": "Dwight Howard",
+    "rating": 80,
+    "season": 2004,
+    "playerID": "253975",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Jason Williams",
+    "sortName": "Jason Williams",
+    "rating": 80,
+    "season": 2004,
+    "playerID": "3232",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Stephen Jackson",
+    "sortName": "Stephen Jackson",
+    "rating": 80,
+    "season": 2004,
+    "playerID": "3192",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Theo Ratliff",
+    "sortName": "Theo Ratliff",
+    "rating": 80,
+    "season": 2004,
+    "playerID": "3002",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "David West",
+    "sortName": "David West",
+    "rating": 79,
+    "season": 2004,
+    "playerID": "57934",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Drew Gooden",
+    "sortName": "Drew Gooden",
+    "rating": 79,
+    "season": 2004,
+    "playerID": "168010",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Jamaal Tinsley",
+    "sortName": "Jamaal Tinsley",
+    "rating": 79,
+    "season": 2004,
+    "playerID": "3509",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "James Posey",
+    "sortName": "James Posey",
+    "rating": 79,
+    "season": 2004,
+    "playerID": "3323",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Josh Howard",
+    "sortName": "Josh Howard",
+    "rating": 79,
+    "season": 2004,
+    "playerID": "58063",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Juwan Howard",
+    "sortName": "Juwan Howard",
+    "rating": 79,
+    "season": 2004,
+    "playerID": "2619",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Kenny Thomas",
+    "sortName": "Kenny Thomas",
+    "rating": 79,
+    "season": 2004,
+    "playerID": "3327",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Kirk Hinrich",
+    "sortName": "Kirk Hinrich",
+    "rating": 79,
+    "season": 2004,
+    "playerID": "57820",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Kurt Thomas",
+    "sortName": "Kurt Thomas",
+    "rating": 79,
+    "season": 2004,
+    "playerID": "2994",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Mike Miller",
+    "sortName": "Mike Miller",
+    "rating": 79,
+    "season": 2004,
+    "playerID": "3385",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Tim Thomas",
+    "sortName": "Tim Thomas",
+    "rating": 79,
+    "season": 2004,
+    "playerID": "3152",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Antonio Daniels",
+    "sortName": "Antonio Daniels",
+    "rating": 78,
+    "season": 2004,
+    "playerID": "3157",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Mark Blount",
+    "sortName": "Mark Blount",
+    "rating": 78,
+    "season": 2004,
+    "playerID": "3204",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Marquis Daniels",
+    "sortName": "Marquis Daniels",
+    "rating": 78,
+    "season": 2004,
+    "playerID": "225415",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Rafer Alston",
+    "sortName": "Rafer Alston",
+    "rating": 78,
+    "season": 2004,
+    "playerID": "3264",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Samuel Dalembert",
+    "sortName": "Samuel Dalembert",
+    "rating": 78,
+    "season": 2004,
+    "playerID": "3515",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Trenton Hassell",
+    "sortName": "Trenton Hassell",
+    "rating": 78,
+    "season": 2004,
+    "playerID": "3520",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Ben Gordon",
+    "sortName": "Ben Gordon",
+    "rating": 77,
+    "season": 2004,
+    "playerID": "65900",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Brian Scalabrine",
+    "sortName": "Brian Scalabrine",
+    "rating": 77,
+    "season": 2004,
+    "playerID": "3525",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Chucky Atkins",
+    "sortName": "Chucky Atkins",
+    "rating": 77,
+    "season": 2004,
+    "playerID": "3372",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Josh Childress",
+    "sortName": "Josh Childress",
+    "rating": 77,
+    "season": 2004,
+    "playerID": "75956",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Josh Smith",
+    "sortName": "Josh Smith",
+    "rating": 77,
+    "season": 2004,
+    "playerID": "253996",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Luke Ridnour",
+    "sortName": "Luke Ridnour",
+    "rating": 77,
+    "season": 2004,
+    "playerID": "62414",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Marko Jaric",
+    "sortName": "Marko Jaric",
+    "rating": 77,
+    "season": 2004,
+    "playerID": "3410",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Sebastian Telfair",
+    "sortName": "Sebastian Telfair",
+    "rating": 77,
+    "season": 2004,
+    "playerID": "253992",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Bobby Simmons",
+    "sortName": "Bobby Simmons",
+    "rating": 76,
+    "season": 2004,
+    "playerID": "3532",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Jeff Foster",
+    "sortName": "Jeff Foster",
+    "rating": 76,
+    "season": 2004,
+    "playerID": "3326",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Joe Smith",
+    "sortName": "Joe Smith",
+    "rating": 76,
+    "season": 2004,
+    "playerID": "2985",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Joel Przybilla",
+    "sortName": "Joel Przybilla",
+    "rating": 76,
+    "season": 2004,
+    "playerID": "3389",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Beno Udrih",
+    "sortName": "Beno Udrih",
+    "rating": 75,
+    "season": 2004,
+    "playerID": "254007",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Devin Brown",
+    "sortName": "Devin Brown",
+    "rating": 75,
+    "season": 2004,
+    "playerID": "173253",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Devin Harris",
+    "sortName": "Devin Harris",
+    "rating": 75,
+    "season": 2004,
+    "playerID": "65820",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Earl Boykins",
+    "sortName": "Earl Boykins",
+    "rating": 75,
+    "season": 2004,
+    "playerID": "3293",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Kwame Brown",
+    "sortName": "Kwame Brown",
+    "rating": 75,
+    "season": 2004,
+    "playerID": "3492",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Lindsey Hunter",
+    "sortName": "Lindsey Hunter",
+    "rating": 75,
+    "season": 2004,
+    "playerID": "1281",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Morris Peterson",
+    "sortName": "Morris Peterson",
+    "rating": 75,
+    "season": 2004,
+    "playerID": "3401",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Nick Collison",
+    "sortName": "Nick Collison",
+    "rating": 75,
+    "season": 2004,
+    "playerID": "57819",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Shaun Livingston",
+    "sortName": "Shaun Livingston",
+    "rating": 75,
+    "season": 2004,
+    "playerID": "253980",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Carlos Delfino",
+    "sortName": "Carlos Delfino",
+    "rating": 74,
+    "season": 2004,
+    "playerID": "214160",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Dan Gadzuric",
+    "sortName": "Dan Gadzuric",
+    "rating": 74,
+    "season": 2004,
+    "playerID": "168039",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Gerald Wallace",
+    "sortName": "Gerald Wallace",
+    "rating": 74,
+    "season": 2004,
+    "playerID": "3514",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Jameer Nelson",
+    "sortName": "Jameer Nelson",
+    "rating": 74,
+    "season": 2004,
+    "playerID": "61934",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Nazr Mohammed",
+    "sortName": "Nazr Mohammed",
+    "rating": 74,
+    "season": 2004,
+    "playerID": "3254",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Travis Outlaw",
+    "sortName": "Travis Outlaw",
+    "rating": 74,
+    "season": 2004,
+    "playerID": "214159",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Udonis Haslem",
+    "sortName": "Udonis Haslem",
+    "rating": 74,
+    "season": 2004,
+    "playerID": "226806",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Zaza Pachulia",
+    "sortName": "Zaza Pachulia",
+    "rating": 74,
+    "season": 2004,
+    "playerID": "214168",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Jared Jeffries",
+    "sortName": "Jared Jeffries",
+    "rating": 73,
+    "season": 2004,
+    "playerID": "168017",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Keith Bogans",
+    "sortName": "Keith Bogans",
+    "rating": 73,
+    "season": 2004,
+    "playerID": "58214",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Leandro Barbosa",
+    "sortName": "Leandro Barbosa",
+    "rating": 73,
+    "season": 2004,
+    "playerID": "214163",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Marcus Banks",
+    "sortName": "Marcus Banks",
+    "rating": 73,
+    "season": 2004,
+    "playerID": "58067",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Melvin Ely",
+    "sortName": "Melvin Ely",
+    "rating": 73,
+    "season": 2004,
+    "playerID": "168018",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Reggie Evans",
+    "sortName": "Reggie Evans",
+    "rating": 73,
+    "season": 2004,
+    "playerID": "173147",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Willie Green",
+    "sortName": "Willie Green",
+    "rating": 73,
+    "season": 2004,
+    "playerID": "58948",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Andres Nocioni",
+    "sortName": "Andres Nocioni",
+    "rating": 72,
+    "season": 2004,
+    "playerID": "267096",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Anthony Johnson",
+    "sortName": "Anthony Johnson",
+    "rating": 72,
+    "season": 2004,
+    "playerID": "3189",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Boris Diaw",
+    "sortName": "Boris Diaw",
+    "rating": 72,
+    "season": 2004,
+    "playerID": "214157",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Brendan Haywood",
+    "sortName": "Brendan Haywood",
+    "rating": 72,
+    "season": 2004,
+    "playerID": "3513",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Brian Cardinal",
+    "sortName": "Brian Cardinal",
+    "rating": 72,
+    "season": 2004,
+    "playerID": "3424",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Chris Duhon",
+    "sortName": "Chris Duhon",
+    "rating": 72,
+    "season": 2004,
+    "playerID": "62845",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Etan Thomas",
+    "sortName": "Etan Thomas",
+    "rating": 72,
+    "season": 2004,
+    "playerID": "3392",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Jannero Pargo",
+    "sortName": "Jannero Pargo",
+    "rating": 72,
+    "season": 2004,
+    "playerID": "171438",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Jason Kapono",
+    "sortName": "Jason Kapono",
+    "rating": 72,
+    "season": 2004,
+    "playerID": "58213",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Kendrick Perkins",
+    "sortName": "Kendrick Perkins",
+    "rating": 72,
+    "season": 2004,
+    "playerID": "214162",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Kevin Ollie",
+    "sortName": "Kevin Ollie",
+    "rating": 72,
+    "season": 2004,
+    "playerID": "3219",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Kyle Korver",
+    "sortName": "Kyle Korver",
+    "rating": 72,
+    "season": 2004,
+    "playerID": "58293",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Rasual Butler",
+    "sortName": "Rasual Butler",
+    "rating": 72,
+    "season": 2004,
+    "playerID": "168058",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Jason Collins",
+    "sortName": "Jason Collins",
+    "rating": 71,
+    "season": 2004,
+    "playerID": "3511",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "John Salmons",
+    "sortName": "John Salmons",
+    "rating": 71,
+    "season": 2004,
+    "playerID": "168032",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Keyon Dooling",
+    "sortName": "Keyon Dooling",
+    "rating": 71,
+    "season": 2004,
+    "playerID": "3390",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Luke Walton",
+    "sortName": "Luke Walton",
+    "rating": 71,
+    "season": 2004,
+    "playerID": "54865",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Mike James",
+    "sortName": "Mike James",
+    "rating": 71,
+    "season": 2004,
+    "playerID": "567497",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Sasha Vujacic",
+    "sortName": "Sasha Vujacic",
+    "rating": 71,
+    "season": 2004,
+    "playerID": "254006",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Shane Battier",
+    "sortName": "Shane Battier",
+    "rating": 71,
+    "season": 2004,
+    "playerID": "3497",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Tony Battie",
+    "sortName": "Tony Battie",
+    "rating": 71,
+    "season": 2004,
+    "playerID": "3158",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Devean George",
+    "sortName": "Devean George",
+    "rating": 70,
+    "season": 2004,
+    "playerID": "3328",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Francisco Elson",
+    "sortName": "Francisco Elson",
+    "rating": 70,
+    "season": 2004,
+    "playerID": "3345",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Nenad Krstic",
+    "sortName": "Nenad Krstic",
+    "rating": 70,
+    "season": 2004,
+    "playerID": "168030",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Royal Ivey",
+    "sortName": "Royal Ivey",
+    "rating": 70,
+    "season": 2004,
+    "playerID": "62142",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Steven Hunter",
+    "sortName": "Steven Hunter",
+    "rating": 70,
+    "season": 2004,
+    "playerID": "3506",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Tony Allen",
+    "sortName": "Tony Allen",
+    "rating": 70,
+    "season": 2004,
+    "playerID": "172922",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Trevor Ariza",
+    "sortName": "Trevor Ariza",
+    "rating": 70,
+    "season": 2004,
+    "playerID": "229738",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Anderson Varejao",
+    "sortName": "Anderson Varejao",
+    "rating": 69,
+    "season": 2004,
+    "playerID": "254009",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Brian Skinner",
+    "sortName": "Brian Skinner",
+    "rating": 69,
+    "season": 2004,
+    "playerID": "3247",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Darius Songaila",
+    "sortName": "Darius Songaila",
+    "rating": 69,
+    "season": 2004,
+    "playerID": "168055",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Darko Milicic",
+    "sortName": "Darko Milicic",
+    "rating": 69,
+    "season": 2004,
+    "playerID": "214153",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Earl Watson",
+    "sortName": "Earl Watson",
+    "rating": 69,
+    "season": 2004,
+    "playerID": "3530",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Erick Dampier",
+    "sortName": "Erick Dampier",
+    "rating": 69,
+    "season": 2004,
+    "playerID": "3099",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "James Jones",
+    "sortName": "James Jones",
+    "rating": 69,
+    "season": 2004,
+    "playerID": "58360",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Jarvis Hayes",
+    "sortName": "Jarvis Hayes",
+    "rating": 69,
+    "season": 2004,
+    "playerID": "58682",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Maurice Evans",
+    "sortName": "Maurice Evans",
+    "rating": 69,
+    "season": 2004,
+    "playerID": "66922",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Richard Jefferson",
+    "sortName": "Richard Jefferson",
+    "rating": 69,
+    "season": 2004,
+    "playerID": "3504",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Steve Blake",
+    "sortName": "Steve Blake",
+    "rating": 69,
+    "season": 2004,
+    "playerID": "58258",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Jarron Collins",
+    "sortName": "Jarron Collins",
+    "rating": 68,
+    "season": 2004,
+    "playerID": "3543",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Andris Biedrins",
+    "sortName": "Andris Biedrins",
+    "rating": 67,
+    "season": 2004,
+    "playerID": "253989",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Chris Andersen",
+    "sortName": "Chris Andersen",
+    "rating": 67,
+    "season": 2004,
+    "playerID": "75344",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Eduardo Najera",
+    "sortName": "Eduardo Najera",
+    "rating": 67,
+    "season": 2004,
+    "playerID": "3418",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Kris Humphries",
+    "sortName": "Kris Humphries",
+    "rating": 67,
+    "season": 2004,
+    "playerID": "229649",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Quinton Ross",
+    "sortName": "Quinton Ross",
+    "rating": 66,
+    "season": 2004,
+    "playerID": "229163",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Delonte West",
+    "sortName": "Delonte West",
+    "rating": 65,
+    "season": 2004,
+    "playerID": "66244",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Sean Marks",
+    "sortName": "Sean Marks",
+    "rating": 65,
+    "season": 2004,
+    "playerID": "3269",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "Amir Johnson",
+    "sortName": "Amir Johnson",
+    "rating": 58,
+    "season": 2004,
+    "playerID": "292407",
+    "videoGame": "NBA 2K5"
+  },
+  {
+    "name": "DeSagana Diop",
+    "sortName": "DeSagana Diop",
+    "rating": 56,
+    "season": 2004,
+    "playerID": "3499",
+    "videoGame": "NBA 2K5"
+  }
+]

@@ -1,0 +1,282 @@
+[
+  {
+    "name": "Hakeem Olajuwon",
+    "overallAttribute": 99
+  },
+  {
+    "name": "Kobe Bryant",
+    "overallAttribute": 99
+  },
+  {
+    "name": "Michael Jordan",
+    "overallAttribute": 99
+  },
+  {
+    "name": "Kevin Garnett",
+    "overallAttribute": 98
+  },
+  {
+    "name": "Shaquille O'Neal",
+    "overallAttribute": 98
+  },
+  {
+    "name": "Tim Duncan",
+    "overallAttribute": 98
+  },
+  {
+    "name": "John Stockton",
+    "overallAttribute": 97
+  },
+  {
+    "name": "Karl Malone",
+    "overallAttribute": 97
+  },
+  {
+    "name": "Scottie Pippen",
+    "overallAttribute": 97
+  },
+  {
+    "name": "Allen Iverson",
+    "overallAttribute": 96
+  },
+  {
+    "name": "Clyde Drexler",
+    "overallAttribute": 96
+  },
+  {
+    "name": "David Robinson",
+    "overallAttribute": 96
+  },
+  {
+    "name": "Dominique Wilkins",
+    "overallAttribute": 95
+  },
+  {
+    "name": "Gary Payton",
+    "overallAttribute": 95
+  },
+  {
+    "name": "Patrick Ewing",
+    "overallAttribute": 95
+  },
+  {
+    "name": "Alonzo Mourning",
+    "overallAttribute": 94
+  },
+  {
+    "name": "Anfernee Hardaway",
+    "overallAttribute": 94
+  },
+  {
+    "name": "Chris Mullin",
+    "overallAttribute": 94
+  },
+  {
+    "name": "Mitch Richmond",
+    "overallAttribute": 94
+  },
+  {
+    "name": "Paul Pierce",
+    "overallAttribute": 94
+  },
+  {
+    "name": "Grant Hill",
+    "overallAttribute": 93
+  },
+  {
+    "name": "Joe Dumars",
+    "overallAttribute": 93
+  },
+  {
+    "name": "Mark Price",
+    "overallAttribute": 93
+  },
+  {
+    "name": "Dikembe Mutombo",
+    "overallAttribute": 92
+  },
+  {
+    "name": "Ray Allen",
+    "overallAttribute": 91
+  },
+  {
+    "name": "Drazen Petrovic",
+    "overallAttribute": 90
+  },
+  {
+    "name": "Shawn Kemp",
+    "overallAttribute": 90
+  },
+  {
+    "name": "Allan Houston",
+    "overallAttribute": 89
+  },
+  {
+    "name": "Ben Wallace",
+    "overallAttribute": 89
+  },
+  {
+    "name": "Jerry Stackhouse",
+    "overallAttribute": 89
+  },
+  {
+    "name": "Kevin Johnson",
+    "overallAttribute": 89
+  },
+  {
+    "name": "Mahmoud Abdul-Rauf",
+    "overallAttribute": 89
+  },
+  {
+    "name": "Mark Eaton",
+    "overallAttribute": 89
+  },
+  {
+    "name": "Ron Harper",
+    "overallAttribute": 89
+  },
+  {
+    "name": "Tim Hardaway",
+    "overallAttribute": 89
+  },
+  {
+    "name": "Derrick Coleman",
+    "overallAttribute": 88
+  },
+  {
+    "name": "Glen Rice",
+    "overallAttribute": 88
+  },
+  {
+    "name": "Jamal Mashburn",
+    "overallAttribute": 88
+  },
+  {
+    "name": "Jim Jackson",
+    "overallAttribute": 88
+  },
+  {
+    "name": "John Starks",
+    "overallAttribute": 88
+  },
+  {
+    "name": "Larry Johnson",
+    "overallAttribute": 88
+  },
+  {
+    "name": "Larry Nance",
+    "overallAttribute": 88
+  },
+  {
+    "name": "Vlade Divac",
+    "overallAttribute": 88
+  },
+  {
+    "name": "Zydrunas Ilgauskas",
+    "overallAttribute": 88
+  },
+  {
+    "name": "Chris Webber",
+    "overallAttribute": 87
+  },
+  {
+    "name": "Chuck Person",
+    "overallAttribute": 87
+  },
+  {
+    "name": "Dennis Rodman",
+    "overallAttribute": 87
+  },
+  {
+    "name": "Detlef Schrempf",
+    "overallAttribute": 87
+  },
+  {
+    "name": "Jason Kidd",
+    "overallAttribute": 87
+  },
+  {
+    "name": "Rik Smits",
+    "overallAttribute": 87
+  },
+  {
+    "name": "Sean Elliott",
+    "overallAttribute": 87
+  },
+  {
+    "name": "Stephon Marbury",
+    "overallAttribute": 87
+  },
+  {
+    "name": "Vin Baker",
+    "overallAttribute": 87
+  },
+  {
+    "name": "Arvydas Sabonis",
+    "overallAttribute": 86
+  },
+  {
+    "name": "Damon Stoudamire",
+    "overallAttribute": 86
+  },
+  {
+    "name": "Mike Bibby",
+    "overallAttribute": 86
+  },
+  {
+    "name": "Shareef Abdur-Rahim",
+    "overallAttribute": 86
+  },
+  {
+    "name": "Dell Curry",
+    "overallAttribute": 85
+  },
+  {
+    "name": "Horace Grant",
+    "overallAttribute": 85
+  },
+  {
+    "name": "Muggsy Bogues",
+    "overallAttribute": 85
+  },
+  {
+    "name": "Tracy McGrady",
+    "overallAttribute": 85
+  },
+  {
+    "name": "Bryant Reeves",
+    "overallAttribute": 84
+  },
+  {
+    "name": "Doc Rivers",
+    "overallAttribute": 84
+  },
+  {
+    "name": "Jeff Hornacek",
+    "overallAttribute": 84
+  },
+  {
+    "name": "Nick Van Exel",
+    "overallAttribute": 82
+  },
+  {
+    "name": "Charles Oakley",
+    "overallAttribute": 80
+  },
+  {
+    "name": "Doug Christie",
+    "overallAttribute": 80
+  },
+  {
+    "name": "LaPhonso Ellis",
+    "overallAttribute": 80
+  },
+  {
+    "name": "Spud Webb",
+    "overallAttribute": 77
+  },
+  {
+    "name": "John Paxson",
+    "overallAttribute": 72
+  }
+]

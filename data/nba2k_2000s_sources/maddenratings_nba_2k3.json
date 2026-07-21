@@ -1,0 +1,163 @@
+{
+  "videoGame": "NBA 2K3",
+  "season": "2002-03",
+  "source": "maddenratings.weebly.com",
+  "players": [
+    {
+      "name": "Shaquille O'Neal",
+      "pos": "C",
+      "rating": 98,
+      "team": "Lakers"
+    },
+    {
+      "name": "Kobe Bryant",
+      "pos": "SG",
+      "rating": 96,
+      "team": "Lakers"
+    },
+    {
+      "name": "Tim Duncan",
+      "pos": "PF",
+      "rating": 96,
+      "team": "Spurs"
+    },
+    {
+      "name": "Tracy McGrady",
+      "pos": "SG",
+      "rating": 96,
+      "team": "Magic"
+    },
+    {
+      "name": "Kevin Garnett",
+      "pos": "PF",
+      "rating": 94,
+      "team": "Timberwolves"
+    },
+    {
+      "name": "Jason Kidd",
+      "pos": "PG",
+      "rating": 94,
+      "team": "Nets"
+    },
+    {
+      "name": "Gary Payton",
+      "pos": "PG",
+      "rating": 93,
+      "team": "SuperSonics"
+    },
+    {
+      "name": "Paul Pierce",
+      "pos": "SG",
+      "rating": 93,
+      "team": "Celtics"
+    },
+    {
+      "name": "Chris Webber",
+      "pos": "PF",
+      "rating": 91,
+      "team": "Kings"
+    },
+    {
+      "name": "Ray Allen",
+      "pos": "SG",
+      "rating": 91,
+      "team": "Bucks"
+    },
+    {
+      "name": "Dirk Nowitzki",
+      "pos": "PF",
+      "rating": 91,
+      "team": "Mavericks"
+    },
+    {
+      "name": "Allen Iverson",
+      "pos": "SG",
+      "rating": 90,
+      "team": "76ers"
+    },
+    {
+      "name": "Vince Carter",
+      "pos": "SG",
+      "rating": 90,
+      "team": "Raptors"
+    },
+    {
+      "name": "Shawn Marion",
+      "pos": "SF",
+      "rating": 90,
+      "team": "Suns"
+    },
+    {
+      "name": "Elton Brand",
+      "pos": "PF",
+      "rating": 89,
+      "team": "Clippers"
+    },
+    {
+      "name": "Michael Jordan",
+      "pos": "SF",
+      "rating": 88,
+      "team": "Wizards"
+    },
+    {
+      "name": "Jermaine O'Neal",
+      "pos": "PF",
+      "rating": 86,
+      "team": "Pacers"
+    },
+    {
+      "name": "Steve Francis",
+      "pos": "PG",
+      "rating": 86,
+      "team": "Rockets"
+    },
+    {
+      "name": "Ben Wallace",
+      "pos": "C",
+      "rating": 85,
+      "team": "Pistons"
+    },
+    {
+      "name": "Jerry Stackhouse",
+      "pos": "SG",
+      "rating": 85,
+      "team": "Pistons"
+    },
+    {
+      "name": "Alonzo Mourning",
+      "pos": "C",
+      "rating": 85,
+      "team": "Heat"
+    },
+    {
+      "name": "John Stockton",
+      "pos": "PG",
+      "rating": 85,
+      "team": "Jazz"
+    },
+    {
+      "name": "Karl Malone",
+      "pos": "PF",
+      "rating": 84,
+      "team": "Jazz"
+    },
+    {
+      "name": "Mike Bibby",
+      "pos": "PG",
+      "rating": 84,
+      "team": "Kings"
+    },
+    {
+      "name": "Steve Nash",
+      "pos": "PG",
+      "rating": 83,
+      "team": "Mavericks"
+    },
+    {
+      "name": "Grant Hill",
+      "pos": "SF",
+      "rating": 83,
+      "team": "Magic"
+    }
+  ]
+}

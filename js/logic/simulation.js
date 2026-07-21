@@ -435,12 +435,16 @@ export function simulateSeason(starters, coach = null, profile = null) {
   const popMul      = MUL_MIN + popNorm * (MUL_MAX - MUL_MIN);
 
   // ── Player-Rating modifier ────────────────────────────────────────────────
-  const RATING_MID  = 76;
-  const RATING_SPAN = 14;
+  // Keyed to `overall` (era-adjusted 2K rating, mean ≈87 sd ≈6.1), not the
+  // stats-derived `rating` (mean ≈77 sd ≈8.3). MID/SPAN are the same
+  // percentile anchors as the old 76/14 re-expressed on the new scale, so the
+  // multiplier's distribution across rosters is unchanged.
+  const RATING_MID  = 87;
+  const RATING_SPAN = 10;
   const RATING_AMP  = 0.04;
   const avgRating   = allPlayers.length
-    ? allPlayers.reduce((s, p) => s + (p.rating ?? 70), 0) / allPlayers.length
-    : 70;
+    ? allPlayers.reduce((s, p) => s + (p.overall ?? 82), 0) / allPlayers.length
+    : 82;
   const ratingNorm  = Math.max(-1, Math.min(1, (avgRating - RATING_MID) / RATING_SPAN));
   const ratingMul   = 1 + ratingNorm * RATING_AMP;
 

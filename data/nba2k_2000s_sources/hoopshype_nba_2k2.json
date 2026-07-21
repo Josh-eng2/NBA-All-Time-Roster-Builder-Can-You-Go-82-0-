@@ -1,0 +1,834 @@
+[
+  {
+    "name": "Kevin Garnett",
+    "sortName": "Kevin Garnett",
+    "rating": 98,
+    "season": 2001,
+    "playerID": "2989",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Kobe Bryant",
+    "sortName": "Kobe Bryant",
+    "rating": 96,
+    "season": 2001,
+    "playerID": "3100",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Paul Pierce",
+    "sortName": "Paul Pierce",
+    "rating": 96,
+    "season": 2001,
+    "playerID": "3235",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Shaquille O'Neal",
+    "sortName": "Shaquille O'Neal",
+    "rating": 96,
+    "season": 2001,
+    "playerID": "847",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Tracy McGrady",
+    "sortName": "Tracy McGrady",
+    "rating": 96,
+    "season": 2001,
+    "playerID": "3161",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Chris Webber",
+    "sortName": "Chris Webber",
+    "rating": 95,
+    "season": 2001,
+    "playerID": "1272",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Tim Duncan",
+    "sortName": "Tim Duncan",
+    "rating": 95,
+    "season": 2001,
+    "playerID": "3155",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Allen Iverson",
+    "sortName": "Allen Iverson",
+    "rating": 94,
+    "season": 2001,
+    "playerID": "3076",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Jason Kidd",
+    "sortName": "Jason Kidd",
+    "rating": 94,
+    "season": 2001,
+    "playerID": "2616",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Elton Brand",
+    "sortName": "Elton Brand",
+    "rating": 93,
+    "season": 2001,
+    "playerID": "3306",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "John Stockton",
+    "sortName": "John Stockton",
+    "rating": 93,
+    "season": 2001,
+    "playerID": "326",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Rasheed Wallace",
+    "sortName": "Rasheed Wallace",
+    "rating": 93,
+    "season": 2001,
+    "playerID": "2988",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Antonio McDyess",
+    "sortName": "Antonio McDyess",
+    "rating": 92,
+    "season": 2001,
+    "playerID": "2986",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Shawn Marion",
+    "sortName": "Shawn Marion",
+    "rating": 92,
+    "season": 2001,
+    "playerID": "3314",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Baron Davis",
+    "sortName": "Baron Davis",
+    "rating": 90,
+    "season": 2001,
+    "playerID": "3308",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Dirk Nowitzki",
+    "sortName": "Dirk Nowitzki",
+    "rating": 90,
+    "season": 2001,
+    "playerID": "3234",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Jermaine O'Neal",
+    "sortName": "Jermaine O'Neal",
+    "rating": 90,
+    "season": 2001,
+    "playerID": "3102",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Karl Malone",
+    "sortName": "Karl Malone",
+    "rating": 90,
+    "season": 2001,
+    "playerID": "213",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Stephon Marbury",
+    "sortName": "Stephon Marbury",
+    "rating": 90,
+    "season": 2001,
+    "playerID": "3081",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Ben Wallace",
+    "sortName": "Ben Wallace",
+    "rating": 89,
+    "season": 2001,
+    "playerID": "3131",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Jerry Stackhouse",
+    "sortName": "Jerry Stackhouse",
+    "rating": 89,
+    "season": 2001,
+    "playerID": "2987",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Lamar Odom",
+    "sortName": "Lamar Odom",
+    "rating": 89,
+    "season": 2001,
+    "playerID": "3309",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Michael Finley",
+    "sortName": "Michael Finley",
+    "rating": 89,
+    "season": 2001,
+    "playerID": "3005",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Grant Hill",
+    "sortName": "Grant Hill",
+    "rating": 88,
+    "season": 2001,
+    "playerID": "2617",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Michael Jordan",
+    "sortName": "Michael Jordan",
+    "rating": 88,
+    "season": 2001,
+    "playerID": "175",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Vince Carter",
+    "sortName": "Vince Carter",
+    "rating": 88,
+    "season": 2001,
+    "playerID": "3230",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Antawn Jamison",
+    "sortName": "Antawn Jamison",
+    "rating": 87,
+    "season": 2001,
+    "playerID": "3229",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "David Robinson",
+    "sortName": "David Robinson",
+    "rating": 87,
+    "season": 2001,
+    "playerID": "288",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Rashard Lewis",
+    "sortName": "Rashard Lewis",
+    "rating": 86,
+    "season": 2001,
+    "playerID": "3257",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Marcus Camby",
+    "sortName": "Marcus Camby",
+    "rating": 85,
+    "season": 2001,
+    "playerID": "3066",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Mike Bibby",
+    "sortName": "Mike Bibby",
+    "rating": 85,
+    "season": 2001,
+    "playerID": "3227",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Steve Nash",
+    "sortName": "Steve Nash",
+    "rating": 85,
+    "season": 2001,
+    "playerID": "3085",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Jason Williams",
+    "sortName": "Jason Williams",
+    "rating": 84,
+    "season": 2001,
+    "playerID": "3232",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Kenyon Martin",
+    "sortName": "Kenyon Martin",
+    "rating": 84,
+    "season": 2001,
+    "playerID": "3381",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Shane Battier",
+    "sortName": "Shane Battier",
+    "rating": 84,
+    "season": 2001,
+    "playerID": "3497",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Zydrunas Ilgauskas",
+    "sortName": "Zydrunas Ilgauskas",
+    "rating": 84,
+    "season": 2001,
+    "playerID": "3103",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Erick Dampier",
+    "sortName": "Erick Dampier",
+    "rating": 83,
+    "season": 2001,
+    "playerID": "3099",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Andre Miller",
+    "sortName": "Andre Miller",
+    "rating": 82,
+    "season": 2001,
+    "playerID": "3313",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Juwan Howard",
+    "sortName": "Juwan Howard",
+    "rating": 82,
+    "season": 2001,
+    "playerID": "2619",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Brad Miller",
+    "sortName": "Brad Miller",
+    "rating": 81,
+    "season": 2001,
+    "playerID": "3287",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Quentin Richardson",
+    "sortName": "Quentin Richardson",
+    "rating": 81,
+    "season": 2001,
+    "playerID": "3398",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Antonio Daniels",
+    "sortName": "Antonio Daniels",
+    "rating": 80,
+    "season": 2001,
+    "playerID": "3157",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Derek Fisher",
+    "sortName": "Derek Fisher",
+    "rating": 80,
+    "season": 2001,
+    "playerID": "3107",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Larry Hughes",
+    "sortName": "Larry Hughes",
+    "rating": 80,
+    "season": 2001,
+    "playerID": "3233",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Morris Peterson",
+    "sortName": "Morris Peterson",
+    "rating": 80,
+    "season": 2001,
+    "playerID": "3401",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Tim Thomas",
+    "sortName": "Tim Thomas",
+    "rating": 80,
+    "season": 2001,
+    "playerID": "3152",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Jamaal Tinsley",
+    "sortName": "Jamaal Tinsley",
+    "rating": 79,
+    "season": 2001,
+    "playerID": "3509",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Jason Terry",
+    "sortName": "Jason Terry",
+    "rating": 79,
+    "season": 2001,
+    "playerID": "3315",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Joe Smith",
+    "sortName": "Joe Smith",
+    "rating": 79,
+    "season": 2001,
+    "playerID": "2985",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Mike Miller",
+    "sortName": "Mike Miller",
+    "rating": 79,
+    "season": 2001,
+    "playerID": "3385",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Pau Gasol",
+    "sortName": "Pau Gasol",
+    "rating": 79,
+    "season": 2001,
+    "playerID": "3494",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Theo Ratliff",
+    "sortName": "Theo Ratliff",
+    "rating": 79,
+    "season": 2001,
+    "playerID": "3002",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Tony Parker",
+    "sortName": "Tony Parker",
+    "rating": 79,
+    "season": 2001,
+    "playerID": "3508",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Chucky Atkins",
+    "sortName": "Chucky Atkins",
+    "rating": 78,
+    "season": 2001,
+    "playerID": "3372",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Lindsey Hunter",
+    "sortName": "Lindsey Hunter",
+    "rating": 78,
+    "season": 2001,
+    "playerID": "1281",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "James Posey",
+    "sortName": "James Posey",
+    "rating": 77,
+    "season": 2001,
+    "playerID": "3323",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Jason Collins",
+    "sortName": "Jason Collins",
+    "rating": 77,
+    "season": 2001,
+    "playerID": "3511",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Kurt Thomas",
+    "sortName": "Kurt Thomas",
+    "rating": 77,
+    "season": 2001,
+    "playerID": "2994",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Troy Murphy",
+    "sortName": "Troy Murphy",
+    "rating": 77,
+    "season": 2001,
+    "playerID": "3505",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Tony Battie",
+    "sortName": "Tony Battie",
+    "rating": 76,
+    "season": 2001,
+    "playerID": "3158",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Joe Johnson",
+    "sortName": "Joe Johnson",
+    "rating": 75,
+    "season": 2001,
+    "playerID": "3501",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Kenny Thomas",
+    "sortName": "Kenny Thomas",
+    "rating": 75,
+    "season": 2001,
+    "playerID": "3327",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Richard Hamilton",
+    "sortName": "Richard Hamilton",
+    "rating": 75,
+    "season": 2001,
+    "playerID": "3312",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Eddy Curry",
+    "sortName": "Eddy Curry",
+    "rating": 74,
+    "season": 2001,
+    "playerID": "3495",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Jason Richardson",
+    "sortName": "Jason Richardson",
+    "rating": 74,
+    "season": 2001,
+    "playerID": "3496",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Jeff Foster",
+    "sortName": "Jeff Foster",
+    "rating": 73,
+    "season": 2001,
+    "playerID": "3326",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Al Harrington",
+    "sortName": "Al Harrington",
+    "rating": 72,
+    "season": 2001,
+    "playerID": "3250",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Andrei Kirilenko",
+    "sortName": "Andrei Kirilenko",
+    "rating": 72,
+    "season": 2001,
+    "playerID": "3329",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Anthony Carter",
+    "sortName": "Anthony Carter",
+    "rating": 72,
+    "season": 2001,
+    "playerID": "3377",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Brendan Haywood",
+    "sortName": "Brendan Haywood",
+    "rating": 72,
+    "season": 2001,
+    "playerID": "3513",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Chauncey Billups",
+    "sortName": "Chauncey Billups",
+    "rating": 72,
+    "season": 2001,
+    "playerID": "3156",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Etan Thomas",
+    "sortName": "Etan Thomas",
+    "rating": 72,
+    "season": 2001,
+    "playerID": "3392",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Kwame Brown",
+    "sortName": "Kwame Brown",
+    "rating": 72,
+    "season": 2001,
+    "playerID": "3492",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Michael Redd",
+    "sortName": "Michael Redd",
+    "rating": 72,
+    "season": 2001,
+    "playerID": "3423",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Nazr Mohammed",
+    "sortName": "Nazr Mohammed",
+    "rating": 72,
+    "season": 2001,
+    "playerID": "3254",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Anthony Johnson",
+    "sortName": "Anthony Johnson",
+    "rating": 71,
+    "season": 2001,
+    "playerID": "3189",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Steven Hunter",
+    "sortName": "Steven Hunter",
+    "rating": 71,
+    "season": 2001,
+    "playerID": "3506",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Corey Maggette",
+    "sortName": "Corey Maggette",
+    "rating": 70,
+    "season": 2001,
+    "playerID": "3318",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "DeShawn Stevenson",
+    "sortName": "DeShawn Stevenson",
+    "rating": 70,
+    "season": 2001,
+    "playerID": "3403",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Gerald Wallace",
+    "sortName": "Gerald Wallace",
+    "rating": 70,
+    "season": 2001,
+    "playerID": "3514",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Joel Przybilla",
+    "sortName": "Joel Przybilla",
+    "rating": 70,
+    "season": 2001,
+    "playerID": "3389",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Ricky Davis",
+    "sortName": "Ricky Davis",
+    "rating": 70,
+    "season": 2001,
+    "playerID": "3246",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Sean Marks",
+    "sortName": "Sean Marks",
+    "rating": 70,
+    "season": 2001,
+    "playerID": "3269",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Zach Randolph",
+    "sortName": "Zach Randolph",
+    "rating": 70,
+    "season": 2001,
+    "playerID": "3512",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Bobby Simmons",
+    "sortName": "Bobby Simmons",
+    "rating": 69,
+    "season": 2001,
+    "playerID": "3532",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Earl Boykins",
+    "sortName": "Earl Boykins",
+    "rating": 69,
+    "season": 2001,
+    "playerID": "3293",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Earl Watson",
+    "sortName": "Earl Watson",
+    "rating": 69,
+    "season": 2001,
+    "playerID": "3530",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Jarron Collins",
+    "sortName": "Jarron Collins",
+    "rating": 69,
+    "season": 2001,
+    "playerID": "3543",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Kevin Ollie",
+    "sortName": "Kevin Ollie",
+    "rating": 69,
+    "season": 2001,
+    "playerID": "3219",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Malik Allen",
+    "sortName": "Malik Allen",
+    "rating": 69,
+    "season": 2001,
+    "playerID": "3488",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Vladimir Radmanovic",
+    "sortName": "Vladimir Radmanovic",
+    "rating": 68,
+    "season": 2001,
+    "playerID": "3503",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Primoz Brezec",
+    "sortName": "Primoz Brezec",
+    "rating": 67,
+    "season": 2001,
+    "playerID": "3407",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Dan Gadzuric",
+    "sortName": "Dan Gadzuric",
+    "rating": 66,
+    "season": 2001,
+    "playerID": "168039",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "DeSagana Diop",
+    "sortName": "DeSagana Diop",
+    "rating": 66,
+    "season": 2001,
+    "playerID": "3499",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Gilbert Arenas",
+    "sortName": "Gilbert Arenas",
+    "rating": 66,
+    "season": 2001,
+    "playerID": "3521",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Keyon Dooling",
+    "sortName": "Keyon Dooling",
+    "rating": 66,
+    "season": 2001,
+    "playerID": "3390",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Brian Scalabrine",
+    "sortName": "Brian Scalabrine",
+    "rating": 65,
+    "season": 2001,
+    "playerID": "3525",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Speedy Claxton",
+    "sortName": "Speedy Claxton",
+    "rating": 65,
+    "season": 2001,
+    "playerID": "3400",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Eduardo Najera",
+    "sortName": "Eduardo Najera",
+    "rating": 64,
+    "season": 2001,
+    "playerID": "3418",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Raja Bell",
+    "sortName": "Raja Bell",
+    "rating": 64,
+    "season": 2001,
+    "playerID": "3448",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Richard Jefferson",
+    "sortName": "Richard Jefferson",
+    "rating": 64,
+    "season": 2001,
+    "playerID": "3504",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Devean George",
+    "sortName": "Devean George",
+    "rating": 62,
+    "season": 2001,
+    "playerID": "3328",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Mark Blount",
+    "sortName": "Mark Blount",
+    "rating": 62,
+    "season": 2001,
+    "playerID": "3204",
+    "videoGame": "NBA 2K2"
+  },
+  {
+    "name": "Jerome James",
+    "sortName": "Jerome James",
+    "rating": 61,
+    "season": 2001,
+    "playerID": "3261",
+    "videoGame": "NBA 2K2"
+  }
+]

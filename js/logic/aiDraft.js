@@ -39,7 +39,9 @@ export function bestAiSlot(player, roster) {
  * @param {string|null} coachId
  */
 function scoreCandidate(player, roster, coachId) {
-  const ratingNorm = Math.max(0, Math.min(1, ((player.rating ?? 70) - 60) / 35));
+  // 74–99 window = the old 60–95 rating window's percentile equivalents on the
+  // `overall` (era-adjusted 2K) scale.
+  const ratingNorm = Math.max(0, Math.min(1, ((player.overall ?? 82) - 74) / 25));
   const popNorm    = Math.max(0, Math.min(1, ((player.popularity ?? 50) - 35) / 65));
 
   const slots = emptySlots(roster);
@@ -71,8 +73,8 @@ export function chooseAiPick(board, roster, coachId) {
   let bestScore = -Infinity;
   for (const p of board) {
     const score = scoreCandidate(p, roster, coachId);
-    const tie = (p.rating ?? 0);
-    if (score > bestScore || (score === bestScore && tie > (best?.rating ?? 0))) {
+    const tie = (p.overall ?? 0);
+    if (score > bestScore || (score === bestScore && tie > (best?.overall ?? 0))) {
       bestScore = score;
       best = p;
     }
