@@ -38,7 +38,8 @@ const esc = s => String(s)
   .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
 // ── Chemistry dashboard cache ─────────────────────────────────────────────────
-// Keyed by sorted roster player IDs — recalculates only when the roster changes.
+// Keyed by coach + roster slot order (fixed PG/SG/SF/PF/C order, so this is
+// stable per roster) — recalculates only when the roster or coach changes.
 let _chemCache = { key: null, result: null };
 
 // ── SVG icons ─────────────────────────────────────────────────────────────────

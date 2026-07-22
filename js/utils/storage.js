@@ -36,6 +36,7 @@ import { getLegendCatalog }                      from '../logic/draft.js';
 import { fetchLeaderboard, fetchDailyLeaderboard, fetchDailyCommunityStats } from '../utils/firebase.js';
 import { cgGetItem, cgSetItem }                    from '../utils/crazygames.js';
 import { getDailyChallenge }                       from '../logic/challenge.js';
+import { weekKeyUTC }                              from '../logic/dynastyDuel.js';
 
 const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 
@@ -189,11 +190,10 @@ const DYNASTY_DUEL_STREAK_KEY = 'nba820_dynasty_duel_streak';
  * @returns {{ weekKey: string, result: object|null, lastOpponentName: string|null, streak: number }}
  */
 export function getDynastyDuelStatus() {
-  const now = new Date();
-  const day = now.getUTCDay();
-  const diff = day === 0 ? -6 : 1 - day;
-  const monday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + diff));
-  const weekKey = monday.toISOString().slice(0, 10);
+  // Shared with dynastyDuel.js's pickDynastyForPlay() — a second, independent
+  // reimplementation here previously risked drifting out of sync with that
+  // Monday-of-week math (it has already needed one Date-handling fix).
+  const weekKey = weekKeyUTC();
 
   let result = null;
   try { result = JSON.parse(cgGetItem(DYNASTY_DUEL_KEY) || 'null'); } catch (e) {}

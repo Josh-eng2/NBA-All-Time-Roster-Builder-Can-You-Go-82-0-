@@ -336,7 +336,12 @@ function doStartGame(era = 'all') {
 export function confirmLeave(fn) {
   const safe = ['results', 'playoffs', 'trophy-room'];
   if (safe.includes(S.phase)) { fn(); return; }
+  // A double-click (or two rapid nav taps) before the first overlay mounts
+  // would otherwise stack a second one on top of it — same guard pattern
+  // storage.js's modal openers use.
+  document.getElementById('_confirm-leave-overlay')?.remove();
   const overlay = document.createElement('div');
+  overlay.id = '_confirm-leave-overlay';
   overlay.style.cssText =
     'position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;' +
     'align-items:center;justify-content:center;z-index:9999';
@@ -1322,6 +1327,16 @@ function computeRoundResults(bracket) {
 
 function onPlayoffChampion() {
   saveToTrophyRoom();
+  // The results screen lets a player submit their global score before
+  // advancing to the playoffs, which locks in champion:false (playoffs
+  // hadn't happened yet) and — since globalScoreSubmitted is now true —
+  // permanently hides the submit card, so the eventual title never reaches
+  // the global board. Reopen it so the championship gets its own accurate
+  // submission; a prior non-champion entry is harmless leaderboard noise.
+  if (S.globalScoreSubmitted && !S.globalSubmittedChampion) {
+    S.globalScoreSubmitted = false;
+    S.globalSubmitError    = null;
+  }
   logAnalyticsEvent('championship_won', {
     team:  S.teamName,
     wins:  S.result?.wins ?? 0,
