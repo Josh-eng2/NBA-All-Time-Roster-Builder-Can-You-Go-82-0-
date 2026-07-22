@@ -15,7 +15,7 @@ import {
   COACHES, ERA_DESC, TEAM_COLORS, ARCHETYPE_STYLE, DECADES, TEAMS, pickCosmetic, SNAKE_ORDER,
   getUtcDateString,
 } from '../logic/state.js';
-import { calculateChemistry }                             from '../logic/chemistry.js';
+import { calculateChemistry, chemTier, chemTierColors }                             from '../logic/chemistry.js';
 import { rosterFull, availableDecades, getLegendCatalog, getSkips } from '../logic/draft.js';
 import { coachSystemProgress }                            from '../logic/simulation.js';
 import { getBracketDisplayState }                         from '../logic/playoffs.js';
@@ -1293,14 +1293,13 @@ function renderChemDashboard() {
     _chemCache.result = calculateChemistry(starters);
   }
   const { chemScore, chemReport } = _chemCache.result;
-  const scoreColor = chemScore >= 60 ? (isDark() ? '#4ade80' : '#16a34a') : chemScore >= 40 ? (isDark() ? '#fbbf24' : '#d97706') : (isDark() ? '#f87171' : '#dc2626');
-  const scoreBg    = chemScore >= 60 ? (isDark() ? 'rgba(34,197,94,0.12)' : '#f0fdf4')  : chemScore >= 40 ? (isDark() ? 'rgba(251,191,36,0.12)' : '#fffbeb')  : (isDark() ? 'rgba(239,68,68,0.12)' : '#fef2f2');
-  const scoreLabel = chemScore >= 60 ? 'Strong'   : chemScore >= 40 ? 'Neutral'  : 'Weak';
+  const tier = chemTier(chemScore);
+  const { color: scoreColor, bg: scoreBg } = chemTierColors(tier.id, isDark());
   return `
   <div class="rounded-xl border border-border bg-card px-4 py-3 card-shadow draft-chem-dashboard">
     <div class="flex items-center justify-between mb-2 draft-chem-dashboard__head">
-      <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg">Chemistry</p>
-      <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border" style="background:${scoreBg};color:${scoreColor};border-color:${scoreColor}30">${scoreLabel} · ${chemScore}%</span>
+      <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg">Team Chemistry</p>
+      <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border" style="background:${scoreBg};color:${scoreColor};border-color:${scoreColor}30">${tier.label}</span>
     </div>
     <div class="h-1.5 rounded-full overflow-hidden bg-border draft-chem-dashboard__meter mb-3">
       <div class="h-full rounded-full stat-bar-fill" style="width:${chemScore}%;background:${scoreColor}"></div>
@@ -1391,7 +1390,7 @@ export function computeAutopsy() {
       icon:   '🧪',
       title:  'Your chemistry sprung a leak',
       detail: chemPenalty.replace('🔴', '').trim(),
-      fix:    'One roster change removes this penalty — check the Chemistry Report below.',
+      fix:    'One roster change removes this penalty — check the Team Chemistry Report below.',
     };
   }
 
@@ -1824,11 +1823,9 @@ function renderResults() {
   const autopsy = !isPerfect ? computeAutopsy() : null;
 
   const chemScoreBadge = r.chemScore !== undefined ? (() => {
-    const sc      = r.chemScore;
-    const scColor = sc >= 60 ? (isDark() ? '#4ade80' : '#16a34a') : sc >= 40 ? (isDark() ? '#fbbf24' : '#d97706') : (isDark() ? '#f87171' : '#dc2626');
-    const scBg    = sc >= 60 ? (isDark() ? 'rgba(34,197,94,0.12)' : '#f0fdf4')  : sc >= 40 ? (isDark() ? 'rgba(251,191,36,0.12)' : '#fffbeb')  : (isDark() ? 'rgba(239,68,68,0.12)' : '#fef2f2');
-    const scLabel = sc >= 60 ? 'Strong'   : sc >= 40 ? 'Neutral'  : 'Weak';
-    return `<span class="text-xs font-bold px-2 py-0.5 rounded-full border" style="background:${scBg};color:${scColor};border-color:${scColor}30">${scLabel} · ${sc}%</span>`;
+    const tier = chemTier(r.chemScore);
+    const { color: scColor, bg: scBg } = chemTierColors(tier.id, isDark());
+    return `<span class="text-xs font-bold px-2 py-0.5 rounded-full border" style="background:${scBg};color:${scColor};border-color:${scColor}30">${tier.label}</span>`;
   })() : '';
 
   return `
@@ -1922,7 +1919,7 @@ function renderResults() {
 
         <div class="rounded-2xl border border-border bg-white p-4 card-shadow">
           <div class="flex items-center justify-between mb-3">
-            <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Chemistry Report</p>
+            <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Team Chemistry Report</p>
             ${chemScoreBadge}
           </div>
           <div class="flex flex-col gap-2">${chemReportHtml}</div>
@@ -2415,8 +2412,8 @@ function renderTrophyRoom() {
           </div>` : ''}
         </div>
         <div class="flex items-center justify-between border-t ${isPerfect ? 'border-amber-200' : 'border-border'} pt-2.5">
-          <p class="text-xs text-muted-fg">Chemistry</p>
-          <p class="text-xs font-bold ${isPerfect ? 'text-amber-600' : 'text-primary'}">${t.chemScore}%</p>
+          <p class="text-xs text-muted-fg">Team Chemistry</p>
+          <p class="text-xs font-bold ${isPerfect ? 'text-amber-600' : 'text-primary'}">${chemTier(t.chemScore).label}</p>
         </div>
       </div>`;
   }).join('');
@@ -2504,10 +2501,9 @@ function renderSeriesResult() {
   }).join('');
 
   const chemBadge = (chemScore) => {
-    const sc = Math.round(chemScore ?? 0);
-    const c  = sc >= 60 ? '#16a34a' : sc >= 40 ? '#d97706' : '#dc2626';
-    const bg = sc >= 60 ? '#f0fdf4' : sc >= 40 ? '#fffbeb' : '#fef2f2';
-    return `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full border" style="color:${c};background:${bg};border-color:${c}30">Chem ${sc}%</span>`;
+    const tier = chemTier(chemScore);
+    const { color: c, bg } = chemTierColors(tier.id, false);
+    return `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full border" style="color:${c};background:${bg};border-color:${c}30">${tier.label}</span>`;
   };
 
   // Fire confetti for the winner — once per series, not on every re-render
