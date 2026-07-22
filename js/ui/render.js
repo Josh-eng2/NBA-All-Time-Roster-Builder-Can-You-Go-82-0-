@@ -1194,6 +1194,7 @@ function renderDraftCard(p, index) {
     <div class="p-3 flex-1 draft-card-body">
       <div class="flex items-center gap-1.5 mb-2 draft-card__head">
         <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full border border-border bg-card2 text-muted-fg draft-card__pos">${p.secondaryPos?.length ? `${p.pos} / ${p.secondaryPos[0]}` : p.pos}</span>
+        <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full draft-card__ovr" style="background:${ovrColor(p.overall)}20;color:${ovrColor(p.overall)}">${p.overall ?? '—'} OVR</span>
         <span class="draft-card__arch">${archetypeBadge(p.archetype)}</span>
       </div>
       <p class="font-bold text-sm text-foreground leading-tight mb-1.5 draft-card__name">${p.name}</p>
