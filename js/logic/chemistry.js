@@ -683,7 +683,11 @@ export function calculateChemistry(starters, coachId = null) {
   // ── PHASE 5: TRAIT PENALTIES ─────────────────────────────────────────────────
 
   // ISO Hell: ball-dominant starters with nobody to facilitate
-  if (sTVolumeShooter >= 3 && sTElitePlaymaker === 0) {
+  // (starters.length >= 5: "no Elite Playmaker anywhere" is only a fair
+  // verdict once the roster is complete — same reasoning as Open Basket /
+  // Mental Fragility / Spacing Nightmare below, which a partial roster
+  // mid-draft or an AI-GM candidate score must not indict early.)
+  if (sTVolumeShooter >= 3 && sTElitePlaymaker === 0 && starters.length >= 5) {
     penalty('iso-hell', 0.07,
       'ISO Hell: 3+ Volume Shooters in the starting 5 with no Elite Playmaker anywhere to facilitate (-7%)');
   }
@@ -713,13 +717,13 @@ export function calculateChemistry(starters, coachId = null) {
   }
 
   // Scoring Drought: lockdown-heavy lineup with no scorers anywhere
-  if (sTLockdownTrait >= 3 && sTVolumeShooter === 0) {
+  if (sTLockdownTrait >= 3 && sTVolumeShooter === 0 && starters.length >= 5) {
     penalty('scoring-drought', 0.05,
       'Scoring Drought: 3+ Lockdown Defenders in the starting 5 with no Volume Shooters anywhere to score (-5%)');
   }
 
   // Soft in the Paint: spacing without any rim protection
-  if (sTFloorSpacer >= 3 && sTRimProtector === 0) {
+  if (sTFloorSpacer >= 3 && sTRimProtector === 0 && starters.length >= 5) {
     penalty('soft-in-the-paint', 0.05,
       'Soft in the Paint: 3+ Floor Spacers but no Rim Protector anywhere — annihilated at the rim (-5%)');
   }
