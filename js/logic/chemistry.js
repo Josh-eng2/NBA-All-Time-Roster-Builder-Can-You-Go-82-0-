@@ -6,7 +6,7 @@
  *   Returns { chemBonus, chemScore, chemReport, chemEntries, lineupAssignment }.
  *
  *   chemBonus   — raw float added to adjustedStrength in simulation
- *   chemScore   — 0–100 display value (see chemScoreFromBonus)
+ *   chemScore   — 0–100 display value (50 baseline; see chemScoreFromBonus)
  *   chemReport  — array of human-readable strings (🟢 synergies / 🔴 penalties)
  *   chemEntries — structured source of truth the strings are derived from:
  *                 { id, kind: 'synergy'|'penalty'|'info', family, bonus, label }
@@ -48,14 +48,64 @@ const FAMILY_LABEL = {
   intangibles: 'Intangible',
 };
 
-// Display scale: chemScore = 100 when chemBonus reaches CHEM_SCORE_SCALE.
-// Calibrated against the pre-family-cap engine so the score distribution
-// (and the Chemistry Class daily's 85 gate) stays comparable on real rosters.
+// Display scale: chemScore starts at 50 (empty roster / no synergies).
+// Positive bonuses climb toward 100; penalties drop toward 0.
+// chemScore = 100 when chemBonus reaches +CHEM_SCORE_SCALE;
+// chemScore = 0 when chemBonus reaches −CHEM_SCORE_SCALE.
 export const CHEM_SCORE_SCALE = 0.95;
+export const CHEM_SCORE_BASE  = 50;
 
 /** 0–100 display score for a raw chemistry bonus. Shared with simulation.js. */
 export function chemScoreFromBonus(bonus) {
-  return Math.round(Math.max(0, Math.min(100, (bonus / CHEM_SCORE_SCALE) * 100)));
+  const delta = (bonus / CHEM_SCORE_SCALE) * CHEM_SCORE_BASE;
+  return Math.round(Math.max(0, Math.min(100, CHEM_SCORE_BASE + delta)));
+}
+
+/**
+ * Player-facing chemistry tier. Empty roster (score 50) lands on Neutral.
+ * Thresholds intentionally hide the raw 0–100 number from the UI.
+ *
+ * @returns {{ id: string, label: string, score: number }}
+ */
+export function chemTier(score) {
+  const sc = Math.round(Math.max(0, Math.min(100, Number(score) || 0)));
+  if (sc >= 95) return { id: 'perfect',     label: 'Perfect',     score: sc };
+  if (sc >= 80) return { id: 'veryStrong',  label: 'Very Strong', score: sc };
+  if (sc >= 65) return { id: 'strong',      label: 'Strong',      score: sc };
+  if (sc >= 45) return { id: 'neutral',     label: 'Neutral',     score: sc };
+  if (sc >= 25) return { id: 'weak',        label: 'Weak',        score: sc };
+  return { id: 'veryWeak', label: 'Very Weak', score: sc };
+}
+
+/** Colors for chemTier badges. Pass dark=true for dark-mode hexes. */
+export function chemTierColors(tierId, dark = false) {
+  const map = {
+    perfect: {
+      color: dark ? '#fbbf24' : '#b45309',
+      bg:    dark ? 'rgba(251,191,36,0.12)' : '#fffbeb',
+    },
+    veryStrong: {
+      color: dark ? '#4ade80' : '#15803d',
+      bg:    dark ? 'rgba(34,197,94,0.12)' : '#ecfdf5',
+    },
+    strong: {
+      color: dark ? '#4ade80' : '#16a34a',
+      bg:    dark ? 'rgba(34,197,94,0.12)' : '#f0fdf4',
+    },
+    neutral: {
+      color: dark ? '#fbbf24' : '#d97706',
+      bg:    dark ? 'rgba(251,191,36,0.12)' : '#fffbeb',
+    },
+    weak: {
+      color: dark ? '#fb923c' : '#ea580c',
+      bg:    dark ? 'rgba(251,146,60,0.12)' : '#fff7ed',
+    },
+    veryWeak: {
+      color: dark ? '#f87171' : '#dc2626',
+      bg:    dark ? 'rgba(239,68,68,0.12)' : '#fef2f2',
+    },
+  };
+  return map[tierId] || map.neutral;
 }
 
 // ── Lineup Optimizer ──────────────────────────────────────────────────────────

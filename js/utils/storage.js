@@ -36,6 +36,7 @@ import { getLegendCatalog }                      from '../logic/draft.js';
 import { fetchLeaderboard, fetchDailyLeaderboard, fetchDailyCommunityStats } from '../utils/firebase.js';
 import { cgGetItem, cgSetItem }                    from '../utils/crazygames.js';
 import { getDailyChallenge }                       from '../logic/challenge.js';
+import { chemTier, chemTierColors }                from '../logic/chemistry.js';
 
 const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 
@@ -400,10 +401,9 @@ function _fansMFromAvg(avg) {
 }
 
 function _chemStyle(score) {
-  const sc = Number(score) || 0;
-  if (sc >= 60) return { label: 'Strong',  color: '#16a34a', bg: '#f0fdf4' };
-  if (sc >= 40) return { label: 'Neutral', color: '#d97706', bg: '#fffbeb' };
-  return { label: 'Weak', color: '#dc2626', bg: '#fef2f2' };
+  const tier = chemTier(score);
+  const { color, bg } = chemTierColors(tier.id, false);
+  return { label: tier.label, color, bg };
 }
 
 function _lookupPlayerByName(name) {
@@ -514,8 +514,8 @@ function _globalLbTeamDetailHtml(entry) {
 
       <div style="margin-top:16px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-          <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted-fg);margin:0;font-family:Fira Sans,sans-serif">Chemistry</p>
-          <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;border:1px solid ${chem.color}30;color:${chem.color};background:${chem.bg};font-family:Fira Sans,sans-serif">${chem.label} · ${chemScore}%</span>
+          <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted-fg);margin:0;font-family:Fira Sans,sans-serif">Team Chemistry</p>
+          <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;border:1px solid ${chem.color}30;color:${chem.color};background:${chem.bg};font-family:Fira Sans,sans-serif">${chem.label}</span>
         </div>
         <div style="height:6px;border-radius:999px;background:var(--border);overflow:hidden">
           <div style="height:100%;width:${chemScore}%;border-radius:999px;background:${chem.color}"></div>
@@ -590,7 +590,7 @@ function _globalLbRowsHtml(entries) {
     <div role="button" tabindex="0" data-global-lb-index="${i}"
       onclick="window.showGlobalLbTeamDetail(${i})"
       onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.showGlobalLbTeamDetail(${i})}"
-      title="View starting 5, chemistry & fans"
+      title="View starting 5, team chemistry & fans"
       style="border-radius:12px;border:1.5px solid;padding:10px 12px;display:flex;align-items:center;gap:10px;${rowBg};cursor:pointer;transition:box-shadow 0.15s,border-color 0.15s"
       onmouseover="this.style.boxShadow='0 2px 8px var(--shadow)'"
       onmouseout="this.style.boxShadow='none'">
@@ -609,7 +609,7 @@ function _globalLbRowsHtml(entries) {
       </div>
       <div style="text-align:right;flex-shrink:0">
         <p style="font-size:10px;color:var(--muted);margin:0 0 2px;font-family:Fira Sans,sans-serif">CHEM</p>
-        <p style="font-size:13px;font-weight:800;color:var(--primary);margin:0;font-family:Fira Sans,sans-serif">${chemScore}%</p>
+        <p style="font-size:13px;font-weight:800;color:${_chemStyle(chemScore).color};margin:0;font-family:Fira Sans,sans-serif">${_chemStyle(chemScore).label}</p>
       </div>
     </div>`;
   }).join('');
@@ -650,7 +650,7 @@ function _globalModalShellHtml(activeTab) {
       <div id="global-lb-table" style="display:flex;flex-direction:column;gap:8px">
         ${_globalLbLoadingHtml()}
       </div>
-      <p style="text-align:center;font-size:11px;color:var(--muted-fg);margin:12px 0 0;font-family:Fira Sans,sans-serif">Tap a team to view starting 5, chemistry &amp; fans</p>
+      <p style="text-align:center;font-size:11px;color:var(--muted-fg);margin:12px 0 0;font-family:Fira Sans,sans-serif">Tap a team to view starting 5, team chemistry &amp; fans</p>
     </div>
   </div>`;
 }
@@ -961,7 +961,7 @@ function _dailyLbRowsHtml(entries) {
       </div>
       <div style="text-align:right;flex-shrink:0">
         <p style="font-size:10px;color:var(--muted);margin:0 0 2px;font-family:Fira Sans,sans-serif">CHEM</p>
-        <p style="font-size:13px;font-weight:800;color:var(--primary);margin:0;font-family:Fira Sans,sans-serif">${chemScore}%</p>
+        <p style="font-size:13px;font-weight:800;color:${_chemStyle(chemScore).color};margin:0;font-family:Fira Sans,sans-serif">${_chemStyle(chemScore).label}</p>
       </div>
     </div>`;
   }).join('');

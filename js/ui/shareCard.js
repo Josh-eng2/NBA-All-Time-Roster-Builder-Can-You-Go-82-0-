@@ -10,6 +10,8 @@
  *     isChampion, starters: [{ pos, name, team, decade }], dailyLabel? }
  */
 
+import { chemTier } from '../logic/chemistry.js';
+
 const W = 1080, H = 1200;
 
 const TIER_COLORS = {
@@ -177,7 +179,7 @@ function drawCard(ctx, data) {
   ctx.font = '600 27px Arial, sans-serif';
   ctx.fillStyle = '#94a3b8';
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  const metaBits = [`Win% ${winPct}%`, chemScore != null ? `Chemistry ${Math.round(chemScore)}%` : null].filter(Boolean);
+  const metaBits = [`Win% ${winPct}%`, chemScore != null ? `Team Chemistry ${chemTier(chemScore).label}` : null].filter(Boolean);
   ctx.fillText(metaBits.join('    ·    '), W / 2, cy + META / 2);
   cy += META;
 
@@ -269,7 +271,9 @@ export function buildShareCaption(data) {
   const starterLines = starters
     .map(s => `🌟 ${s.name}${s.team ? ` (${[s.team, s.decade].filter(Boolean).join(' ')})` : ''}`)
     .join('\n');
-  const chemLine = chemScore != null ? `\nChemistry: ${Math.round(chemScore)}%` : '';
+  const chemLine = chemScore != null
+    ? `\nTeam Chemistry: ${chemTier(chemScore).label}`
+    : '';
   return [
     dailyLabel || null,
     headline,

@@ -89,8 +89,8 @@ export const CHALLENGES = [
     desc: 'Your five must combine for 8+ blocks per game — and win 50+ games.',
     params: { minWins: 50, teamBpg: 8 } },
   { id: 'chemistry-class', type: 'objective', emoji: '🧪', title: 'Chemistry Class',
-    desc: 'Reach 85+ team chemistry and win 55+ games.',
-    params: { minWins: 55, minChem: 85 } },
+    desc: 'Reach Perfect Team Chemistry and win 55+ games.',
+    params: { minWins: 55, minChem: 95 } },
   { id: 'wire-to-wire',   type: 'objective', emoji: '⚡', title: 'Wire to Wire',
     desc: 'Put together a 20-game win streak at some point in the season.',
     params: { minWins: 50, minStreak: 20 } },
@@ -325,7 +325,7 @@ export function evaluateObjective(challenge, S) {
     failures.push(`Team blocked ${(r.simTotals?.bpg ?? 0).toFixed(1)}/game — needed ${P.teamBpg}+`);
   }
   if (P.minChem != null && (r.chemScore ?? 0) < P.minChem) {
-    failures.push(`Chemistry ${Math.round(r.chemScore ?? 0)} — needed ${P.minChem}+`);
+    failures.push('Team Chemistry too low — stack more synergies');
   }
   if (P.minStreak != null && (r.longestStreak ?? 0) < P.minStreak) {
     failures.push(`Longest streak ${r.longestStreak ?? 0} — needed ${P.minStreak}`);
