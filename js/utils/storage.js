@@ -128,7 +128,7 @@ export function saveLeaderboard() {
   if (!r) return;
   const entry = {
     date:          new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-    teamName:      (S.teamName || '').trim().slice(0, 20) || 'Untitled Team',
+    teamName:      (S.teamName || '').trim().slice(0, 30) || 'Untitled Team',
     wins:          r.wins,
     losses:        r.losses,
     starters:      POSITIONS.map(p => S.roster[p]?.name || '—').join(', '),

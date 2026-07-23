@@ -238,10 +238,15 @@ export const pickCosmetic = arr => arr[Math.floor(Math.random() * arr.length)];
  * @returns {number}
  */
 export function getPlayerSeed(wins) {
+  // Smooth ladder across seeds 1–8 (previously cliffed ≥41→#4 / else→#8,
+  // leaving seeds 5–7 unused and making mid-.500 teams feel like lottery picks).
   if (wins >= 70) return 1;
   if (wins >= 60) return 2;
-  if (wins >= 50) return 3;
-  if (wins >= 41) return 4;
+  if (wins >= 55) return 3;
+  if (wins >= 50) return 4;
+  if (wins >= 45) return 5;
+  if (wins >= 42) return 6;
+  if (wins >= 40) return 7;
   return 8;
 }
 
