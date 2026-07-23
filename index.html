@@ -8,10 +8,19 @@
        environment detection) when not running on crazygames.com. -->
   <script src="https://sdk.crazygames.com/crazygames-sdk-v2.js"></script>
   <!-- GameDistribution HTML5 SDK — loaded early so window.gdsdk exists before
-       js/main.js/events.js call into js/utils/gamedistribution.js. Only
-       active when embedded on the GameDistribution network; harmless
-       elsewhere (showAd() calls simply return no fill). -->
+       js/main.js/events.js call into js/utils/gamedistribution.js.
+       GD is a "monetize any website" product, not portal-only — on our own
+       domain it was requesting and filling real ads through its overlay,
+       and a low-tier ad-exchange creative hijacked the tab (renamed the
+       title to "Blocked", forced a redirect) for visitors landing here from
+       Google. Only load the SDK at all when actually embedded in an iframe
+       (i.e. served through the GameDistribution portal, where that ad
+       inventory is expected) — direct/organic visits to canyougo820.com
+       never load it, never see the overlay, and can't be hit by it again. -->
   <script>
+    var GD_IN_IFRAME;
+    try { GD_IN_IFRAME = window.self !== window.top; } catch (e) { GD_IN_IFRAME = true; }
+    if (GD_IN_IFRAME) {
     window.GD_OPTIONS = {
       gameId: "762d8b4c71364166b6be3905934fd410",
       onEvent: function (event) {
@@ -111,6 +120,7 @@
         start();
       }
     })();
+    }
   </script>
   <title>Can You Go 82-0? NBA All-Time Roster Builder &amp; Season Simulator</title>
   <meta name="description" content="Can you go 82-0? Free NBA team generator &amp; roster builder — draft all-time legends from every era, pick your coach, and run the 82-game season simulator to chase a perfect record." />
