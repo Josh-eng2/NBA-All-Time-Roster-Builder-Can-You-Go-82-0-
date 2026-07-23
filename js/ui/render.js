@@ -24,6 +24,7 @@ import { cgGameplayStart, cgGameplayStop, cgGetItem }     from '../utils/crazyga
 import { gdRewardedAvailable }                            from '../utils/gamedistribution.js';
 import { getDailyChallenge, checkPickLegal, checkRosterConstraint } from '../logic/challenge.js';
 import { isDualDraft, seriesLabels, MORE_MODES, fansFirstScore } from '../logic/modes.js';
+import { seasonTier } from '../logic/seasonTier.js';
 import { fetchDailyCommunityStats, isFirebaseConfigured } from '../utils/firebase.js';
 import { bindEvents }                                     from '../ui/events.js'; // circular — safe (called inside functions only)
 
@@ -291,13 +292,14 @@ function renderHeader(showRestart = false) {
         <div class="app-header__actions">
           ${coachObj ? `<span class="header-pill header-pill--muted">${coachObj.system}</span>` : ''}
           ${eraPill}
-          <button data-action="open-leaderboard" type="button" class="header-pill header-pill--icon" title="Personal Best">🏅</button>
-          <button data-action="open-global-leaderboard" type="button" class="header-pill header-pill--icon" title="Global Leaderboard">🌍</button>
-          <button data-action="toggle-theme" type="button" class="header-pill header-pill--icon" title="Toggle Dark Mode">${themeIcon()}</button>
+          <button data-action="open-leaderboard" type="button" class="header-pill header-pill--icon" title="Personal Best" aria-label="Personal Best">🏅</button>
+          <button data-action="open-global-leaderboard" type="button" class="header-pill header-pill--icon" title="Global Leaderboard" aria-label="Global Leaderboard">🌍</button>
+          <button data-action="toggle-theme" type="button" class="header-pill header-pill--icon" title="Toggle Dark Mode" aria-label="Toggle Dark Mode">${themeIcon()}</button>
           ${restartBtn}
         </div>
       </div>
     </header>
+    <div class="sr-only" aria-live="polite" id="aria-live-status"></div>
     ${canRestart ? `
     <div class="mobile-restart-bar">
       <button data-action="restart" type="button" class="mobile-restart-bar__btn">↩ Restart Run</button>
@@ -537,10 +539,16 @@ function renderModeSelect() {
           </button>
         </div>
 
-        <button data-action="view-trophies"
-          class="w-full py-3 rounded-xl font-bold text-sm border border-amber-200 bg-amber-50 text-amber-700 cursor-pointer transition-all hover:bg-amber-100 card-shadow mb-3">
-          🏆 Trophy Room${trophies.length > 0 ? ` · ${trophies.length} Championship${trophies.length === 1 ? '' : 's'}` : ''}
-        </button>
+        <div class="grid grid-cols-2 gap-3 mb-3">
+          <button data-action="view-trophies"
+            class="py-3 rounded-xl font-bold text-sm border border-amber-200 bg-amber-50 text-amber-700 cursor-pointer transition-all hover:bg-amber-100 card-shadow">
+            🏆 Trophy Room${trophies.length > 0 ? ` · ${trophies.length}` : ''}
+          </button>
+          <button data-action="view-legends"
+            class="py-3 rounded-xl font-bold text-sm border border-indigo-200 bg-indigo-50 text-indigo-700 cursor-pointer transition-all hover:bg-indigo-100 card-shadow">
+            🃏 Legends
+          </button>
+        </div>
 
         ${renderMoreModesButton()}
 
@@ -779,7 +787,8 @@ function dailyBoardDeadEnd() {
 function renderModeDraftBanner() {
   if (S.mode === 'daily') return renderDailyDraftBanner();
   if (S.mode === 'defense') {
-    return `<div class="rounded-xl border border-violet-200 bg-violet-50 px-3 py-2 text-xs text-violet-800 font-semibold">
+    return `<div class="rounded-xl border px-3 py-2 text-xs font-semibold mode-banner mode-banner--defense"
+      style="border-color:color-mix(in srgb, #8b5cf6 35%, var(--border));background:color-mix(in srgb, #8b5cf6 14%, var(--card));color:var(--fg)">
       🛡️ Defense Only — stocks &amp; boards carry this sim. Scoring volume matters less.
     </div>`;
   }
@@ -789,13 +798,20 @@ function renderModeDraftBanner() {
       ? starters.reduce((s, p) => s + (p.popularity || 50), 0) / starters.length
       : 0;
     const fansM = Math.pow(Math.max(0, Math.min(1, (avg - 35) / 65)), 1.5) * 38 + 2;
-    const proj = starters.length ? fansFirstScore(avg, fansM, 50) : null;
-    return `<div class="rounded-xl border border-pink-200 bg-pink-50 px-3 py-2 text-xs text-pink-800 font-semibold">
-      📣 Fans First — optimize star power. Score ≈ pop×10 + fansM×5 + wins×2${proj != null ? ` · live proj ~${Math.round(proj)}` : ''}.
+    // Estimate wins from star power instead of hardcoding 50 — keeps the
+    // "live proj" honest while the season hasn't been simulated yet.
+    const estWins = starters.length
+      ? Math.round(Math.min(72, Math.max(18, 25 + ((avg - 40) / 60) * 50)))
+      : null;
+    const proj = starters.length ? fansFirstScore(avg, fansM, estWins) : null;
+    return `<div class="rounded-xl border px-3 py-2 text-xs font-semibold mode-banner mode-banner--fans"
+      style="border-color:color-mix(in srgb, #ec4899 35%, var(--border));background:color-mix(in srgb, #ec4899 14%, var(--card));color:var(--fg)">
+      📣 Fans First — optimize star power. Score ≈ pop×10 + fansM×5 + wins×2${proj != null ? ` · live proj ~${Math.round(proj)} (@~${estWins}W)` : ''}.
     </div>`;
   }
   if (S.mode === 'dynasty-duel' && S.dynastyOpponent) {
-    return `<div class="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 font-semibold">
+    return `<div class="rounded-xl border px-3 py-2 text-xs font-semibold mode-banner mode-banner--dynasty"
+      style="border-color:color-mix(in srgb, #f59e0b 40%, var(--border));background:color-mix(in srgb, #f59e0b 14%, var(--card));color:var(--fg)">
       👑 Dynasty Duel — beat the <strong>${S.dynastyOpponent.name}</strong> in a best-of-7. New random dynasty every run — play as often as you want.
     </div>`;
   }
@@ -1124,7 +1140,7 @@ function renderSlotMachine() {
         🚫 No legal picks here — spin a new board
       </button>
       ` : `
-      <p class="text-center text-xs text-muted-fg py-1">${S.mode === 'blind' ? 'Names only — select a player, then tap a roster slot to place them' : 'Select a player below, then tap a roster slot to place them'}</p>
+      <p class="text-center text-xs text-muted-fg py-1">${S.mode === 'blind' ? 'Names only — draft places into an open slot (or tap a slot to choose)' : 'Draft places into an open natural slot — or tap a roster slot to choose'}</p>
       `}
     `}
   </div>`;
@@ -1171,8 +1187,8 @@ function renderDraftCard(p, index) {
   const cardBg          = unavailable ? 'var(--card3)' : isSelected ? 'var(--card2)' : 'var(--card)';
   const cardOpacity     = unavailable ? 'opacity:0.5;' : '';
   const pickLabel       = isMobileViewport()
-    ? (isSelected ? '✓ Selected' : 'Draft')
-    : (isSelected ? '✓ Selected — Tap a Roster Slot' : 'Draft Player');
+    ? (isSelected ? '✓ Selected' : 'Draft → Slot')
+    : (isSelected ? '✓ Selected — Tap a Roster Slot' : 'Draft → Tap Slot');
 
   // HoopIQ — name only, no stats or position hints
   if (S.mode === 'blind') {
@@ -1591,19 +1607,19 @@ function renderSaveRunCard() {
               <input
                 id="team-name-input"
                 type="text"
-                maxlength="20"
+                maxlength="30"
                 value="${esc(S.teamName || '')}"
                 placeholder="Untitled Team"
                 class="w-full rounded-xl border border-border bg-white px-3 py-2.5 text-sm font-semibold text-foreground placeholder:text-muted-fg focus:outline-none focus:border-primary focus:ring-2 focus:ring-blue-100 transition-all"
               />
-              <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-muted pointer-events-none" id="team-name-counter">20</span>
+              <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-muted pointer-events-none" id="team-name-counter">30</span>
             </div>
             <button data-action="save-run"
               class="flex-shrink-0 px-4 rounded-xl font-bold text-sm bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer card-shadow">
               Submit
             </button>
           </div>
-          <p class="text-[10px] text-muted-fg mt-2">Saves to your personal leaderboard and global board · max 20 characters</p>`}
+          <p class="text-[10px] text-muted-fg mt-2">Saves to your personal leaderboard and global board · max 30 characters</p>`}
         </div>`;
 }
 
@@ -1679,33 +1695,34 @@ function renderDailySubmitCard() {
 
 function renderResults() {
   const r          = S.result;
-  const isPerfect  = r.wins === 82;
-  const isHistoric = r.wins >= 73;
-  const isElite    = r.wins >= 65;
-  const isPlayoff  = r.wins >= 50;
+  const tier       = seasonTier(r.wins);
+  const isPerfect  = tier.id === 'perfect';
+  const isHistoric = tier.id === 'historic';
+  const isElite    = tier.id === 'elite';
+  const isPlayoff  = tier.id === 'playoff';
 
   // Fire confetti for 82-0 — once per results screen, not on every re-render.
   if (isPerfect && !S.perfectConfettiFired) {
     S.perfectConfettiFired = true;
     setTimeout(() => {
       withConfetti(() => {
-        confetti({ particleCount: 180, spread: 90, origin: { y: 0.55 }, colors: ['#f97316', '#eab308', '#fcd34d', '#ffffff'] });
-        setTimeout(() => confetti({ particleCount: 100, spread: 120, origin: { y: 0.7 }, colors: ['#fbbf24', '#fde68a', '#ffffff'] }), 250);
+        confetti({ particleCount: 180, spread: 90, origin: { y: 0.55 }, zIndex: 40, colors: ['#f97316', '#eab308', '#fcd34d', '#ffffff'] });
+        setTimeout(() => confetti({ particleCount: 100, spread: 120, origin: { y: 0.7 }, zIndex: 40, colors: ['#fbbf24', '#fde68a', '#ffffff'] }), 250);
       });
     }, 200);
   }
 
-  let label, labelColor, labelBg, emoji;
-  if (isPerfect)       { label = 'PERFECT SEASON';        labelColor = isDark() ? '#fcd34d' : '#92400e'; labelBg = isDark() ? 'rgba(251,191,36,0.15)' : '#fef3c7'; emoji = '🏆'; }
-  else if (isHistoric) { label = 'Historic Season';        labelColor = isDark() ? '#fbbf24' : '#b45309'; labelBg = isDark() ? 'rgba(251,191,36,0.12)' : '#fffbeb'; emoji = '🔥'; }
-  else if (isElite)    { label = 'Championship Contender'; labelColor = isDark() ? '#4ade80' : '#166534'; labelBg = isDark() ? 'rgba(34,197,94,0.12)' : '#f0fdf4'; emoji = '⭐'; }
-  else if (isPlayoff)  { label = 'Playoff Contender';      labelColor = isDark() ? '#93c5fd' : '#1e40af'; labelBg = isDark() ? 'rgba(59,130,246,0.12)' : '#eff6ff'; emoji = '✅'; }
-  else                 { label = 'Rebuild Required';       labelColor = isDark() ? '#f87171' : '#991b1b'; labelBg = isDark() ? 'rgba(239,68,68,0.12)' : '#fef2f2'; emoji = '📋'; }
+  let label = tier.label, emoji = tier.emoji, labelColor, labelBg;
+  if (isPerfect)       { labelColor = isDark() ? '#fcd34d' : '#92400e'; labelBg = isDark() ? 'rgba(251,191,36,0.15)' : '#fef3c7'; }
+  else if (isHistoric) { labelColor = isDark() ? '#fbbf24' : '#b45309'; labelBg = isDark() ? 'rgba(251,191,36,0.12)' : '#fffbeb'; }
+  else if (isElite)    { labelColor = isDark() ? '#4ade80' : '#166534'; labelBg = isDark() ? 'rgba(34,197,94,0.12)' : '#f0fdf4'; }
+  else if (isPlayoff)  { labelColor = isDark() ? '#93c5fd' : '#1e40af'; labelBg = isDark() ? 'rgba(59,130,246,0.12)' : '#eff6ff'; }
+  else                 { labelColor = isDark() ? '#f87171' : '#991b1b'; labelBg = isDark() ? 'rgba(239,68,68,0.12)' : '#fef2f2'; }
 
   const modeBadge = S.mode === 'defense'
-    ? `<span class="inline-block text-[11px] font-bold px-3 py-1 rounded-full mb-2 border border-violet-200 bg-violet-50 text-violet-800">🛡️ DEF profile · ${r.teamStocks ?? 0} stocks</span>`
+    ? `<span class="inline-block text-[11px] font-bold px-3 py-1 rounded-full mb-2 border" style="border-color:color-mix(in srgb,#8b5cf6 35%,var(--border));background:color-mix(in srgb,#8b5cf6 14%,var(--card));color:var(--fg)">🛡️ DEF profile · ${r.teamStocks ?? 0} stocks</span>`
     : S.mode === 'fans'
-    ? `<span class="inline-block text-[11px] font-bold px-3 py-1 rounded-full mb-2 border border-pink-200 bg-pink-50 text-pink-800">📣 Fans First score ${r.fansScore ?? 0}${r.fansPassed ? ' · ✓' : ''}</span>`
+    ? `<span class="inline-block text-[11px] font-bold px-3 py-1 rounded-full mb-2 border" style="border-color:color-mix(in srgb,#ec4899 35%,var(--border));background:color-mix(in srgb,#ec4899 14%,var(--card));color:var(--fg)">📣 Fans First score ${r.fansScore ?? 0}${r.fansPassed ? ' · ✓' : ''}</span>`
     : '';
 
   const winsColor = isPerfect || isHistoric ? (isDark() ? '#fbbf24' : '#d97706') : isElite ? (isDark() ? '#4ade80' : '#16a34a') : isPlayoff ? (isDark() ? '#60a5fa' : '#2563eb') : (isDark() ? '#f87171' : '#dc2626');
@@ -1885,19 +1902,27 @@ function renderResults() {
 
         <!-- Advance to Playoffs + Autopsy side by side -->
         <div class="results-block--playoffs grid grid-cols-1 sm:grid-cols-2 gap-4">
+          ${r.wins >= 20 ? `
           <div class="rounded-2xl border-2 border-primary bg-white p-5 card-shadow flex flex-col justify-between">
             <div class="text-center mb-4">
               <span class="text-4xl mb-2 block">🏆</span>
               <p class="text-sm font-black text-foreground mb-1">Advance to Playoffs</p>
               <p class="text-xs text-muted-fg">${r.wins / 82 < 0.35
-                ? `Sneak that ${r.wins}-win squad into the bracket anyway — every #8 seed dreams of a stolen series.`
+                ? `Sneak that ${r.wins}-win squad into the bracket anyway — every low seed dreams of a stolen series.`
                 : `Take your ${r.wins}-win roster into the postseason bracket.`}</p>
             </div>
             <button data-action="advance-to-playoffs"
               class="w-full py-3 rounded-xl font-bold text-sm bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer card-shadow">
               Enter Playoffs →
             </button>
-          </div>
+          </div>` : `
+          <div class="rounded-2xl border border-border bg-white p-5 card-shadow flex flex-col justify-between opacity-90">
+            <div class="text-center mb-2">
+              <span class="text-4xl mb-2 block">📋</span>
+              <p class="text-sm font-black text-foreground mb-1">No Playoff Bid</p>
+              <p class="text-xs text-muted-fg">Need at least 20 wins to crack the bracket. Run it back and rebuild.</p>
+            </div>
+          </div>`}
           ${autopsy ? `
           <div class="rounded-2xl bg-white p-5 card-shadow flex flex-col" style="border:1.5px solid #fecaca">
             <p class="text-xs font-bold uppercase tracking-widest mb-2.5" style="color:#dc2626">
@@ -1923,7 +1948,7 @@ function renderResults() {
               <span class="text-2xl flex-shrink-0">🏆</span>
               <div class="min-w-0 flex-1">
                 <p class="text-sm font-black mb-0.5" style="color:${isDark() ? '#fcd34d' : '#92400e'}">You went undefeated!</p>
-                <p class="text-xs leading-relaxed" style="color:${isDark() ? '#fde68a' : '#b45309'}">No losses to dissect — you drafted an all-time roster, nailed the chemistry, and ran the table. Only one team in history has ever done this. Now take the #1 seed into the playoffs and finish the job.</p>
+                <p class="text-xs leading-relaxed" style="color:${isDark() ? '#fde68a' : '#b45309'}">No losses to dissect — you drafted an all-time roster, nailed the chemistry, and ran the table. No NBA team has ever gone 82–0. Now take the #1 seed into the playoffs and finish the job.</p>
                 <p class="text-xs font-bold mt-2" style="color:${isDark() ? '#fbbf24' : '#d97706'}">🎉 Immortality is one playoff run away.</p>
               </div>
             </div>
@@ -2285,18 +2310,17 @@ function renderPlayoffs() {
 function renderChampionship() {
   const po = S.playoffs;
   const r  = S.result;
-  const finalsResult = po.rounds[po.rounds.length - 1].find(sr => sr.teamA.isPlayer || sr.teamB.isPlayer);
-  const oppTeam = finalsResult.teamA.isPlayer ? finalsResult.teamB : finalsResult.teamA;
-  const score   = finalsResult.teamA.isPlayer
-    ? `${finalsResult.playerWins}–${finalsResult.oppWins}`
-    : `${finalsResult.oppWins}–${finalsResult.playerWins}`;
   const roundSummary = po.rounds.map((round, i) => {
     const sr = round.find(s => s.teamA.isPlayer || s.teamB.isPlayer);
     if (!sr) return '';
     const opp = sr.teamA.isPlayer ? sr.teamB : sr.teamA;
     const w   = sr.teamA.isPlayer ? sr.playerWins : sr.oppWins;
     const l   = sr.teamA.isPlayer ? sr.oppWins   : sr.playerWins;
-    return `<p class="text-sm text-muted-fg">${po.roundNames[i]}: <span class="text-foreground font-semibold">def. ${opp.name} ${w}–${l}</span></p>`;
+    const isFinals = i === po.rounds.length - 1;
+    const line = `${po.roundNames[i]}: <span class="text-foreground font-semibold">def. ${opp.name} ${w}–${l}</span>`;
+    return isFinals
+      ? `<p class="text-base font-black text-amber-700 mt-1">${line}</p>`
+      : `<p class="text-sm text-muted-fg">${line}</p>`;
   }).join('');
   return `
   <div class="min-h-screen flex flex-col main-gradient">
@@ -2309,7 +2333,6 @@ function renderChampionship() {
         <div class="rounded-2xl border-2 border-amber-300 bg-amber-50 p-5 w-full text-left card-shadow">
           <p class="text-xs font-bold uppercase tracking-widest text-amber-600 mb-3">Championship Run</p>
           ${roundSummary}
-          <p class="text-base font-black text-amber-700 mt-3">NBA Finals: def. ${oppTeam.name} ${score}</p>
           <p class="text-sm text-muted-fg mt-2">Regular Season: ${r.wins}–${r.losses} · Seed #${po.playerSeed}</p>
         </div>
         ${renderGlobalSubmitCard(true)}
@@ -2539,10 +2562,15 @@ function renderSeriesResult() {
     S.seriesConfettiFired = true;
     if (shouldCelebrate) {
       setTimeout(() => {
-        withConfetti(() => confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 }, colors: p1Win ? ['#2563eb','#93c5fd','#ffffff'] : ['#d97706','#fde68a','#ffffff'] }));
+      withConfetti(() => confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 }, zIndex: 40, colors: p1Win ? ['#2563eb','#93c5fd','#ffffff'] : ['#d97706','#fde68a','#ffffff'] }));
       }, 150);
     }
   }
+
+  const loserGames = p1Win ? p2Wins : p1Wins;
+  const fightLine = loserGames === 0
+    ? `${loserLabel} was swept — couldn't steal a game.`
+    : `${loserLabel} put up a fight — ${loserGames} ${loserGames === 1 ? 'game' : 'games'} won.`;
 
   return `
   <div class="flex flex-col min-h-screen main-gradient">
@@ -2555,7 +2583,7 @@ function renderSeriesResult() {
           <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg mb-2">Series Result</p>
           <p class="text-5xl font-black mb-2" style="color:${winnerColor}">${p1Wins}–${p2Wins}</p>
           <p class="text-lg font-black text-foreground mb-1">🏆 ${winnerLabel} ${winnerVerb} the Series!</p>
-          <p class="text-sm text-muted-fg">${loserLabel} put up a fight — ${p1Win ? p2Wins : p1Wins} ${(p1Win ? p2Wins : p1Wins) === 1 ? 'game' : 'games'} won.</p>
+          <p class="text-sm text-muted-fg">${fightLine}</p>
         </div>
 
         <!-- Game-by-game log -->
@@ -2850,6 +2878,40 @@ function neutralizeStaleAdStubs() {
       el.style.visibility    = 'hidden';
     }
   }
+  // GD overlay: never let a hidden full-screen node keep pointer-events:auto.
+  const gd = document.getElementById('gdsdk__advertisement');
+  if (gd) {
+    const vis = gd.style.visibility || getComputedStyle(gd).visibility;
+    if (vis === 'hidden') gd.style.pointerEvents = 'none';
+  }
+}
+
+/** Keep the URL hash in sync with the active phase so deep links aren't purely cosmetic. */
+const HASH_BY_PHASE = {
+  'mode-select':    '#/',
+  'more-modes':     '#/challenges',
+  'drafting':       '#/draft',
+  'season-sim':     '#/season',
+  'results':        '#/results',
+  'playoffs':       '#/playoffs',
+  'trophy-room':    '#/trophies',
+  'legends':        '#/legends',
+  'series-preview': '#/series',
+  'series-sim':     '#/series',
+  'series-result':  '#/series',
+};
+
+function syncHashRoute() {
+  // Don't clobber an inbound deep link while sitting on the menu — main.js
+  // dispatches hashchange after first paint to honor #/daily etc.
+  if (S.phase === 'mode-select') {
+    const inbound = (location.hash || '').replace(/^#\/?/, '');
+    if (inbound && inbound !== '/') return;
+  }
+  const next = HASH_BY_PHASE[S.phase] || '#/';
+  if (location.hash !== next) {
+    try { history.replaceState(null, '', next); } catch (_) {}
+  }
 }
 
 // ── Main render dispatcher ────────────────────────────────────────────────────
@@ -2868,13 +2930,14 @@ export function render() {
   else if (S.phase === 'series-sim')    $app.innerHTML = renderSeriesSim();
   else if (S.phase === 'series-result') $app.innerHTML = renderSeriesResult();
   bindEvents();
+  syncHashRoute();
 
   // Wire up character counter for the local save input (results screen)
   if (S.phase === 'results' && !S.runSaved) {
     const input   = document.getElementById('team-name-input');
     const counter = document.getElementById('team-name-counter');
     if (input && counter) {
-      const update = () => { counter.textContent = 20 - input.value.length; };
+      const update = () => { counter.textContent = 30 - input.value.length; };
       update();
       input.addEventListener('input', update);
     }

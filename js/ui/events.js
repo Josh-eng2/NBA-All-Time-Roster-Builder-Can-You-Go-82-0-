@@ -37,6 +37,7 @@ import { getDailyChallenge, checkPickLegal, evaluateObjective, dailyScore } from
 import { pickDynastyForPlay, dynastyDuelScore } from '../logic/dynastyDuel.js';
 import { chooseAiPick, bestAiSlot } from '../logic/aiDraft.js';
 import { isDualDraft, getModeConfig, fansFirstScore, fansFirstPassed } from '../logic/modes.js';
+import { seasonTier } from '../logic/seasonTier.js';
 import {
   render, $app, fmtDecadeShort, showToast, renderSeasonTickerRows,
   computeAutopsy, liveStreakLabel, withConfetti,
@@ -59,6 +60,37 @@ export function bindEvents() {
   if (_bound) return;
   _bound = true;
   $app.addEventListener('click', handleClick);
+  window.addEventListener('hashchange', handleHashRoute);
+}
+
+/** Deep-link hashes from the mode-select screen (e.g. #/daily, #/trophies). */
+function handleHashRoute() {
+  if (S.phase !== 'mode-select' && S.phase !== 'more-modes') return;
+  const h = (location.hash || '').replace(/^#\/?/, '').toLowerCase();
+  if (!h || h === '/') return;
+  const map = {
+    daily: 'mode-daily',
+    classic: 'mode-solo',
+    solo: 'mode-solo',
+    blind: 'mode-blind',
+    balliq: 'mode-blind',
+    '1v1': 'mode-1v1',
+    challenges: 'open-more-modes',
+    trophies: 'view-trophies',
+    legends: 'view-legends',
+    defense: 'mode-defense',
+    fans: 'mode-fans',
+    dynasty: 'mode-dynasty-duel',
+    'gm-ai': 'mode-gm-ai',
+  };
+  const action = map[h];
+  if (action) {
+    if ((action === 'mode-defense' || action === 'mode-fans' || action === 'mode-dynasty-duel' || action === 'mode-gm-ai')
+        && S.phase === 'mode-select') {
+      dispatch('open-more-modes');
+    }
+    dispatch(action);
+  }
 }
 
 function handleClick(e) {
@@ -210,8 +242,29 @@ function dispatch(action) {
     const idx = parseInt(action.slice(11), 10);
     const p   = S.draftBoard[idx];
     if (!p) { render(); return; }
-    S.selectedPlayer = S.selectedPlayer?.id === p.id ? null : p;
-    render(); return;
+    // Toggle off if the same card is tapped again.
+    if (S.selectedPlayer?.id === p.id) {
+      S.selectedPlayer = null;
+      render();
+      return;
+    }
+    S.selectedPlayer = p;
+    // One-tap draft: auto-place into the first empty preferred slot
+    // (natural pos, then secondary). Falls back to "tap a slot" only when
+    // every preferred slot is already filled.
+    const roster = isDualDraft()
+      ? (S.currentPlayer === 1 ? S.p1Roster : S.p2Roster)
+      : S.roster;
+    const preferred = [p.pos, ...(p.secondaryPos || [])].filter(Boolean);
+    const autoSlot = preferred.find(pos => roster && !roster[pos]);
+    if (autoSlot) {
+      placePlayer(autoSlot);
+      announceA11y(`Drafted ${p.name} to ${autoSlot}`);
+      return;
+    }
+    render();
+    announceA11y(`Selected ${p.name}. Tap a roster slot to place them.`);
+    return;
   }
   if (action.startsWith('place-')) {
     const pos = action.slice(6);
@@ -1099,7 +1152,17 @@ async function doSaveRun() {
   if (_submittingGlobal) return;
   const input = document.getElementById('team-name-input');
   const raw   = input ? input.value.trim() : '';
-  S.teamName  = raw.slice(0, 20) || 'Untitled Team';
+  if (!raw) {
+    showToast('Enter a team name');
+    input?.focus();
+    return;
+  }
+  if (raw.length < 3) {
+    showToast('Team name must be at least 3 characters');
+    input?.focus();
+    return;
+  }
+  S.teamName  = raw.slice(0, 30);
   S.runSaved  = true;
   saveLeaderboard();
   if (S.mode === 'defense' && S.result) {
@@ -1139,7 +1202,20 @@ async function doSubmitGlobal() {
   // Read team name from the global input; fall back to any previously saved name
   const input  = document.getElementById('global-team-name-input');
   const raw    = input ? input.value.trim() : '';
-  S.teamName   = raw.slice(0, 30) || S.teamName || 'Untitled Team';
+  const name   = (raw || S.teamName || '').trim();
+  if (!name || name === 'Untitled Team') {
+    showToast('Enter a team name (at least 3 characters)');
+    input?.focus();
+    _submittingGlobal = false;
+    return;
+  }
+  if (name.length < 3) {
+    showToast('Team name must be at least 3 characters');
+    input?.focus();
+    _submittingGlobal = false;
+    return;
+  }
+  S.teamName   = name.slice(0, 30);
 
   if (!S.runSaved) {
     S.runSaved = true;
@@ -1204,7 +1280,14 @@ async function doSubmitDaily() {
   const dailyInput = document.getElementById('daily-team-name-input');
   const saveInput  = document.getElementById('team-name-input');
   const raw = (dailyInput?.value ?? saveInput?.value ?? '').trim();
-  S.teamName = raw.slice(0, 30) || S.teamName || 'Untitled Team';
+  const name = (raw || S.teamName || '').trim();
+  if (!name || name === 'Untitled Team' || name.length < 3) {
+    showToast('Enter a team name (at least 3 characters)');
+    (dailyInput || saveInput)?.focus();
+    _submittingDaily = false;
+    return;
+  }
+  S.teamName = name.slice(0, 30);
 
   const btn = document.getElementById('submit-daily-btn');
   if (btn) {
@@ -1248,17 +1331,9 @@ function buildResultCardData() {
   const r = S.result;
   if (!r) return null;
 
-  const isPerfect  = r.wins === 82;
-  const isHistoric = r.wins >= 75;
-  const isElite    = r.wins >= 70;
-  const isPlayoff  = r.wins >= 60;
-
-  let tierLabel, tierEmoji;
-  if (isPerfect)       { tierLabel = 'PERFECT SEASON';   tierEmoji = '🏆'; }
-  else if (isHistoric) { tierLabel = 'Historic Season';  tierEmoji = '🔥'; }
-  else if (isElite)    { tierLabel = 'Elite Season';     tierEmoji = '⚡'; }
-  else if (isPlayoff)  { tierLabel = 'Playoff Contender';tierEmoji = '✅'; }
-  else                 { tierLabel = 'Rough Season';     tierEmoji = '😬'; }
+  const tier = seasonTier(r.wins);
+  const tierLabel = tier.label;
+  const tierEmoji = tier.emoji;
 
   const starters = POSITIONS.map(pos => {
     const p = S.roster[pos];
@@ -1354,11 +1429,15 @@ function onPlayoffChampion() {
 
 function fireChampionConfetti() {
   setTimeout(() => {
-    withConfetti(() => confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#f97316', '#eab308', '#ffffff'] }));
+    withConfetti(() => confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, zIndex: 40, colors: ['#f97316', '#eab308', '#ffffff'] }));
   }, 200);
 }
 
 function doAdvanceToPlayoffs() {
+  if (!S.result || S.result.wins < 20) {
+    showToast('Need at least 20 wins to enter the playoffs');
+    return;
+  }
   const playerStrength = S.result.strength;
   const playerSeed     = getPlayerSeed(S.result.wins);
   const bracket        = buildBracket(playerSeed, playerStrength);
@@ -1427,4 +1506,13 @@ function doSimAllPlayoffs() {
   if (po.champion) onPlayoffChampion();
   po.pendingReveal = true;
   render();
+}
+
+/** Update the polite aria-live region for draft/spin status. */
+function announceA11y(msg) {
+  const el = document.getElementById('aria-live-status');
+  if (!el) return;
+  el.textContent = '';
+  // Force a DOM change so screen readers re-announce identical strings.
+  requestAnimationFrame(() => { el.textContent = msg; });
 }

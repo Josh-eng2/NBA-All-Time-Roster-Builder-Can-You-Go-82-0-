@@ -49,6 +49,68 @@
       js.src = 'https://html5.api.gamedistribution.com/main.min.js';
       fjs.parentNode.insertBefore(js, fjs);
     }(document, 'script', 'gamedistribution-jssdk'));
+    // Keep #gdsdk__advertisement from eating clicks while idle/hidden.
+    // GD injects a full-viewport overlay with pointer-events:auto even when
+    // visibility:hidden — neutralize on insert and whenever it goes hidden.
+    (function () {
+      function neutralizeGdAd() {
+        var adEl = document.getElementById('gdsdk__advertisement');
+        if (!adEl) return;
+        var cs = window.getComputedStyle ? getComputedStyle(adEl) : null;
+        var vis = adEl.style.visibility || (cs && cs.visibility);
+        // Only steal pointer-events while the overlay is idle/hidden.
+        // When an ad is actually showing (visible), leave clicks alone.
+        if (vis === 'hidden') {
+          adEl.style.pointerEvents = 'none';
+        }
+      }
+      function watch(root) {
+        try {
+          new MutationObserver(function () { neutralizeGdAd(); })
+            .observe(root || document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class', 'aria-hidden'] });
+        } catch (e) {}
+        neutralizeGdAd();
+      }
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function () { watch(document.body); });
+      } else {
+        watch(document.body || document.documentElement);
+      }
+      setInterval(neutralizeGdAd, 2000);
+    })();
+    // GD's SDK strips href from in-page <a> tags (Privacy / Daily archive in
+    // #about). Stash the originals and restore whenever they disappear.
+    (function () {
+      function protectSeoLinks() {
+        var about = document.getElementById('about');
+        if (!about) return;
+        about.querySelectorAll('a[href]').forEach(function (a) {
+          if (!a.getAttribute('data-seo-href')) {
+            a.setAttribute('data-seo-href', a.getAttribute('href'));
+          }
+        });
+        about.querySelectorAll('a[data-seo-href]').forEach(function (a) {
+          if (!a.getAttribute('href')) {
+            a.setAttribute('href', a.getAttribute('data-seo-href'));
+          }
+        });
+      }
+      function start() {
+        protectSeoLinks();
+        var about = document.getElementById('about');
+        if (!about) return;
+        try {
+          new MutationObserver(protectSeoLinks)
+            .observe(about, { attributes: true, subtree: true, attributeFilter: ['href'], childList: true });
+        } catch (e) {}
+        setInterval(protectSeoLinks, 1500);
+      }
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', start);
+      } else {
+        start();
+      }
+    })();
   </script>
   <title>Can You Go 82-0? NBA All-Time Roster Builder &amp; Season Simulator</title>
   <meta name="description" content="Can you go 82-0? Free NBA team generator &amp; roster builder — draft all-time legends from every era, pick your coach, and run the 82-game season simulator to chase a perfect record." />

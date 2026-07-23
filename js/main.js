@@ -56,6 +56,12 @@ async function init() {
 
     render();                      // returning players: normal mode-select flow
     cgLoadingStop();
+    // Honor deep-link hashes after the menu paints (e.g. #/daily).
+    try {
+      window.dispatchEvent(new HashChangeEvent('hashchange'));
+    } catch (_) {
+      // HashChangeEvent may be unavailable in older engines — click path still works.
+    }
   } catch (err) {
     console.error('[82-0] init failed:', err);
     cgLoadingStop();

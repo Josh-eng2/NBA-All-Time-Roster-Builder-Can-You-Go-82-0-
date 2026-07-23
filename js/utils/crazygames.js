@@ -28,24 +28,49 @@ async function isActive() {
   return env === 'crazygames' || env === 'local';
 }
 
+/**
+ * Local SDK stubs report env 'local' (so isActive() is true) but often omit
+ * individual game.* methods. Guard each call the same way usingCgData()
+ * guards SDK.data — existence check + try/catch, never unhandled rejection.
+ */
+function cgGame() {
+  return window.CrazyGames?.SDK?.game;
+}
+
 /** Call as early as possible — right when the game starts loading. */
 export async function cgLoadingStart() {
-  if (await isActive()) window.CrazyGames.SDK.game.loadingStart();
+  try {
+    if (!(await isActive())) return;
+    const fn = cgGame()?.loadingStart;
+    if (typeof fn === 'function') fn.call(cgGame());
+  } catch (_) { /* local stub incomplete */ }
 }
 
 /** Call once the game is first playable (first real frame rendered). */
 export async function cgLoadingStop() {
-  if (await isActive()) window.CrazyGames.SDK.game.loadingStop();
+  try {
+    if (!(await isActive())) return;
+    const fn = cgGame()?.loadingStop;
+    if (typeof fn === 'function') fn.call(cgGame());
+  } catch (_) { /* local stub incomplete */ }
 }
 
 /** Call whenever the player starts or resumes active play. */
 export async function cgGameplayStart() {
-  if (await isActive()) window.CrazyGames.SDK.game.gameplayStart();
+  try {
+    if (!(await isActive())) return;
+    const fn = cgGame()?.gameplayStart;
+    if (typeof fn === 'function') fn.call(cgGame());
+  } catch (_) { /* local stub incomplete */ }
 }
 
 /** Call on every break from active play (menus, results, pauses). */
 export async function cgGameplayStop() {
-  if (await isActive()) window.CrazyGames.SDK.game.gameplayStop();
+  try {
+    if (!(await isActive())) return;
+    const fn = cgGame()?.gameplayStop;
+    if (typeof fn === 'function') fn.call(cgGame());
+  } catch (_) { /* local stub incomplete */ }
 }
 
 /**
@@ -55,12 +80,16 @@ export async function cgGameplayStop() {
  * this just wires the hook up ahead of time for when ads are enabled.
  */
 export async function cgRequestMidgameAd() {
-  if (!(await isActive())) return;
-  window.CrazyGames.SDK.ad.requestAd('midgame', {
-    adFinished: () => {},
-    adError:    () => {},
-    adStarted:  () => {},
-  });
+  try {
+    if (!(await isActive())) return;
+    const ad = window.CrazyGames?.SDK?.ad;
+    if (typeof ad?.requestAd !== 'function') return;
+    ad.requestAd('midgame', {
+      adFinished: () => {},
+      adError:    () => {},
+      adStarted:  () => {},
+    });
+  } catch (_) { /* local stub incomplete */ }
 }
 
 // ── Data module (progress save) ───────────────────────────────────────────
