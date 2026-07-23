@@ -140,6 +140,11 @@ export function fmtPG(n) {
   return (Number(n) || 0).toFixed(1);
 }
 
+/** Conjugate series status verbs for 2nd-person "You" vs 3rd-person labels. */
+function seriesAgree(label, thirdPerson, secondPerson) {
+  return label === 'You' ? secondPerson : thirdPerson;
+}
+
 export function fmtDecadeShort(decade) {
   if (!decade) return '';
   const m = decade.match(/(\d{2})(\d{2})s/);
@@ -479,6 +484,7 @@ function renderDailyModeCard() {
       <div class="flex-1 min-w-0" style="pointer-events:none">
         <p class="font-black text-sm flex flex-wrap items-center gap-x-2 gap-y-1" style="color:#f97316">Daily Challenge · ${ch.title}</p>
         <p class="text-[11px] text-muted-fg leading-snug mt-0.5">${ch.desc}${community}</p>
+        <p class="text-[10px] text-muted-fg mt-0.5">One attempt per day · board locks after you play</p>
       </div>
       <span class="text-[11px] font-bold px-2 py-1 rounded-lg border flex-shrink-0" style="border-color:#fdba74;background:var(--card);color:${isDark() ? '#fdba74' : '#c2410c'};pointer-events:none">Play →</span>
     </button>
@@ -498,10 +504,10 @@ function renderModeSelect() {
         <div class="w-20 mode-header__spacer"></div>
         <img src="logo-badge.svg" alt="82-0" class="mode-header__logo" style="height:52px;width:auto;margin-top:2px"/>
         <div class="flex items-center gap-1.5 justify-end mode-header__actions">
-          <button data-action="open-daily-stats" class="text-[11px] px-2 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Daily Challenge Stats">📊</button>
-          <button data-action="open-leaderboard" class="text-[11px] px-2 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Personal Best">🏅</button>
-          <button data-action="open-global-leaderboard" class="text-[11px] px-2 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Global Leaderboard">🌍</button>
-          <button data-action="toggle-theme" class="theme-toggle" title="Toggle Dark Mode">${themeIcon()}</button>
+          <button data-action="open-daily-stats" class="text-[11px] px-2 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Daily Challenge Stats" aria-label="Daily Challenge Stats">📊</button>
+          <button data-action="open-leaderboard" class="text-[11px] px-2 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Personal Best" aria-label="Personal Best">🏅</button>
+          <button data-action="open-global-leaderboard" class="text-[11px] px-2 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Global Leaderboard" aria-label="Global Leaderboard">🌍</button>
+          <button data-action="toggle-theme" class="theme-toggle" title="Toggle Dark Mode" aria-label="Toggle Dark Mode">${themeIcon()}</button>
         </div>
       </div>
     </header>
@@ -600,9 +606,6 @@ function renderMoreModesScreen() {
       <div class="w-full max-w-md flex flex-col gap-3 animate-fade-up">
         <p class="text-center text-sm text-muted-fg mb-1">Pick a challenge mode to play.</p>
         ${cards}
-        <button data-action="more-modes-back" class="w-full py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer card-shadow mt-1">
-          ← Back
-        </button>
       </div>
     </main>
     ${renderFooter()}
@@ -806,7 +809,7 @@ function renderModeDraftBanner() {
     const proj = starters.length ? fansFirstScore(avg, fansM, estWins) : null;
     return `<div class="rounded-xl border px-3 py-2 text-xs font-semibold mode-banner mode-banner--fans"
       style="border-color:color-mix(in srgb, #ec4899 35%, var(--border));background:color-mix(in srgb, #ec4899 14%, var(--card));color:var(--fg)">
-      📣 Fans First — optimize star power. Score ≈ pop×10 + fansM×5 + wins×2${proj != null ? ` · live proj ~${Math.round(proj)} (@~${estWins}W)` : ''}.
+      📣 Fans First — optimize star power. Pass needs ≥70 avg popularity and ≥35 wins. Score ≈ pop×10 + fansM×5 + wins×2${proj != null ? ` · live proj ~${Math.round(proj)} (@~${estWins}W)` : ''}.
     </div>`;
   }
   if (S.mode === 'dynasty-duel' && S.dynastyOpponent) {
@@ -1140,7 +1143,7 @@ function renderSlotMachine() {
         🚫 No legal picks here — spin a new board
       </button>
       ` : `
-      <p class="text-center text-xs text-muted-fg py-1">${S.mode === 'blind' ? 'Names only — draft places into an open slot (or tap a slot to choose)' : 'Draft places into an open natural slot — or tap a roster slot to choose'}</p>
+      <p class="text-center text-xs text-muted-fg py-1">${S.mode === 'blind' ? 'Names only — select a player, then tap a roster slot to place them' : 'Draft places into an open natural slot — or tap a roster slot to choose'}</p>
       `}
     `}
   </div>`;
@@ -1186,7 +1189,9 @@ function renderDraftCard(p, index) {
   const cardBorder      = unavailable ? 'var(--border)' : isSelected ? 'var(--primary)' : 'var(--border)';
   const cardBg          = unavailable ? 'var(--card3)' : isSelected ? 'var(--card2)' : 'var(--card)';
   const cardOpacity     = unavailable ? 'opacity:0.5;' : '';
-  const pickLabel       = isMobileViewport()
+  const pickLabel       = S.mode === 'blind'
+    ? (isSelected ? '✓ Selected — Tap a Roster Slot' : 'Draft → Tap Slot')
+    : isMobileViewport()
     ? (isSelected ? '✓ Selected' : 'Draft → Slot')
     : (isSelected ? '✓ Selected — Tap a Roster Slot' : 'Draft → Tap Slot');
 
@@ -1222,7 +1227,7 @@ function renderDraftCard(p, index) {
       <p class="font-bold text-sm text-foreground leading-tight mb-1.5 draft-card__name">${p.name}</p>
       <div class="flex flex-wrap gap-x-2 gap-y-0.5 draft-card__stats">
         ${[['PPG', p.ppg], ['RPG', p.rpg], ['APG', p.apg], ['SPG', p.spg], ['BPG', p.bpg]].map(([l, v]) =>
-          `<span class="text-[10px] text-muted-fg"><span class="font-semibold text-foreground">${v}</span> ${l}</span>`
+          `<span class="text-[10px] text-muted-fg"><span class="font-semibold text-foreground">${fmtPG(v)}</span> ${l}</span>`
         ).join('')}
       </div>
       ${p.traits && p.traits.length ? `
@@ -1266,10 +1271,17 @@ function renderRosterSlot(pos, canPlace) {
   if (p) {
     const fitType  = p.pos === pos ? 'primary' : (p.secondaryPos || []).includes(pos) ? 'flex' : 'place';
     const fitClass  = 'fit-' + fitType;
-    const fitColors = { primary: '#16a34a', flex: '#d97706', place: '#dc2626' };
-    const borderColor = '#fca5a5';
-    const borderTop   = '3px solid #dc2626';
+    // Match empty-slot + chem language: primary green, flex amber, OOP/versatile
+    // warm amber — never a "bad" red that fights Versatile (+1%) chem lines.
+    const fitColors = { primary: '#16a34a', flex: '#d97706', place: '#c2410c' };
+    const fitBorders = { primary: '#86efac', flex: '#fde68a', place: '#fdba74' };
+    const fitTops = { primary: '#16a34a', flex: '#d97706', place: '#ea580c' };
+    const borderColor = fitBorders[fitType];
+    const borderTop   = `3px solid ${fitTops[fitType]}`;
     const labelColor  = fitColors[fitType];
+    const ppgLine = S.mode === 'blind'
+      ? ''
+      : `<span class="text-[10px] text-muted-fg leading-none">${fmtPG(p.ppg)}pt</span>`;
 
     return `
     <div class="rounded-xl border bg-white p-2 flex flex-col items-center gap-0.5 text-center overflow-hidden card-shadow locked draft-roster-slot ${fitClass}"
@@ -1277,12 +1289,12 @@ function renderRosterSlot(pos, canPlace) {
       title="${p.name} · pick locked">
       <span class="text-[10px] font-black uppercase leading-none" style="color:${labelColor}">${label}</span>
       <span class="text-[11px] font-bold text-foreground leading-tight w-full text-center truncate px-0.5">${p.name.split(' ').pop()}</span>
-      <span class="text-[10px] text-muted-fg leading-none">${fmtPG(p.ppg)}pt</span>
+      ${ppgLine}
     </div>`;
   }
 
   // Empty slot — droppable when placing a draft pick.
-  // HoopIQ hides the Primary/Flex hints: highlighting the selected player's
+  // Ball IQ hides the Primary/Flex hints: highlighting the selected player's
   // natural slots would leak the position the mode asks you to know.
   const canDrop      = canPlace;
   const sp           = S.selectedPlayer;
@@ -1292,12 +1304,8 @@ function renderRosterSlot(pos, canPlace) {
     (sp.secondaryPos || []).includes(pos);
   // Out-of-position is NOT a bad fit — chemistry.js's optimizeLineup() scores
   // every slot on a 3-tier scale (primary/flex/oop) and oop still nets a
-  // positive "Versatile (+1%)" synergy line, never a penalty. This indicator
-  // used to fall straight to red for anything past primary/flex, so a player
-  // like an OOP Magic Johnson at SF showed a red "bad fit" border here while
-  // the chemistry report simultaneously called it a green synergy — same
-  // scale, mismatched color. Amber/neutral instead of red keeps the two in
-  // agreement: still worth the drop, just not the best possible one.
+  // positive "Versatile (+1%)" synergy line, never a penalty. Amber/neutral
+  // instead of red keeps the roster chip in agreement with chemistry copy.
   const oopMatch     = showFit && canDrop && sp && !primaryMatch && !flexMatch;
 
   const slotBg     = !canDrop ? 'var(--card3)' : (isDark() ? 'rgba(234,179,8,0.08)' : '#fffbeb');
@@ -1306,22 +1314,41 @@ function renderRosterSlot(pos, canPlace) {
   const slotText   = !canDrop ? 'Empty' : primaryMatch ? 'Primary' : flexMatch ? 'Flex' : oopMatch ? 'Versatile' : 'Place';
 
   return `
-  <div ${canDrop ? `data-action="place-${pos}"` : ''}
-    class="rounded-xl border-2 border-dashed p-2 flex flex-col items-center gap-1 text-center transition-all draft-roster-slot ${canDrop ? 'slot-empty droppable' : ''}"
-    style="background:${slotBg};border-color:${slotBorder}">
+  <button type="button" ${canDrop ? `data-action="place-${pos}"` : 'disabled'}
+    class="rounded-xl border-2 border-dashed p-2 flex flex-col items-center gap-1 text-center transition-all draft-roster-slot ${canDrop ? 'slot-empty droppable cursor-pointer' : 'opacity-90'}"
+    style="background:${slotBg};border-color:${slotBorder}"
+    aria-label="${canDrop ? `Place ${sp?.name || 'player'} at ${label}` : `${label} empty`}">
     <span class="text-[10px] font-black uppercase" style="color:${slotColor}">${label}</span>
     <span class="text-xs" style="color:${slotColor}">${slotText}</span>
-  </div>`;
+  </button>`;
 }
 
 // ── Live Chemistry Dashboard ──────────────────────────────────────────────────
 function renderChemDashboard() {
-  const starters = POSITIONS.map(p => S.roster[p]).filter(Boolean);
-  // Coach is part of the key — amplifiers change the report for the same roster.
-  const rosterKey = (S.coach || '') + '|' + starters.map(p => p.id).join(',');
+  // Ball IQ: hide archetype / natural-position report lines while drafting —
+  // they leak the answers the mode is testing. Keep the score meter only.
+  if (S.mode === 'blind') {
+    return `
+  <div class="rounded-xl border border-border bg-card px-4 py-3 card-shadow draft-chem-dashboard">
+    <div class="flex items-center justify-between mb-2 draft-chem-dashboard__head">
+      <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg">Team Chemistry</p>
+      <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border border-border bg-card2 text-muted-fg">Ball IQ</span>
+    </div>
+    <p class="text-xs text-muted-fg draft-chem-report__empty">Names only — chemistry details unlock after you simulate.</p>
+  </div>`;
+  }
+
+  // As-placed slots so Perfect Fit / Versatile lines match the visible roster
+  // chips (sim still uses optimizeLineup inside calculateChemistry by default).
+  const placedPairs = POSITIONS
+    .map(pos => ({ pos, player: S.roster[pos] }))
+    .filter(x => x.player);
+  const starters = placedPairs.map(x => x.player);
+  const asPlacedSlots = placedPairs.map(x => x.pos);
+  const rosterKey = 'placed|' + (S.coach || '') + '|' + asPlacedSlots.map((s, i) => s + ':' + starters[i].id).join(',');
   if (_chemCache.key !== rosterKey) {
     _chemCache.key    = rosterKey;
-    _chemCache.result = calculateChemistry(starters);
+    _chemCache.result = calculateChemistry(starters, S.coach, { asPlacedSlots });
   }
   const { chemScore, chemReport } = _chemCache.result;
   const tier = chemTier(chemScore);
@@ -1629,15 +1656,31 @@ function renderDailyResultBanner() {
   const dr = S.dailyResult;
   if (S.mode !== 'daily' || !ch || !dr) return '';
   const style = dr.pass
-    ? { bg: '#f0fdf4', border: '#86efac', color: '#15803d', icon: '🎉', head: 'Challenge passed!' }
-    : { bg: '#fef2f2', border: '#fca5a5', color: '#dc2626', icon: '💔', head: 'Challenge failed' };
+    ? {
+        bg: 'color-mix(in srgb, #22c55e 14%, var(--card))',
+        border: 'color-mix(in srgb, #22c55e 45%, var(--border))',
+        color: isDark() ? '#4ade80' : '#15803d',
+        title: 'var(--fg)',
+        muted: 'var(--muted-fg)',
+        icon: '🎉',
+        head: 'Challenge passed!',
+      }
+    : {
+        bg: 'color-mix(in srgb, #ef4444 12%, var(--card))',
+        border: 'color-mix(in srgb, #ef4444 45%, var(--border))',
+        color: isDark() ? '#f87171' : '#dc2626',
+        title: 'var(--fg)',
+        muted: 'var(--muted-fg)',
+        icon: '💔',
+        head: 'Challenge failed',
+      };
   const streakLine = dr.pass && dr.streak > 0 ? ` · 🔥 ${dr.streak}-day streak` : '';
   return `
   <div class="rounded-2xl border-2 p-4 card-shadow text-center" style="background:${style.bg};border-color:${style.border}">
     <p class="text-xs font-black uppercase tracking-widest mb-1" style="color:${style.color}">${style.icon} Daily Challenge — ${style.head}</p>
-    <p class="text-sm font-bold" style="color:#0f172a">${ch.emoji} ${ch.title}</p>
+    <p class="text-sm font-bold" style="color:${style.title}">${ch.emoji} ${ch.title}</p>
     <p class="text-xs mt-1" style="color:${style.color}">${dr.detail}${streakLine}</p>
-    <p class="text-[10px] mt-1.5" style="color:#64748b">Score ${dr.score} · new challenge tomorrow (midnight UTC)${renderCommunityStatsMerged()}</p>
+    <p class="text-[10px] mt-1.5" style="color:${style.muted}">Score ${dr.score} · new challenge tomorrow (midnight UTC)${renderCommunityStatsMerged()}</p>
     <button data-action="open-daily-stats" class="mt-3 text-xs font-bold px-3 py-1.5 rounded-lg border cursor-pointer"
       style="border-color:${style.border};background:var(--card);color:${style.color}">Daily Challenge Stats 📊</button>
   </div>`;
@@ -1722,7 +1765,7 @@ function renderResults() {
   const modeBadge = S.mode === 'defense'
     ? `<span class="inline-block text-[11px] font-bold px-3 py-1 rounded-full mb-2 border" style="border-color:color-mix(in srgb,#8b5cf6 35%,var(--border));background:color-mix(in srgb,#8b5cf6 14%,var(--card));color:var(--fg)">🛡️ DEF profile · ${r.teamStocks ?? 0} stocks</span>`
     : S.mode === 'fans'
-    ? `<span class="inline-block text-[11px] font-bold px-3 py-1 rounded-full mb-2 border" style="border-color:color-mix(in srgb,#ec4899 35%,var(--border));background:color-mix(in srgb,#ec4899 14%,var(--card));color:var(--fg)">📣 Fans First score ${r.fansScore ?? 0}${r.fansPassed ? ' · ✓' : ''}</span>`
+    ? `<span class="inline-block text-[11px] font-bold px-3 py-1 rounded-full mb-2 border" style="border-color:color-mix(in srgb,#ec4899 35%,var(--border));background:color-mix(in srgb,#ec4899 14%,var(--card));color:var(--fg)">📣 Fans First score ${r.fansScore ?? 0}${r.fansPassed ? ' · ✓ (≥70 pop & ≥35 wins)' : ' · need ≥70 pop & ≥35 wins'}</span>`
     : '';
 
   const winsColor = isPerfect || isHistoric ? (isDark() ? '#fbbf24' : '#d97706') : isElite ? (isDark() ? '#4ade80' : '#16a34a') : isPlayoff ? (isDark() ? '#60a5fa' : '#2563eb') : (isDark() ? '#f87171' : '#dc2626');
@@ -2569,7 +2612,7 @@ function renderSeriesResult() {
 
   const loserGames = p1Win ? p2Wins : p1Wins;
   const fightLine = loserGames === 0
-    ? `${loserLabel} was swept — couldn't steal a game.`
+    ? `${loserLabel} ${seriesAgree(loserLabel, 'was', 'were')} swept — couldn't steal a game.`
     : `${loserLabel} put up a fight — ${loserGames} ${loserGames === 1 ? 'game' : 'games'} won.`;
 
   return `
@@ -2756,7 +2799,7 @@ function renderSeriesSim() {
   } else if (seriesOver) {
     const w = p1Wins === 4 ? labels.p1 : labels.p2;
     const wc = p1Wins === 4 ? '#2563eb' : '#d97706';
-    statusText  = `🏆 ${w} wins the series ${p1Wins}–${p2Wins}!`;
+    statusText  = `🏆 ${w} ${seriesAgree(w, 'wins', 'win')} the series ${p1Wins}–${p2Wins}!`;
     statusColor = wc; statusBg = p1Wins === 4 ? '#eff6ff' : '#fffbeb'; statusBdr = wc + '40';
   } else if (p1Wins === p2Wins) {
     statusText  = `Series tied ${p1Wins}–${p2Wins}`;
@@ -2765,7 +2808,7 @@ function renderSeriesSim() {
     const leader = p1Wins > p2Wins ? labels.p1 : labels.p2;
     const lc     = p1Wins > p2Wins ? '#2563eb' : '#d97706';
     const lw = Math.max(p1Wins, p2Wins), ll = Math.min(p1Wins, p2Wins);
-    statusText  = `${leader} leads ${lw}–${ll}`;
+    statusText  = `${leader} ${seriesAgree(leader, 'leads', 'lead')} ${lw}–${ll}`;
     statusColor = lc; statusBg = p1Wins > p2Wins ? '#eff6ff' : '#fffbeb'; statusBdr = lc + '40';
   }
 
@@ -2778,7 +2821,7 @@ function renderSeriesSim() {
     }
     const p1Won = g.p1Won;
     const wc    = p1Won ? '#2563eb' : '#d97706';
-    const wlbl  = p1Won ? 'P1 W' : 'P2 W';
+    const wlbl  = p1Won ? `${labels.p1Short} W` : `${labels.p2Short} W`;
     const wbg   = p1Won ? '#eff6ff' : '#fffbeb';
     return `<div class="flex items-center gap-3 py-2.5 border-b border-border last:border-0">
       <span class="text-[10px] font-bold text-muted-fg w-12 flex-shrink-0">Game ${g.gameNum}</span>
@@ -2823,8 +2866,8 @@ function renderSeriesSim() {
           <div class="flex items-center justify-between mb-3">
             <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg">Scoreboard</p>
             <div class="flex gap-3 text-[10px] font-bold text-muted-fg">
-              <span style="color:#2563eb">P1</span>
-              <span style="color:#d97706">P2</span>
+              <span style="color:#2563eb">${labels.p1Short}</span>
+              <span style="color:#d97706">${labels.p2Short}</span>
             </div>
           </div>
           <div class="flex flex-col">${gameRows}</div>

@@ -1,7 +1,10 @@
 /**
  * js/logic/chemistry.js — Advanced Team Chemistry Engine
  *
- * calculateChemistry(starters, coachId?)
+ * calculateChemistry(starters, coachId?, opts?)
+ *
+ * opts.asPlacedSlots — when set (live draft UI), score positional fit against
+ * the player's placed roster slots instead of optimizeLineup.
  *   Uses coachId when provided; otherwise falls back to S.coach.
  *   Returns { chemBonus, chemScore, chemReport, chemEntries, lineupAssignment }.
  *
@@ -184,11 +187,45 @@ function optimizeLineup(starters) {
 }
 
 /**
+ * Score positional fit against the player's *placed* roster slots (PG→C order),
+ * not the engine's optimized floor. Used by the live draft chemistry panel so
+ * "Perfect Fit … natural SG" matches the SG chip the player actually sees.
+ *
+ * @param {object[]} starters  players in POSITIONS order (empties already filtered)
+ * @param {string[]} slots     matching slot labels for each starter
+ */
+function placementLineup(starters, slots) {
+  const n = Math.min(starters.length, slots.length, 5);
+  if (n === 0) return { assignment: [], posBonus: 0, flawless: false };
+
+  const assignment = [];
+  let posBonus = 0;
+  for (let i = 0; i < n; i++) {
+    const p     = starters[i];
+    const slot  = slots[i];
+    const score = slotFitScore(p, slot);
+    let fit;
+    if (p.pos === slot)                              fit = 'primary';
+    else if ((p.secondaryPos || []).includes(slot)) fit = 'flex';
+    else                                              fit = 'oop';
+    assignment.push({ slot, player: p, fit, bonus: score });
+    posBonus += score;
+  }
+
+  const allPrimary = n === 5 && assignment.every(a => a.fit === 'primary');
+  if (allPrimary) posBonus += 0.07;
+
+  return { assignment, posBonus, flawless: allPrimary };
+}
+
+/**
  * @param {object[]} starters  5 starter player objects (starters-only format)
  * @param {string|null} coachId
+ * @param {{ asPlacedSlots?: string[] }} [opts]  when set, score fit against these
+ *   placed slots (same order as starters) instead of optimizeLineup — for live UI
  * @returns {{ chemBonus: number, chemScore: number, chemReport: string[], chemEntries: object[], lineupAssignment: object[] }}
  */
-export function calculateChemistry(starters, coachId = null) {
+export function calculateChemistry(starters, coachId = null, opts = {}) {
   const coach = coachId ?? ((typeof S !== 'undefined' && S.coach) ? S.coach : null);
 
   // Archetype shorthand
@@ -214,7 +251,11 @@ export function calculateChemistry(starters, coachId = null) {
   const penalty = (id, bonus, label) => add(id, 'penalty', null, -Math.abs(bonus), label);
 
   // ── PHASE 0: LINEUP OPTIMIZER (POSITIONAL FIT) ───────────────────────────────
-  const { assignment, posBonus, flawless } = optimizeLineup(starters);
+  // Sim uses optimizeLineup (engine may rematch slots). Live draft UI passes
+  // asPlacedSlots so Perfect Fit / Versatile lines match the visible roster.
+  const { assignment, posBonus, flawless } = opts.asPlacedSlots
+    ? placementLineup(starters, opts.asPlacedSlots)
+    : optimizeLineup(starters);
   if (flawless) {
     synergy('flawless-construction', 'position', 0.07,
       'Flawless Construction: All 5 starters playing natural positions (+7%)');
