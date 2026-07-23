@@ -123,12 +123,29 @@
  *   fetchDailyCommunityStats(date) — { attempts, passed, pct } for the day's board
  */
 
-import { initializeApp, getApps }   from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js';
-import {
-  getFirestore, collection, addDoc, getDocs,
-  query, orderBy, limit, where, serverTimestamp, Timestamp,
-} from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js';
-import { getAnalytics, logEvent } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-analytics.js';
+// The SDK is loaded via dynamic import (below), not a static one. main.js and
+// events.js import this module at the top level, so a static import of a
+// third-party CDN URL here would mean a blocked/unreachable gstatic.com
+// (corporate firewall, privacy extension, flaky connection) takes down the
+// ENTIRE module graph — no render, no mode-select, nothing. A dynamic import
+// confined to ensureInit() below lets that failure degrade to "leaderboard
+// and analytics unavailable" instead of "game never boots".
+let initializeApp, getApps, getFirestore, collection, addDoc, getDocs,
+    query, orderBy, limit, where, serverTimestamp, Timestamp,
+    getAnalytics, logEvent;
+
+let _sdkPromise = null;
+function loadSdk() {
+  if (!_sdkPromise) {
+    _sdkPromise = Promise.all([
+      import('https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js'),
+      import('https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js'),
+      import('https://www.gstatic.com/firebasejs/10.12.4/firebase-analytics.js'),
+    ]).then(([app, firestore, analytics]) => ({ app, firestore, analytics }))
+      .catch(() => null);
+  }
+  return _sdkPromise;
+}
 
 // ── Firebase project config ────────────────────────────────────────────────────
 const FIREBASE_CONFIG = {
@@ -153,22 +170,38 @@ export function isFirebaseConfigured() {
 
 let _db        = null;
 let _analytics = null;
+let _app       = null;
 
-// Initialize the Firebase app and Analytics eagerly at module load so that
-// session tracking and page-view events fire immediately on page open.
-const _app = (() => {
-  if (!isFirebaseConfigured()) return null;
-  try {
-    const existing = getApps();
-    const app = existing.length ? existing[0] : initializeApp(FIREBASE_CONFIG);
-    try { _analytics = getAnalytics(app); } catch (_) { /* blocked by adblocker */ }
-    return app;
-  } catch (_) { return null; }
-})();
+// Initialize the Firebase app and Analytics eagerly at module load (kicked
+// off below, not awaited) so that session tracking and page-view events fire
+// as soon as the SDK resolves. Memoized — safe to call from every exported
+// function without re-triggering the dynamic import.
+let _initPromise = null;
+function ensureInit() {
+  if (!_initPromise) {
+    _initPromise = (async () => {
+      if (!isFirebaseConfigured()) return;
+      const sdk = await loadSdk();
+      if (!sdk) return; // CDN blocked/unreachable — leaderboard & analytics silently unavailable
+      try {
+        ({ initializeApp, getApps } = sdk.app);
+        ({ getFirestore, collection, addDoc, getDocs,
+           query, orderBy, limit, where, serverTimestamp, Timestamp } = sdk.firestore);
+        ({ getAnalytics, logEvent } = sdk.analytics);
+        const existing = getApps();
+        _app = existing.length ? existing[0] : initializeApp(FIREBASE_CONFIG);
+        try { _analytics = getAnalytics(_app); } catch (_) { /* blocked by adblocker */ }
+      } catch (_) { _app = null; }
+    })();
+  }
+  return _initPromise;
+}
+ensureInit();
 
-function getDb() {
+async function getDb() {
+  await ensureInit();
   if (_db) return _db;
-  if (!_app) return null;
+  if (!_app || !getFirestore) return null;
   _db = getFirestore(_app);
   return _db;
 }
@@ -179,9 +212,11 @@ function getDb() {
  * @param {object} [params]
  */
 export function logAnalyticsEvent(eventName, params = {}) {
-  try {
-    if (_analytics) logEvent(_analytics, eventName, params);
-  } catch (_) { /* silently ignore */ }
+  ensureInit().then(() => {
+    try {
+      if (_analytics) logEvent(_analytics, eventName, params);
+    } catch (_) { /* silently ignore */ }
+  }).catch(() => {});
 }
 
 // ── Public API ────────────────────────────────────────────────────────────────
@@ -209,7 +244,8 @@ export async function submitGlobalScore(entry) {
   if (!isFirebaseConfigured()) throw new Error('Firebase not configured — see js/utils/firebase.js setup instructions');
   const wins = entry.wins ?? 0;
   if (wins < 0 || wins > 82) throw new Error('Invalid wins value');
-  const db  = getDb();
+  const db  = await getDb();
+  if (!db) throw new Error('Firebase unavailable — leaderboard could not load');
   const col = collection(db, 'leaderboard');
   const ref = await addDoc(col, {
     teamName:    (entry.teamName || 'Untitled Team').slice(0, 30),
@@ -249,7 +285,8 @@ export async function submitGlobalScore(entry) {
  */
 export async function fetchLeaderboard(filter = 'alltime') {
   if (!isFirebaseConfigured()) throw new Error('Firebase not configured — see js/utils/firebase.js setup instructions');
-  const db  = getDb();
+  const db  = await getDb();
+  if (!db) throw new Error('Firebase unavailable — leaderboard could not load');
   const col = collection(db, 'leaderboard');
 
   let q;
@@ -296,7 +333,8 @@ export async function submitDailyScore(entry) {
   const wins = entry.wins ?? 0;
   if (wins < 0 || wins > 82) throw new Error('Invalid wins value');
   if (!/^\d{4}-\d{2}-\d{2}$/.test(entry.date || '')) throw new Error('Invalid date');
-  const db  = getDb();
+  const db  = await getDb();
+  if (!db) throw new Error('Firebase unavailable — leaderboard could not load');
   const col = collection(db, 'dailyLeaderboard');
   const ref = await addDoc(col, {
     date:         entry.date,
@@ -329,7 +367,8 @@ export async function submitDailyScore(entry) {
  */
 export async function fetchDailyLeaderboard(date) {
   if (!isFirebaseConfigured()) throw new Error('Firebase not configured — see js/utils/firebase.js setup instructions');
-  const db  = getDb();
+  const db  = await getDb();
+  if (!db) throw new Error('Firebase unavailable — leaderboard could not load');
   const col = collection(db, 'dailyLeaderboard');
   // Single equality filter, no orderBy — needs no composite index. Sorted
   // client-side, same pattern fetchLeaderboard() uses for 24h/weekly.
@@ -369,7 +408,8 @@ export async function fetchDailyLeaderboard(date) {
 export async function fetchDailyCommunityStats(date) {
   if (!isFirebaseConfigured()) throw new Error('Firebase not configured — see js/utils/firebase.js setup instructions');
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date || '')) throw new Error('Invalid date');
-  const db  = getDb();
+  const db  = await getDb();
+  if (!db) throw new Error('Firebase unavailable — leaderboard could not load');
   const col = collection(db, 'dailyLeaderboard');
   const q    = query(col, where('date', '==', date), limit(500));
   const snap = await getDocs(q);
