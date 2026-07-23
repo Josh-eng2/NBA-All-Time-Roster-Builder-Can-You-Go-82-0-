@@ -261,8 +261,12 @@ function dispatch(action) {
       const preferred = [p.pos, ...(p.secondaryPos || [])].filter(Boolean);
       const autoSlot = preferred.find(pos => roster && !roster[pos]);
       if (autoSlot) {
-        placePlayer(autoSlot);
-        announceA11y(`Drafted ${p.name} to ${autoSlot}`);
+        if (placePlayer(autoSlot)) {
+          announceA11y(`Drafted ${p.name} to ${autoSlot}`);
+        } else {
+          render();
+          announceA11y(`Selected ${p.name}. Tap a roster slot to place them.`);
+        }
         return;
       }
     }
@@ -629,8 +633,9 @@ async function doWatchAdForSkips() {
   render();
 }
 
+/** @returns {boolean} true if the player was actually placed on a roster. */
 function placePlayer(pos) {
-  if (!S.selectedPlayer) { render(); return; }
+  if (!S.selectedPlayer) { render(); return false; }
   const spin   = S.currentSpin;
   const player = { ...S.selectedPlayer, team: spin?.team, decade: spin?.decade };
 
@@ -642,7 +647,7 @@ function placePlayer(pos) {
     const { legal, reason } = checkPickLegal(S.dailyChallenge, player, filled);
     if (!legal) {
       showToast(`🚫 ${reason}`);
-      return;
+      return false;
     }
   }
 
@@ -652,12 +657,12 @@ function placePlayer(pos) {
 
     if (activeRoster[pos]) {
       showToast('Slot already filled — picks are permanent!');
-      return;
+      return false;
     }
 
     if (S.draftedPlayerNames?.has(player.name)) {
       showToast('Player already drafted!');
-      return;
+      return false;
     }
 
     activeRoster[pos] = player;
@@ -692,7 +697,7 @@ function placePlayer(pos) {
           date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
         });
       }
-      render(); return;
+      render(); return true;
     }
 
     // Snake draft turn order: 1-2-2-1-1-2-2-1-1-2
@@ -702,18 +707,18 @@ function placePlayer(pos) {
     if (S.mode === 'gm-ai' && S.currentPlayer === 2 && S.p2Round < 5) {
       setTimeout(() => doAiTurn(), 750);
     }
-    return;
+    return true;
   }
 
   // ── Solo draft ─────────────────────────────────────────────────────────────
   if (S.roster[pos]) {
     showToast('Slot already filled — picks are permanent!');
-    return;
+    return false;
   }
 
   if (S.draftedPlayerNames?.has(player.name)) {
     showToast('Player already on roster!');
-    return;
+    return false;
   }
 
   S.roster[pos]      = player;
@@ -724,13 +729,14 @@ function placePlayer(pos) {
   logAnalyticsEvent('player_drafted', { player: player.name, pos, round: S.round });
   S.selectedPlayer = null;
 
-  if (!rosterFull()) { doSpin(); return; }
+  if (!rosterFull()) { doSpin(); return true; }
 
   S.spinState        = 'idle';
   S.currentSpin      = null;
   S.availablePlayers = [];
   S.draftBoard       = [];
   render();
+  return true;
 }
 
 // ── Season simulation ─────────────────────────────────────────────────────────
