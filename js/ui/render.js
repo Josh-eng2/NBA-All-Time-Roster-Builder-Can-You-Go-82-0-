@@ -545,16 +545,10 @@ function renderModeSelect() {
           </button>
         </div>
 
-        <div class="grid grid-cols-2 gap-3 mb-3">
-          <button data-action="view-trophies"
-            class="py-3 rounded-xl font-bold text-sm border border-amber-200 bg-amber-50 text-amber-700 cursor-pointer transition-all hover:bg-amber-100 card-shadow">
-            🏆 Trophy Room${trophies.length > 0 ? ` · ${trophies.length}` : ''}
-          </button>
-          <button data-action="view-legends"
-            class="py-3 rounded-xl font-bold text-sm border border-indigo-200 bg-indigo-50 text-indigo-700 cursor-pointer transition-all hover:bg-indigo-100 card-shadow">
-            🃏 Legends
-          </button>
-        </div>
+        <button data-action="view-trophies"
+          class="w-full py-3 rounded-xl font-bold text-sm border border-amber-200 bg-amber-50 text-amber-700 cursor-pointer transition-all hover:bg-amber-100 card-shadow mb-3">
+          🏆 Trophy Room${trophies.length > 0 ? ` · ${trophies.length}` : ''}
+        </button>
 
         ${renderMoreModesButton()}
 
