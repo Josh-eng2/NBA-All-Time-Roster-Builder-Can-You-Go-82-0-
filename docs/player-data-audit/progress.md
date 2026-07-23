@@ -191,7 +191,7 @@ was generated directly from `players.json` and re-verified 1:1 against it
 - [ ] Kareem Abdul-Jabbar (`kareem_71`)
 - [ ] Oscar Robertson (`oscar_71`)
 - [ ] Bob Dandridge (`dandridge_71`)
-- [ ] Luol McCarter (`mcghee_71`)
+- [x] Lucius Allen (`mcghee_71`) — was placeholder name "Luol McCarter"; corrected to the Bucks' actual 1970-71 backup PG
 - [ ] Jon McGlocklin (`allen_71`)
 
 **Bulls_1970s** (3)

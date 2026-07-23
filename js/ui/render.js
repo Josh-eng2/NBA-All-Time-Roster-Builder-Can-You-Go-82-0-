@@ -133,6 +133,12 @@ export function archetypeBadge(arch) {
   return `<span class="inline-block text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full mt-0.5" style="background:${c.bg};color:${c.text}">${arch}</span>`;
 }
 
+/** Per-game stat display (PPG/RPG/APG/SPG/BPG) — real & simulated values carry
+ *  2 decimals of precision for the math; the UI only needs 1 for readability. */
+export function fmtPG(n) {
+  return (Number(n) || 0).toFixed(1);
+}
+
 export function fmtDecadeShort(decade) {
   if (!decade) return '';
   const m = decade.match(/(\d{2})(\d{2})s/);
@@ -873,7 +879,7 @@ function render1v1RosterPanel(roster, playerNum, isActive) {
     return `<div class="flex items-center gap-1.5 py-1 border-b border-border last:border-0 ${p ? 'locked' : ''}">
       <span class="text-[10px] font-black w-5 flex-shrink-0" style="color:${p ? color : '#cbd5e1'}">${label}</span>
       <span class="text-[11px] font-semibold flex-1 truncate ${p ? 'text-foreground' : 'text-muted-fg/40'}">${p ? p.name.split(' ').slice(-1)[0] : '—'}</span>
-      ${p ? `<span class="text-[10px] text-muted-fg flex-shrink-0">${p.ppg}pt</span>` : ''}
+      ${p ? `<span class="text-[10px] text-muted-fg flex-shrink-0">${fmtPG(p.ppg)}pt</span>` : ''}
     </div>`;
   }).join('');
 
@@ -1255,7 +1261,7 @@ function renderRosterSlot(pos, canPlace) {
       title="${p.name} · pick locked">
       <span class="text-[10px] font-black uppercase leading-none" style="color:${labelColor}">${label}</span>
       <span class="text-[11px] font-bold text-foreground leading-tight w-full text-center truncate px-0.5">${p.name.split(' ').pop()}</span>
-      <span class="text-[10px] text-muted-fg leading-none">${p.ppg}pt</span>
+      <span class="text-[10px] text-muted-fg leading-none">${fmtPG(p.ppg)}pt</span>
     </div>`;
   }
 
@@ -1268,11 +1274,20 @@ function renderRosterSlot(pos, canPlace) {
   const primaryMatch = showFit && canDrop && sp && sp.pos === pos;
   const flexMatch    = showFit && canDrop && sp && !primaryMatch &&
     (sp.secondaryPos || []).includes(pos);
+  // Out-of-position is NOT a bad fit — chemistry.js's optimizeLineup() scores
+  // every slot on a 3-tier scale (primary/flex/oop) and oop still nets a
+  // positive "Versatile (+1%)" synergy line, never a penalty. This indicator
+  // used to fall straight to red for anything past primary/flex, so a player
+  // like an OOP Magic Johnson at SF showed a red "bad fit" border here while
+  // the chemistry report simultaneously called it a green synergy — same
+  // scale, mismatched color. Amber/neutral instead of red keeps the two in
+  // agreement: still worth the drop, just not the best possible one.
+  const oopMatch     = showFit && canDrop && sp && !primaryMatch && !flexMatch;
 
-  const slotBg     = !canDrop ? 'var(--card3)' : (isDark() ? 'rgba(239,68,68,0.08)' : '#fff1f2');
-  const slotBorder = !canDrop ? 'var(--border)' : (primaryMatch ? (isDark() ? '#4ade80' : '#86efac') : flexMatch ? (isDark() ? '#fbbf24' : '#fde68a') : (isDark() ? '#f87171' : '#fca5a5'));
-  const slotColor  = !canDrop ? 'var(--muted)' : (primaryMatch ? (isDark() ? '#4ade80' : '#16a34a') : flexMatch ? (isDark() ? '#fbbf24' : '#d97706') : (isDark() ? '#f87171' : '#dc2626'));
-  const slotText   = !canDrop ? 'Empty' : primaryMatch ? 'Primary' : flexMatch ? 'Flex' : 'Place';
+  const slotBg     = !canDrop ? 'var(--card3)' : (isDark() ? 'rgba(234,179,8,0.08)' : '#fffbeb');
+  const slotBorder = !canDrop ? 'var(--border)' : (primaryMatch ? (isDark() ? '#4ade80' : '#86efac') : flexMatch ? (isDark() ? '#fbbf24' : '#fde68a') : oopMatch ? (isDark() ? '#fdba74' : '#fed7aa') : (isDark() ? '#f87171' : '#fca5a5'));
+  const slotColor  = !canDrop ? 'var(--muted)' : (primaryMatch ? (isDark() ? '#4ade80' : '#16a34a') : flexMatch ? (isDark() ? '#fbbf24' : '#d97706') : oopMatch ? (isDark() ? '#fb923c' : '#c2410c') : (isDark() ? '#f87171' : '#dc2626'));
+  const slotText   = !canDrop ? 'Empty' : primaryMatch ? 'Primary' : flexMatch ? 'Flex' : oopMatch ? 'Versatile' : 'Place';
 
   return `
   <div ${canDrop ? `data-action="place-${pos}"` : ''}
@@ -1804,9 +1819,9 @@ function renderResults() {
         </div>
       </div>
       <div class="flex gap-3 text-xs text-muted-fg flex-shrink-0">
-        <span><span class="font-semibold text-foreground">${s.ppg}</span> PPG</span>
-        <span><span class="font-semibold text-foreground">${s.rpg}</span> RPG</span>
-        <span class="hidden sm:inline"><span class="font-semibold text-foreground">${s.apg}</span> APG</span>
+        <span><span class="font-semibold text-foreground">${fmtPG(s.ppg)}</span> PPG</span>
+        <span><span class="font-semibold text-foreground">${fmtPG(s.rpg)}</span> RPG</span>
+        <span class="hidden sm:inline"><span class="font-semibold text-foreground">${fmtPG(s.apg)}</span> APG</span>
       </div>
     </div>`;
   };
@@ -1843,7 +1858,7 @@ function renderResults() {
           </div>
           <span class="inline-block text-sm font-bold px-4 py-1.5 rounded-full mb-2" style="background:${labelBg};color:${labelColor}">${emoji} ${label}</span>
           ${modeBadge}
-          <p class="text-xs text-muted-fg mb-2">Win% ${r.winPct}% &nbsp;·&nbsp; Team OVR ${teamOvr} &nbsp;·&nbsp; Strength Index ${r.strength}</p>
+          <p class="text-xs text-muted-fg mb-2">Projected Win% ${r.winPct}% &nbsp;·&nbsp; Team OVR ${teamOvr} &nbsp;·&nbsp; Strength Index ${r.strength}</p>
           <div class="flex items-center justify-center gap-2 flex-wrap">
             <span class="inline-flex items-center gap-1 text-[11px] font-black px-2.5 py-1 rounded-full border"
               style="background:${ovrColor(teamOvr)}12;border-color:${ovrColor(teamOvr)}40;color:${ovrColor(teamOvr)}">
@@ -1874,7 +1889,9 @@ function renderResults() {
             <div class="text-center mb-4">
               <span class="text-4xl mb-2 block">🏆</span>
               <p class="text-sm font-black text-foreground mb-1">Advance to Playoffs</p>
-              <p class="text-xs text-muted-fg">Take your ${r.wins}-win roster into the postseason bracket.</p>
+              <p class="text-xs text-muted-fg">${r.wins / 82 < 0.35
+                ? `Sneak that ${r.wins}-win squad into the bracket anyway — every #8 seed dreams of a stolen series.`
+                : `Take your ${r.wins}-win roster into the postseason bracket.`}</p>
             </div>
             <button data-action="advance-to-playoffs"
               class="w-full py-3 rounded-xl font-bold text-sm bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer card-shadow">
@@ -2474,6 +2491,10 @@ function renderSeriesResult() {
   const winnerBg    = p1Win ? '#eff6ff'  : '#fffbeb';
   const loserLabel  = p1Win ? labels.p2 : labels.p1;
   const winnerLabel = p1Win ? labels.p1 : labels.p2;
+  // seriesLabels() uses 'You' (2nd person) for the human side in GM vs AI /
+  // Dynasty Duel — "You Wins the Series!" doesn't agree; every other label
+  // ('Player 1', 'AI GM', a dynasty name) is 3rd person and takes "Wins".
+  const winnerVerb  = winnerLabel === 'You' ? 'Win' : 'Wins';
 
   const gameChips = series.games.map((g, i) => {
     const p1Won = g === 'W';
@@ -2496,7 +2517,7 @@ function renderSeriesResult() {
     return `<div class="flex items-center gap-2 py-1.5 border-b border-border last:border-0">
       <span class="text-[10px] font-black text-muted-fg w-6 flex-shrink-0">${pos}</span>
       <span class="text-xs font-semibold text-foreground flex-1 truncate">${p.name}</span>
-      <span class="text-[10px] text-muted-fg">${p.ppg}pt</span>
+      <span class="text-[10px] text-muted-fg">${fmtPG(p.ppg)}pt</span>
     </div>`;
   }).join('');
 
@@ -2507,12 +2528,20 @@ function renderSeriesResult() {
   };
 
   // Fire confetti for the winner — once per series, not on every re-render
-  // of this screen (e.g. a theme toggle would otherwise replay it).
+  // of this screen (e.g. a theme toggle would otherwise replay it). In
+  // GM vs AI / Dynasty Duel, p1 is always the human — a p2 win there is a
+  // loss for the player, so confetti must not fire (it previously fired
+  // regardless of winner, celebrating the AI GM/dynasty beating you). 1v1
+  // has no CPU side, so either winner is a real human win worth celebrating.
+  const isVsCpu       = S.mode === 'gm-ai' || S.mode === 'dynasty-duel';
+  const shouldCelebrate = !isVsCpu || p1Win;
   if (!S.seriesConfettiFired) {
     S.seriesConfettiFired = true;
-    setTimeout(() => {
-      withConfetti(() => confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 }, colors: p1Win ? ['#2563eb','#93c5fd','#ffffff'] : ['#d97706','#fde68a','#ffffff'] }));
-    }, 150);
+    if (shouldCelebrate) {
+      setTimeout(() => {
+        withConfetti(() => confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 }, colors: p1Win ? ['#2563eb','#93c5fd','#ffffff'] : ['#d97706','#fde68a','#ffffff'] }));
+      }, 150);
+    }
   }
 
   return `
@@ -2525,7 +2554,7 @@ function renderSeriesResult() {
         <div class="rounded-2xl border-2 p-6 text-center card-shadow" style="border-color:${winnerColor}40;background:${winnerBg}">
           <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg mb-2">Series Result</p>
           <p class="text-5xl font-black mb-2" style="color:${winnerColor}">${p1Wins}–${p2Wins}</p>
-          <p class="text-lg font-black text-foreground mb-1">🏆 ${winnerLabel} Wins the Series!</p>
+          <p class="text-lg font-black text-foreground mb-1">🏆 ${winnerLabel} ${winnerVerb} the Series!</p>
           <p class="text-sm text-muted-fg">${loserLabel} put up a fight — ${p1Win ? p2Wins : p1Wins} ${(p1Win ? p2Wins : p1Wins) === 1 ? 'game' : 'games'} won.</p>
         </div>
 
@@ -2614,7 +2643,7 @@ function renderSeriesPreview() {
     return `<div class="flex items-center gap-1.5 py-1 border-b border-border last:border-0">
       <span class="text-[10px] font-black w-5 flex-shrink-0" style="color:${p ? color : '#cbd5e1'}">${pos}</span>
       <span class="text-xs font-semibold flex-1 truncate ${p ? 'text-foreground' : 'text-muted-fg/40'}">${p ? p.name : '—'}</span>
-      ${p ? `<span class="text-[10px] text-muted-fg">${p.ppg}pt</span>` : ''}
+      ${p ? `<span class="text-[10px] text-muted-fg">${fmtPG(p.ppg)}pt</span>` : ''}
     </div>`;
   }).join('');
 
@@ -2804,9 +2833,29 @@ function updateCrazyGamesGameplayState() {
   if (active) cgGameplayStart(); else cgGameplayStop();
 }
 
+// CrazyGames' SDK can leave a full-screen "A midgame ad would appear here"
+// placeholder node sitting directly in <body> (a dev-mode stub — our own
+// code never renders that text; cgRequestMidgameAd() exists but isn't wired
+// up anywhere yet). Since it's appended outside #app, replacing #app's
+// innerHTML on every render doesn't clear it, and if it's ever left
+// visible/interactive it sits on top of results/playoffs and eats every
+// click. Neutralize it defensively on each render — cheap (body has only a
+// handful of top-level children) and can't touch our own markup since #app
+// is explicitly skipped.
+function neutralizeStaleAdStubs() {
+  for (const el of document.body.children) {
+    if (el.id === 'app' || el.id === 'loading-overlay') continue;
+    if ((el.textContent || '').includes('midgame ad would appear here')) {
+      el.style.pointerEvents = 'none';
+      el.style.visibility    = 'hidden';
+    }
+  }
+}
+
 // ── Main render dispatcher ────────────────────────────────────────────────────
 export function render() {
   updateCrazyGamesGameplayState();
+  neutralizeStaleAdStubs();
   if      (S.phase === 'mode-select')   $app.innerHTML = renderModeSelect();
   else if (S.phase === 'more-modes')    $app.innerHTML = renderMoreModesScreen();
   else if (S.phase === 'drafting')      $app.innerHTML = renderDrafting();

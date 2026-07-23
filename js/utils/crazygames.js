@@ -77,7 +77,13 @@ export async function initCrazyGamesData() {
 }
 
 function usingCgData() {
-  return _dataEnv === 'crazygames' || _dataEnv === 'local';
+  // 'local' reports as active (isActive() above) so ad/loading hooks can be
+  // exercised in dev, but the Data Module itself is only actually provided
+  // under the real 'crazygames' embed — calling SDK.data.* under 'local'
+  // throws (window.CrazyGames.SDK.data is undefined there). Check the module
+  // exists, not just the environment string, so local/plain-web runs fall
+  // through to localStorage instead of crashing every save/load call.
+  return (_dataEnv === 'crazygames' || _dataEnv === 'local') && !!window.CrazyGames?.SDK?.data;
 }
 
 /** Drop-in replacement for localStorage.getItem — routes through the
