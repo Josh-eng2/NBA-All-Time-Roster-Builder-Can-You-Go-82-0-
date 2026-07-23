@@ -332,8 +332,13 @@ function doStartGame(era = 'all') {
 /**
  * Shows a confirmation modal before abandoning an active draft.
  * Calls fn() immediately if there is nothing to lose.
+ * @param {() => void} fn
+ * @param {{ title?: string, confirmLabel?: string }} [opts] — the only current
+ *   caller is the Restart button, so the copy defaults to match it; pass an
+ *   override if this is ever reused for a different leave action.
  */
-export function confirmLeave(fn) {
+export function confirmLeave(fn, opts = {}) {
+  const { title = 'Restart Run?', confirmLabel = 'Yes, Restart' } = opts;
   const safe = ['results', 'playoffs', 'trophy-room'];
   if (safe.includes(S.phase)) { fn(); return; }
   // A double-click (or two rapid nav taps) before the first overlay mounts
@@ -348,7 +353,7 @@ export function confirmLeave(fn) {
   overlay.innerHTML = `
     <div style="background:#ffffff;border:1.5px solid #e2e8f0;border-radius:16px;padding:24px;
       max-width:320px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.12);text-align:center">
-      <p style="font-size:18px;font-weight:800;color:#0f172a;margin-bottom:8px">Leave Game?</p>
+      <p style="font-size:18px;font-weight:800;color:#0f172a;margin-bottom:8px">${title}</p>
       <p style="font-size:14px;color:#64748b;margin-bottom:20px">Your progress will be lost.</p>
       <div style="display:flex;gap:10px;justify-content:center">
         <button id="_cl_cancel"
@@ -356,7 +361,7 @@ export function confirmLeave(fn) {
                  border:1.5px solid #e2e8f0;color:#0f172a;font-weight:700;cursor:pointer">Cancel</button>
         <button id="_cl_confirm"
           style="flex:1;padding:10px 16px;border-radius:10px;background:#2563eb;
-                 border:none;color:#ffffff;font-weight:700;cursor:pointer">Yes, Restart</button>
+                 border:none;color:#ffffff;font-weight:700;cursor:pointer">${confirmLabel}</button>
       </div>
     </div>`;
   document.body.appendChild(overlay);
@@ -848,7 +853,9 @@ function doSimulate() {
   let _prevBestSnap = null;
   try { _prevBestSnap = JSON.parse(cgGetItem('nba820_best') || 'null'); } catch (e) {}
   S._prevBestWins   = _prevBestSnap ? _prevBestSnap.wins : 0;
-  S._prevBestStreak = parseInt(cgGetItem('nba820_bestStreak') || '0', 10);
+  let _prevBestStreakRaw = '0';
+  try { _prevBestStreakRaw = cgGetItem('nba820_bestStreak') || '0'; } catch (e) {}
+  S._prevBestStreak = parseInt(_prevBestStreakRaw, 10);
 
   // Auto-persist personal best, best streak, and last-run tip — feeds the
   // mode-select greeting without requiring a manual "Save Run".

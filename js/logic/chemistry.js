@@ -396,7 +396,7 @@ export function calculateChemistry(starters, coachId = null) {
   if (sHasSharpshooter && sHasSlasher) {
     const bonus = coach === 'kerr' ? 0.08 : 0.06;
     synergy('inside-out', 'offense', bonus,
-      `Inside-Out Attack${coach === 'kerr' ? ' ⭐ Kerr' : ''}: Sharpshooter and Slasher create an unsolvable spacing dilemma (+${Math.round(bonus * 100)}%)`);
+      `Inside-Out Attack${coach === 'kerr' ? ' ⭐ Kerr' : ''}: Sharpshooter spaces the floor for the Slasher to attack (+${Math.round(bonus * 100)}%)`);
   }
 
   // Lockdown Stars: Two-Way Star + Lockdown Defender eliminate any matchup

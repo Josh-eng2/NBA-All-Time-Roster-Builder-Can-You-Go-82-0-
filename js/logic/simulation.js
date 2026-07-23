@@ -245,7 +245,13 @@ function buildLossDiagnosis(starters, weakestStat, balancePenalty, sRatio, START
 
   // If the culprit is actually at or above the per-player baseline the weakness
   // is genuinely team-wide, not a single-player failure — flag it that way.
-  const culpritBelowBase = culprit ? adj(culprit) < perPlayerBase : false;
+  // A strict "< perPlayerBase" here named a specific starter over a trivial
+  // 0.1–0.6 stat gap (e.g. "Dirk was the weak link on rim protection" for a
+  // 0.1 BPG miss) — reads like scapegoating a star for noise. Require a
+  // meaningfully-sized gap (15%+ below baseline) before singling anyone out;
+  // a marginal shortfall falls back to the team-wide framing instead.
+  const CULPRIT_MARGIN   = 0.85;
+  const culpritBelowBase = culprit ? adj(culprit) < perPlayerBase * CULPRIT_MARGIN : false;
 
   return {
     primaryCause:      'balance_penalty',
