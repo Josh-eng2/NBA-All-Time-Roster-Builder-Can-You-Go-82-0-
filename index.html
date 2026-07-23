@@ -21,6 +21,17 @@
             // overlay covers the screen on its own.
             break;
           case "SDK_GAME_START":
+            // Safety net: GD's ad overlay (#gdsdk__advertisement, a fixed
+            // full-screen node the SDK injects) is supposed to go back to
+            // visibility:hidden on its own once an ad closes. If that node
+            // is ever left visible after GD tells us gameplay has resumed,
+            // force it out of the way instead of leaving it eating clicks
+            // over the whole page.
+            var adEl = document.getElementById('gdsdk__advertisement');
+            if (adEl) {
+              adEl.style.visibility = 'hidden';
+              adEl.style.pointerEvents = 'none';
+            }
             break;
           case "SDK_REWARDED_WATCH_COMPLETE":
             // Relayed to js/utils/gamedistribution.js, which grants the
