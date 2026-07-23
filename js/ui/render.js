@@ -545,16 +545,10 @@ function renderModeSelect() {
           </button>
         </div>
 
-        <div class="grid grid-cols-2 gap-3 mb-3">
-          <button data-action="view-trophies"
-            class="py-3 rounded-xl font-bold text-sm border border-amber-200 bg-amber-50 text-amber-700 cursor-pointer transition-all hover:bg-amber-100 card-shadow">
-            🏆 Trophy Room${trophies.length > 0 ? ` · ${trophies.length}` : ''}
-          </button>
-          <button data-action="view-legends"
-            class="py-3 rounded-xl font-bold text-sm border border-indigo-200 bg-indigo-50 text-indigo-700 cursor-pointer transition-all hover:bg-indigo-100 card-shadow">
-            🃏 Legends
-          </button>
-        </div>
+        <button data-action="view-trophies"
+          class="w-full py-3 rounded-xl font-bold text-sm border border-amber-200 bg-amber-50 text-amber-700 cursor-pointer transition-all hover:bg-amber-100 card-shadow mb-3">
+          🏆 Trophy Room${trophies.length > 0 ? ` · ${trophies.length}` : ''}
+        </button>
 
         ${renderMoreModesButton()}
 
@@ -864,8 +858,7 @@ function renderDrafting() {
         ${renderCoachChip()}
         ${!full ? renderSlotMachine() : ''}
         ${shouldShowDraftBoard(full) ? renderDraftBoard() : ''}
-        ${renderPopularityBar()}
-        ${renderChemDashboard()}
+        ${renderStatGauges()}
         ${renderRoster()}
       </div>
     </main>
@@ -1052,28 +1045,109 @@ function renderRoundBar() {
   </div>`;
 }
 
-function renderPopularityBar() {
-  const fans       = calcTeamFans(Object.values(S.roster));
-  const badgeText  = fans.tier
-    ? `${fans.tier} · ${Math.round(fans.sum)}/${fans.max}`
-    : `${Math.round(fans.sum)}/${fans.max}`;
+// ── Live stat gauges (Fans + Chemistry) — mobile/tablet drafting screen ──────
+// 2K-style radial arcs replacing the old linear Fans bar + Team Chemistry bar
+// below the desktop breakpoint (design handoff: "Arena — dark broadcast").
+// Desktop keeps the linear meter + synergy chips (renderChemDashboard /
+// renderPopularityBarVertical below) untouched.
+
+// Fixed 270° track, start point (21.7,78.3) at 135°, sweeping clockwise to
+// (78.3,78.3) at 45°+360 — see gaugeArcPath() for the matching progress arc.
+const GAUGE_TRACK_PATH = 'M21.7 78.3 A40 40 0 1 1 78.3 78.3';
+
+/** Progress-arc `d` for a gauge, driven by pct (0-100) rather than a baked-in
+ *  sweep — same track math as GAUGE_TRACK_PATH, just stopping early. */
+function gaugeArcPath(pct) {
+  const sweep    = Math.max(0, Math.min(100, pct)) / 100 * 270;
+  const rad      = (135 + sweep) * Math.PI / 180;
+  const x        = (50 + 40 * Math.cos(rad)).toFixed(2);
+  const y        = (50 + 40 * Math.sin(rad)).toFixed(2);
+  const largeArc = sweep > 180 ? 1 : 0;
+  return `M21.7 78.3 A40 40 0 ${largeArc} 1 ${x} ${y}`;
+}
+
+function renderStatGauge({ id, icon, pct, value, suffix, label, color, locked = false, lockedNote = '' }) {
+  if (locked) {
+    return `
+    <div class="rounded-xl border border-border bg-card draft-stat-gauge">
+      <div class="draft-stat-gauge__arc-wrap">
+        <svg viewBox="0 0 100 84" class="draft-stat-gauge__svg">
+          <path d="${GAUGE_TRACK_PATH}" fill="none" stroke="var(--card2)" stroke-width="7" stroke-linecap="round"/>
+        </svg>
+        <div class="draft-stat-gauge__icon" style="background:var(--card2);border-color:var(--border)">🔒</div>
+      </div>
+      <div class="draft-stat-gauge__value cond" style="color:var(--muted-fg)">—</div>
+      <div class="draft-stat-gauge__label">${label}</div>
+      ${lockedNote ? `<p class="draft-stat-gauge__note">${lockedNote}</p>` : ''}
+    </div>`;
+  }
+  const gradId  = `gauge-${id}`;
+  const badgeBg = `color-mix(in srgb, ${color} 16%, var(--card))`;
   return `
-  <div class="rounded-xl border border-border bg-card px-4 py-3 card-shadow draft-pop-bar">
-    <div class="flex items-center justify-between mb-2">
-      <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg">Fans</p>
-      <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border" style="color:${fans.barCol};background:${fans.barCol}18;border-color:${fans.barCol}30">${badgeText}</span>
+  <div class="rounded-xl border border-border bg-card draft-stat-gauge">
+    <div class="draft-stat-gauge__arc-wrap">
+      <svg viewBox="0 0 100 84" class="draft-stat-gauge__svg">
+        <defs><linearGradient id="${gradId}" x1="0" y1="1" x2="1" y2="0">
+          <stop offset="0" style="stop-color:${color}"/>
+          <stop offset="1" style="stop-color:color-mix(in srgb, #ffffff 45%, ${color})"/>
+        </linearGradient></defs>
+        <path d="${GAUGE_TRACK_PATH}" fill="none" stroke="var(--card2)" stroke-width="7" stroke-linecap="round"/>
+        <path d="${gaugeArcPath(pct)}" fill="none" stroke="url(#${gradId})" stroke-width="7" stroke-linecap="round"/>
+      </svg>
+      <div class="draft-stat-gauge__icon" style="background:${badgeBg};border-color:${color}">${icon}</div>
     </div>
-    <div class="h-1.5 rounded-full overflow-hidden bg-border">
-      <div class="h-full rounded-full transition-all stat-bar-fill" style="width:${fans.pct}%;background:${fans.barCol}"></div>
-    </div>
-    <p class="text-[10px] mt-1.5 text-muted-fg draft-pop-bar__hint">More fans boost home-court advantage in close games</p>
+    <div class="draft-stat-gauge__value cond" style="color:${color}">${value}<span class="draft-stat-gauge__suffix">${suffix}</span></div>
+    <div class="draft-stat-gauge__label">${label}</div>
   </div>`;
 }
 
-// Desktop-only vertical fans meter — same data as renderPopularityBar(), shown
-// in the right rail instead when the draft screen switches to its 3-column
-// layout (see .draft-pop-bar-vertical in styles.css). Hidden below that
-// breakpoint; the horizontal bar above is what mobile/tablet users see.
+function renderStatGauges() {
+  const fans = calcTeamFans(Object.values(S.roster));
+  const fansGauge = renderStatGauge({
+    id: 'fans', icon: '👥', pct: fans.pct,
+    value: `${Math.round(fans.sum)}`, suffix: ` /${fans.max}`,
+    label: 'Fans', color: fans.barCol,
+  });
+
+  let chemGauge;
+  if (S.mode === 'blind') {
+    // Ball IQ: same reasoning as renderChemDashboard() below — don't leak
+    // natural-position fit through the gauge while the mode is testing memory.
+    chemGauge = renderStatGauge({
+      id: 'chem', icon: '🧪', label: 'Chemistry', locked: true,
+      lockedNote: 'Unlocks after you simulate',
+    });
+  } else {
+    // As-placed slots so this matches the visible roster chips, same as
+    // renderChemDashboard()'s desktop version.
+    const placedPairs = POSITIONS
+      .map(pos => ({ pos, player: S.roster[pos] }))
+      .filter(x => x.player);
+    const starters = placedPairs.map(x => x.player);
+    const asPlacedSlots = placedPairs.map(x => x.pos);
+    const rosterKey = 'placed|' + (S.coach || '') + '|' + asPlacedSlots.map((s, i) => s + ':' + starters[i].id).join(',');
+    if (_chemCache.key !== rosterKey) {
+      _chemCache.key    = rosterKey;
+      _chemCache.result = calculateChemistry(starters, S.coach, { asPlacedSlots });
+    }
+    const tier  = chemTier(_chemCache.result.chemScore);
+    const color = chemTierColors(tier.id, isDark()).color;
+    // No raw score digits — chemTier() intentionally hides the 0-100 number
+    // from the UI; the arc's sweep still encodes it visually.
+    chemGauge = renderStatGauge({
+      id: 'chem', icon: '🧪', pct: _chemCache.result.chemScore,
+      value: tier.label, suffix: '',
+      label: 'Chemistry', color,
+    });
+  }
+
+  return `<div class="draft-stat-gauges">${fansGauge}${chemGauge}</div>`;
+}
+
+// Desktop-only vertical fans meter — same calcTeamFans() data as the mobile/
+// tablet Fans gauge in renderStatGauges(), shown in the right rail instead
+// when the draft screen switches to its 3-column layout (see
+// .draft-pop-bar-vertical in styles.css).
 function renderPopularityBarVertical() {
   const fans = calcTeamFans(Object.values(S.roster));
   const label = `${Math.round(fans.sum)}/${fans.max}`;

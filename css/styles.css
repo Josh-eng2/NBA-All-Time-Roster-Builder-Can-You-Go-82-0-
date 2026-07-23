@@ -1104,41 +1104,6 @@ button.draft-roster-slot {
     border-radius: 0.35rem !important;
   }
 
-  /* Fans + Live Chemistry — match height/padding/meter on mobile draft */
-  .draft-pop-bar,
-  .draft-chem-dashboard {
-    flex-shrink: 0;
-    padding: 0.35rem 0.5rem !important;
-    min-height: 2.5rem;
-    box-sizing: border-box;
-  }
-
-  .draft-pop-bar .mb-2,
-  .draft-chem-dashboard__head {
-    margin-bottom: 0.25rem !important;
-  }
-
-  .draft-pop-bar .h-1\.5,
-  .draft-chem-dashboard__meter {
-    height: 0.25rem !important;
-    margin-bottom: 0 !important;
-  }
-
-  .draft-pop-bar__hint {
-    display: none;
-  }
-
-  .draft-chem-dashboard__head .text-xs,
-  .draft-chem-dashboard__head .text-\[10px\],
-  .draft-pop-bar .text-\[10px\] {
-    font-size: 0.5625rem !important;
-  }
-
-  .draft-chem-report,
-  .draft-chem-report__empty {
-    display: none !important;
-  }
-
   .draft-roster {
     flex-shrink: 0;
   }
@@ -1239,6 +1204,88 @@ button.draft-roster-slot {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+}
+
+/* ── Live stat gauges (Fans + Chemistry) — mobile/tablet drafting screen ──
+   2K-style radial arcs, replacing the old linear Fans bar + Team Chemistry
+   bar below the desktop breakpoint. See renderStatGauges() in js/ui/render.js.
+   Desktop (>=1024px) keeps the linear meter + synergy chips untouched —
+   .draft-chem-dashboard above and .draft-pop-bar-vertical below. */
+.cond {
+  font-family: 'Barlow Condensed', 'Fira Sans', ui-sans-serif, system-ui, sans-serif;
+}
+
+.draft-stat-gauges {
+  display: flex;
+  gap: 0.5625rem;
+}
+
+.draft-stat-gauge {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.625rem 0 0.5625rem;
+}
+
+.draft-stat-gauge__arc-wrap {
+  position: relative;
+  width: 96px;
+  height: 82px;
+}
+
+.draft-stat-gauge__svg {
+  width: 96px;
+  height: 82px;
+  overflow: visible;
+}
+
+.draft-stat-gauge__icon {
+  position: absolute;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border-width: 2px;
+  border-style: solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.draft-stat-gauge__value {
+  margin-top: 1px;
+  font-size: 21px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.draft-stat-gauge__suffix {
+  font-family: 'Fira Sans', ui-sans-serif, system-ui, sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--muted-fg);
+}
+
+.draft-stat-gauge__label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted-fg);
+  margin-top: 3px;
+}
+
+.draft-stat-gauge__note {
+  font-size: 9px;
+  color: var(--muted-fg);
+  text-align: center;
+  line-height: 1.3;
+  margin: 4px 10px 0;
 }
 
 .draft-screen__center {
