@@ -188,7 +188,7 @@ was generated directly from `players.json` and re-verified 1:1 against it
 - [ ] Dave Twardzik (`twarren_77b`)
 
 **Bucks_1970s** (5)
-- [ ] Kareem Abdul-Jabbar (`kareem_71`)
+- [x] Kareem Abdul-Jabbar (`kareem_71`) — Rim Protector restored (players.json + inlined players.js)
 - [ ] Oscar Robertson (`oscar_71`)
 - [ ] Bob Dandridge (`dandridge_71`)
 - [x] Lucius Allen (`mcghee_71`) — was placeholder name "Luol McCarter"; corrected to the Bucks' actual 1970-71 backup PG

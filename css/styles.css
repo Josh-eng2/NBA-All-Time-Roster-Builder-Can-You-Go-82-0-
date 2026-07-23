@@ -283,9 +283,54 @@ html {
 }
 
 .header-pill--muted {
-  max-width: 6.5rem;
+  max-width: 11rem;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* Restart / leave confirm — theme via CSS vars so dark mode isn't stuck light */
+.confirm-leave-card {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 320px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  text-align: center;
+}
+.confirm-leave-card__title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--fg);
+  margin-bottom: 8px;
+}
+.confirm-leave-card__body {
+  font-size: 14px;
+  color: var(--muted-fg);
+  margin-bottom: 20px;
+}
+.confirm-leave-card__actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+.confirm-leave-card__btn {
+  flex: 1;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.confirm-leave-card__btn--cancel {
+  background: var(--card2);
+  border: 1.5px solid var(--border);
+  color: var(--fg);
+}
+.confirm-leave-card__btn--confirm {
+  background: var(--primary);
+  border: none;
+  color: var(--primary-fg, #ffffff);
 }
 
 .header-pill--icon {
@@ -297,6 +342,14 @@ html {
 .header-pill--icon:hover {
   border-color: var(--primary);
   color: var(--primary);
+}
+
+/* Roster place targets are <button>s for a11y — strip UA chrome */
+button.draft-roster-slot {
+  font: inherit;
+  color: inherit;
+  appearance: none;
+  -webkit-appearance: none;
 }
 
 .header-pill--interactive {
@@ -371,7 +424,7 @@ html {
   }
 
   .header-pill--muted {
-    max-width: 5rem;
+    max-width: 8rem;
   }
 
   .mobile-restart-bar {

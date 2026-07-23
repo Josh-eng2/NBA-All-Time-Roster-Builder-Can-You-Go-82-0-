@@ -252,15 +252,19 @@ function dispatch(action) {
     // One-tap draft: auto-place into the first empty preferred slot
     // (natural pos, then secondary). Falls back to "tap a slot" only when
     // every preferred slot is already filled.
-    const roster = isDualDraft()
-      ? (S.currentPlayer === 1 ? S.p1Roster : S.p2Roster)
-      : S.roster;
-    const preferred = [p.pos, ...(p.secondaryPos || [])].filter(Boolean);
-    const autoSlot = preferred.find(pos => roster && !roster[pos]);
-    if (autoSlot) {
-      placePlayer(autoSlot);
-      announceA11y(`Drafted ${p.name} to ${autoSlot}`);
-      return;
+    // Ball IQ (blind): never auto-place — placing into the natural slot would
+    // leak the position the mode asks you to know by memory.
+    if (S.mode !== 'blind') {
+      const roster = isDualDraft()
+        ? (S.currentPlayer === 1 ? S.p1Roster : S.p2Roster)
+        : S.roster;
+      const preferred = [p.pos, ...(p.secondaryPos || [])].filter(Boolean);
+      const autoSlot = preferred.find(pos => roster && !roster[pos]);
+      if (autoSlot) {
+        placePlayer(autoSlot);
+        announceA11y(`Drafted ${p.name} to ${autoSlot}`);
+        return;
+      }
     }
     render();
     announceA11y(`Selected ${p.name}. Tap a roster slot to place them.`);
@@ -401,20 +405,15 @@ export function confirmLeave(fn, opts = {}) {
   const overlay = document.createElement('div');
   overlay.id = '_confirm-leave-overlay';
   overlay.style.cssText =
-    'position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;' +
+    'position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;' +
     'align-items:center;justify-content:center;z-index:9999';
   overlay.innerHTML = `
-    <div style="background:#ffffff;border:1.5px solid #e2e8f0;border-radius:16px;padding:24px;
-      max-width:320px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.12);text-align:center">
-      <p style="font-size:18px;font-weight:800;color:#0f172a;margin-bottom:8px">${title}</p>
-      <p style="font-size:14px;color:#64748b;margin-bottom:20px">Your progress will be lost.</p>
-      <div style="display:flex;gap:10px;justify-content:center">
-        <button id="_cl_cancel"
-          style="flex:1;padding:10px 16px;border-radius:10px;background:#f1f5f9;
-                 border:1.5px solid #e2e8f0;color:#0f172a;font-weight:700;cursor:pointer">Cancel</button>
-        <button id="_cl_confirm"
-          style="flex:1;padding:10px 16px;border-radius:10px;background:#2563eb;
-                 border:none;color:#ffffff;font-weight:700;cursor:pointer">${confirmLabel}</button>
+    <div role="dialog" aria-modal="true" aria-labelledby="_cl_title" class="confirm-leave-card">
+      <p id="_cl_title" class="confirm-leave-card__title">${title}</p>
+      <p class="confirm-leave-card__body">Your progress will be lost.</p>
+      <div class="confirm-leave-card__actions">
+        <button id="_cl_cancel" type="button" class="confirm-leave-card__btn confirm-leave-card__btn--cancel">Cancel</button>
+        <button id="_cl_confirm" type="button" class="confirm-leave-card__btn confirm-leave-card__btn--confirm">${confirmLabel}</button>
       </div>
     </div>`;
   document.body.appendChild(overlay);
