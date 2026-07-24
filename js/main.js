@@ -15,7 +15,7 @@ import { isReturningPlayer }          from './utils/storage.js';
 import { cgLoadingStart, cgLoadingStop, initCrazyGamesData } from './utils/crazygames.js';
 // events.js is imported for its side-effect: attaching window helpers
 // (closeLeaderboardModal) needed by inline onclick in rendered HTML.
-import { doSpin } from './ui/events.js';
+import { doSpin, hasKnownHashRoute } from './ui/events.js';
 
 /**
  * Cold open — a brand-new visitor never sees a menu. They land mid-draft
@@ -26,6 +26,11 @@ import { doSpin } from './ui/events.js';
  * The returning-player flag is NOT set here — it's earned when the hook
  * completes (season simulated) or the player reaches the menus. A bounce
  * mid-draft means the full cold open plays again next visit.
+ *
+ * Exception: a brand-new visitor arriving via a shared deep link (e.g.
+ * someone's "play today's Daily" link) skips the cold open — the link is
+ * explicit intent that the generic onboarding shouldn't silently override —
+ * and goes straight to the normal mode-select flow so the hash still routes.
  */
 async function init() {
   cgLoadingStart();
@@ -37,7 +42,7 @@ async function init() {
     await loadDatabase();          // populates DB export
     applySecondaryPositions();     // mutates DB in-memory: adds secondaryPos to every player
 
-    if (!isReturningPlayer()) {
+    if (!isReturningPlayer() && !hasKnownHashRoute()) {
       S.mode           = 'solo';
       S.currentPlayer  = 1;
       S.p1             = null;

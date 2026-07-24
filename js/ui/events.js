@@ -39,7 +39,7 @@ import { chooseAiPick, bestAiSlot } from '../logic/aiDraft.js';
 import { isDualDraft, getModeConfig, fansFirstScore, fansFirstPassed } from '../logic/modes.js';
 import { seasonTier } from '../logic/seasonTier.js';
 import {
-  render, $app, fmtDecadeShort, showToast, renderSeasonTickerRows,
+  render, $app, fmtDecadeShort, showToast, clearToastsOfKind, renderSeasonTickerRows,
   computeAutopsy, liveStreakLabel, withConfetti,
 } from '../ui/render.js'; // circular — safe (used only inside function bodies)
 
@@ -63,27 +63,37 @@ export function bindEvents() {
   window.addEventListener('hashchange', handleHashRoute);
 }
 
+const HASH_ROUTE_MAP = {
+  daily: 'mode-daily',
+  classic: 'mode-solo',
+  solo: 'mode-solo',
+  blind: 'mode-blind',
+  balliq: 'mode-blind',
+  '1v1': 'mode-1v1',
+  challenges: 'open-more-modes',
+  trophies: 'view-trophies',
+  legends: 'view-legends',
+  defense: 'mode-defense',
+  fans: 'mode-fans',
+  dynasty: 'mode-dynasty-duel',
+  'gm-ai': 'mode-gm-ai',
+};
+
+/** True when the current URL hash matches a known deep-link route (e.g.
+ *  #/daily) — used by main.js to decide whether a first-time visitor with a
+ *  shared link should skip the cold-open draft and land on that route
+ *  instead of having the hash silently dropped. */
+export function hasKnownHashRoute() {
+  const h = (location.hash || '').replace(/^#\/?/, '').toLowerCase();
+  return !!h && h !== '/' && !!HASH_ROUTE_MAP[h];
+}
+
 /** Deep-link hashes from the mode-select screen (e.g. #/daily, #/trophies). */
 function handleHashRoute() {
   if (S.phase !== 'mode-select' && S.phase !== 'more-modes') return;
   const h = (location.hash || '').replace(/^#\/?/, '').toLowerCase();
   if (!h || h === '/') return;
-  const map = {
-    daily: 'mode-daily',
-    classic: 'mode-solo',
-    solo: 'mode-solo',
-    blind: 'mode-blind',
-    balliq: 'mode-blind',
-    '1v1': 'mode-1v1',
-    challenges: 'open-more-modes',
-    trophies: 'view-trophies',
-    legends: 'view-legends',
-    defense: 'mode-defense',
-    fans: 'mode-fans',
-    dynasty: 'mode-dynasty-duel',
-    'gm-ai': 'mode-gm-ai',
-  };
-  const action = map[h];
+  const action = HASH_ROUTE_MAP[h];
   if (action) {
     if ((action === 'mode-defense' || action === 'mode-fans' || action === 'mode-dynasty-duel' || action === 'mode-gm-ai')
         && S.phase === 'mode-select') {
@@ -1009,10 +1019,13 @@ function runSeasonReveal() {
         // This path bypasses the batched reveal below, so fire its dramatic
         // beats here too: the streak-ended toast and any milestone crossed.
         const rivalGame = S.seasonGames[S.seasonRevealIdx - 1];
-        if (rivalGame?.isFirstLoss) showToast(`💔 The streak ends at ${rivalGame.streakBroken}`, 3200);
+        if (rivalGame?.isFirstLoss) showToast(`💔 The streak ends at ${rivalGame.streakBroken}`, 3200, 'streak-end');
         let rivalStreak = 0;
         for (let i = S.seasonRevealIdx - 1; i >= 0 && S.seasonGames[i].won; i--) rivalStreak++;
-        if (STREAK_MILESTONES.includes(rivalStreak)) showToast(`🔥 ${rivalStreak} STRAIGHT WINS!`, 2200);
+        // A streak-ends toast from an earlier tick can still be onscreen when
+        // this new streak's milestone lands — clear it so the two don't read
+        // as a contradiction (they're about two different streaks).
+        if (STREAK_MILESTONES.includes(rivalStreak)) { clearToastsOfKind('streak-end'); showToast(`🔥 ${rivalStreak} STRAIGHT WINS!`, 2200); }
         setTimeout(step, 1200);   // linger on the result
       }, 1700);
       return;
@@ -1040,14 +1053,18 @@ function runSeasonReveal() {
     // game number it is.
     const justRevealed = S.seasonGames.slice(prevIdx, S.seasonRevealIdx);
     const brokeHere = justRevealed.find(g => g.isFirstLoss);
-    if (brokeHere) showToast(`💔 The streak ends at ${brokeHere.streakBroken}`, 3200);
+    if (brokeHere) showToast(`💔 The streak ends at ${brokeHere.streakBroken}`, 3200, 'streak-end');
 
     // Live win-streak milestones — checked against the streak as of the end
     // of this tick, since blowout batching can jump several games at once.
     let liveStreak = 0;
     for (let i = S.seasonRevealIdx - 1; i >= 0 && S.seasonGames[i].won; i--) liveStreak++;
     const crossed = STREAK_MILESTONES.find(m => liveStreak >= m && liveStreak - n < m);
-    if (crossed) showToast(`🔥 ${crossed} STRAIGHT WINS!`, 2200);
+    // A streak-ends toast from an earlier tick (this one can't be that same
+    // tick — brokeHere forces liveStreak to 0) can still be onscreen once the
+    // reveal cadence outpaces its ~3s duration; clear it before celebrating
+    // the new streak so the two don't read as a contradiction.
+    if (crossed) { clearToastsOfKind('streak-end'); showToast(`🔥 ${crossed} STRAIGHT WINS!`, 2200); }
 
     // Personal streak record — fires exactly once when the live streak ties
     // then again when it first surpasses the previous personal best.
@@ -1057,6 +1074,7 @@ function runSeasonReveal() {
     if (_pbs > 0) {
       const preTick = Math.max(0, liveStreak - n);
       if (liveStreak >= _pbs && preTick < _pbs) {
+        clearToastsOfKind('streak-end');
         if (liveStreak === _pbs) showToast(`⚡ Matching your best-ever streak — ${_pbs} straight!`, 2400);
         else                     showToast(`🏆 New streak record — ${liveStreak} straight!`, 2800);
       }
