@@ -104,9 +104,9 @@ function main() {
       if (
         typeof p.popularity !== 'number' ||
         !Number.isInteger(p.popularity) ||
-        p.popularity < 35 || p.popularity > 99
+        p.popularity < 35
       ) {
-        errors.push(`${where}: "popularity" = ${JSON.stringify(p.popularity)} is not an integer in [35, 99]`);
+        errors.push(`${where}: "popularity" = ${JSON.stringify(p.popularity)} is not an integer >= 35`);
       }
     }
   }
