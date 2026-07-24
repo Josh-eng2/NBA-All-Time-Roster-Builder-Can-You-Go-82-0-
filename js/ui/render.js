@@ -1134,21 +1134,32 @@ function renderStatGauges() {
       .map(pos => ({ pos, player: S.roster[pos] }))
       .filter(x => x.player);
     const starters = placedPairs.map(x => x.player);
-    const asPlacedSlots = placedPairs.map(x => x.pos);
-    const rosterKey = 'placed|' + (S.coach || '') + '|' + asPlacedSlots.map((s, i) => s + ':' + starters[i].id).join(',');
-    if (_chemCache.key !== rosterKey) {
-      _chemCache.key    = rosterKey;
-      _chemCache.result = calculateChemistry(starters, S.coach, { asPlacedSlots });
+
+    if (starters.length === 0) {
+      // Nothing drafted yet — start at 0 like the Fans gauge, instead of
+      // chemTier(0)'s "Very Weak" (a false negative before you've begun).
+      chemGauge = renderStatGauge({
+        id: 'chem', icon: '🧪', pct: 0,
+        value: '—', suffix: '',
+        label: 'Chemistry', color: 'var(--muted-fg)',
+      });
+    } else {
+      const asPlacedSlots = placedPairs.map(x => x.pos);
+      const rosterKey = 'placed|' + (S.coach || '') + '|' + asPlacedSlots.map((s, i) => s + ':' + starters[i].id).join(',');
+      if (_chemCache.key !== rosterKey) {
+        _chemCache.key    = rosterKey;
+        _chemCache.result = calculateChemistry(starters, S.coach, { asPlacedSlots });
+      }
+      const tier  = chemTier(_chemCache.result.chemScore);
+      const color = chemTierColors(tier.id, isDark()).color;
+      // No raw score digits — chemTier() intentionally hides the 0-100 number
+      // from the UI; the arc's sweep still encodes it visually.
+      chemGauge = renderStatGauge({
+        id: 'chem', icon: '🧪', pct: _chemCache.result.chemScore,
+        value: tier.label, suffix: '',
+        label: 'Chemistry', color,
+      });
     }
-    const tier  = chemTier(_chemCache.result.chemScore);
-    const color = chemTierColors(tier.id, isDark()).color;
-    // No raw score digits — chemTier() intentionally hides the 0-100 number
-    // from the UI; the arc's sweep still encodes it visually.
-    chemGauge = renderStatGauge({
-      id: 'chem', icon: '🧪', pct: _chemCache.result.chemScore,
-      value: tier.label, suffix: '',
-      label: 'Chemistry', color,
-    });
   }
 
   return `<div class="draft-stat-gauges">${fansGauge}${chemGauge}</div>`;
@@ -1428,6 +1439,25 @@ function renderChemDashboard() {
     .map(pos => ({ pos, player: S.roster[pos] }))
     .filter(x => x.player);
   const starters = placedPairs.map(x => x.player);
+
+  // Before the first pick there's nothing to score yet. calculateChemistry([])
+  // returns bonus 0, which chemTier() reads as "Very Weak" — a false negative
+  // judgment rather than "you haven't started." Show an explicit empty state
+  // instead, matching the Fans gauge (which already starts at 0 with no picks).
+  if (starters.length === 0) {
+    return `
+  <div class="rounded-xl border border-border bg-card px-4 py-3 card-shadow draft-chem-dashboard">
+    <div class="flex items-center justify-between mb-2 draft-chem-dashboard__head">
+      <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg">Team Chemistry</p>
+      <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border border-border bg-card2 text-muted-fg">—</span>
+    </div>
+    <div class="h-1.5 rounded-full overflow-hidden bg-border draft-chem-dashboard__meter mb-3">
+      <div class="h-full rounded-full stat-bar-fill" style="width:0%;background:var(--border)"></div>
+    </div>
+    <p class="text-xs text-muted-fg draft-chem-report__empty">No synergies yet — keep drafting.</p>
+  </div>`;
+  }
+
   const asPlacedSlots = placedPairs.map(x => x.pos);
   const rosterKey = 'placed|' + (S.coach || '') + '|' + asPlacedSlots.map((s, i) => s + ':' + starters[i].id).join(',');
   if (_chemCache.key !== rosterKey) {
