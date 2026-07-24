@@ -509,7 +509,7 @@ function formulaPopularity(player) {
   }
   const jitter = Math.abs(hash % 11) - 5; // -5 … +5
 
-  return Math.min(100, Math.max(35, base + jitter));
+  return Math.min(100, Math.max(0, base + jitter));
 }
 
 // ─── Apply ────────────────────────────────────────────────────────────────────

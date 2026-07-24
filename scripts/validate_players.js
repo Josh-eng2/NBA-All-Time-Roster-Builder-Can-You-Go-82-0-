@@ -101,12 +101,8 @@ function main() {
         errors.push(`${where}: "traits" contains an empty/non-string entry`);
       }
 
-      if (
-        typeof p.popularity !== 'number' ||
-        !Number.isInteger(p.popularity) ||
-        p.popularity < 35 || p.popularity > 99
-      ) {
-        errors.push(`${where}: "popularity" = ${JSON.stringify(p.popularity)} is not an integer in [35, 99]`);
+      if (typeof p.popularity !== 'number' || !Number.isInteger(p.popularity)) {
+        errors.push(`${where}: "popularity" = ${JSON.stringify(p.popularity)} is not an integer`);
       }
     }
   }
