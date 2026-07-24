@@ -3,6 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <!-- Page-integrity guard (title lock + ad-iframe sandboxing) — loaded
+       before any third-party SDK so protection is active from the first
+       line those SDKs execute. See file header for the incident this
+       defends against. -->
+  <script src="js/utils/pageIntegrity.js"></script>
   <!-- CrazyGames HTML5 v2 SDK — loaded first so window.CrazyGames exists
        before js/main.js calls into js/utils/crazygames.js. No-ops (via
        environment detection) when not running on crazygames.com. -->
