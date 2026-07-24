@@ -89,26 +89,19 @@ decorative:
 `Point God`, `Elite Playmaker`, `Rim Protector`, `Floor Spacer`,
 `Lockdown Defender`, `Volume Shooter`, `Clutch`, `Glue Guy`,
 `Rebounding Machine`, `Hustle Player`, `Clutch Assassin`,
-`Championship DNA`, `Court Vision`, `Iron Man`, `Post Maestro`.
-
-**Decorative only** (shown as badges, no bonus logic reads them):
 `Defensive Stopper`, `Floor General`, `Slasher` (as a trait — distinct
 from the `Slasher` archetype), `Post Scorer`, `Mid-Range Maestro`,
-`3-and-D`, `Lob Threat`, `Franchise Player`, `Stretch Big`,
-`Volume Scorer`.
+`3-and-D`, `Lob Threat`.
 
-**Currently unused anywhere in the data**: `Championship DNA`,
-`Court Vision`, `Iron Man`, `Post Maestro`. Their chemistry bonuses
-("Winner's Circle," "Pinpoint Passing," "Iron Man," "Kick-Out Game")
-have never fired for anyone. Decision (approved): assign these where
-genuinely earned during the audit —
-- `Championship DNA` → multiple-ring players with a real case for it
-- `Court Vision` → elite passers, can coexist with `Elite Playmaker`/`Point God`
-- `Iron Man` → players known for durability/never missing games
-- `Post Maestro` → true back-to-the-basket scorers
+**Decorative only** (shown as badges, no bonus logic reads them):
+`Franchise Player`, `Stretch Big`, `Volume Scorer` (each has ≤1 holder —
+avoid assigning; use the canonical vocabulary above instead).
 
-Prefer accuracy over forcing these in — only assign where a player
-genuinely earns it, don't pad every batch with a quota of them.
+**Retired from the vocabulary**: `Championship DNA`, `Court Vision`,
+`Iron Man`, `Post Maestro` have zero holders in the data and their
+original chemistry bonuses were retargeted onto live traits
+("Pinpoint Passing" → `Point God`, "Kick-Out Game" → `Post Scorer`).
+Do not assign them.
 
 ### Popularity
 Handled separately from the per-decade stat batches — see
