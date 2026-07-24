@@ -44,6 +44,10 @@ export const FAMILY_CAPS = {
   intangibles: 0.20,
 };
 
+// Global tuning knob — every positive synergy bonus is multiplied by this
+// before being added to chemBonus. Penalties are unaffected.
+const SYNERGY_SCALE = 0.8;
+
 const FAMILY_LABEL = {
   position:    'Positional fit',
   offense:     'Offensive',
@@ -247,7 +251,14 @@ export function calculateChemistry(starters, coachId = null, opts = {}) {
   // and the family-cap math are all derived from this list at the end.
   const entries = [];
   const add = (id, kind, family, bonus, label) => entries.push({ id, kind, family, bonus, label });
-  const synergy = (id, family, bonus, label) => add(id, 'synergy', family, bonus, label);
+  // All positive synergy bonuses are scaled down 20% here — single point of
+  // control so every call site (base and coach-boosted alike) stays in sync,
+  // and the label's "(+N%)" is rewritten to match the post-scale value.
+  const synergy = (id, family, bonus, label) => {
+    const scaledBonus = bonus * SYNERGY_SCALE;
+    const scaledLabel = label.replace(/\+\d+(?:\.\d+)?%/, `+${Math.round(scaledBonus * 100)}%`);
+    add(id, 'synergy', family, scaledBonus, scaledLabel);
+  };
   const penalty = (id, bonus, label) => add(id, 'penalty', null, -Math.abs(bonus), label);
 
   // ── PHASE 0: LINEUP OPTIMIZER (POSITIONAL FIT) ───────────────────────────────
@@ -269,11 +280,11 @@ export function calculateChemistry(starters, coachId = null, opts = {}) {
         synergy(`fit-${slot}`, 'position', bonus,
           `Perfect Fit: ${player.name} plays natural ${slot} (+3%)`);
       } else if (fit === 'flex') {
-        synergy(`fit-${slot}`, 'position', bonus,
-          `Flex Fit: ${player.name} (${player.pos}) covers ${slot} via secondary position (+2%)`);
+        add(`fit-${slot}`, 'synergy', 'position', 0,
+          `Flex Fit: ${player.name} (${player.pos}) covers ${slot} via secondary position (0%)`);
       } else {
-        synergy(`fit-${slot}`, 'position', bonus,
-          `Versatile: ${player.name} fills the ${slot} role (+1%)`);
+        penalty(`fit-${slot}`, 0.03,
+          `Versatile: ${player.name} fills the ${slot} role (-3%)`);
       }
     }
   }
