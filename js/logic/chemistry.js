@@ -597,6 +597,100 @@ export function calculateChemistry(starters, coachId = null, opts = {}) {
       'Lob City: An elite passer puts the Lob Threat on a permanent alley-oop track (+4%)');
   }
 
+  // ── PHASE 3B: EXPANSION SYNERGIES ────────────────────────────────────────────
+  // Balanced-coverage pass: gives every archetype and live trait at least one
+  // positive identity (Volume Shooter's first, Two-Way Star's third/fourth)
+  // and thickens the intangibles family (was 5 synergies vs 19/16 off/def).
+
+  // Downhill Attack: multiple downhill drivers bend the defense every trip
+  if (sTSlasherTrait >= 2) {
+    const bonus = coach === 'riley' ? 0.08 : 0.06;
+    synergy('downhill-attack', 'offense', bonus,
+      `Downhill Attack${coach === 'riley' ? ' ⭐ Riley' : ''}: ${sTSlasherTrait} Slashers put relentless rim pressure on every trip (+${Math.round(bonus * 100)}%)`);
+  }
+
+  // Green Light: a gunner with a table-setter to feed him — Volume Shooter's
+  // first positive identity (359 holders, previously penalty-only).
+  const vsStarters = starters.filter(p => (p.traits || []).includes('Volume Shooter'));
+  const vsFgUnion  = new Set([...vsStarters, ...fgStarters].map(p => p.id));
+  if (sTVolumeShooter >= 1 && sTFloorGeneral >= 1 && vsFgUnion.size >= 2) {
+    const bonus = coach === 'holzman' ? 0.08 : 0.06;
+    synergy('green-light', 'offense', bonus,
+      `Green Light${coach === 'holzman' ? ' ⭐ Holzman' : ''}: A Floor General keeps the Volume Shooter fed with clean looks (+${Math.round(bonus * 100)}%)`);
+  }
+
+  // High-Low Game: twin post hubs passing over the defense
+  if (sTPostScorer >= 2) {
+    const bonus = coach === 'jackson' ? 0.08 : 0.06;
+    synergy('high-low-game', 'offense', bonus,
+      `High-Low Game${coach === 'jackson' ? ' ⭐ Triangle' : ''}: ${sTPostScorer} Post Scorers play high-low over the top of the defense (+${Math.round(bonus * 100)}%)`);
+  }
+
+  // Three-Level Scoring: threats at the rim, the mid-range, and the arc
+  if (sTFloorSpacer >= 1 && sTMidRange >= 1 && (sTSlasherTrait >= 1 || sTPostScorer >= 1)) {
+    synergy('three-level-scoring', 'offense', 0.07,
+      'Three-Level Scoring: Rim, mid-range, and arc all covered — nothing to scheme away (+7%)');
+  }
+
+  // No-Fly Zone: interior eraser plus a positionless stopper
+  if (sTRimProtector >= 1 && sTDefStopper >= 1) {
+    const bonus = coach === 'rivers' ? 0.08 : 0.06;
+    synergy('no-fly-zone', 'defense', bonus,
+      `No-Fly Zone${coach === 'rivers' ? ' ⭐ Rivers' : ''}: Rim Protector and Defensive Stopper close every airspace (+${Math.round(bonus * 100)}%)`);
+  }
+
+  // Junkyard Crew: grit plus clamps — loose balls never reach the offense
+  if (sTHustle >= 1 && sTLockdownTrait >= 1) {
+    const bonus = coach === 'auerbach' ? 0.07 : 0.05;
+    synergy('junkyard-crew', 'defense', bonus,
+      `Junkyard Crew${coach === 'auerbach' ? ' ⭐ Auerbach' : ''}: Hustle Player and Lockdown Defender turn every loose ball into a stop (+${Math.round(bonus * 100)}%)`);
+  }
+
+  // Glass Cleaners: two dedicated rebounders end possessions at one shot
+  if (sTRebMachine >= 2) {
+    const bonus = coach === 'auerbach' ? 0.08 : 0.06;
+    synergy('glass-cleaners', 'defense', bonus,
+      `Glass Cleaners${coach === 'auerbach' ? ' ⭐ Auerbach' : ''}: ${sTRebMachine} Rebounding Machines end every opponent possession at one shot (+${Math.round(bonus * 100)}%)`);
+  }
+
+  // Two-Way Anchor: a do-everything star backstopped by rim protection
+  if (sHasTwoWay && sTRimProtector >= 1) {
+    const bonus = coach === 'kerr' ? 0.08 : 0.06;
+    synergy('two-way-anchor', 'defense', bonus,
+      `Two-Way Anchor${coach === 'kerr' ? ' ⭐ Kerr' : ''}: Two-Way Star pressures the ball with a Rim Protector backstopping (+${Math.round(bonus * 100)}%)`);
+  }
+
+  // Captains' Council: ladders above Role Player Heaven (2+ Glue Guys)
+  if (sTGlueGuy >= 3) {
+    synergy('captains-council', 'intangibles', 0.06,
+      `Captains' Council: ${sTGlueGuy} Glue Guys set the locker-room tone — zero agendas, all wins (+6%)`);
+  }
+
+  // Dagger Time: crunch-time pull-up shotmaking on two different starters
+  const caStarters = starters.filter(p => (p.traits || []).includes('Clutch Assassin'));
+  const mrStarters = starters.filter(p => (p.traits || []).includes('Mid-Range Maestro'));
+  const caMrUnion  = new Set([...caStarters, ...mrStarters].map(p => p.id));
+  if (sTClutchAssassin >= 1 && sTMidRange >= 1 && caMrUnion.size >= 2) {
+    synergy('dagger-time', 'intangibles', 0.05,
+      'Dagger Time: Clutch Assassin and Mid-Range Maestro trade daggers when it matters (+5%)');
+  }
+
+  // Lunch-Pail Crew: ladders above Second Chance City (1+ Hustle Player).
+  // Rare (36 holders in the DB) — a delight, not a build target.
+  if (sTHustle >= 2) {
+    synergy('lunch-pail-crew', 'intangibles', 0.06,
+      `Lunch-Pail Crew: ${sTHustle} Hustle Players — every 50/50 ball belongs to you (+6%)`);
+  }
+
+  // No-Ego Star: a Two-Way Star who also does the dirty work (same player)
+  const noEgoStar = starters.find(
+    p => p.archetype === 'Two-Way Star' && (p.traits || []).includes('Glue Guy')
+  );
+  if (noEgoStar) {
+    synergy('no-ego-star', 'intangibles', 0.05,
+      `No-Ego Star: ${noEgoStar.name.split(' ').pop()} stars on both ends and still does the dirty work (+5%)`);
+  }
+
   // ── PHASE 4: PENALTIES ────────────────────────────────────────────────────────
 
   if (sSlashPaintCount >= 3 && !sHasSharpshooter) {
@@ -767,6 +861,93 @@ export function calculateChemistry(starters, coachId = null, opts = {}) {
   if (sTFloorSpacer >= 3 && sTRimProtector === 0 && starters.length >= 5) {
     penalty('soft-in-the-paint', 0.05,
       'Soft in the Paint: 3+ Floor Spacers but no Rim Protector anywhere — annihilated at the rim (-5%)');
+  }
+
+  // ── PHASE 5B: EXPANSION PENALTIES ────────────────────────────────────────────
+  // Counterweights for the Phase 3B synergies (stacking one identity plateaus,
+  // same pattern as No Spacing vs Bully Ball) plus absence verdicts for trait
+  // groups that previously had no penalty pathway. Absence checks are guarded
+  // by starters.length >= 5 — a partial roster mid-draft or an AI-GM candidate
+  // score must not be indicted for pieces it hasn't drafted yet.
+
+  // All Gas No Brakes: downhill drivers with nobody pumping the brakes —
+  // counterweight to Downhill Attack.
+  if (sTSlasherTrait >= 3 && sTFloorGeneral === 0 && sTPointGod === 0 && starters.length >= 5) {
+    penalty('all-gas-no-brakes', 0.05,
+      'All Gas No Brakes: 3+ Slashers with no Floor General or Point God to steady the attack — turnovers pile up (-5%)');
+  }
+
+  // Matador Defense: perimeter counterpart to Open Basket (which covers the rim)
+  if (sTLockdownTrait === 0 && sTDefStopper === 0 && sTThreeAndD === 0 && starters.length >= 5) {
+    penalty('matador-defense', 0.06,
+      'Matador Defense: No Lockdown Defender, Defensive Stopper, or 3-and-D wing anywhere — guards waltz to the paint (-6%)');
+  }
+
+  // Second-Chance Bleed: trait-side counterpart to the stat-based Rebounding
+  // Crisis — skipped when that already fired so one weakness isn't billed twice.
+  // A 10+ RPG starter controls the glass by definition — traits under-tag
+  // elite rebounders (same reasoning as Late-Clock Bailouts' 24-PPG exemption).
+  if (sTRebMachine === 0 && sTHustle === 0 && starters.length >= 5 &&
+      !starters.some(p => p.rpg >= 10.0) &&
+      !entries.some(e => e.id === 'rebounding-crisis')) {
+    penalty('second-chance-bleed', 0.05,
+      'Second-Chance Bleed: No Rebounding Machine or Hustle Player — opponents feast on putbacks (-5%)');
+  }
+
+  // Station-to-Station: no transition game at all — walk it up every trip
+  if (sTSlasherTrait === 0 && !sHasSlasher &&
+      !starters.some(p => p.archetype === 'Playmaker' && p.apg > 7.0) &&
+      starters.length >= 5) {
+    penalty('station-to-station', 0.04,
+      'Station-to-Station: No Slashers and no up-tempo Playmaker — zero easy transition buckets (-4%)');
+  }
+
+  // Crowded Post: high-low bigs with no shooters to punish the double —
+  // counterweight to High-Low Game.
+  if (sTPostScorer >= 2 && sTFloorSpacer === 0) {
+    penalty('crowded-post', 0.05,
+      'Crowded Post: 2+ Post Scorers with zero Floor Spacers — defenses double the block without consequence (-5%)');
+  }
+
+  // Glue Overload: too selfless — nobody takes over. Deliberate tension with
+  // Captains' Council: 3+ Glue Guys only cash in alongside a real star.
+  if (sTGlueGuy >= 3 && !starters.some(p => p.ppg > 20.0) && starters.length >= 5) {
+    penalty('glue-overload', 0.05,
+      'Glue Overload: 3+ Glue Guys but no 20-PPG star to defer to — everyone passes, nobody takes over (-5%)');
+  }
+
+  // Closer Logjam: diminishing returns by design — with Ice In Their Veins
+  // (+5% at 2+) a third Clutch Assassin nets out to roughly +1%.
+  if (sTClutchAssassin >= 3) {
+    penalty('closer-logjam', 0.04,
+      `Closer Logjam: ${sTClutchAssassin} Clutch Assassins all want the last shot — crunch-time possessions stall (-4%)`);
+  }
+
+  // Whose Team Is It: star-stacking without a connector. 22-PPG threshold
+  // targets true heliocentric star piles, not every strong starting five —
+  // star-chasing is the game's core fantasy and shouldn't be taxed by default.
+  if (starters.filter(p => p.ppg > 22.0).length >= 4 && sTGlueGuy === 0 && starters.length >= 5) {
+    penalty('whose-team-is-it', 0.05,
+      'Whose Team Is It: 4+ 22-PPG scorers and zero Glue Guys — no one connects the pieces (-5%)');
+  }
+
+  // Gunners Galore: milder cousin of ISO Hell (which keys off Elite Playmaker);
+  // fires when the table-setter traits are missing entirely. Skipped when ISO
+  // Hell already fired so the same shape isn't billed twice.
+  if (sTVolumeShooter >= 3 && sTFloorGeneral === 0 && sTPointGod === 0 && starters.length >= 5 &&
+      !entries.some(e => e.id === 'iso-hell')) {
+    penalty('gunners-galore', 0.04,
+      'Gunners Galore: 3+ Volume Shooters with no Floor General or Point God to set the table (-4%)');
+  }
+
+  // Soft Two-Way: keeps the One-Note Roster exemption honest — stacking
+  // Two-Way Stars is only fine when the defensive tags back it up.
+  const twStarters = starters.filter(p => p.archetype === 'Two-Way Star');
+  const DEF_TRAITS = ['Lockdown Defender', 'Defensive Stopper', '3-and-D', 'Rim Protector'];
+  if (twStarters.length >= 3 &&
+      !twStarters.some(p => (p.traits || []).some(t => DEF_TRAITS.includes(t)))) {
+    penalty('soft-two-way', 0.04,
+      'Soft Two-Way: 3+ Two-Way Stars but none carry a real defensive tag — the label doesn\'t guard anyone (-4%)');
   }
 
   // ── FAMILY CAPS + FINAL SCORE ────────────────────────────────────────────────
