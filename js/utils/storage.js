@@ -373,8 +373,6 @@ let _globalLbCache   = [];
 let _playerNameMap   = null;
 
 const FANS_TEAM_MAX  = 500;
-const POP_FLOOR      = 35;
-const POP_CEIL       = 100;
 
 function _fansBarCol(avg) {
   if (avg >= 80) return '#2563eb';
@@ -388,16 +386,6 @@ function _fansTierFromAvg(avg) {
     tier:   avg >= 85 ? 'Superstar Lineup' : avg >= 70 ? 'Star Power' : avg >= 55 ? 'Solid Roster' : 'Under the Radar',
     barCol: _fansBarCol(avg),
   };
-}
-
-function _formatFansM(fansM) {
-  const n = Number(fansM) || 0;
-  return n >= 1 ? `${n.toFixed(1)}M` : `${(n * 1000).toFixed(0)}K`;
-}
-
-function _fansMFromAvg(avg) {
-  const popNorm = Math.max(0, Math.min(1, (avg - POP_FLOOR) / (POP_CEIL - POP_FLOOR)));
-  return +(Math.pow(popNorm, 1.5) * 38 + 2).toFixed(1);
 }
 
 function _chemStyle(score) {
@@ -445,9 +433,8 @@ function _teamFansFromEntry(entry, lineup) {
     ? players.reduce((s, p) => s + (p.popularity ?? 50), 0)
     : Math.round(avg * 5);
   const pct  = Math.min(100, Math.round((sum / FANS_TEAM_MAX) * 100));
-  const fansM = Number(entry.fansM) > 0 ? Number(entry.fansM) : _fansMFromAvg(avg);
   const { tier, barCol } = _fansTierFromAvg(avg);
-  return { avg, sum, pct, fansM, tier, barCol };
+  return { avg, sum, pct, tier, barCol };
 }
 
 function _globalLbTeamDetailHtml(entry) {
@@ -480,8 +467,7 @@ function _globalLbTeamDetailHtml(entry) {
         <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;border:1px solid ${fans.barCol}30;color:${fans.barCol};background:${fans.barCol}18;font-family:Fira Sans,sans-serif">${fans.tier}</span>
       </div>
       <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px">
-        <span style="font-size:22px;font-weight:900;color:var(--fg);font-family:Fira Sans,sans-serif">🌍 ${_formatFansM(fans.fansM)}</span>
-        <span style="font-size:11px;color:var(--muted-fg);font-family:Fira Sans,sans-serif">${Math.round(fans.sum)}M star power</span>
+        <span style="font-size:22px;font-weight:900;color:var(--fg);font-family:Fira Sans,sans-serif">🌍 ${Math.round(fans.sum)}M</span>
       </div>
       <div style="height:6px;border-radius:999px;background:var(--border);overflow:hidden">
         <div style="height:100%;width:${fans.pct}%;border-radius:999px;background:${fans.barCol}"></div>
