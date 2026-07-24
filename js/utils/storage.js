@@ -481,7 +481,7 @@ function _globalLbTeamDetailHtml(entry) {
       </div>
       <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px">
         <span style="font-size:22px;font-weight:900;color:var(--fg);font-family:Fira Sans,sans-serif">🌍 ${_formatFansM(fans.fansM)}</span>
-        <span style="font-size:11px;color:var(--muted-fg);font-family:Fira Sans,sans-serif">${Math.round(fans.sum)}/${FANS_TEAM_MAX} star power</span>
+        <span style="font-size:11px;color:var(--muted-fg);font-family:Fira Sans,sans-serif">${Math.round(fans.sum)}M star power</span>
       </div>
       <div style="height:6px;border-radius:999px;background:var(--border);overflow:hidden">
         <div style="height:100%;width:${fans.pct}%;border-radius:999px;background:${fans.barCol}"></div>

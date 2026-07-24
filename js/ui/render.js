@@ -205,9 +205,19 @@ function toastContainer() {
   return c;
 }
 
-export function showToast(msg, duration = 2500) {
+/** Removes any still-visible toast tagged with `kind` immediately (no fade-out
+ *  wait). Used so a stale "streak ends" toast can't linger onscreen next to a
+ *  toast about a brand-new streak that has since replaced it — those two read
+ *  as a contradiction when the reveal cadence outpaces the toast duration,
+ *  even though they're about two different streaks at two different moments. */
+export function clearToastsOfKind(kind) {
+  toastContainer().querySelectorAll(`[data-toast-kind="${kind}"]`).forEach(el => el.remove());
+}
+
+export function showToast(msg, duration = 2500, kind = null) {
   const el = document.createElement('div');
   el.textContent = msg;
+  if (kind) el.dataset.toastKind = kind;
   const bg = isDark() ? '#f1f5f9' : '#0f172a';
   const fg = isDark() ? '#0f172a' : '#fff';
   el.style.cssText =
@@ -1105,7 +1115,7 @@ function renderStatGauges() {
   const fans = calcTeamFans(Object.values(S.roster));
   const fansGauge = renderStatGauge({
     id: 'fans', icon: '👥', pct: fans.pct,
-    value: `${Math.round(fans.sum)}`, suffix: ` /${fans.max}`,
+    value: `${Math.round(fans.sum)}M`, suffix: '',
     label: 'Fans', color: fans.barCol,
   });
 
@@ -1150,7 +1160,7 @@ function renderStatGauges() {
 // .draft-pop-bar-vertical in styles.css).
 function renderPopularityBarVertical() {
   const fans = calcTeamFans(Object.values(S.roster));
-  const label = `${Math.round(fans.sum)}/${fans.max}`;
+  const label = `${Math.round(fans.sum)}M`;
   return `
   <div class="rounded-xl border border-border bg-card px-2 py-3 card-shadow draft-pop-bar-vertical" title="${fans.tier}${fans.count ? ` · ${label}` : ''}">
     <p class="text-[9px] font-bold uppercase tracking-widest text-muted-fg draft-pop-bar-vertical__label">Fans</p>
@@ -1518,10 +1528,20 @@ export function computeAutopsy() {
   // ── 2. Chemistry penalty ───────────────────────────────────────────────────
   const chemPenalty = (S.result.chemReport || []).find(l => l.startsWith('🔴'));
   if (chemPenalty) {
+    // A single archetype gap (e.g. no playmaker) can coexist with an
+    // otherwise-elite chemistry score — positional-fit bonuses dominate the
+    // 0-100 scale, so "Perfect"/"Very Strong" up top and a 🔴 penalty here
+    // are both correct, just about different things. Reusing the word
+    // "chemistry" for both used to read as a flat contradiction; name the
+    // gap without disputing the badge once the score is already high.
+    const tier = chemTier(S.result.chemScore);
+    const eliteOverall = tier.id === 'perfect' || tier.id === 'veryStrong';
     return {
       icon:   '🧪',
-      title:  'Your chemistry sprung a leak',
-      detail: chemPenalty.replace('🔴', '').trim(),
+      title:  eliteOverall ? 'One gap still cost you games' : 'Your chemistry sprung a leak',
+      detail: (eliteOverall
+        ? `Your starting five's chemistry grades out ${tier.label} overall — but this one gap let opponents exploit it all season: `
+        : '') + chemPenalty.replace('🔴', '').trim(),
       fix:    'One roster change removes this penalty — check the Team Chemistry Report below.',
     };
   }
@@ -1977,6 +1997,19 @@ function renderResults() {
     return `<span class="text-xs font-bold px-2 py-0.5 rounded-full border" style="background:${scBg};color:${scColor};border-color:${scColor}30">${tier.label}</span>`;
   })() : '';
 
+  // Surfaced next to the headline Team OVR chip below — OVR alone is a poor
+  // predictor of the record (fit/archetype synergy swings wins far more than
+  // raw overall), so the fit-adjusted Chemistry tier sits right beside it
+  // instead of only appearing further down in the Team Chemistry Report.
+  const chemTopChip = r.chemScore !== undefined ? (() => {
+    const tier = chemTier(r.chemScore);
+    const { color: scColor, bg: scBg } = chemTierColors(tier.id, isDark());
+    return `<span class="inline-flex items-center gap-1 text-[11px] font-black px-2.5 py-1 rounded-full border"
+      style="background:${scBg};border-color:${scColor}40;color:${scColor}">
+      🧪 Chemistry: ${tier.label}
+    </span>`;
+  })() : '';
+
   return `
   <div class="flex flex-col min-h-screen main-gradient">
     ${renderHeader(false)}
@@ -1998,6 +2031,7 @@ function renderResults() {
               style="background:${ovrColor(teamOvr)}12;border-color:${ovrColor(teamOvr)}40;color:${ovrColor(teamOvr)}">
               🏀 Team OVR ${teamOvr}${ratingImpactLabel}
             </span>
+            ${chemTopChip}
             ${r.longestStreak >= 5 ? `<span class="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full border" style="background:#fef2f2;border-color:#fecaca;color:#dc2626">🔥 ${r.longestStreak}-game win streak</span>` : ''}
             <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full border border-border bg-slate-50 text-slate-600">
               🌍 Fans: ${fansLabel}
@@ -2094,7 +2128,7 @@ function renderResults() {
           <div class="mb-3">
             <div class="flex justify-between text-xs mb-1.5">
               <span class="text-muted-fg font-medium">Team Fans</span>
-              <span class="font-bold text-foreground">${Math.round(teamFans.sum)}/${teamFans.max}</span>
+              <span class="font-bold text-foreground">${Math.round(teamFans.sum)}M</span>
             </div>
             <div class="h-2 rounded-full bg-border overflow-hidden">
               <div class="h-full rounded-full stat-bar-fill" style="width:${popBarPct}%;background:${popBarCol}"></div>
@@ -2124,7 +2158,7 @@ function renderResults() {
                 <div class="flex-1 h-1.5 rounded-full bg-border overflow-hidden">
                   <div class="h-full rounded-full" style="width:${pct}%;background:${barCol}"></div>
                 </div>
-                <span class="text-[10px] font-bold text-muted-fg w-6 text-right flex-shrink-0">${pop}</span>
+                <span class="text-[10px] font-bold text-muted-fg w-9 text-right flex-shrink-0">${pop}M</span>
               </div>`;
             }).join('')}
           </div>
