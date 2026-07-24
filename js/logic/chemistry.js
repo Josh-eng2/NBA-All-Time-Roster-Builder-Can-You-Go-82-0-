@@ -280,11 +280,11 @@ export function calculateChemistry(starters, coachId = null, opts = {}) {
         synergy(`fit-${slot}`, 'position', bonus,
           `Perfect Fit: ${player.name} plays natural ${slot} (+3%)`);
       } else if (fit === 'flex') {
-        synergy(`fit-${slot}`, 'position', bonus,
-          `Flex Fit: ${player.name} (${player.pos}) covers ${slot} via secondary position (+2%)`);
+        add(`fit-${slot}`, 'synergy', 'position', 0,
+          `Flex Fit: ${player.name} (${player.pos}) covers ${slot} via secondary position (0%)`);
       } else {
-        synergy(`fit-${slot}`, 'position', bonus,
-          `Versatile: ${player.name} fills the ${slot} role (+1%)`);
+        penalty(`fit-${slot}`, 0.03,
+          `Versatile: ${player.name} fills the ${slot} role (-3%)`);
       }
     }
   }
