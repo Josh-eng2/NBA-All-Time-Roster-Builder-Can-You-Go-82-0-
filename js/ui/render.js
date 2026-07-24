@@ -1115,7 +1115,7 @@ function renderStatGauges() {
   const fans = calcTeamFans(Object.values(S.roster));
   const fansGauge = renderStatGauge({
     id: 'fans', icon: '👥', pct: fans.pct,
-    value: `${Math.round(fans.sum)}`, suffix: ` /${fans.max}`,
+    value: `${Math.round(fans.sum)}M`, suffix: '',
     label: 'Fans', color: fans.barCol,
   });
 
@@ -1160,7 +1160,7 @@ function renderStatGauges() {
 // .draft-pop-bar-vertical in styles.css).
 function renderPopularityBarVertical() {
   const fans = calcTeamFans(Object.values(S.roster));
-  const label = `${Math.round(fans.sum)}/${fans.max}`;
+  const label = `${Math.round(fans.sum)}M`;
   return `
   <div class="rounded-xl border border-border bg-card px-2 py-3 card-shadow draft-pop-bar-vertical" title="${fans.tier}${fans.count ? ` · ${label}` : ''}">
     <p class="text-[9px] font-bold uppercase tracking-widest text-muted-fg draft-pop-bar-vertical__label">Fans</p>
@@ -2128,7 +2128,7 @@ function renderResults() {
           <div class="mb-3">
             <div class="flex justify-between text-xs mb-1.5">
               <span class="text-muted-fg font-medium">Team Fans</span>
-              <span class="font-bold text-foreground">${Math.round(teamFans.sum)}/${teamFans.max}</span>
+              <span class="font-bold text-foreground">${Math.round(teamFans.sum)}M</span>
             </div>
             <div class="h-2 rounded-full bg-border overflow-hidden">
               <div class="h-full rounded-full stat-bar-fill" style="width:${popBarPct}%;background:${popBarCol}"></div>
@@ -2158,7 +2158,7 @@ function renderResults() {
                 <div class="flex-1 h-1.5 rounded-full bg-border overflow-hidden">
                   <div class="h-full rounded-full" style="width:${pct}%;background:${barCol}"></div>
                 </div>
-                <span class="text-[10px] font-bold text-muted-fg w-6 text-right flex-shrink-0">${pop}</span>
+                <span class="text-[10px] font-bold text-muted-fg w-9 text-right flex-shrink-0">${pop}M</span>
               </div>`;
             }).join('')}
           </div>
