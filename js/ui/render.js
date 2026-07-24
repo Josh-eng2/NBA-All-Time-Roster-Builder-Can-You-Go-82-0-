@@ -1904,16 +1904,10 @@ function renderResults() {
 
   // ── Popularity / Fan-Hype display helpers ─────────────────────────────────
   const popDelta    = r.popEloDelta ?? 0;
-  const fansM       = r.fansM       ?? 2;
   const teamFans    = calcTeamFans(POSITIONS.map(p => S.roster[p]));
   const popBarPct   = teamFans.pct;
   const popBarCol   = fansBarCol(teamFans.avg);
   const popTier     = teamFans.tier;
-
-  // Threshold at 1M so values like 2.0M don't display as "2000K"
-  const fansLabel = fansM >= 1
-    ? `${fansM.toFixed(1)}M`
-    : `${(fansM * 1000).toFixed(0)}K`;
 
   const hypeBadge = (() => {
     if (Math.abs(popDelta) < 0.002) return ''; // negligible — don't show
@@ -1970,6 +1964,7 @@ function renderResults() {
         <div class="flex items-center gap-1.5 mt-0.5">
           <p class="text-xs text-muted-fg">${p.team || ''} ${p.decade ? fmtDecadeShort(p.decade) : ''}</p>
           ${p.archetype ? archetypeBadge(p.archetype) : ''}
+          <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0" style="background:${ovrColor(p.overall)}18;color:${ovrColor(p.overall)}">OVR ${Math.round(p.overall ?? 0)}</span>
         </div>
       </div>
       <div class="flex gap-3 text-xs text-muted-fg flex-shrink-0">
@@ -2034,7 +2029,7 @@ function renderResults() {
             ${chemTopChip}
             ${r.longestStreak >= 5 ? `<span class="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full border" style="background:#fef2f2;border-color:#fecaca;color:#dc2626">🔥 ${r.longestStreak}-game win streak</span>` : ''}
             <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full border border-border bg-slate-50 text-slate-600">
-              🌍 Fans: ${fansLabel}
+              🌍 Fans: ${Math.round(teamFans.sum)}M
             </span>
             ${(() => {
               if (!r.coachBoost) return '';
@@ -2134,12 +2129,8 @@ function renderResults() {
               <div class="h-full rounded-full stat-bar-fill" style="width:${popBarPct}%;background:${popBarCol}"></div>
             </div>
           </div>
-          <!-- Fanbase + Elo impact row -->
+          <!-- Elo impact row -->
           <div class="flex gap-3 flex-wrap">
-            <div class="flex-1 rounded-xl border border-border bg-slate-50 px-3 py-2.5 text-center">
-              <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg mb-1">Total Fans</p>
-              <p class="text-xl font-black text-foreground">🌍 ${fansLabel}</p>
-            </div>
             <div class="flex-1 rounded-xl border px-3 py-2.5 text-center"
               style="background:${popDelta >= 0 ? 'var(--surface-green)' : 'var(--surface-red)'};border-color:${popDelta >= 0 ? (isDark() ? 'rgba(74,222,128,0.35)' : '#bbf7d0') : (isDark() ? 'rgba(248,113,113,0.35)' : '#fecaca')}">
               <p class="text-[10px] font-bold uppercase tracking-wider mb-1" style="color:${popDelta >= 0 ? (isDark() ? '#4ade80' : '#15803d') : (isDark() ? '#f87171' : '#dc2626')}">${popDelta >= 0 ? '📈 Hype Boost' : '📉 Hype Penalty'}</p>
@@ -2691,6 +2682,7 @@ function renderSeriesResult() {
     return `<div class="flex items-center gap-2 py-1.5 border-b border-border last:border-0">
       <span class="text-[10px] font-black text-muted-fg w-6 flex-shrink-0">${pos}</span>
       <span class="text-xs font-semibold text-foreground flex-1 truncate">${p.name}</span>
+      <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0" style="background:${ovrColor(p.overall)}18;color:${ovrColor(p.overall)}">${Math.round(p.overall ?? 0)}</span>
       <span class="text-[10px] text-muted-fg">${fmtPG(p.ppg)}pt</span>
     </div>`;
   }).join('');
@@ -2822,6 +2814,7 @@ function renderSeriesPreview() {
     return `<div class="flex items-center gap-1.5 py-1 border-b border-border last:border-0">
       <span class="text-[10px] font-black w-5 flex-shrink-0" style="color:${p ? color : '#cbd5e1'}">${pos}</span>
       <span class="text-xs font-semibold flex-1 truncate ${p ? 'text-foreground' : 'text-muted-fg/40'}">${p ? p.name : '—'}</span>
+      ${p ? `<span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0" style="background:${ovrColor(p.overall)}18;color:${ovrColor(p.overall)}">${Math.round(p.overall ?? 0)}</span>` : ''}
       ${p ? `<span class="text-[10px] text-muted-fg">${fmtPG(p.ppg)}pt</span>` : ''}
     </div>`;
   }).join('');
