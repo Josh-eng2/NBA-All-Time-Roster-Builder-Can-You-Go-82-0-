@@ -1964,6 +1964,7 @@ function renderResults() {
         <div class="flex items-center gap-1.5 mt-0.5">
           <p class="text-xs text-muted-fg">${p.team || ''} ${p.decade ? fmtDecadeShort(p.decade) : ''}</p>
           ${p.archetype ? archetypeBadge(p.archetype) : ''}
+          <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0" style="background:${ovrColor(p.overall)}18;color:${ovrColor(p.overall)}">OVR ${Math.round(p.overall ?? 0)}</span>
         </div>
       </div>
       <div class="flex gap-3 text-xs text-muted-fg flex-shrink-0">
@@ -2681,6 +2682,7 @@ function renderSeriesResult() {
     return `<div class="flex items-center gap-2 py-1.5 border-b border-border last:border-0">
       <span class="text-[10px] font-black text-muted-fg w-6 flex-shrink-0">${pos}</span>
       <span class="text-xs font-semibold text-foreground flex-1 truncate">${p.name}</span>
+      <span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0" style="background:${ovrColor(p.overall)}18;color:${ovrColor(p.overall)}">${Math.round(p.overall ?? 0)}</span>
       <span class="text-[10px] text-muted-fg">${fmtPG(p.ppg)}pt</span>
     </div>`;
   }).join('');
@@ -2812,6 +2814,7 @@ function renderSeriesPreview() {
     return `<div class="flex items-center gap-1.5 py-1 border-b border-border last:border-0">
       <span class="text-[10px] font-black w-5 flex-shrink-0" style="color:${p ? color : '#cbd5e1'}">${pos}</span>
       <span class="text-xs font-semibold flex-1 truncate ${p ? 'text-foreground' : 'text-muted-fg/40'}">${p ? p.name : '—'}</span>
+      ${p ? `<span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0" style="background:${ovrColor(p.overall)}18;color:${ovrColor(p.overall)}">${Math.round(p.overall ?? 0)}</span>` : ''}
       ${p ? `<span class="text-[10px] text-muted-fg">${fmtPG(p.ppg)}pt</span>` : ''}
     </div>`;
   }).join('');

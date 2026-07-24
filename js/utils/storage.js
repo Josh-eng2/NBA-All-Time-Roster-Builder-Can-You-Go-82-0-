@@ -380,6 +380,17 @@ function _fansBarCol(avg) {
   return '#94a3b8';
 }
 
+/** Same 2K-style OVR tier coloring as ovrColor() in render.js — duplicated
+ *  locally rather than imported to avoid a render.js <-> storage.js cycle
+ *  (render.js already imports from storage.js). */
+function _ovrColor(rating) {
+  const r = rating ?? 0;
+  if (r >= 97) return '#d97706';
+  if (r >= 92) return '#2563eb';
+  if (r >= 85) return '#0f766e';
+  return '#64748b';
+}
+
 function _fansTierFromAvg(avg) {
   if (!avg) return { tier: 'Unknown', barCol: '#94a3b8' };
   return {
@@ -457,6 +468,7 @@ function _globalLbTeamDetailHtml(entry) {
         <p style="font-weight:700;font-size:14px;color:var(--fg);margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:Fira Sans,sans-serif">${esc(pName)}</p>
         ${era ? `<p style="font-size:11px;color:var(--muted-fg);margin:2px 0 0;font-family:Fira Sans,sans-serif">${esc(era)}</p>` : ''}
       </div>
+      ${player ? `<span style="font-size:9px;font-weight:700;padding:2px 6px;border-radius:999px;flex-shrink:0;background:${_ovrColor(player.overall)}18;color:${_ovrColor(player.overall)};font-family:Fira Sans,sans-serif">OVR ${Math.round(player.overall ?? 0)}</span>` : ''}
     </div>`;
   }).join('');
 
