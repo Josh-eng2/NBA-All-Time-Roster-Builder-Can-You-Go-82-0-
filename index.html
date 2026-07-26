@@ -1,5 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<!-- data-page="game" opts this page into the fixed-viewport game shell in
+     css/styles.css (html/body locked to 100dvh, overflow hidden). Standalone
+     content pages (daily.html, privacy.html) deliberately omit it so they
+     scroll normally. -->
+<html lang="en" data-page="game">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
@@ -245,7 +249,7 @@
 
   <!-- Crawlable guide & FAQ — static text below the game, outside #app so the
        app never touches it. Mirrors the FAQPage JSON-LD below. -->
-  <section class="seo-content" id="about">
+  <section class="seo-content seo-content--crawlable" id="about">
     <div class="seo-inner">
       <h2>The Free 82-0 NBA Team Generator &amp; Roster Builder</h2>
       <p>
