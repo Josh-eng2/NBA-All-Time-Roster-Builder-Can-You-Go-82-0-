@@ -300,10 +300,15 @@ function renderHeader(showRestart = false) {
   <div class="app-header-wrap">
     <header class="app-header">
       <div class="app-header__inner">
-        <div class="app-header__brand">
+        <!-- h1, not a div: this is the page's primary heading and the only
+             one that survives into the rendered DOM. The loading-overlay h1
+             is removed once players load and the <noscript> h1 never renders
+             for crawlers (Googlebot executes JS), so without this the indexed
+             page had no h1 at all. Text matches what's visible on screen. -->
+        <h1 class="app-header__brand">
           ${iconBall('h-5 w-5 text-primary')}
           <span>82-0</span>
-        </div>
+        </h1>
         <div class="app-header__actions">
           ${coachObj ? `<span class="header-pill header-pill--muted">${coachObj.system}</span>` : ''}
           ${eraPill}
