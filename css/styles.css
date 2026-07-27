@@ -263,6 +263,9 @@ html[data-page="game"] body {
   font-size: 1rem;
   font-weight: 900;
   color: var(--fg);
+  /* Rendered as an <h1> — reset the UA heading margin so the header keeps
+     its exact previous layout. */
+  margin: 0;
 }
 
 .app-header__actions {

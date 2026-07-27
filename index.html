@@ -138,7 +138,6 @@
        "82-0? NBA Team Generator" covers those near-verbatim. -->
   <title>Can You Go 82-0? NBA Team Generator &amp; Roster Builder</title>
   <meta name="description" content="Free 82-0 NBA team generator &amp; all-time roster builder. Spin the wheel, draft legends from every era, pick your coach, and simulate 82 games — can you go 82-0?" />
-  <meta name="keywords" content="82-0, can you go 82-0, 82-0 team generator, NBA team generator, 82-0 NBA team generator, NBA simulator, NBA season simulator, NBA roster builder, all-time NBA team, basketball simulator, NBA all-time roster, fantasy NBA draft" />
   <link rel="canonical" href="https://canyougo820.com/" />
   <!-- ICO first: Google Search's favicon fetcher (and other crawlers/older
        browsers) don't reliably rasterize SVG-only favicons and were falling
@@ -148,9 +147,11 @@
   <link rel="icon" href="favicon.ico" sizes="48x48" />
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <meta name="google-site-verification" content="tKkqTKtQA1jcn-yFMIPN76kDNvCafVs3FgYTT7YojnY" />
-  <!-- Keep og:image for social share cards, but tell Google not to show a
-       thumbnail preview next to the search snippet. -->
-  <meta name="robots" content="max-image-preview:none" />
+  <!-- max-image-preview:large — Google may show a full-size image preview.
+       "none" previously suppressed image previews entirely AND made the site
+       ineligible for Google Discover, which requires "large". og-image.png is
+       already 1200x630, the asset size Google wants for large previews. -->
+  <meta name="robots" content="max-image-preview:large" />
 
   <!-- Open Graph / Social sharing -->
   <meta property="og:type"        content="website" />
@@ -304,45 +305,13 @@
     </div>
   </section>
 
-  <!-- FAQ rich-result markup — mirrors the visible FAQ above -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [
-      {
-        "@type": "Question",
-        "name": "What is Can You Go 82-0?",
-        "acceptedAnswer": { "@type": "Answer", "text": "It's a free NBA roster builder and season simulator. You draft an all-time team of legends from every era using a randomized draft wheel, then simulate an 82-game season. The goal — and the name — is finishing a perfect 82-0." }
-      },
-      {
-        "@type": "Question",
-        "name": "How does the 82-0 NBA team generator work?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Every spin randomly generates a franchise and a decade (like '80s Celtics or 2000s Spurs), and you draft one player from that combination. Repeat until all five starting spots are filled. No two runs deal the same boards, so every roster is unique." }
-      },
-      {
-        "@type": "Question",
-        "name": "What's the best team to go 82-0?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Raw star power isn't enough — team chemistry matters. Rosters that spread across eras, pair a rim protector with shooters and a true playmaker, and match the coach's style win more games." }
-      },
-      {
-        "@type": "Question",
-        "name": "What is the Daily Challenge?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Once a day, every player in the world gets the same draft board and the same special rule — era locks, banned franchises, or building around a locked legend. One attempt per day, streaks for consecutive clears, and a global daily leaderboard." }
-      },
-      {
-        "@type": "Question",
-        "name": "Is Can You Go 82-0 free?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Yes — completely free, no download, no sign-up. It runs in your browser on any device." }
-      },
-      {
-        "@type": "Question",
-        "name": "Can I play on my phone?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Yes. The game is fully responsive and plays the same on desktop, tablet, and mobile." }
-      }
-    ]
-  }
-  </script>
+  <!-- FAQPage JSON-LD removed. It described the #about guide/FAQ, which is
+       visually hidden (.seo-content--crawlable) so players can't scroll out
+       of the game. Google's structured-data policy requires FAQ content be
+       visible on the page, and marking up content users can't see risks a
+       manual action against ALL rich results. There is no upside left to
+       weigh against that: Google retired FAQ rich results on 2026-05-07.
+       If the guide is ever made visible, this markup can come back. -->
 
   <!-- Single ES-module entry point — all other JS is imported from here -->
   <script type="module" src="js/main.js"></script>
