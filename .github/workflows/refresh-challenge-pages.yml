@@ -1,0 +1,62 @@
+# Keeps the generated Daily Challenge pages current.
+#
+# Each daily/<slug>.html page lists the dates its challenge has run, and a new
+# date is drawn every midnight UTC. Without this the archive silently goes
+# stale — the pages would still be correct, just perpetually missing the most
+# recent days.
+#
+# The generator only rewrites files whose content actually changed, and
+# sitemap lastmod tracks real content changes rather than the run date, so a
+# quiet day produces no commit at all.
+name: Refresh Daily Challenge pages
+
+on:
+  schedule:
+    # 00:10 UTC — just after the challenge rolls over at midnight UTC.
+    # GitHub may delay scheduled runs under load; a late run is harmless here.
+    - cron: '10 0 * * *'
+  workflow_dispatch:
+
+# Only the commit below needs write access.
+permissions:
+  contents: write
+
+# Never let two refreshes race on a push to main.
+concurrency:
+  group: refresh-challenge-pages
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          # Full history: the generator reads `git log` per file to date any
+          # page it did not rewrite. A shallow clone would report every page
+          # as changing today and defeat the point of content-based lastmod.
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Regenerate challenge pages, daily index and sitemap
+        run: node scripts/build_challenge_pages.mjs
+
+      - name: Commit and push if anything changed
+        run: |
+          set -euo pipefail
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "No content changed — nothing to commit."
+            exit 0
+          fi
+          echo "Changed files:"
+          git status --porcelain
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Refresh Daily Challenge pages ($(date -u +%Y-%m-%d))"
+          git push
