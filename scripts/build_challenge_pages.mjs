@@ -218,7 +218,11 @@ function renderPage(ch, slug, dates) {
   <link rel="canonical" href="${url}" />
   <link rel="icon" href="../favicon.ico" sizes="48x48" />
   <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
-  <meta name="robots" content="max-image-preview:large" />
+  <!-- max-image-preview:none — same Google-search-thumbnail-suppression
+       policy as index.html (see the comment there for the Discover
+       tradeoff). og:image / twitter:image below are untouched — social
+       share cards only. -->
+  <meta name="robots" content="max-image-preview:none" />
 
   <meta property="og:type"        content="article" />
   <meta property="og:site_name"   content="Can You Go 82-0?" />
