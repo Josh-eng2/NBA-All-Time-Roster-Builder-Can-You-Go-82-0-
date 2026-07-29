@@ -39,6 +39,20 @@
   --amber-border:   #fcd34d;
   --amber-text:     #92400e;
   --amber-strong:   #b45309;
+  /* Courtside broadcast palette — the results hero + playoff bracket screens.
+     Orange is the single live accent; the hardwood gradient carries the
+     broadcast look. See "Courtside broadcast" section below. */
+  --acc:            #ea580c;
+  --acc-deep:       #c2410c;
+  --acc-soft:       rgba(234, 88, 12, 0.16);
+  --hardwood-from:  #161d2b;
+  --hardwood-to:    #3b2417;
+  --gold-from:      #f59e0b;
+  --gold-to:        #d97706;
+  --pip-win:        #16a34a;
+  --pip-loss:       #fda4af;
+  --autopsy-text:   #dc2626;
+  --autopsy-border: #fecaca;
 }
 
 [data-theme="dark"] {
@@ -74,6 +88,17 @@
   --amber-border:   rgba(251, 191, 36, 0.4);
   --amber-text:     #fbbf24;
   --amber-strong:   #fbbf24;
+  --acc:            #fb923c;
+  --acc-deep:       #ea580c;
+  --acc-soft:       rgba(251, 146, 60, 0.22);
+  --hardwood-from:  #0b0f16;
+  --hardwood-to:    #1c1917;
+  --gold-from:      #fbbf24;
+  --gold-to:        #b45309;
+  --pip-win:        #4ade80;
+  --pip-loss:       #7f1d1d;
+  --autopsy-text:   #f87171;
+  --autopsy-border: rgba(248, 113, 113, 0.35);
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -878,6 +903,578 @@ button.draft-roster-slot {
   color: var(--muted);
 }
 
+/* ── Courtside broadcast — Results hero & Playoffs title band ──
+   The results and playoff screens share one identity: a dark hardwood
+   gradient band with orange (--acc) as the only live accent. Every color
+   here resolves from a theme token so both screens follow the light/dark
+   toggle without a single JS branch. */
+
+.courtside-hero {
+  border-radius: 22px;
+  overflow: hidden;
+  background: linear-gradient(150deg, var(--hardwood-from), var(--hardwood-to));
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.3);
+  color: #fff;
+  padding: 18px 18px 16px;
+}
+
+.courtside-hero--perfect {
+  box-shadow: 0 0 0 2px #fde68a, 0 10px 30px rgba(217, 119, 6, 0.3);
+}
+
+.courtside-hero__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.courtside-hero__eyebrow {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.courtside-hero__tier {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--acc-soft);
+  color: var(--acc);
+  border: 1px solid color-mix(in srgb, var(--acc) 34%, transparent);
+  white-space: nowrap;
+}
+
+.courtside-hero__body {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.courtside-hero__col {
+  flex: 1;
+  min-width: 0;
+}
+
+.courtside-hero__sub {
+  margin: 2px 0 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.courtside-hero__sub b {
+  color: var(--acc);
+  font-weight: 800;
+}
+
+.courtside-hero__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+/* Gold grade badge — a 3px gradient ring around a dark disc. */
+.grade-badge {
+  flex-shrink: 0;
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  padding: 3px;
+  background: linear-gradient(135deg, var(--gold-from), var(--gold-to));
+}
+
+.grade-badge__inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: rgba(11, 18, 32, 0.6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  /* line-height:1 collapses the two lines onto each other without the gap. */
+  line-height: 1;
+  gap: 3px;
+}
+
+.grade-badge__letter {
+  font-size: 40px;
+  font-weight: 800;
+  color: #fde68a;
+}
+
+/* Two-character grades ("A+") need to come down a step to stay in the ring. */
+.grade-badge__letter--wide {
+  font-size: 31px;
+  letter-spacing: -0.02em;
+}
+
+.grade-badge__label {
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.courtside-record {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  line-height: 1;
+}
+
+.courtside-record__w {
+  font-size: 64px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.courtside-record__dash {
+  font-size: 26px;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.courtside-record__l {
+  font-size: 44px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* 82 win/loss pips — the whole season at a glance, wraps on narrow screens. */
+.season-strip {
+  margin-top: 14px;
+}
+
+.season-strip__pips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5px;
+}
+
+.season-strip__pip {
+  width: 3px;
+  height: 15px;
+  border-radius: 1px;
+  background: var(--pip-win);
+}
+
+.season-strip__pip--loss {
+  background: var(--pip-loss);
+}
+
+.season-strip__meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 7px;
+}
+
+.season-strip__streak {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--acc);
+}
+
+.season-strip__count {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Quick tiles — OVR / CHEM / FANS / COACH */
+.quick-tiles {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.quick-tile {
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  padding: 10px 6px;
+  text-align: center;
+}
+
+.quick-tile__label {
+  margin: 0;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--muted-fg);
+}
+
+.quick-tile__value {
+  margin: 1px 0 0;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.quick-tile__value small {
+  font-size: 11px;
+}
+
+/* Primary orange CTA — "Enter the Playoffs" */
+.courtside-cta {
+  width: 100%;
+  border: 0;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--acc), var(--acc-deep));
+  padding: 15px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 0 8px 22px var(--acc-soft);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.courtside-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 26px var(--acc-soft);
+}
+
+.courtside-cta__icon {
+  font-size: 26px;
+  flex-shrink: 0;
+}
+
+.courtside-cta__title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 900;
+  color: #fff;
+}
+
+.courtside-cta__sub {
+  margin: 1px 0 0;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.courtside-cta__chev {
+  font-size: 20px;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+/* Locked variant — under 20 wins there is no bracket to enter. */
+.courtside-cta--locked {
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: none;
+  cursor: default;
+}
+
+.courtside-cta--locked:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.courtside-cta--locked .courtside-cta__title {
+  color: var(--fg);
+}
+
+.courtside-cta--locked .courtside-cta__sub {
+  color: var(--muted-fg);
+}
+
+/* Loss autopsy — slim red strip instead of a full card. */
+.autopsy-strip {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid var(--autopsy-border);
+  background: var(--surface-red);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  font-family: inherit;
+}
+
+button.autopsy-strip {
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+button.autopsy-strip:hover {
+  border-color: var(--autopsy-text);
+}
+
+/* Real diagnoses run longer than the two lines the mock had, so the icon
+   anchors to the title rather than floating in the middle of the block. */
+.autopsy-strip__icon {
+  font-size: 20px;
+  flex-shrink: 0;
+  align-self: flex-start;
+  margin-top: 1px;
+}
+
+.autopsy-strip__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.autopsy-strip__title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--autopsy-text);
+}
+
+.autopsy-strip__fix {
+  margin: 1px 0 0;
+  font-size: 11px;
+  color: var(--muted-fg);
+}
+
+.autopsy-strip__detail {
+  margin: 4px 0 0;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--muted-fg);
+}
+
+.autopsy-strip__cta {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--autopsy-text);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* 82-0 has no losses to dissect — the same strip in celebration gold. */
+.autopsy-strip--gold {
+  border-color: var(--amber-border);
+  background: var(--surface-cream);
+}
+
+.autopsy-strip--gold .autopsy-strip__title {
+  color: var(--amber-text);
+}
+
+.autopsy-strip--gold .autopsy-strip__fix {
+  color: var(--amber-strong);
+}
+
+/* Season leaders — compact single-line rows. */
+.leaders-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.leaders-row__icon {
+  font-size: 14px;
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.leaders-row__name {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.leaders-row__val {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--fg);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.leaders-row__key {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--muted-fg);
+  width: 26px;
+  flex-shrink: 0;
+}
+
+/* Playoffs broadcast title band */
+.broadcast-band {
+  border-radius: 18px;
+  overflow: hidden;
+  background: linear-gradient(150deg, var(--hardwood-from), var(--hardwood-to));
+  color: #fff;
+  padding: 16px 18px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.28);
+}
+
+.broadcast-band__eyebrow {
+  margin: 0 0 2px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--acc);
+}
+
+.broadcast-band__title {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  line-height: 1.05;
+}
+
+.broadcast-band__sub {
+  margin: 5px 0 0;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.broadcast-band__sub b {
+  color: var(--acc);
+  font-weight: 800;
+}
+
+.bracket-hint {
+  margin: 8px 2px 0;
+  font-size: 10px;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* The bracket is 34rem wide and stops overflowing once the card can hold it,
+   so the swipe affordance retires instead of pointing at nothing. */
+@media (min-width: 640px) {
+  .bracket-hint {
+    display: none;
+  }
+}
+
+/* Courtside buttons — orange fill / orange outline / neutral outline. */
+.btn-courtside,
+.btn-courtside-outline,
+.btn-neutral-outline {
+  width: 100%;
+  border-radius: 12px;
+  text-align: center;
+  font-family: inherit;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.btn-courtside {
+  padding: 14px 0;
+  border: 0;
+  font-size: 14px;
+  font-weight: 900;
+  color: #fff;
+  background: linear-gradient(135deg, var(--acc), var(--acc-deep));
+  box-shadow: 0 8px 22px var(--acc-soft);
+}
+
+.btn-courtside:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 26px var(--acc-soft);
+}
+
+.btn-courtside-outline {
+  padding: 12px 0;
+  border: 1px solid var(--acc);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--acc);
+  background: var(--card);
+}
+
+.btn-courtside-outline:hover:not(:disabled) {
+  background: var(--acc-soft);
+}
+
+.btn-neutral-outline {
+  padding: 12px 0;
+  border: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--fg);
+  background: var(--card);
+}
+
+.btn-neutral-outline:hover:not(:disabled) {
+  border-color: var(--acc);
+  background: var(--card2);
+}
+
+.btn-courtside:disabled,
+.btn-courtside-outline:disabled,
+.btn-neutral-outline:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+/* Orange bracket override — the playoff screen swaps the bracket's default
+   blue player/live accents for courtside orange. Scoped to .brk-o so the
+   bracket component keeps its blue defaults anywhere else it is used. */
+.brk-o .bracket-team--player {
+  background: var(--surface-amber);
+}
+
+.brk-o .bracket-team--player .bracket-team__name {
+  color: var(--acc);
+}
+
+.brk-o .bracket-matchup--live {
+  border-color: color-mix(in srgb, var(--acc) 55%, transparent);
+  box-shadow: 0 0 0 2px var(--acc-soft);
+}
+
+/* Narrow phones: the 74px badge + 64px record overflow below ~360px. */
+@media (max-width: 360px) {
+  .courtside-hero {
+    padding: 16px 14px 14px;
+  }
+
+  .grade-badge {
+    width: 62px;
+    height: 62px;
+  }
+
+  .grade-badge__letter {
+    font-size: 33px;
+  }
+
+  .grade-badge__letter--wide {
+    font-size: 26px;
+  }
+
+  .courtside-record__w {
+    font-size: 52px;
+  }
+
+  .courtside-record__l {
+    font-size: 36px;
+  }
+
+  .broadcast-band__title {
+    font-size: 26px;
+  }
+}
+
 /* ── Drafting screen (desktop defaults) ─────────────────────── */
 .draft-board-scroll {
   height: 24vh;
@@ -1613,6 +2210,22 @@ button.draft-roster-slot {
   box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.2) !important;
 }
 
+/* Courtside orange bracket, dark theme. Must sit after the blue dark rules
+   above and repeat their !important — same specificity, so source order and
+   weight decide, and without both the player row goes back to blue. */
+[data-theme="dark"] .brk-o .bracket-team--player {
+  background: var(--surface-amber) !important;
+}
+
+[data-theme="dark"] .brk-o .bracket-team--player .bracket-team__name {
+  color: var(--acc) !important;
+}
+
+[data-theme="dark"] .brk-o .bracket-matchup--live {
+  border-color: var(--acc) !important;
+  box-shadow: 0 0 0 2px var(--acc-soft) !important;
+}
+
 /* Global leaderboard modal dark overrides */
 [data-theme="dark"] #global-lb-modal-backdrop > div {
   background: var(--card) !important;
@@ -1757,7 +2370,10 @@ button.draft-roster-slot {
   background: var(--muted);
 }
 
-/* ── Results screen — responsive Submit card placement ───────── */
+/* ── Results screen — block order ─────────────────────────────
+   The courtside design reads hero → quick tiles → signal chips → playoff
+   CTA → everything else, at every width. The hero group shares one order
+   value so its three siblings stay together in DOM order. */
 .results-layout {
   display: flex;
   flex-direction: column;
@@ -1767,28 +2383,18 @@ button.draft-roster-slot {
   order: 40;
 }
 
-.results-layout > .results-block--record {
+.results-layout > .results-block--hero {
   order: 10;
 }
 
-@media (max-width: 639px) {
-  .results-layout > .results-block--save {
-    order: 20;
-  }
-
-  .results-layout > .results-block--playoffs {
-    order: 30;
-  }
+/* "Enter the Playoffs" is the point of this screen — it outranks the
+   save-your-run card on phones too, where the card used to come first. */
+.results-layout > .results-block--playoffs {
+  order: 20;
 }
 
-@media (min-width: 640px) {
-  .results-layout > .results-block--playoffs {
-    order: 20;
-  }
-
-  .results-layout > .results-block--save {
-    order: 30;
-  }
+.results-layout > .results-block--save {
+  order: 30;
 }
 
 /* Season sim — fixed skip button + stable ticker height */
