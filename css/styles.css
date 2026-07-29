@@ -16,6 +16,7 @@
   --muted-fg:    #64748b;
   --primary:     #2563eb;
   --primary-fg:  #ffffff;
+  --primary-soft: rgba(37, 99, 235, 0.16);
   --shadow:      rgba(0,0,0,0.06);
   --shadow2:     rgba(0,0,0,0.04);
   --overlay:     rgba(15,23,42,0.18);
@@ -67,6 +68,7 @@
   --muted-fg:    #e2e8f0;
   --primary:     #60a5fa;
   --primary-fg:  #ffffff;
+  --primary-soft: rgba(96, 165, 250, 0.22);
   --shadow:      rgba(0,0,0,0.25);
   --shadow2:     rgba(0,0,0,0.15);
   --overlay:     rgba(0,0,0,0.6);
@@ -1119,12 +1121,15 @@ button.draft-roster-slot {
   font-size: 11px;
 }
 
-/* Primary orange CTA — "Enter the Playoffs" */
+/* Primary CTA — "Enter the Playoffs". Uses the blue --primary system (not
+   --acc orange) so it reads as the app's normal primary action rather than
+   competing with the courtside broadcast orange accent used elsewhere on
+   this screen (hero tier badge, streak text, fans/coach tiles, etc). */
 .courtside-cta {
   width: 100%;
   border: 0;
   border-radius: 16px;
-  background: linear-gradient(135deg, var(--acc), var(--acc-deep));
+  background: var(--primary);
   padding: 15px 18px;
   display: flex;
   align-items: center;
@@ -1132,13 +1137,13 @@ button.draft-roster-slot {
   text-align: left;
   font-family: inherit;
   cursor: pointer;
-  box-shadow: 0 8px 22px var(--acc-soft);
+  box-shadow: 0 8px 22px var(--primary-soft);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .courtside-cta:hover {
   transform: translateY(-1px);
-  box-shadow: 0 12px 26px var(--acc-soft);
+  box-shadow: 0 12px 26px var(--primary-soft);
 }
 
 .courtside-cta__icon {
@@ -1359,7 +1364,11 @@ button.autopsy-strip:hover {
   }
 }
 
-/* Courtside buttons — orange fill / orange outline / neutral outline. */
+/* Courtside buttons — .btn-courtside (playoffs simulate/continue) is a blue
+   --primary fill. .btn-courtside-outline is shared with results' "Share
+   Result" button and stays orange there; the playoffs screen opts into blue
+   via the narrow .btn-courtside-outline--playoffs modifier below instead of
+   recoloring the shared class. .btn-neutral-outline stays neutral. */
 .btn-courtside,
 .btn-courtside-outline,
 .btn-neutral-outline {
@@ -1377,13 +1386,13 @@ button.autopsy-strip:hover {
   font-size: 14px;
   font-weight: 900;
   color: #fff;
-  background: linear-gradient(135deg, var(--acc), var(--acc-deep));
-  box-shadow: 0 8px 22px var(--acc-soft);
+  background: var(--primary);
+  box-shadow: 0 8px 22px var(--primary-soft);
 }
 
 .btn-courtside:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 12px 26px var(--acc-soft);
+  box-shadow: 0 12px 26px var(--primary-soft);
 }
 
 .btn-courtside-outline {
@@ -1397,6 +1406,20 @@ button.autopsy-strip:hover {
 
 .btn-courtside-outline:hover:not(:disabled) {
   background: var(--acc-soft);
+}
+
+/* Playoffs-only override — "Simulate Entire Playoffs" reuses the outline
+   button's structure but switches to the blue primary system. Kept as a
+   separate modifier (rather than recoloring .btn-courtside-outline itself)
+   because that shared class is also Share Result's orange outline, which is
+   unrelated to the playoffs CTA de-orange ask. */
+.btn-courtside-outline--playoffs {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.btn-courtside-outline--playoffs:hover:not(:disabled) {
+  background: var(--primary-soft);
 }
 
 .btn-neutral-outline {
