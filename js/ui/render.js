@@ -1748,6 +1748,35 @@ function renderDailySubmitCard() {
   </div>`;
 }
 
+/** Light-weight starting-5 summary for the main results scroll — position,
+ *  name, and OVR only. The fuller per-game-stat / floor-assignment version
+ *  (with fit badges) lives in the Team Report popup's Optimized Lineup card
+ *  (see reportRosterRow / renderOptimizedLineupReportCard). Reads S.roster
+ *  by natural slot, matching what the player actually drafted rather than
+ *  the engine's optimized re-assignment. */
+function renderStartingFiveRow(posLabel, p) {
+  if (!p) return '';
+  return `
+    <div class="flex items-center gap-3 py-2.5 border-b border-border last:border-0">
+      <span class="text-[10px] font-black text-primary w-7 flex-shrink-0">${posLabel}</span>
+      <div class="flex-1 min-w-0">
+        <p class="font-semibold text-sm text-foreground truncate">${p.name}</p>
+        <p class="text-xs text-muted-fg">${p.team || ''} ${p.decade ? fmtDecadeShort(p.decade) : ''}</p>
+      </div>
+      <span class="text-[11px] font-bold px-2 py-0.5 rounded-full flex-shrink-0" style="background:${ovrColor(p.overall)}18;color:${ovrColor(p.overall)}">OVR ${Math.round(p.overall ?? 0)}</span>
+    </div>`;
+}
+
+function renderStartingFiveCard() {
+  return `
+    <div class="rounded-2xl border border-border bg-white p-4 card-shadow">
+      <p class="text-xs font-bold uppercase tracking-widest text-muted-fg mb-1">Starting 5</p>
+      <div class="flex flex-col">
+        ${POSITIONS.map(pos => renderStartingFiveRow(pos, S.roster[pos])).join('')}
+      </div>
+    </div>`;
+}
+
 function renderResults() {
   const r          = S.result;
   const tier       = seasonTier(r.wins);
@@ -1781,41 +1810,21 @@ function renderResults() {
                  : 'Classic';
 
   // ── Team rating (0–100 overall) display helpers ───────────────────────────
-  const teamOvr     = Math.round(r.avgRating ?? 0);
-  const ratingDelta = r.ratingEloDelta ?? 0;
-  const ratingPct   = ratingDelta / (r.baseStrength || 1) * 100;
-  const ratingImpactLabel = Math.abs(ratingPct) >= 0.1
-    ? ` · ${ratingPct >= 0 ? '+' : ''}${ratingPct.toFixed(1)}% Elo`
-    : '';
+  const teamOvr = Math.round(r.avgRating ?? 0);
 
   // ── Popularity / Fan-Hype display helpers ─────────────────────────────────
-  // Full per-player breakdown, tier badge, etc. live in the Fans report card
-  // (renderFansReportCard) — this screen only needs the roll-up for the FANS
-  // quick-tile and the Elo-impact chip below.
-  const popDelta = r.popEloDelta ?? 0;
+  // Full per-player breakdown, tier badge, and Elo-impact detail live in the
+  // Fans report card (renderFansReportCard) — this screen only needs the
+  // roll-up for the FANS quick-tile.
   const teamFans = calcTeamFans(POSITIONS.map(p => S.roster[p]));
 
-  const hypeBadge = (() => {
-    if (Math.abs(popDelta) < 0.002) return ''; // negligible — don't show
-    const pos    = popDelta >= 0;
-    const sign   = pos ? '+' : '';
-    const pctImp = (popDelta / (r.baseStrength || 1) * 100).toFixed(1);
-    const bg     = pos ? (isDark() ? 'rgba(34,197,94,0.12)' : '#f0fdf4') : (isDark() ? 'rgba(239,68,68,0.12)' : '#fef2f2');
-    const border = pos ? (isDark() ? 'rgba(74,222,128,0.35)' : '#bbf7d0') : (isDark() ? 'rgba(248,113,113,0.35)' : '#fecaca');
-    const color  = pos ? (isDark() ? '#4ade80' : '#15803d') : (isDark() ? '#f87171' : '#dc2626');
-    const lbl    = pos ? 'High Fans' : 'Low Fans';
-    return `<span class="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full border"
-      style="background:${bg};border-color:${border};color:${color}">
-      ${pos ? '📈' : '📉'} ${sign}${pctImp}% Elo · ${lbl}
-    </span>`;
-  })();
-
   // Team Chemistry / Fans / Season Leaders / Team Statistics / Optimized
-  // Lineup / Loss Autopsy card builders now live in the Team Report popup
-  // builders below (renderChemistryReportCard, renderFansReportCard, etc.) —
-  // the main screen only keeps the 82-0 congrats treatment, since that's a
-  // celebration beat rather than analysis (see renderAutopsyReportCard for
-  // the imperfect-season detail).
+  // Lineup / Loss Autopsy card builders, plus the detailed Team OVR Elo,
+  // Fans Elo, and Coach mastery chips, now live in the Team Report popup
+  // builders below (renderSeasonImpactReportCard, renderChemistryReportCard,
+  // renderFansReportCard, etc.) — the main screen only keeps the 82-0
+  // congrats treatment, since that's a celebration beat rather than analysis
+  // (see renderAutopsyReportCard for the imperfect-season detail).
 
   // ── Courtside hero ────────────────────────────────────────────────────────
   const grade     = seasonGrade(r.wins);
@@ -1854,30 +1863,10 @@ function renderResults() {
     ? `+${(r.coachBoost * 100).toFixed(1)}<small>%</small>`
     : '—';
 
-  // Chips that the quick tiles above don't already say. The plain OVR / fans /
-  // streak chips were dropped when those values moved into the tiles + strip;
-  // what's left is the Elo-impact detail and the mode-specific badge.
-  const signalChips = [
-    modeBadge,
-    ratingImpactLabel
-      ? `<span class="inline-flex items-center gap-1 text-[11px] font-black px-2.5 py-1 rounded-full border"
-          style="background:${ovrColor(teamOvr)}12;border-color:${ovrColor(teamOvr)}40;color:${ovrColor(teamOvr)}">
-          🏀 Team OVR ${teamOvr}${ratingImpactLabel}
-        </span>`
-      : '',
-    hypeBadge,
-    (() => {
-      if (!r.coachBoost) return '';
-      const coachObj = S.coach ? COACHES.find(c => c.id === S.coach) : null;
-      if (!coachObj) return '';
-      const pctOfMax = r.coachBoost / 0.040;
-      const grade    = pctOfMax >= 0.75 ? 'Mastered' : pctOfMax >= 0.4 ? 'Building' : 'Faint';
-      return `<span class="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full border"
-        style="background:${coachObj.accent}12;border-color:${coachObj.accent}40;color:${coachObj.accent}">
-        📋 ${coachObj.system}: +${(r.coachBoost * 100).toFixed(1)}% · ${grade}
-      </span>`;
-    })(),
-  ].filter(Boolean).join('');
+  // Mode-specific badge only — the detailed Team OVR Elo / Fans Elo /
+  // Coach mastery chips that used to live here moved into the Team Report
+  // popup (renderSeasonImpactReportCard / renderFansReportCard).
+  const signalChips = [modeBadge].filter(Boolean).join('');
 
   return `
   <div class="flex flex-col min-h-screen main-gradient">
@@ -1930,6 +1919,8 @@ function renderResults() {
         </div>
 
         ${signalChips ? `<div class="results-block--hero flex items-center justify-center gap-2 flex-wrap">${signalChips}</div>` : ''}
+
+        <div class="results-block--hero">${renderStartingFiveCard()}</div>
 
         <!-- ── Playoff CTA + Team Report ──────────────────────────────── -->
         <div class="results-block--playoffs flex flex-col gap-3.5">
@@ -2007,10 +1998,44 @@ function renderResults() {
 }
 
 // ── Team Report popup ─────────────────────────────────────────────────────────
-// The six sections below used to render inline on the results screen; they
-// now live only inside the Team Report popup (see renderTeamReportModal),
-// opened via the results screen's "Team Report" button. Each card
-// independently reads S/S.result so it can be called standalone here.
+// The sections below used to render inline on the results screen; they now
+// live only inside the Team Report popup (see renderTeamReportModal), opened
+// via the results screen's "Team Report" button. Each card independently
+// reads S/S.result so it can be called standalone here.
+
+/** Team OVR Elo impact + coach system mastery — the two detail chips that
+ *  used to sit in the results screen's signal-chips row. Fans' equivalent
+ *  Elo detail already has a natural home in renderFansReportCard, so it's
+ *  folded in there (High/Low Fans label) instead of duplicated here. */
+function renderSeasonImpactReportCard() {
+  const r = S.result;
+  const teamOvr     = Math.round(r.avgRating ?? 0);
+  const ratingDelta = r.ratingEloDelta ?? 0;
+  const ratingPct   = ratingDelta / (r.baseStrength || 1) * 100;
+  const ratingImpactLabel = Math.abs(ratingPct) >= 0.1
+    ? ` · ${ratingPct >= 0 ? '+' : ''}${ratingPct.toFixed(1)}% Elo`
+    : '';
+  const ovrRow = ratingImpactLabel
+    ? `<div class="rounded-lg px-3 py-2 text-sm font-bold border" style="background:${ovrColor(teamOvr)}12;border-color:${ovrColor(teamOvr)}40;color:${ovrColor(teamOvr)}">🏀 Team OVR ${teamOvr}${ratingImpactLabel}</div>`
+    : '';
+
+  const coachObj = r.coachBoost ? (S.coach ? COACHES.find(c => c.id === S.coach) : null) : null;
+  const coachRow = coachObj ? (() => {
+    const pctOfMax = r.coachBoost / 0.040;
+    const grade    = pctOfMax >= 0.75 ? 'Mastered' : pctOfMax >= 0.4 ? 'Building' : 'Faint';
+    return `<div class="rounded-lg px-3 py-2 text-sm font-bold border" style="background:${coachObj.accent}12;border-color:${coachObj.accent}40;color:${coachObj.accent}">📋 ${coachObj.system}: +${(r.coachBoost * 100).toFixed(1)}% · ${grade}</div>`;
+  })() : '';
+
+  if (!ovrRow && !coachRow) return '';
+  return `
+    <div class="rounded-2xl border border-border bg-white p-4 card-shadow">
+      <p class="text-xs font-bold uppercase tracking-widest text-muted-fg mb-3">Season Impact</p>
+      <div class="flex flex-col gap-2">
+        ${ovrRow}
+        ${coachRow}
+      </div>
+    </div>`;
+}
 
 function renderAutopsyReportCard() {
   const r = S.result;
@@ -2086,11 +2111,12 @@ function renderFansReportCard() {
           <div class="h-full rounded-full stat-bar-fill" style="width:${popBarPct}%;background:${popBarCol}"></div>
         </div>
       </div>
-      <!-- Elo impact row -->
+      <!-- Elo impact row — "High/Low Fans" is the same qualitative label the
+           results screen's hype chip used to show before it moved here. -->
       <div class="flex gap-3 flex-wrap">
         <div class="flex-1 rounded-xl border px-3 py-2.5 text-center"
           style="background:${popDelta >= 0 ? 'var(--surface-green)' : 'var(--surface-red)'};border-color:${popDelta >= 0 ? (isDark() ? 'rgba(74,222,128,0.35)' : '#bbf7d0') : (isDark() ? 'rgba(248,113,113,0.35)' : '#fecaca')}">
-          <p class="text-[10px] font-bold uppercase tracking-wider mb-1" style="color:${popDelta >= 0 ? (isDark() ? '#4ade80' : '#15803d') : (isDark() ? '#f87171' : '#dc2626')}">${popDelta >= 0 ? '📈 Hype Boost' : '📉 Hype Penalty'}</p>
+          <p class="text-[10px] font-bold uppercase tracking-wider mb-1" style="color:${popDelta >= 0 ? (isDark() ? '#4ade80' : '#15803d') : (isDark() ? '#f87171' : '#dc2626')}">${popDelta >= 0 ? '📈 Hype Boost' : '📉 Hype Penalty'}${Math.abs(popDelta) < 0.002 ? '' : (popDelta >= 0 ? ' · High Fans' : ' · Low Fans')}</p>
           <p class="text-xl font-black" style="color:${popDelta >= 0 ? (isDark() ? '#4ade80' : '#15803d') : (isDark() ? '#f87171' : '#dc2626')}">${popDelta >= 0 ? '+' : ''}${(popDelta / (r.baseStrength || 1) * 100).toFixed(1)}% Elo</p>
         </div>
       </div>
@@ -2257,6 +2283,7 @@ function renderTeamReportModal() {
                  display:flex;align-items:center;justify-content:center;flex-shrink:0">✕</button>
       </div>
       <div style="padding:18px 24px 24px;display:flex;flex-direction:column;gap:16px">
+        ${renderSeasonImpactReportCard()}
         ${renderAutopsyReportCard()}
         ${renderChemistryReportCard()}
         ${renderFansReportCard()}
@@ -2543,7 +2570,7 @@ function renderPlayoffs() {
             ${ts ? 'Simulating...' : `${simLabel} →`}
           </button>
           <button data-action="sim-all-playoffs" type="button" ${ts || po.currentRound >= 3 ? 'disabled' : ''}
-            class="btn-courtside-outline card-shadow">
+            class="btn-courtside-outline btn-courtside-outline--playoffs card-shadow">
             Simulate Entire Playoffs →
           </button>`}
           <button data-action="draft-new-roster" type="button" class="btn-neutral-outline card-shadow">
