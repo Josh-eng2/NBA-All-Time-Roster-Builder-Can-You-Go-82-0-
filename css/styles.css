@@ -487,11 +487,6 @@ button.draft-roster-slot {
     overflow: hidden;
   }
 
-  .mode-header__spacer {
-    width: 2rem !important;
-    flex-shrink: 0;
-  }
-
   .mode-header__logo {
     height: 2.5rem !important;
     margin-top: 0 !important;
@@ -2395,24 +2390,6 @@ button.autopsy-strip:hover {
 
 .results-layout > .results-block--save {
   order: 30;
-}
-
-/* Season sim — fixed skip button + stable ticker height */
-.season-sim-ticker {
-  min-height: 15.5rem;
-  height: 15.5rem;
-  overflow: hidden;
-}
-
-.season-skip-btn {
-  position: fixed;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
-  z-index: 45;
-  width: min(28rem, calc(100% - 2rem));
-  box-shadow: 0 6px 24px var(--shadow);
-  background: var(--card) !important;
 }
 
 /* ── Static SEO content (index.html below-game guide + daily.html archive) ──

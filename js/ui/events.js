@@ -39,8 +39,8 @@ import { chooseAiPick, bestAiSlot } from '../logic/aiDraft.js';
 import { isDualDraft, getModeConfig, fansFirstScore, fansFirstPassed } from '../logic/modes.js';
 import { seasonTier } from '../logic/seasonTier.js';
 import {
-  render, $app, fmtDecadeShort, showToast, clearToastsOfKind, renderSeasonTickerRows,
-  computeAutopsy, liveStreakLabel, withConfetti,
+  render, $app, fmtDecadeShort, showToast,
+  computeAutopsy, withConfetti, showTeamReportModal, closeTeamReportModal,
 } from '../ui/render.js'; // circular — safe (used only inside function bodies)
 
 // Expose modal close helpers globally — inline onclicks in modal HTML are outside #app
@@ -48,6 +48,8 @@ window.closeLeaderboardModal       = closeLeaderboardModal;
 window.closeGlobalLeaderboardModal = closeGlobalLeaderboardModal;
 window.closeDailyLeaderboardModal  = closeDailyLeaderboardModal;
 window.closeDailyStatsModal        = closeDailyStatsModal;
+window.closeTeamReportModal        = closeTeamReportModal;
+window.runItBackFromReport         = runItBackFromReport;
 
 // ── Event binding ─────────────────────────────────────────────────────────────
 
@@ -226,10 +228,7 @@ function dispatch(action) {
     if (S.mode === 'daily') return;
     confirmLeave(() => { S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; S.dailyChallenge = null; S.dynastyOpponent = null; render(); gdShowAd(); }); return;
   }
-  if (action === 'draft-new-roster') {
-    if (S.mode === 'daily') return;
-    S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; S.dailyChallenge = null; S.dynastyOpponent = null; render(); gdShowAd(); return;
-  }
+  if (action === 'draft-new-roster') { startFreshDraft(); return; }
   if (action === 'view-trophies')    { S.phase = 'trophy-room'; render(); return; }
   if (action === 'view-legends')     { S.legendsReturnPhase = S.phase; S.phase = 'legends'; render(); return; }
   if (action === 'legends-back')     { S.phase = S.legendsReturnPhase || 'mode-select'; render(); return; }
@@ -292,26 +291,6 @@ function dispatch(action) {
 
   // ── Season & playoffs ──────────────────────────────────────────────────────
   if (action === 'simulate')            { doSimulate();          return; }
-  if (action === 'season-continue')     { S.seasonPaused = false; render(); runSeasonReveal(); return; }
-  if (action === 'season-skip')         {
-    S.seasonRevealIdx = (S.seasonGames || []).length;
-    S.seasonPaused = false;
-    S.rivalTease   = false;
-    S.phase = 'results';
-    render();
-    // Wordle-style: the Daily's Statistics modal surfaces after the day's one
-    // shot lands. runSeasonReveal only fires it on the reveal's natural end,
-    // which skipping bypasses — without this, skippers never see it.
-    if (S.mode === 'daily') {
-      const skipGameId = S.gameId;
-      setTimeout(() => {
-        if (S.gameId === skipGameId && S.phase === 'results' && S.mode === 'daily') {
-          showDailyStatsModal();
-        }
-      }, 700);
-    }
-    return;
-  }
   if (action === 'save-run')             { doSaveRun();           return; }
   if (action === 'advance-to-playoffs') { doAdvanceToPlayoffs(); return; }
   if (action === 'sim-next-round')      { doSimNextRound();      return; }
@@ -331,8 +310,28 @@ function dispatch(action) {
   if (action === 'open-global-leaderboard'){ showGlobalLeaderboardModal();       return; }
   if (action === 'submit-global')          { doSubmitGlobal();                   return; }
   if (action === 'toggle-theme')           { toggleTheme();                      return; }
+  if (action === 'open-team-report')       { showTeamReportModal();              return; }
 
   render(); // fallback — re-render for unhandled actions
+}
+
+/** Abandons the current roster and returns to mode-select. Shared by the
+ *  results-screen "Build Another" flow and the Team Report autopsy's
+ *  "Run It Back" CTA. Daily Challenge is one attempt — never offered there
+ *  (both call sites already gate on that before reaching here). */
+function startFreshDraft() {
+  if (S.mode === 'daily') return;
+  S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; S.dailyChallenge = null; S.dynastyOpponent = null;
+  render();
+  gdShowAd();
+}
+
+/** "Run It Back" inside the Team Report popup — the popup is mounted outside
+ *  #app (see showTeamReportModal), so its buttons use inline onclick + a
+ *  window-bound export instead of data-action delegation. */
+export function runItBackFromReport() {
+  closeTeamReportModal();
+  startFreshDraft();
 }
 
 // ── Game lifecycle ────────────────────────────────────────────────────────────
@@ -852,12 +851,9 @@ function doSimulate() {
   // First-visit hook payoff delivered — from here on they're a veteran.
   if (S.coldOpen) markReturning();
 
-  // Paced reveal — outcome is already decided; this is presentation only.
-  S.seasonGames     = S.result.games;
-  S.seasonRevealIdx = 0;
-  S.seasonPaused    = false;
-  S.rivalTease      = false;
-  S.rivalTeased     = false;
+  // Game log for the results screen's season strip, in final presented order
+  // (cold-open reorder + rivalry insertion happen below).
+  S.seasonGames = S.result.games;
 
   // Cold-open cliffhanger: lead the sequence with the season's biggest win
   // so Game 1 is a guaranteed blowout W. Reordering never changes the record.
@@ -916,14 +912,11 @@ function doSimulate() {
     }
   }
 
-  // Capture personal bests BEFORE overwriting saved progress so the live
-  // reveal can fire "tied your streak" and "new personal best" moments.
+  // Captured BEFORE overwriting saved progress below, so the results screen
+  // can tell whether this run set a new personal best.
   let _prevBestSnap = null;
   try { _prevBestSnap = JSON.parse(cgGetItem('nba820_best') || 'null'); } catch (e) {}
-  S._prevBestWins   = _prevBestSnap ? _prevBestSnap.wins : 0;
-  let _prevBestStreakRaw = '0';
-  try { _prevBestStreakRaw = cgGetItem('nba820_bestStreak') || '0'; } catch (e) {}
-  S._prevBestStreak = parseInt(_prevBestStreakRaw, 10);
+  S._prevBestWins = _prevBestSnap ? _prevBestSnap.wins : 0;
 
   // Auto-persist personal best, best streak, and last-run tip — feeds the
   // mode-select greeting without requiring a manual "Save Run".
@@ -964,191 +957,22 @@ function doSimulate() {
     if (ch) logAnalyticsEvent('daily_completed', { challenge: ch.id, passed: verdict.pass, wins: S.result.wins });
   }
 
-  S.phase = 'season-sim';
-  render();
-  runSeasonReveal();
-}
-
-const STREAK_MILESTONES = [10, 20, 30, 40, 50, 60, 70, 80];
-
-/**
- * Reveals season games on a montage cadence: consecutive blowouts flash by
- * in batches, solid wins tick steadily, close games get a slow dramatic beat.
- * Cold-open runs pause after Game 1 for the "TOUGH MATCHUP" cliffhanger.
- */
-function runSeasonReveal() {
-  const simId = S.gameId;
-  const step = () => {
-    if (S.gameId !== simId || S.phase !== 'season-sim' || S.seasonPaused) return;
-    const total = S.seasonGames.length;
-
-    if (S.seasonRevealIdx >= total) {
-      // New personal best — fire before transitioning to results so it lands
-      // while the player is still in the season-sim screen.
-      if ((S._prevBestWins || 0) > 0 && S.result.wins > S._prevBestWins) {
-        showToast(`🆕 New personal best — ${S.result.wins} wins!`, 2800);
-      }
-      setTimeout(() => {
-        if (S.gameId !== simId || S.phase !== 'season-sim') return;
-        S.phase = 'results';
-        render();
-        // Wordle-style: surface Statistics after the day's one shot lands.
-        if (S.mode === 'daily') {
-          setTimeout(() => {
-            if (S.gameId === simId && S.phase === 'results' && S.mode === 'daily') {
-              showDailyStatsModal();
-            }
-          }, 700);
-        }
-      }, 900);
-      return;
-    }
-
-    // Rivalry Night — hold the montage on a full-screen tease, then reveal
-    // the marquee game solo with a long linger before the montage resumes.
-    const upcoming = S.seasonGames[S.seasonRevealIdx];
-    if (upcoming?.rival && !S.rivalTeased) {
-      S.rivalTeased = true;
-      S.rivalTease  = true;
-      render();
-      setTimeout(() => {
-        if (S.gameId !== simId || S.phase !== 'season-sim') return;
-        S.rivalTease = false;
-        S.seasonRevealIdx++;
-        render();                 // clears the banner, lands the rival row
-        // This path bypasses the batched reveal below, so fire its dramatic
-        // beats here too: the streak-ended toast and any milestone crossed.
-        const rivalGame = S.seasonGames[S.seasonRevealIdx - 1];
-        if (rivalGame?.isFirstLoss) showToast(`💔 The streak ends at ${rivalGame.streakBroken}`, 3200, 'streak-end');
-        let rivalStreak = 0;
-        for (let i = S.seasonRevealIdx - 1; i >= 0 && S.seasonGames[i].won; i--) rivalStreak++;
-        // A streak-ends toast from an earlier tick can still be onscreen when
-        // this new streak's milestone lands — clear it so the two don't read
-        // as a contradiction (they're about two different streaks).
-        if (STREAK_MILESTONES.includes(rivalStreak)) { clearToastsOfKind('streak-end'); showToast(`🔥 ${rivalStreak} STRAIGHT WINS!`, 2200); }
-        setTimeout(step, 1200);   // linger on the result
-      }, 1700);
-      return;
-    }
-
-    // Batch up to 4 consecutive blowout WINS per tick — Game 1 always solo,
-    // and never batch into (or past) the rival game or any loss.
-    let n = 1;
-    if (S.seasonRevealIdx > 0) {
-      while (
-        n < 4 &&
-        S.seasonRevealIdx + n < total &&
-        S.seasonGames[S.seasonRevealIdx + n - 1].type === 'blowout' &&
-        S.seasonGames[S.seasonRevealIdx + n - 1].won &&
-        S.seasonGames[S.seasonRevealIdx + n].type === 'blowout' &&
-        S.seasonGames[S.seasonRevealIdx + n].won &&
-        !S.seasonGames[S.seasonRevealIdx + n].rival
-      ) n++;
-    }
-    const prevIdx = S.seasonRevealIdx;
-    S.seasonRevealIdx = Math.min(S.seasonRevealIdx + n, total);
-    updateSeasonSimDOM();
-
-    // The streak-ends beat — fires the tick the first loss lands, whatever
-    // game number it is.
-    const justRevealed = S.seasonGames.slice(prevIdx, S.seasonRevealIdx);
-    const brokeHere = justRevealed.find(g => g.isFirstLoss);
-    if (brokeHere) showToast(`💔 The streak ends at ${brokeHere.streakBroken}`, 3200, 'streak-end');
-
-    // Live win-streak milestones — checked against the streak as of the end
-    // of this tick, since blowout batching can jump several games at once.
-    let liveStreak = 0;
-    for (let i = S.seasonRevealIdx - 1; i >= 0 && S.seasonGames[i].won; i--) liveStreak++;
-    const crossed = STREAK_MILESTONES.find(m => liveStreak >= m && liveStreak - n < m);
-    // A streak-ends toast from an earlier tick (this one can't be that same
-    // tick — brokeHere forces liveStreak to 0) can still be onscreen once the
-    // reveal cadence outpaces its ~3s duration; clear it before celebrating
-    // the new streak so the two don't read as a contradiction.
-    if (crossed) { clearToastsOfKind('streak-end'); showToast(`🔥 ${crossed} STRAIGHT WINS!`, 2200); }
-
-    // Personal streak record — fires exactly once when the live streak ties
-    // then again when it first surpasses the previous personal best.
-    // Uses (liveStreak - n) as the pre-tick value; clamped to 0 so the first
-    // batch (where n may equal liveStreak) doesn't produce a negative.
-    const _pbs = S._prevBestStreak || 0;
-    if (_pbs > 0) {
-      const preTick = Math.max(0, liveStreak - n);
-      if (liveStreak >= _pbs && preTick < _pbs) {
-        clearToastsOfKind('streak-end');
-        if (liveStreak === _pbs) showToast(`⚡ Matching your best-ever streak — ${_pbs} straight!`, 2400);
-        else                     showToast(`🏆 New streak record — ${liveStreak} straight!`, 2800);
-      }
-    }
-
-    // Cliffhanger — first-ever run pauses after a won Game 1
-    if (S.coldOpen && S.seasonRevealIdx === 1 && S.seasonGames[0].won) {
-      S.seasonPaused = true;
-      render();
-      return;
-    }
-
-    // The season's first loss always gets the slow-motion beat, whenever it
-    // lands. Later losses keep the late-season-only treatment (game 61+);
-    // earlier ones tick by at montage speed to protect a new roster's
-    // confidence — the first loss is the one exception worth dramatizing.
-    const next  = S.seasonGames[S.seasonRevealIdx];
-    const delay = !next ? 500
-      : next.isFirstLoss ? 1100
-      : (!next.won && (next.num || 0) > 60) ? 950
-      : next.type === 'close' ? 550
-      : next.type === 'solid' ? 200
-      : 95;
-    setTimeout(step, delay);
-  };
-  step();
-}
-
-/** Targeted DOM update per reveal tick — avoids 80 full re-renders. */
-function updateSeasonSimDOM() {
-  const recEl  = document.getElementById('sim-record');
-  const tickEl = document.getElementById('sim-ticker');
-  if (!recEl || !tickEl) { render(); return; } // fallback: full render
-  const played = S.seasonGames.slice(0, S.seasonRevealIdx);
-  const w = played.filter(g => g.won).length;
-  recEl.textContent = `${w}–${played.length - w}`;
-  const gpEl = document.getElementById('sim-gp');
-  if (gpEl) gpEl.textContent = `Game ${played.length} of 82`;
-  const barEl = document.getElementById('sim-progress');
-  if (barEl) barEl.style.width = `${(played.length / 82) * 100}%`;
-  tickEl.innerHTML = renderSeasonTickerRows();
-
-  const streakEl = document.getElementById('sim-streak');
-  if (streakEl) {
-    let n = 0;
-    for (let i = played.length - 1; i >= 0 && played[i].won; i--) n++;
-    const { text, color } = liveStreakLabel(n);
-    streakEl.textContent = text;
-    streakEl.style.color = color;
+  // Simulation is fully resolved above — land directly on the results screen,
+  // no paced game-by-game reveal in between.
+  if ((S._prevBestWins || 0) > 0 && S.result.wins > S._prevBestWins) {
+    showToast(`🆕 New personal best — ${S.result.wins} wins!`, 2800);
   }
-
-  // Live best-start pace comparison — compares current wins to a pro-rated
-  // target based on the player's personal best final record.
-  // Stays blank for the first 4 games (too noisy) and when there's no history.
-  const bsEl = document.getElementById('sim-beststart');
-  if (bsEl) {
-    const prevBestWins = S._prevBestWins || 0;
-    let bsText = '', bsColor = '#94a3b8';
-    if (prevBestWins > 0 && played.length >= 5) {
-      const pace = Math.round(prevBestWins * played.length / 82);
-      const diff = w - pace;
-      if (diff > 0) {
-        bsText  = `↑ ${diff} ahead of ${prevBestWins}-win pace`;
-        bsColor = '#16a34a';
-      } else if (diff < 0) {
-        bsText  = `↓ ${Math.abs(diff)} behind ${prevBestWins}-win pace`;
-        bsColor = '#dc2626';
-      } else {
-        bsText  = `On ${prevBestWins}-win pace`;
-        bsColor = '#2563eb';
+  S.phase = 'results';
+  render();
+  // Wordle-style: the Daily's Statistics modal surfaces after the day's one
+  // shot lands.
+  if (S.mode === 'daily') {
+    const simId = S.gameId;
+    setTimeout(() => {
+      if (S.gameId === simId && S.phase === 'results' && S.mode === 'daily') {
+        showDailyStatsModal();
       }
-    }
-    bsEl.textContent = bsText;
-    bsEl.style.color  = bsColor;
+    }, 700);
   }
 }
 

@@ -147,11 +147,16 @@
   <link rel="icon" href="favicon.ico" sizes="48x48" />
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <meta name="google-site-verification" content="tKkqTKtQA1jcn-yFMIPN76kDNvCafVs3FgYTT7YojnY" />
-  <!-- max-image-preview:large — Google may show a full-size image preview.
-       "none" previously suppressed image previews entirely AND made the site
-       ineligible for Google Discover, which requires "large". og-image.png is
-       already 1200x630, the asset size Google wants for large previews. -->
-  <meta name="robots" content="max-image-preview:large" />
+  <!-- max-image-preview:none — suppresses the large thumbnail Google shows
+       beside this result in Search. Tradeoff (documented, chosen anyway):
+       Google Discover requires "large" to surface any content at all, so
+       this opts the page out of Discover. That trade was made the other way
+       for two days (max-image-preview:large, see git history) specifically
+       for Discover eligibility; reverted back to "none" per explicit request
+       to stop showing a search-result thumbnail. og:image / twitter:image
+       below are untouched — they only feed social share cards (Facebook,
+       Twitter/X, Slack, iMessage, …), which this directive does not affect. -->
+  <meta name="robots" content="max-image-preview:none" />
 
   <!-- Open Graph / Social sharing -->
   <meta property="og:type"        content="website" />
@@ -169,7 +174,12 @@
   <meta name="twitter:description" content="Draft an all-time NBA roster, pick your coach, and run the season simulator — can you go a perfect 82-0?" />
   <meta name="twitter:image"       content="https://canyougo820.com/og-image.png" />
 
-  <!-- Structured data: helps Google identify the game as an entity -->
+  <!-- Structured data: helps Google identify the game as an entity.
+       "image" is deliberately omitted — Google can surface a JSON-LD image
+       as a search thumbnail independent of the max-image-preview directive
+       above, so dropping it here closes that second path too. Social share
+       previews are unaffected: they read og:image / twitter:image, not
+       structured data. -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -178,7 +188,6 @@
     "alternateName": ["82-0", "82-0 NBA Team Generator", "NBA Team Generator", "NBA All-Time Roster Builder", "NBA Season Simulator"],
     "url": "https://canyougo820.com/",
     "description": "A free browser game: draft an all-time NBA roster from legends across every era, build team chemistry, pick your coach, and run the season simulator to chase a perfect 82-0 record.",
-    "image": "https://canyougo820.com/og-image.png",
     "genre": ["Sports", "Simulation", "Strategy"],
     "applicationCategory": "GameApplication",
     "gamePlatform": "Web Browser",
