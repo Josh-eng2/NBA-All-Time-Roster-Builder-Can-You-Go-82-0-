@@ -127,6 +127,14 @@
   <meta name="keywords" content="82-0, can you go 82-0, 82-0 team generator, NBA team generator, 82-0 NBA team generator, NBA simulator, NBA season simulator, NBA roster builder, all-time NBA team, basketball simulator, NBA all-time roster, fantasy NBA draft" />
   <link rel="canonical" href="https://canyougo820.com/" />
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <!-- Progressive Web App — installable from Chrome/Edge/Safari "Add to Home Screen" -->
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#0d1526" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="82-0" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
   <meta name="google-site-verification" content="tKkqTKtQA1jcn-yFMIPN76kDNvCafVs3FgYTT7YojnY" />
   <!-- Keep og:image for social share cards, but tell Google not to show a
        thumbnail preview next to the search snippet. -->
@@ -326,6 +334,16 @@
 
   <!-- Single ES-module entry point — all other JS is imported from here -->
   <script type="module" src="js/main.js"></script>
+
+  <!-- Register the service worker so the game is installable + offline-capable.
+       Failures are silent — the browser game still works without a SW. -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('./sw.js').catch(function () {});
+      });
+    }
+  </script>
 
 </body>
 </html>
