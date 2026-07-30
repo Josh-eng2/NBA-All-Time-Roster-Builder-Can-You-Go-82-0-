@@ -513,17 +513,19 @@ function formulaPopularity(player) {
 }
 
 // ─── Apply ────────────────────────────────────────────────────────────────────
+// Global tuning knob — every popularity value (named override or formula-
+// derived) is scaled by this before being written. Single point of control
+// so re-running this script never undoes a deliberate global rebalance.
+const POPULARITY_SCALE = 0.4;
+
 let total = 0, named = 0, formula = 0;
 
 for (const key of Object.keys(db)) {
   for (const player of db[key]) {
-    if (NAMED[player.name] !== undefined) {
-      player.popularity = NAMED[player.name];
-      named++;
-    } else {
-      player.popularity = formulaPopularity(player);
-      formula++;
-    }
+    const raw = NAMED[player.name] !== undefined
+      ? (named++, NAMED[player.name])
+      : (formula++, formulaPopularity(player));
+    player.popularity = Math.max(0, Math.round(raw * POPULARITY_SCALE));
     total++;
   }
 }
