@@ -283,8 +283,8 @@ export function calculateChemistry(starters, coachId = null, opts = {}) {
         add(`fit-${slot}`, 'synergy', 'position', 0,
           `Flex Fit: ${player.name} (${player.pos}) covers ${slot} via secondary position (0%)`);
       } else {
-        penalty(`fit-${slot}`, 0.03,
-          `Versatile: ${player.name} fills the ${slot} role (-3%)`);
+        penalty(`fit-${slot}`, 0.12,
+          `Versatile: ${player.name} fills the ${slot} role (-12%)`);
       }
     }
   }
