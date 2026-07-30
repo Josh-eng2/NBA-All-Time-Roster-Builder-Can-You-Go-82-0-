@@ -799,7 +799,9 @@ function renderModeDraftBanner() {
     const avg = starters.length
       ? starters.reduce((s, p) => s + (p.popularity || 50), 0) / starters.length
       : 0;
-    const fansM = Math.pow(Math.max(0, Math.min(1, (avg - 35) / 65)), 1.5) * 38 + 2;
+    // No upper clamp — mirrors simulation.js's unclamped popNorm so the live
+    // preview doesn't undersell a roster averaging above 100 popularity.
+    const fansM = Math.pow(Math.max(0, (avg - 35) / 65), 1.5) * 38 + 2;
     // Estimate wins from star power instead of hardcoding 50 — keeps the
     // "live proj" honest while the season hasn't been simulated yet.
     const estWins = starters.length
