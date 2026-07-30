@@ -1362,10 +1362,10 @@ function renderRosterSlot(pos, canPlace) {
     const fitType  = p.pos === pos ? 'primary' : (p.secondaryPos || []).includes(pos) ? 'flex' : 'place';
     const fitClass  = 'fit-' + fitType;
     // Match empty-slot + chem language: primary green, flex amber, OOP/versatile
-    // warm amber — never a "bad" red that fights Versatile (+1%) chem lines.
-    const fitColors = { primary: '#16a34a', flex: '#d97706', place: '#c2410c' };
-    const fitBorders = { primary: '#86efac', flex: '#fde68a', place: '#fdba74' };
-    const fitTops = { primary: '#16a34a', flex: '#d97706', place: '#ea580c' };
+    // red — chemistry.js's Versatile penalty is -12%, a real cost, not a minor one.
+    const fitColors = { primary: '#16a34a', flex: '#d97706', place: '#dc2626' };
+    const fitBorders = { primary: '#86efac', flex: '#fde68a', place: '#fca5a5' };
+    const fitTops = { primary: '#16a34a', flex: '#d97706', place: '#dc2626' };
     const borderColor = fitBorders[fitType];
     const borderTop   = `3px solid ${fitTops[fitType]}`;
     const labelColor  = fitColors[fitType];
@@ -1392,15 +1392,15 @@ function renderRosterSlot(pos, canPlace) {
   const primaryMatch = showFit && canDrop && sp && sp.pos === pos;
   const flexMatch    = showFit && canDrop && sp && !primaryMatch &&
     (sp.secondaryPos || []).includes(pos);
-  // Out-of-position is NOT a bad fit — chemistry.js's optimizeLineup() scores
-  // every slot on a 3-tier scale (primary/flex/oop) and oop still nets a
-  // positive "Versatile (+1%)" synergy line, never a penalty. Amber/neutral
-  // instead of red keeps the roster chip in agreement with chemistry copy.
+  // Out-of-position is a real cost — chemistry.js's optimizeLineup() scores
+  // every slot on a 3-tier scale (primary/flex/oop) and oop nets the
+  // "Versatile" penalty (-12%). Red keeps the roster chip in agreement with
+  // chemistry copy instead of downplaying it as a neutral placement.
   const oopMatch     = showFit && canDrop && sp && !primaryMatch && !flexMatch;
 
   const slotBg     = !canDrop ? 'var(--card3)' : (isDark() ? 'rgba(234,179,8,0.08)' : '#fffbeb');
-  const slotBorder = !canDrop ? 'var(--border)' : (primaryMatch ? (isDark() ? '#4ade80' : '#86efac') : flexMatch ? (isDark() ? '#fbbf24' : '#fde68a') : oopMatch ? (isDark() ? '#fdba74' : '#fed7aa') : (isDark() ? '#f87171' : '#fca5a5'));
-  const slotColor  = !canDrop ? 'var(--muted)' : (primaryMatch ? (isDark() ? '#4ade80' : '#16a34a') : flexMatch ? (isDark() ? '#fbbf24' : '#d97706') : oopMatch ? (isDark() ? '#fb923c' : '#c2410c') : (isDark() ? '#f87171' : '#dc2626'));
+  const slotBorder = !canDrop ? 'var(--border)' : (primaryMatch ? (isDark() ? '#4ade80' : '#86efac') : flexMatch ? (isDark() ? '#fbbf24' : '#fde68a') : (isDark() ? '#f87171' : '#fca5a5'));
+  const slotColor  = !canDrop ? 'var(--muted)' : (primaryMatch ? (isDark() ? '#4ade80' : '#16a34a') : flexMatch ? (isDark() ? '#fbbf24' : '#d97706') : (isDark() ? '#f87171' : '#dc2626'));
   const slotText   = !canDrop ? 'Empty' : primaryMatch ? 'Primary' : flexMatch ? 'Flex' : oopMatch ? 'Versatile' : 'Place';
 
   return `
@@ -2205,9 +2205,9 @@ function renderTeamStatsReportCard() {
 
 function reportRosterRow(p, posLabel, isStarter, fit, simById) {
   if (!p) return '';
-  const fitBg    = fit === 'primary' ? (isDark() ? 'rgba(34,197,94,0.15)' : '#dcfce7') : fit === 'flex' ? (isDark() ? 'rgba(234,179,8,0.15)' : '#fef9c3') : fit ? (isDark() ? 'rgba(249,115,22,0.15)' : '#fefce8') : null;
-  const fitColor = fit === 'primary' ? (isDark() ? '#4ade80' : '#15803d') : fit === 'flex' ? (isDark() ? '#fbbf24' : '#a16207') : fit ? (isDark() ? '#fb923c' : '#d97706') : null;
-  const fitText  = fit === 'primary' ? '✓' : fit === 'flex' ? '↔' : fit ? '+' : null;
+  const fitBg    = fit === 'primary' ? (isDark() ? 'rgba(34,197,94,0.15)' : '#dcfce7') : fit === 'flex' ? (isDark() ? 'rgba(234,179,8,0.15)' : '#fef9c3') : fit ? (isDark() ? 'rgba(239,68,68,0.15)' : '#fef2f2') : null;
+  const fitColor = fit === 'primary' ? (isDark() ? '#4ade80' : '#15803d') : fit === 'flex' ? (isDark() ? '#fbbf24' : '#a16207') : fit ? (isDark() ? '#f87171' : '#dc2626') : null;
+  const fitText  = fit === 'primary' ? '✓' : fit === 'flex' ? '↔' : fit ? '!' : null;
   const fitBadge = fit
     ? `<span class="text-[8px] font-black px-1 py-0.5 rounded leading-none ml-0.5" style="background:${fitBg};color:${fitColor}">${fitText}</span>`
     : '';
@@ -2245,9 +2245,9 @@ function renderOptimizedLineupReportCard() {
         ${r.lineupAssignment?.length === 5 ? (() => {
           const allPrimary = r.lineupAssignment.every(a => a.fit === 'primary');
           const hasOOP     = r.lineupAssignment.some(a => a.fit === 'oop');
-          const bg    = allPrimary ? (isDark() ? 'rgba(34,197,94,0.12)' : '#f0fdf4') : (isDark() ? 'rgba(234,179,8,0.12)' : '#fefce8');
-          const color = allPrimary ? (isDark() ? '#4ade80' : '#15803d') : (isDark() ? '#fbbf24' : '#a16207');
-          const label = allPrimary ? '🟢 Flawless' : hasOOP ? '🟡 Versatile' : '🟡 Flex Lineup';
+          const bg    = allPrimary ? (isDark() ? 'rgba(34,197,94,0.12)' : '#f0fdf4') : hasOOP ? (isDark() ? 'rgba(239,68,68,0.12)' : '#fef2f2') : (isDark() ? 'rgba(234,179,8,0.12)' : '#fefce8');
+          const color = allPrimary ? (isDark() ? '#4ade80' : '#15803d') : hasOOP ? (isDark() ? '#f87171' : '#dc2626') : (isDark() ? '#fbbf24' : '#a16207');
+          const label = allPrimary ? '🟢 Flawless' : hasOOP ? '🔴 Versatile' : '🟡 Flex Lineup';
           return `<span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full border" style="background:${bg};color:${color};border-color:${color}30">${label}</span>`;
         })() : ''}
       </div>
