@@ -34,11 +34,11 @@
  *                          && (!('avgPopularity' in request.resource.data)
  *                              || (request.resource.data.avgPopularity is number
  *                                  && request.resource.data.avgPopularity >= 0
- *                                  && request.resource.data.avgPopularity <= 100))
+ *                                  && request.resource.data.avgPopularity <= 1000))
  *                          && (!('fansM' in request.resource.data)
  *                              || (request.resource.data.fansM is number
  *                                  && request.resource.data.fansM >= 0
- *                                  && request.resource.data.fansM <= 50))
+ *                                  && request.resource.data.fansM <= 2200))
  *                          && request.resource.data.champion is bool
  *                          && request.resource.data.timestampMs is number;
  *            allow update, delete: if false;
@@ -50,6 +50,15 @@
  *    can be written by anyone holding the public web config, and the modal
  *    renders them for every visitor. The client also numeric-coerces on read
  *    (storage.js) as defense in depth.
+ *
+ *    `avgPopularity`/`fansM` caps were raised from 100/50 to 1000/2200 —
+ *    simulation.js and aiDraft.js no longer clamp a roster's popularity
+ *    normalization at 100, so a genuinely high-popularity team's submission
+ *    would otherwise get silently rejected here. Neither field drives
+ *    leaderboard ordering (that's `wins`, see getGlobalLeaderboard's
+ *    orderBy), so the wider bound only affects what's displayed, not
+ *    ranking fairness. 2200 is fansM's ceiling at avgPopularity=1000 per
+ *    the `popNorm^1.5 * 38 + 2` formula in simulation.js.
  *
  *    `timestampMs` is client-reported and intentionally NOT compared against
  *    request.time — an earlier rule did `timestampMs <= request.time.toMillis()
