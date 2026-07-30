@@ -42,7 +42,9 @@ function scoreCandidate(player, roster, coachId) {
   // 74–99 window = the old 60–95 rating window's percentile equivalents on the
   // `overall` (era-adjusted 2K) scale.
   const ratingNorm = Math.max(0, Math.min(1, ((player.overall ?? 82) - 74) / 25));
-  const popNorm    = Math.max(0, Math.min(1, ((player.popularity ?? 50) - 35) / 65));
+  // No upper clamp: a popularity value above 100 keeps scaling the AI's
+  // draft weight instead of capping out at the same pull as exactly 100.
+  const popNorm    = Math.max(0, ((player.popularity ?? 50) - 35) / 65);
 
   const slots = emptySlots(roster);
   let posNeed = 0;
