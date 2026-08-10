@@ -63,28 +63,6 @@ function isMobileViewport() {
   return typeof window !== 'undefined' && window.matchMedia('(max-width: 639px)').matches;
 }
 
-// The drafting screen swaps to an entirely different DOM structure (3-column
-// app shell, each column scrolling independently so the whole screen fits in
-// one viewport) at this width — see renderDrafting(). Below it, the screen
-// is the original flat single-column layout untouched.
-function isDesktopDraftLayout() {
-  return typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches;
-}
-
-// Re-render on resize if that swap needs to flip, since nothing else
-// triggers a render when the user just drags the window across the
-// breakpoint without otherwise interacting.
-if (typeof window !== 'undefined') {
-  let _lastIsDesktopDraft = isDesktopDraftLayout();
-  window.addEventListener('resize', () => {
-    const now = isDesktopDraftLayout();
-    if (now !== _lastIsDesktopDraft) {
-      _lastIsDesktopDraft = now;
-      if (S.phase === 'drafting') render();
-    }
-  });
-}
-
 const FANS_TEAM_MAX = 500; // 5 starters × 100 max fans each
 
 function fansBarCol(avg, dark = isDark()) {
@@ -822,44 +800,27 @@ function renderModeDraftBanner() {
   return '';
 }
 
+// One layout at every width — the "Arena" drafting screen is a single centred
+// column that just gets more breathing room as the viewport grows. The old
+// >=1024px 3-column shell (chemistry rail + vertical fans tube) is gone; both
+// meters now live in the Fans/Chemistry radial gauges via renderStatGauges(),
+// and the synergy chips they replaced moved to the post-draft results screen.
 function renderDrafting() {
   if (isDualDraft()) return renderDrafting1v1();
   const full = rosterFull();
 
-  if (isDesktopDraftLayout()) {
-    // 3-column app shell: Live Chemistry is a fixed left rail, the vertical
-    // Fans meter a fixed right rail, and the normal draft flow scrolls on
-    // its own in the center — so the whole screen fits in one viewport with
-    // no page scrollbar. See .draft-screen--desktop in styles.css.
-    return `
-    <div class="min-h-screen main-gradient draft-screen draft-screen--desktop">
-      ${renderHeader(true)}
-      <main class="flex flex-col items-center px-4 pt-2 pb-8 draft-screen__main">
-        <div class="w-full max-w-2xl draft-screen__inner draft-screen__inner--desktop">
-          ${renderChemDashboard()}
-          <div class="draft-screen__center">
-            ${renderColdOpenBanner()}
-            ${renderModeDraftBanner()}
-            ${full ? renderSimulateCard() : ''}
-            ${renderRoundBar()}
-            ${renderCoachChip()}
-            ${!full ? renderSlotMachine() : ''}
-            ${shouldShowDraftBoard(full) ? renderDraftBoard() : ''}
-            ${renderRoster()}
-          </div>
-          ${renderPopularityBarVertical()}
-        </div>
-      </main>
-    </div>`;
-  }
+  // A cold-open welcome or mode banner costs the column ~6rem it can't spare
+  // on a one-viewport desktop layout. Flagging it here lets the desktop CSS
+  // trade the draft cards' trait chips for that height, so the "Draft" button
+  // still clears the fold — on the first-run screen above all.
+  const banners = renderColdOpenBanner() + renderModeDraftBanner();
 
   return `
   <div class="min-h-screen main-gradient draft-screen">
     ${renderHeader(true)}
     <main class="flex flex-col items-center px-4 pt-2 pb-8 draft-screen__main">
-      <div class="w-full max-w-2xl flex flex-col gap-2 draft-screen__inner">
-        ${renderColdOpenBanner()}
-        ${renderModeDraftBanner()}
+      <div class="w-full max-w-2xl flex flex-col gap-2 draft-screen__inner${banners ? ' draft-screen__inner--banner' : ''}">
+        ${banners}
         ${full ? renderSimulateCard() : ''}
         ${renderRoundBar()}
         ${renderCoachChip()}
@@ -1052,11 +1013,12 @@ function renderRoundBar() {
   </div>`;
 }
 
-// ── Live stat gauges (Fans + Chemistry) — mobile/tablet drafting screen ──────
-// 2K-style radial arcs replacing the old linear Fans bar + Team Chemistry bar
-// below the desktop breakpoint (design handoff: "Arena — dark broadcast").
-// Desktop keeps the linear meter + synergy chips (renderChemDashboard /
-// renderPopularityBarVertical below) untouched.
+// ── Live stat gauges (Fans + Chemistry) — drafting screen, every width ───────
+// 2K-style radial arcs (design handoff: "Arena — dark broadcast"). These are
+// the only live meters on the drafting screen now; the linear Fans bar and
+// Team Chemistry bar they replaced are gone, and the chemistry synergy chips
+// that used to sit beside them live on the results screen
+// (renderChemistryReportCard) instead.
 
 // Fixed 270° track, start point (21.7,78.3) at 135°, sweeping clockwise to
 // (78.3,78.3) at 45°+360 — see gaugeArcPath() for the matching progress arc.
@@ -1118,15 +1080,15 @@ function renderStatGauges() {
 
   let chemGauge;
   if (S.mode === 'blind') {
-    // Ball IQ: same reasoning as renderChemDashboard() below — don't leak
-    // natural-position fit through the gauge while the mode is testing memory.
+    // Ball IQ: don't leak natural-position fit through the gauge while the
+    // mode is testing memory — it unlocks with the rest of the report.
     chemGauge = renderStatGauge({
       id: 'chem', icon: '🧪', label: 'Chemistry', locked: true,
       lockedNote: 'Unlocks after you simulate',
     });
   } else {
-    // As-placed slots so this matches the visible roster chips, same as
-    // renderChemDashboard()'s desktop version.
+    // As-placed slots so this matches the visible roster chips (the sim still
+    // runs optimizeLineup inside calculateChemistry by default).
     const placedPairs = POSITIONS
       .map(pos => ({ pos, player: S.roster[pos] }))
       .filter(x => x.player);
@@ -1160,23 +1122,6 @@ function renderStatGauges() {
   }
 
   return `<div class="draft-stat-gauges">${fansGauge}${chemGauge}</div>`;
-}
-
-// Desktop-only vertical fans meter — same calcTeamFans() data as the mobile/
-// tablet Fans gauge in renderStatGauges(), shown in the right rail instead
-// when the draft screen switches to its 3-column layout (see
-// .draft-pop-bar-vertical in styles.css).
-function renderPopularityBarVertical() {
-  const fans = calcTeamFans(Object.values(S.roster));
-  const label = `${Math.round(fans.sum)}M`;
-  return `
-  <div class="rounded-xl border border-border bg-card px-2 py-3 card-shadow draft-pop-bar-vertical" title="${fans.tier}${fans.count ? ` · ${label}` : ''}">
-    <p class="text-[9px] font-bold uppercase tracking-widest text-muted-fg draft-pop-bar-vertical__label">Fans</p>
-    <div class="draft-pop-bar-vertical__track">
-      <div class="draft-pop-bar-vertical__fill" style="height:${fans.pct}%;background:${fans.barCol}"></div>
-    </div>
-    <p class="text-[11px] font-bold draft-pop-bar-vertical__value" style="color:${fans.barCol}">${label}</p>
-  </div>`;
 }
 
 function renderSlotMachine() {
@@ -1413,75 +1358,6 @@ function renderRosterSlot(pos, canPlace) {
     <span class="text-[10px] font-black uppercase" style="color:${slotColor}">${label}</span>
     <span class="text-xs" style="color:${slotColor}">${slotText}</span>
   </button>`;
-}
-
-// ── Live Chemistry Dashboard ──────────────────────────────────────────────────
-function renderChemDashboard() {
-  // Ball IQ: hide archetype / natural-position report lines while drafting —
-  // they leak the answers the mode is testing. Keep the score meter only.
-  if (S.mode === 'blind') {
-    return `
-  <div class="rounded-xl border border-border bg-card px-4 py-3 card-shadow draft-chem-dashboard">
-    <div class="flex items-center justify-between mb-2 draft-chem-dashboard__head">
-      <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg">Team Chemistry</p>
-      <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border border-border bg-card2 text-muted-fg">Ball IQ</span>
-    </div>
-    <p class="text-xs text-muted-fg draft-chem-report__empty">Names only — chemistry details unlock after you simulate.</p>
-  </div>`;
-  }
-
-  // As-placed slots so Perfect Fit / Versatile lines match the visible roster
-  // chips (sim still uses optimizeLineup inside calculateChemistry by default).
-  const placedPairs = POSITIONS
-    .map(pos => ({ pos, player: S.roster[pos] }))
-    .filter(x => x.player);
-  const starters = placedPairs.map(x => x.player);
-
-  // Before the first pick there's nothing to score yet. calculateChemistry([])
-  // returns bonus 0, which chemTier() reads as "Very Weak" — a false negative
-  // judgment rather than "you haven't started." Show an explicit empty state
-  // instead, matching the Fans gauge (which already starts at 0 with no picks).
-  if (starters.length === 0) {
-    return `
-  <div class="rounded-xl border border-border bg-card px-4 py-3 card-shadow draft-chem-dashboard">
-    <div class="flex items-center justify-between mb-2 draft-chem-dashboard__head">
-      <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg">Team Chemistry</p>
-      <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border border-border bg-card2 text-muted-fg">—</span>
-    </div>
-    <div class="h-1.5 rounded-full overflow-hidden bg-border draft-chem-dashboard__meter mb-3">
-      <div class="h-full rounded-full stat-bar-fill" style="width:0%;background:var(--border)"></div>
-    </div>
-    <p class="text-xs text-muted-fg draft-chem-report__empty">No synergies yet — keep drafting.</p>
-  </div>`;
-  }
-
-  const asPlacedSlots = placedPairs.map(x => x.pos);
-  const rosterKey = 'placed|' + (S.coach || '') + '|' + asPlacedSlots.map((s, i) => s + ':' + starters[i].id).join(',');
-  if (_chemCache.key !== rosterKey) {
-    _chemCache.key    = rosterKey;
-    _chemCache.result = calculateChemistry(starters, S.coach, { asPlacedSlots });
-  }
-  const { chemScore, chemReport } = _chemCache.result;
-  const tier = chemTier(chemScore);
-  const { color: scoreColor, bg: scoreBg } = chemTierColors(tier.id, isDark());
-  return `
-  <div class="rounded-xl border border-border bg-card px-4 py-3 card-shadow draft-chem-dashboard">
-    <div class="flex items-center justify-between mb-2 draft-chem-dashboard__head">
-      <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg">Team Chemistry</p>
-      <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border" style="background:${scoreBg};color:${scoreColor};border-color:${scoreColor}30">${tier.label}</span>
-    </div>
-    <div class="h-1.5 rounded-full overflow-hidden bg-border draft-chem-dashboard__meter mb-3">
-      <div class="h-full rounded-full stat-bar-fill" style="width:${chemScore}%;background:${scoreColor}"></div>
-    </div>
-    ${chemReport.length > 0 ? `
-    <div class="flex flex-col gap-1.5 draft-chem-report">
-      ${chemReport.map(item => {
-        const isGood = item.startsWith('🟢');
-        return `<div class="rounded-lg px-2.5 py-1.5 text-xs font-medium border draft-chem-report__item"
-          style="background:${isGood ? 'var(--surface-green)' : 'var(--surface-red)'};color:${isGood ? (isDark() ? '#4ade80' : '#15803d') : (isDark() ? '#f87171' : '#dc2626')};border-color:${isGood ? (isDark() ? 'rgba(74,222,128,0.35)' : '#bbf7d0') : (isDark() ? 'rgba(248,113,113,0.35)' : '#fecaca')}">${item}</div>`;
-      }).join('')}
-    </div>` : `<p class="text-xs text-muted-fg draft-chem-report__empty">No synergies yet — keep drafting.</p>`}
-  </div>`;
 }
 
 // ── Simulate card ─────────────────────────────────────────────────────────────
