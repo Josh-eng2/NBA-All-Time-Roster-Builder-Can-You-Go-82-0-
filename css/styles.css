@@ -1780,60 +1780,10 @@ button.autopsy-strip:hover {
   }
 }
 
-/* ── Drafting screen — desktop 3-column, single-viewport layout ─────────
-   renderDrafting() emits this alternate structure only when
-   isDesktopDraftLayout() (>=1024px) is true; below that it emits the
-   original flat, mobile/tablet markup and none of these classes exist in
-   the DOM. Live Chemistry is a fixed left rail, the vertical Fans meter a
-   fixed right rail, and the normal draft flow sits in a center column —
-   all three pinned to the height below the header and scrolling
-   independently, so the whole screen fits without a page scrollbar
-   (mirroring the mobile one-screen layout above). */
-.draft-screen--desktop {
-  height: 100dvh;
-  min-height: 100dvh;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.draft-screen--desktop .draft-screen__main {
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
-  padding-top: 1rem;
-  padding-bottom: 1rem;
-}
-
-.draft-screen__inner--desktop {
-  width: 100%;
-  /* Covers a full 1920px monitor edge-to-edge (minus the 1rem page gutter
-     from draft-screen__main's px-4) before the rails stop growing — the old
-     100rem/1600px cap left ~320px of dead margin unused on a plain 1080p
-     screen. */
-  max-width: 120rem;
-  height: 100%;
-  min-height: 0;
-  display: grid;
-  grid-template-columns: minmax(15rem, 1fr) minmax(0, 46rem) minmax(4.5rem, 1fr);
-  grid-template-areas: "chem center fans";
-  gap: 1.25rem;
-}
-
-.draft-screen__inner--desktop .draft-chem-dashboard {
-  grid-area: chem;
-  height: 100%;
-  min-height: 0;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-}
-
-/* ── Live stat gauges (Fans + Chemistry) — mobile/tablet drafting screen ──
-   2K-style radial arcs, replacing the old linear Fans bar + Team Chemistry
-   bar below the desktop breakpoint. See renderStatGauges() in js/ui/render.js.
-   Desktop (>=1024px) keeps the linear meter + synergy chips untouched —
-   .draft-chem-dashboard above and .draft-pop-bar-vertical below. */
+/* ── Live stat gauges (Fans + Chemistry) — drafting screen, every width ───
+   2K-style radial arcs, the drafting screen's only live meters. See
+   renderStatGauges() in js/ui/render.js. Sizing here is the mobile/tablet
+   baseline; the desktop block further down scales the arc up. */
 .cond {
   font-family: 'Barlow Condensed', 'Fira Sans', ui-sans-serif, system-ui, sans-serif;
 }
@@ -1843,7 +1793,13 @@ button.autopsy-strip:hover {
   gap: 0.5625rem;
 }
 
+/* One size knob per breakpoint. The arc SVG is viewBox="0 0 100 84" with its
+   circle centred at (50,50), so the badge's offset is derived from the height
+   rather than hand-tuned — change --gauge-h and the badge stays centred. */
 .draft-stat-gauge {
+  --gauge-w: 96px;
+  --gauge-h: 82px;
+  --gauge-badge: 36px;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -1853,30 +1809,30 @@ button.autopsy-strip:hover {
 
 .draft-stat-gauge__arc-wrap {
   position: relative;
-  width: 96px;
-  height: 82px;
+  width: var(--gauge-w);
+  height: var(--gauge-h);
 }
 
 .draft-stat-gauge__svg {
-  width: 96px;
-  height: 82px;
+  width: var(--gauge-w);
+  height: var(--gauge-h);
   overflow: visible;
 }
 
 .draft-stat-gauge__icon {
   position: absolute;
-  top: 30px;
+  top: calc(var(--gauge-h) / 84 * 50 - var(--gauge-badge) / 2);
   left: 50%;
   transform: translateX(-50%);
-  width: 36px;
-  height: 36px;
+  width: var(--gauge-badge);
+  height: var(--gauge-badge);
   border-radius: 50%;
   border-width: 2px;
   border-style: solid;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
+  font-size: calc(var(--gauge-badge) * 0.44);
 }
 
 .draft-stat-gauge__value {
@@ -1911,171 +1867,243 @@ button.autopsy-strip:hover {
   margin: 4px 10px 0;
 }
 
-.draft-screen__center {
-  grid-area: center;
-  height: 100%;
-  min-height: 0;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  /* keeps the last card's shadow/focus ring from being clipped by the
-     scroll container's edge */
-  padding-bottom: 0.25rem;
-  /* pushes content off the scrollbar so it doesn't sit on top of the round
-     dots / other right-aligned content */
-  padding-right: 0.75rem;
-}
-
-.draft-pop-bar-vertical {
-  grid-area: fans;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  height: 100%;
-  min-height: 0;
-}
-
-.draft-pop-bar-vertical__label {
-  flex-shrink: 0;
-}
-
-.draft-pop-bar-vertical__track {
-  flex: 1;
-  min-height: 0;
-  width: 8rem;
-  max-width: 70%;
-  border-radius: 999px;
-  background: var(--border);
-  overflow: hidden;
-  display: flex;
-  align-items: flex-end;
-}
-
-.draft-pop-bar-vertical__fill {
-  width: 100%;
-  border-radius: 999px;
-  transition: height 0.2s ease-out;
-}
-
-.draft-pop-bar-vertical__value {
-  flex-shrink: 0;
-  line-height: 1;
-}
-
-/* ── 2xl+ (>=1536px) — the rails have real room to grow on a 1920px+
-   monitor, so scale their content up a notch instead of just stretching
-   into empty space. Laptop/tablet/mobile (below this) are untouched. */
-@media (min-width: 1536px) {
-  .draft-pop-bar-vertical__track {
-    width: 10rem;
+/* ── Drafting screen — desktop (>=1024px) ───────────────────────────────
+   Desktop renders the exact same single-column "Arena" markup the phone
+   gets (renderDrafting() has no width branch any more) — it just has room
+   to breathe. The column stays centred at its max-width, and the whole
+   draft is pinned to one viewport with no page scrollbar, so the roster
+   and both gauges stay visible while you pick — mirroring the mobile
+   one-screen layout above. */
+@media (min-width: 1024px) {
+  .draft-screen {
+    height: 100dvh;
+    min-height: 100dvh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
 
-  .draft-pop-bar-vertical__label {
-    font-size: 0.75rem;
+  .draft-screen__main {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
   }
 
-  .draft-chem-report__item {
-    font-size: 0.875rem;
-    padding: 0.625rem 0.875rem;
+  .draft-screen__inner {
+    flex: 1;
+    min-height: 0;
+    /* last-resort scroll for very short windows; the flex sizing below
+       normally keeps everything on screen without it */
+    overflow-y: auto;
+    /* pushes content off the scrollbar so it doesn't sit under the round
+       dots / other right-aligned content */
+    padding-right: 0.5rem;
   }
 
-  .draft-pop-bar-vertical__value {
-    font-size: 1rem;
+  /* Every block keeps its natural height and the draft board absorbs the
+     slack, so the roster strip and both gauges stay on screen whatever the
+     window height — rather than the roster falling off the bottom edge. */
+  .draft-screen__inner > * {
+    flex-shrink: 0;
+  }
+
+  .draft-screen .draft-board-wrap {
+    flex: 1 1 auto;
+    /* Explicit floor, roughly the header plus one full card row. It has to be
+       explicit: `min-height: auto` would normally stop a flex item shrinking
+       past its content, but that rule doesn't apply to an overflow:hidden
+       item, so without this the wrap collapses and silently crops the card —
+       button and all. If the column can't afford the floor, the column
+       scrolls instead; the board is where the decision is made, so it's the
+       last thing that should lose height. */
+    min-height: 10.5rem;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .draft-screen .draft-board-wrap__head {
+    flex-shrink: 0;
+  }
+
+  .draft-screen .draft-board-scroll {
+    flex: 1 1 auto;
+    height: auto;
+    /* fills whatever the wrap's floor above secured for it */
+    min-height: 0;
+  }
+
+  /* The spin panel is the screen's least information-dense block — two words
+     in a 14rem-tall card. Tightening its padding (not its type) is what buys
+     the draft board enough height for a full card row, so the "Draft" button
+     isn't clipped at the fold on a standard 900px-tall window. */
+  .draft-screen .draft-slot-machine {
+    padding: 0.75rem;
+  }
+
+  .draft-screen .draft-slot-machine > .mb-3 {
+    margin-bottom: 0.5rem !important;
+  }
+
+  .draft-screen .draft-slot-machine__cell {
+    min-height: 0;
+    padding: 0.5rem !important;
+  }
+
+  .draft-screen .draft-slot-machine__cell .mb-2 {
+    margin-bottom: 0.25rem !important;
+  }
+
+  .draft-screen .draft-slot-machine__cell .mt-2 {
+    margin-top: 0.25rem !important;
+  }
+
+  .draft-screen .draft-slot-machine__grid {
+    margin-bottom: 0.5rem !important;
+  }
+
+  .draft-screen .draft-slot-machine [data-action="spin"],
+  .draft-screen .draft-slot-machine button[disabled] {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+  }
+
+  .draft-screen .draft-slot-machine > p.text-center {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  .draft-stat-gauges {
+    gap: 0.75rem;
+  }
+
+  /* A cold-open or mode banner takes its height out of the draft board's
+     share. Drop the trait chips to pay for it (archetype + stats still carry
+     the pick) so the card's "Draft" button stays above the fold — the
+     first-run screen is exactly where a clipped CTA hurts most. */
+  .draft-screen__inner--banner .draft-card-traits {
+    display: none !important;
+  }
+
+  /* Same trade, on the gauges. A banner is on screen mainly at the top of a
+     run, which is exactly when the gauges read "0M" and "—" — so they're the
+     cheapest thing to shrink to keep the board at a full card row. They go
+     back to full size on the next render, once they have something to say. */
+  .draft-screen__inner--banner .draft-stat-gauge {
+    --gauge-w: 84px;
+    --gauge-h: 72px;
+    --gauge-badge: 32px;
+    padding: 0.5rem 0 0.4375rem;
+  }
+
+  .draft-screen__inner--banner .draft-stat-gauge__value {
+    font-size: 20px;
+  }
+
+  .draft-screen__inner--banner .draft-stat-gauge__label {
+    font-size: 10px;
+    margin-top: 3px;
   }
 }
 
-/* Thicker meter to match the rest of the desktop rail's presence. */
-.draft-screen__inner--desktop .draft-chem-dashboard__meter {
-  height: 0.875rem;
+/* ── Short desktop windows (a 1366x768 laptop) ──────────────────────────
+   The single column needs more height than the 3-column shell it replaced,
+   and on a 768px screen it doesn't get it. Claw back the difference from
+   the least load-bearing pixels — the round-bar hint line and the trait
+   chips (archetype + stats still carry the pick) — so a whole draft-card
+   row keeps its "Draft" button above the fold. Taller windows show both. */
+@media (min-width: 1024px) and (max-height: 879px) {
+  .draft-screen .draft-round-bar__meta {
+    display: none;
+  }
+
+  .draft-screen .draft-card-traits {
+    display: none !important;
+  }
+
+  .draft-screen .draft-slot-machine {
+    padding: 0.625rem;
+  }
+
+  .draft-screen .draft-slot-machine__cell {
+    padding: 0.375rem !important;
+  }
+
+  .draft-stat-gauge {
+    padding: 0.5rem 0 0.4375rem;
+  }
+
+  .draft-screen .draft-card-body {
+    padding: 0.5rem 0.625rem !important;
+  }
+
+  .draft-screen .draft-card__actions {
+    padding: 0 0.625rem 0.625rem !important;
+  }
+
+  /* Short window *and* a banner — the tightest combination the screen has.
+     The gauges are still reading "0M" and "—" here, so they give up the last
+     pixels the board needs rather than the card row losing them. (Same
+     specificity as the base-desktop banner rule, won on source order.) */
+  .draft-screen__inner--banner .draft-stat-gauge {
+    --gauge-w: 68px;
+    --gauge-h: 58px;
+    --gauge-badge: 26px;
+    padding: 0.375rem 0 0.3125rem;
+  }
+
+  .draft-screen__inner--banner .draft-stat-gauge__value {
+    font-size: 16px;
+  }
+
+  .draft-screen__inner--banner .draft-stat-gauge__label {
+    font-size: 9px;
+    margin-top: 2px;
+  }
+
+  /* The welcome banner is a one-time read; on a short window it's competing
+     with the board for the same pixels, so it gets the tighter setting. */
+  .draft-screen .draft-cold-open {
+    padding: 0.5rem 0.75rem !important;
+    gap: 0.625rem !important;
+  }
+
+  .draft-screen .draft-cold-open .text-2xl {
+    font-size: 1.25rem;
+  }
+
+  .draft-screen .draft-cold-open .text-sm {
+    font-size: 0.8125rem;
+  }
 }
 
-/* ── Desktop — compact the center draft flow ─────────────────────────────
-   Gives the roster grid a real chance to land in view alongside a full
-   3-card draft board, without the mobile treatment's more aggressive cuts
-   (hidden traits stay, just tighter paddings/gaps). */
-.draft-screen__center {
-  gap: 0.375rem;
-}
+/* Tall desktop windows only. The gauges carry both meters on their own now,
+   so where there's vertical room they get real presence — a 96px arc adrift
+   in a 42rem-wide card reads as an afterthought. On a short window (a 768px
+   laptop) that same upsize would eat the draft board, so the baseline size
+   stands there instead. */
+@media (min-width: 1024px) and (min-height: 880px) {
+  .draft-stat-gauge {
+    --gauge-w: 124px;
+    --gauge-h: 106px;
+    --gauge-badge: 46px;
+    padding: 0.875rem 0 0.75rem;
+  }
 
-.draft-screen__center .draft-round-bar {
-  padding-top: 0;
-  padding-bottom: 0;
-}
+  .draft-stat-gauge__value {
+    font-size: 27px;
+  }
 
-.draft-screen__center .draft-round-bar__meta {
-  display: none;
-}
+  .draft-stat-gauge__suffix {
+    font-size: 11px;
+  }
 
-.draft-screen__center .draft-coach-chip > button,
-.draft-screen__center .draft-coach-chip > div {
-  padding-top: 0.375rem !important;
-  padding-bottom: 0.375rem !important;
-}
-
-.draft-screen__center .draft-slot-machine {
-  padding: 0.625rem;
-}
-
-.draft-screen__center .draft-slot-machine > .mb-3 {
-  margin-bottom: 0.5rem !important;
-}
-
-.draft-screen__center .draft-slot-machine__cell {
-  min-height: 3rem;
-  padding: 0.5rem !important;
-}
-
-.draft-screen__center .draft-slot-machine__cell .mb-2 {
-  margin-bottom: 0.25rem !important;
-}
-
-.draft-screen__center .draft-slot-machine__cell .mt-2 {
-  margin-top: 0.25rem !important;
-}
-
-.draft-screen__center .draft-slot-machine__cell .text-xl {
-  font-size: 1rem;
-}
-
-.draft-screen__center .draft-slot-machine__grid {
-  margin-bottom: 0.5rem !important;
-}
-
-.draft-screen__center .draft-slot-machine [data-action="spin"],
-.draft-screen__center .draft-slot-machine button[disabled] {
-  padding-top: 0.5rem !important;
-  padding-bottom: 0.5rem !important;
-}
-
-.draft-screen__center .draft-slot-machine > p.text-center {
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
-}
-
-.draft-screen__center .draft-board-wrap__head {
-  margin-bottom: 0.375rem !important;
-}
-
-.draft-screen__center .draft-card-body {
-  padding: 0.5rem 0.625rem !important;
-}
-
-.draft-screen__center .draft-card__head {
-  margin-bottom: 0.375rem !important;
-}
-
-.draft-screen__center .draft-card__name {
-  margin-bottom: 0.375rem !important;
-}
-
-.draft-screen__center .draft-card-traits {
-  display: none !important;
-}
-
-.draft-screen__center .draft-card__actions {
-  padding: 0 0.625rem 0.625rem !important;
+  .draft-stat-gauge__label {
+    font-size: 11px;
+    margin-top: 5px;
+  }
 }
 
 /* ── Dark mode overrides ──────────────────────────────────── */
