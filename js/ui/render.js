@@ -66,8 +66,15 @@ function isMobileViewport() {
 const FANS_TEAM_MAX = 500; // 5 starters × 100 max fans each
 
 function fansBarCol(avg, dark = isDark()) {
-  if (avg >= 80) return dark ? '#60a5fa' : '#2563eb';
-  if (avg >= 60) return dark ? '#fbbf24' : '#d97706';
+  // Dark blue was #60a5fa: 2.98:1 as a bar fill on --border (needs 3) and
+  // 4.07:1 as the 12px tier badge on --surface-muted (needs 4.5). #93c5fd
+  // clears both at 4.2:1 / 5.7:1 and sits with the other dark tier tints.
+  if (avg >= 80) return dark ? '#93c5fd' : '#2563eb';
+  // Light amber was #d97706: 3.05:1 as the 12px tier badge (needs 4.5) and
+  // 2.58:1 as a bar fill on the --border track (needs 3). #b45309 clears both
+  // at 4.8:1 / 4.1:1, and is the darker amber the design handoff already
+  // specifies for badge text.
+  if (avg >= 60) return dark ? '#fbbf24' : '#b45309';
   // Light-mode slate was #94a3b8, which is 2.56:1 on the white card — under
   // the 3:1 WCAG AA floor even for large bold text. #64748b measures 4.76:1.
   return dark ? '#cbd5e1' : '#64748b';
@@ -1983,6 +1990,13 @@ function renderFansReportCard() {
   const popBarPct = teamFans.pct;
   const popBarCol = fansBarCol(teamFans.avg);
   const popTier   = teamFans.tier;
+  // Hoisted out of the two <p> tags below, which each repeated it. Light red
+  // was #dc2626, measuring 4.41:1 on --surface-red — just under the 4.5:1 AA
+  // floor for the 10px label. #b91c1c takes it to 6.0:1. The green side
+  // already measures 4.8:1, so only the red moves.
+  const eloColor  = popDelta >= 0
+    ? (isDark() ? '#4ade80' : '#15803d')
+    : (isDark() ? '#f87171' : '#b91c1c');
   return `
     <div class="rounded-2xl border border-border bg-white p-4 card-shadow">
       <div class="flex items-center justify-between mb-3">
@@ -2005,8 +2019,8 @@ function renderFansReportCard() {
       <div class="flex gap-3 flex-wrap">
         <div class="flex-1 rounded-xl border px-3 py-2.5 text-center"
           style="background:${popDelta >= 0 ? 'var(--surface-green)' : 'var(--surface-red)'};border-color:${popDelta >= 0 ? (isDark() ? 'rgba(74,222,128,0.35)' : '#bbf7d0') : (isDark() ? 'rgba(248,113,113,0.35)' : '#fecaca')}">
-          <p class="text-[10px] font-bold uppercase tracking-wider mb-1" style="color:${popDelta >= 0 ? (isDark() ? '#4ade80' : '#15803d') : (isDark() ? '#f87171' : '#dc2626')}">${popDelta >= 0 ? '📈 Hype Boost' : '📉 Hype Penalty'}${Math.abs(popDelta) < 0.002 ? '' : (popDelta >= 0 ? ' · High Fans' : ' · Low Fans')}</p>
-          <p class="text-xl font-black" style="color:${popDelta >= 0 ? (isDark() ? '#4ade80' : '#15803d') : (isDark() ? '#f87171' : '#dc2626')}">${popDelta >= 0 ? '+' : ''}${(popDelta / (r.baseStrength || 1) * 100).toFixed(1)}% Elo</p>
+          <p class="text-[10px] font-bold uppercase tracking-wider mb-1" style="color:${eloColor}">${popDelta >= 0 ? '📈 Hype Boost' : '📉 Hype Penalty'}${Math.abs(popDelta) < 0.002 ? '' : (popDelta >= 0 ? ' · High Fans' : ' · Low Fans')}</p>
+          <p class="text-xl font-black" style="color:${eloColor}">${popDelta >= 0 ? '+' : ''}${(popDelta / (r.baseStrength || 1) * 100).toFixed(1)}% Elo</p>
         </div>
       </div>
       <!-- Player popularity breakdown -->
@@ -2014,7 +2028,11 @@ function renderFansReportCard() {
         ${[...Object.entries(S.roster)].filter(([, p]) => p).map(([pos, p]) => {
           const pop    = p.popularity ?? 50;
           const pct    = Math.max(0, Math.round(((pop - 35) / 65) * 100));
-          const barCol = pop >= 80 ? (isDark() ? '#60a5fa' : '#2563eb') : pop >= 60 ? (isDark() ? '#fbbf24' : '#d97706') : (isDark() ? '#cbd5e1' : '#94a3b8');
+          // Was an inline copy of fansBarCol()'s tiers that drifted out of
+          // sync with it — its light slate (#94a3b8) rendered these fills at
+          // 2.08:1 against the track, under the 3:1 floor for a graphic that
+          // carries meaning. Call the real thing so there's one tier ramp.
+          const barCol = fansBarCol(pop);
           return `<div class="flex items-center gap-2">
             <span class="text-[10px] font-black w-6 flex-shrink-0 text-muted-fg">${pos}</span>
             <span class="text-xs font-semibold text-foreground w-28 flex-shrink-0 truncate">${p.name}</span>
