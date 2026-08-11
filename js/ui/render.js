@@ -63,7 +63,51 @@ function isMobileViewport() {
   return typeof window !== 'undefined' && window.matchMedia('(max-width: 639px)').matches;
 }
 
+// The desktop redesign swaps in a different DOM for a few screens (the draft
+// workspace's two columns, the results rail). Everything else is handled by
+// css/desktop.css at the same breakpoint — keep the two in step.
+const DESKTOP_MQ = '(min-width: 1024px)';
+function isDesktopLayout() {
+  return typeof window !== 'undefined' && window.matchMedia(DESKTOP_MQ).matches;
+}
+
+// Dragging the window across the breakpoint has to re-render, since nothing
+// else triggers one and the desktop screens emit different markup.
+if (typeof window !== 'undefined' && window.matchMedia) {
+  const mq = window.matchMedia(DESKTOP_MQ);
+  const onFlip = () => render();
+  if (mq.addEventListener) mq.addEventListener('change', onFlip);
+  else if (mq.addListener) mq.addListener(onFlip); // Safari < 14
+}
+
 const FANS_TEAM_MAX = 500; // 5 starters × 100 max fans each
+
+// ── Team Overall ──────────────────────────────────────────────────────────────
+/** Live team OVR for the drafting screen.
+ *
+ *  Deliberately the same quantity the simulation reports as `avgRating` —
+ *  the mean of each starter's era-adjusted `overall` (see simulation.js). The
+ *  sim is the source of truth; this only lets the gauge show the number
+ *  before a season has been run, so the two never disagree. */
+function calcTeamOverall(players) {
+  const list = players.filter(Boolean);
+  if (!list.length) return { ovr: null, count: 0, pct: 0 };
+  const ovr = list.reduce((s, p) => s + (p.overall ?? 82), 0) / list.length;
+  // 70–100 is the meaningful band on the `overall` scale (mean ≈87, sd ≈6.1),
+  // so the arc spends its sweep where rosters actually differ.
+  const pct = Math.max(0, Math.min(100, ((ovr - 70) / 30) * 100));
+  return { ovr, count: list.length, pct };
+}
+
+/** Short qualitative descriptor under the OVR gauge. Mirrors ovrColor()'s
+ *  tiers so the colour and the words never contradict each other. */
+function ovrTierLabel(ovr) {
+  if (ovr == null)  return 'No roster';
+  if (ovr >= 97)    return 'All-Time';
+  if (ovr >= 92)    return 'Elite Core';
+  if (ovr >= 85)    return 'Solid Starters';
+  return 'Role Players';
+}
 
 function fansBarCol(avg, dark = isDark()) {
   // Dark blue was #60a5fa: 2.98:1 as a bar fill on --border (needs 3) and
@@ -463,7 +507,7 @@ function renderDailyModeCard() {
       ? `<span style="color:#15803d;font-weight:900" aria-label="Passed">✓</span>`
       : `<span style="color:#dc2626;font-weight:900" aria-label="Failed">✗</span>`;
     return `
-    <div class="w-full rounded-2xl bg-white px-3 py-2.5 flex items-center gap-2 mb-3 card-shadow border border-slate-100">
+    <div class="w-full rounded-2xl bg-white px-3 py-2.5 flex items-center gap-2 mb-3 card-shadow border border-slate-100 home-card--daily">
       <span class="text-2xl flex-shrink-0">${ch.emoji}</span>
       <div class="flex-1 min-w-0">
         <p class="font-black text-sm text-foreground flex flex-wrap items-center gap-x-2 gap-y-1">Daily Challenge ${tick}</p>
@@ -475,9 +519,9 @@ function renderDailyModeCard() {
   }
   const community = renderCommunityStatsMerged();
   return `
-  <div class="mb-3">
+  <div class="mb-3 home-daily-wrap">
     <button data-action="mode-daily"
-      class="w-full rounded-2xl bg-white px-3 py-2 flex items-center gap-2 cursor-pointer card-shadow hover:shadow-md transition-all border border-slate-100 text-left">
+      class="w-full rounded-2xl bg-white px-3 py-2 flex items-center gap-2 cursor-pointer card-shadow hover:shadow-md transition-all border border-slate-100 text-left home-card--daily">
       <span class="text-2xl flex-shrink-0" style="pointer-events:none">${ch.emoji}</span>
       <div class="flex-1 min-w-0" style="pointer-events:none">
         <p class="font-black text-sm flex flex-wrap items-center gap-x-2 gap-y-1" style="color:#f97316">Daily Challenge · ${ch.title}</p>
@@ -509,14 +553,16 @@ function renderModeSelect() {
       </div>
     </header>
 
-    <main class="flex-1 flex flex-col items-center px-4 pt-3 pb-8">
-      <div class="w-full max-w-md animate-fade-up">
+    <main class="flex-1 flex flex-col items-center px-4 pt-3 pb-8 mode-screen__main">
+      <div class="w-full max-w-md animate-fade-up home-shell">
+        ${renderHomeIntro()}
+        <div class="home-grid">
 
         ${renderDailyModeCard()}
 
         <!-- Classic full width -->
         <button data-action="mode-solo"
-          class="w-full rounded-2xl bg-white px-5 py-4 flex flex-col items-center gap-2 cursor-pointer card-shadow hover:shadow-md transition-all border border-slate-100 mb-3">
+          class="w-full rounded-2xl bg-white px-5 py-4 flex flex-col items-center gap-2 cursor-pointer card-shadow hover:shadow-md transition-all border border-slate-100 mb-3 home-card--classic">
           <span class="text-3xl" style="pointer-events:none">💯</span>
           <p class="font-black text-base" style="color:#f97316;pointer-events:none">Classic</p>
           <p class="text-sm text-muted-fg text-center" style="pointer-events:none">Draft with full player stats visible — make informed picks.</p>
@@ -524,9 +570,9 @@ function renderModeSelect() {
         </button>
 
         <!-- Ball IQ + 1v1 side by side -->
-        <div class="grid grid-cols-2 gap-3 mb-3">
+        <div class="grid grid-cols-2 gap-3 mb-3 home-pair">
           <button data-action="mode-blind"
-            class="rounded-2xl bg-white p-4 flex flex-col items-center gap-2 cursor-pointer card-shadow hover:shadow-md transition-all border border-slate-100">
+            class="rounded-2xl bg-white p-4 flex flex-col items-center gap-2 cursor-pointer card-shadow hover:shadow-md transition-all border border-slate-100 home-card--balliq">
             <span class="text-3xl" style="pointer-events:none">🧠</span>
             <p class="font-black text-base" style="color:#f97316;pointer-events:none">Ball IQ</p>
             <p class="text-xs text-muted-fg text-center leading-snug flex-1" style="pointer-events:none">Names only — draft by memory and test your Ball IQ.</p>
@@ -534,7 +580,7 @@ function renderModeSelect() {
           </button>
 
           <button data-action="mode-1v1"
-            class="rounded-2xl bg-white p-4 flex flex-col items-center gap-2 cursor-pointer card-shadow hover:shadow-md transition-all border border-slate-100">
+            class="rounded-2xl bg-white p-4 flex flex-col items-center gap-2 cursor-pointer card-shadow hover:shadow-md transition-all border border-slate-100 home-card--1v1">
             <span class="text-3xl" style="pointer-events:none">⚔️</span>
             <p class="font-black text-base" style="color:#f97316;pointer-events:none">1v1</p>
             <p class="text-xs text-muted-fg text-center leading-snug flex-1" style="pointer-events:none">Draft your team, then go head-to-head against a rival lineup.</p>
@@ -543,15 +589,46 @@ function renderModeSelect() {
         </div>
 
         <button data-action="view-trophies"
-          class="w-full py-3 rounded-xl font-bold text-sm border border-amber-200 bg-amber-50 text-amber-700 cursor-pointer transition-all hover:bg-amber-100 card-shadow mb-3">
-          🏆 Trophy Room${trophies.length > 0 ? ` · ${trophies.length}` : ''}
+          class="w-full py-3 rounded-xl font-bold text-sm border border-amber-200 bg-amber-50 text-amber-700 cursor-pointer transition-all hover:bg-amber-100 card-shadow mb-3 home-card--trophy">
+          <span class="home-card__trophy-icon" style="pointer-events:none">🏆</span>
+          <span class="home-card__trophy-body" style="pointer-events:none">
+            <span class="home-card__trophy-title">Trophy Room${trophies.length > 0 ? ` · ${trophies.length}` : ''}</span>
+            <span class="home-card__trophy-sub">Relive your best runs, rings and record seasons.</span>
+          </span>
+          <span class="home-card__trophy-chev" style="pointer-events:none">→</span>
         </button>
 
         ${renderMoreModesButton()}
 
+        </div>
       </div>
     </main>
     ${renderFooter()}
+  </div>`;
+}
+
+/** Desktop-only intro band above the mode grid. Hidden below 1024px (see
+ *  css/desktop.css) — it is presentation the narrow layout has no room for,
+ *  not a duplicate of any control. Legend counts come from the real
+ *  collection, not the reference's sample numbers. */
+function renderHomeIntro() {
+  let collected = 0, total = 0;
+  try {
+    collected = getCollectedLegends().size ?? 0;
+    total     = getLegendCatalog().total ?? 0;
+  } catch (e) { /* collection unavailable — fall through to the stat-less band */ }
+
+  return `
+  <div class="home-intro" style="display:none">
+    <div>
+      <h1 class="home-intro__title">Build a team that goes <em>82-0</em></h1>
+      <p class="home-intro__sub">Draft five all-time greats. Chase the perfect season.</p>
+    </div>
+    ${total ? `
+    <div class="home-intro__stat">
+      <span class="home-intro__stat-label">Legends collected</span>
+      <span class="home-intro__stat-value cond">${collected}<small>/${total}</small></span>
+    </div>` : ''}
   </div>`;
 }
 
@@ -559,7 +636,7 @@ function renderModeSelect() {
 function renderMoreModesButton() {
   return `
   <button data-action="open-more-modes"
-    class="w-full mb-3 rounded-xl border border-border bg-white px-4 py-3 flex items-center justify-between gap-3 cursor-pointer card-shadow hover:border-primary hover:bg-card2 transition-all">
+    class="w-full mb-3 rounded-xl border border-border bg-white px-4 py-3 flex items-center justify-between gap-3 cursor-pointer card-shadow hover:border-primary hover:bg-card2 transition-all home-card--challenges">
     <span class="flex items-center gap-2" style="pointer-events:none">
       <span class="text-xl">🎮</span>
       <span class="flex flex-col text-left">
@@ -814,21 +891,124 @@ function renderModeDraftBanner() {
   return '';
 }
 
-// One layout at every width — the "Arena" drafting screen is a single centred
-// column that just gets more breathing room as the viewport grows. The old
-// >=1024px 3-column shell (chemistry rail + vertical fans tube) is gone; both
-// meters now live in the Fans/Chemistry radial gauges via renderStatGauges(),
-// and the synergy chips they replaced moved to the post-draft results screen.
+/** Desktop round stepper — one segment per real draft round, labelled with
+ *  the game's own phase names (DRAFT_PHASES). The reference mockup showed
+ *  five invented phases; the real game has three spanning five rounds, so the
+ *  label is printed once at the round each phase begins rather than
+ *  inventing mechanics to match the picture. */
+function renderDraftStepper(full) {
+  const displayRound = Math.min(S.round + 1, TOTAL_ROUNDS);
+  const segments = Array.from({ length: TOTAL_ROUNDS }, (_, i) => {
+    const phase     = DRAFT_PHASES.find(ph => i <= ph.max) || DRAFT_PHASES[DRAFT_PHASES.length - 1];
+    const prevPhase = i > 0 ? (DRAFT_PHASES.find(ph => (i - 1) <= ph.max) || null) : null;
+    const startsPhase = !prevPhase || prevPhase.label !== phase.label;
+    const state = full || i < S.round ? 'done' : i === S.round ? 'active' : 'todo';
+    return `<div class="draft-stepper__phase draft-stepper__phase--${state}">
+      <div class="draft-stepper__bar"></div>
+      <span class="draft-stepper__name">${startsPhase ? esc(phase.label) : '&nbsp;'}</span>
+    </div>`;
+  }).join('');
+
+  return `
+  <div class="draft-stepper${full ? ' draft-stepper--complete' : ''}">
+    <div class="draft-stepper__head">
+      <span class="draft-stepper__eyebrow">${full ? 'Draft Complete' : 'Draft Progress'}</span>
+      <span class="draft-stepper__round cond">Round ${displayRound} <small>/ ${TOTAL_ROUNDS}</small></span>
+    </div>
+    <div class="draft-stepper__phases">${segments}</div>
+    ${full
+      ? `<span class="draft-stepper__done-chip">✓ All ${TOTAL_ROUNDS} spots locked</span>`
+      : renderCoachChip()}
+  </div>`;
+}
+
+/** Chemistry synergies rail. Reads the same cached calculateChemistry()
+ *  result the gauge uses — no second calculation, no second source of truth. */
+function renderSynergyPanel() {
+  if (S.mode === 'blind') {
+    return `
+    <div class="dk-synergy">
+      <div class="dk-synergy__head"><span class="dk-section-label">Chemistry Synergies</span></div>
+      <div class="dk-synergy__empty">
+        <span class="dk-synergy__empty-icon" aria-hidden="true">🔒</span>
+        <p class="dk-synergy__empty-text">Names only — synergies unlock after you simulate.</p>
+      </div>
+    </div>`;
+  }
+
+  const starters = POSITIONS.map(pos => S.roster[pos]).filter(Boolean);
+  const report   = starters.length && _chemCache.result ? (_chemCache.result.chemReport || []) : [];
+
+  const body = report.length
+    ? `<div class="dk-synergy__list">${report.map(item => {
+        const good = item.startsWith('🟢');
+        return `<div class="dk-synergy__item dk-synergy__item--${good ? 'good' : 'bad'}">${item}</div>`;
+      }).join('')}</div>`
+    : `<div class="dk-synergy__empty">
+        <span class="dk-synergy__empty-icon" aria-hidden="true">🔗</span>
+        <p class="dk-synergy__empty-text">No synergies yet — keep drafting to unlock team chemistry bonuses.</p>
+      </div>`;
+
+  return `
+  <div class="dk-synergy">
+    <div class="dk-synergy__head">
+      <span class="dk-section-label">Chemistry Synergies</span>
+      ${report.length ? `<span class="dk-synergy__count">${report.length} active</span>` : ''}
+    </div>
+    ${body}
+  </div>`;
+}
+
+/** Live team status rail — the three-gauge dashboard plus synergies. */
+function renderTeamStatusRail() {
+  return `
+  <div class="dk-team-status">
+    <span class="dk-team-status__label">Team Status</span>
+    ${renderStatGauges({ withOverall: true, showSub: true })}
+  </div>
+  ${renderSynergyPanel()}`;
+}
+
 function renderDrafting() {
   if (isDualDraft()) return renderDrafting1v1();
   const full = rosterFull();
 
   // A cold-open welcome or mode banner costs the column ~6rem it can't spare
-  // on a one-viewport desktop layout. Flagging it here lets the desktop CSS
-  // trade the draft cards' trait chips for that height, so the "Draft" button
-  // still clears the fold — on the first-run screen above all.
+  // on a one-viewport mobile layout. Flagging it here lets the CSS trade the
+  // draft cards' trait chips for that height, so the "Draft" button still
+  // clears the fold — on the first-run screen above all.
   const banners = renderColdOpenBanner() + renderModeDraftBanner();
 
+  // ── Desktop: two-column draft workspace ────────────────────────────────
+  // Left is the workspace you act in (spin, board, roster); right is the
+  // live read-out you judge against. Same render helpers as mobile — only
+  // the arrangement differs.
+  if (isDesktopLayout()) {
+    return `
+    <div class="min-h-screen main-gradient draft-screen">
+      ${renderHeader(true)}
+      <main class="flex flex-col items-center draft-screen__main">
+        <div class="draft-workspace">
+          ${banners}
+          ${renderDraftStepper(full)}
+          <div class="draft-workspace__cols">
+            <div class="draft-workspace__left">
+              ${full ? renderSimulateCard() : ''}
+              ${!full ? renderSlotMachine() : ''}
+              ${shouldShowDraftBoard(full) ? renderDraftBoard() : ''}
+              ${renderRoster()}
+              ${full ? renderCoachChip() : ''}
+            </div>
+            <div class="draft-workspace__right">
+              ${renderTeamStatusRail()}
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>`;
+  }
+
+  // ── Mobile / tablet: the shipped single-column "Arena" layout ──────────
   return `
   <div class="min-h-screen main-gradient draft-screen">
     ${renderHeader(true)}
@@ -1053,7 +1233,7 @@ function gaugeArcPath(pct) {
 // already state the reading in text, and an unhidden emoji is announced by its
 // Unicode name ("busts in silhouette"), which is pure noise over the number a
 // screen-reader user actually wants. Hiding them leaves a clean "37M Fans".
-function renderStatGauge({ id, icon, pct, value, suffix, label, color, locked = false, lockedNote = '' }) {
+function renderStatGauge({ id, icon, pct, value, suffix, label, color, sub = '', locked = false, lockedNote = '' }) {
   if (locked) {
     return `
     <div class="rounded-xl border border-border bg-card draft-stat-gauge">
@@ -1085,15 +1265,27 @@ function renderStatGauge({ id, icon, pct, value, suffix, label, color, locked = 
     </div>
     <div class="draft-stat-gauge__value cond" style="color:${color}">${value}<span class="draft-stat-gauge__suffix">${suffix}</span></div>
     <div class="draft-stat-gauge__label">${label}</div>
+    ${sub ? `<p class="draft-stat-gauge__sub">${sub}</p>` : ''}
   </div>`;
 }
 
-function renderStatGauges() {
-  const fans = calcTeamFans(Object.values(S.roster));
+/** Live meters for the drafting screen.
+ *
+ *  Mobile/tablet keep the shipped two-gauge pair (Fans + Chemistry). Desktop
+ *  adds the third gauge the redesign calls for — Overall — which is why the
+ *  `withOverall` flag exists rather than the caller always getting three.
+ *  All three read real roster state; none of them fabricate a value. */
+function renderStatGauges({ withOverall = false, trio = false, showSub = false } = {}) {
+  // `sub` is a desktop-only affordance — the shipped mobile gauge is a bare
+  // value + label and must stay that way.
+  const sub = t => (showSub ? t : '');
+  const roster = Object.values(S.roster);
+  const fans   = calcTeamFans(roster);
   const fansGauge = renderStatGauge({
     id: 'fans', icon: '👥', pct: fans.pct,
     value: `${Math.round(fans.sum)}M`, suffix: '',
     label: 'Fans', color: fans.barCol,
+    sub: sub(fans.count ? (fans.tier || 'Building') : 'No draw yet'),
   });
 
   let chemGauge;
@@ -1119,6 +1311,7 @@ function renderStatGauges() {
         id: 'chem', icon: '🧪', pct: 0,
         value: '—', suffix: '',
         label: 'Chemistry', color: 'var(--muted-fg)',
+        sub: sub('No pairings yet'),
       });
     } else {
       const asPlacedSlots = placedPairs.map(x => x.pos);
@@ -1129,17 +1322,31 @@ function renderStatGauges() {
       }
       const tier  = chemTier(_chemCache.result.chemScore);
       const color = chemTierColors(tier.id, isDark()).color;
+      const synCount = (_chemCache.result.chemReport || []).length;
       // No raw score digits — chemTier() intentionally hides the 0-100 number
       // from the UI; the arc's sweep still encodes it visually.
       chemGauge = renderStatGauge({
         id: 'chem', icon: '🧪', pct: _chemCache.result.chemScore,
         value: tier.label, suffix: '',
         label: 'Chemistry', color,
+        sub: sub(synCount ? `${synCount} synerg${synCount === 1 ? 'y' : 'ies'}` : 'No synergies yet'),
       });
     }
   }
 
-  return `<div class="draft-stat-gauges">${fansGauge}${chemGauge}</div>`;
+  let ovrGauge = '';
+  if (withOverall) {
+    const { ovr, count, pct } = calcTeamOverall(roster);
+    ovrGauge = renderStatGauge({
+      id: 'ovr', icon: '🏀', pct,
+      value: ovr == null ? '—' : String(Math.round(ovr)), suffix: '',
+      label: 'Overall',
+      color: ovr == null ? 'var(--muted-fg)' : ovrColor(ovr),
+      sub: sub(ovr == null ? 'No roster' : `${ovrTierLabel(ovr)} · ${count}/${POSITIONS.length}`),
+    });
+  }
+
+  return `<div class="draft-stat-gauges${trio ? ' dk-gauge-trio' : ''}">${fansGauge}${chemGauge}${ovrGauge}</div>`;
 }
 
 function renderSlotMachine() {
@@ -1338,13 +1545,20 @@ function renderRosterSlot(pos, canPlace) {
       ? ''
       : `<span class="text-[10px] text-muted-fg leading-none">${fmtPG(p.ppg)}pt</span>`;
 
+    // Desktop roster cards lead with OVR (the reference's treatment) instead
+    // of PPG. Emitted only at desktop widths so the mobile card is untouched.
+    const ovrLine = isDesktopLayout() && S.mode !== 'blind' && p.overall != null
+      ? `<span class="cond draft-roster-slot__ovr" style="color:${ovrColor(p.overall)}">${Math.round(p.overall)}</span>
+         <span class="draft-roster-slot__ovr-label">OVR</span>`
+      : ppgLine;
+
     return `
-    <div class="rounded-xl border bg-white p-2 flex flex-col items-center gap-0.5 text-center overflow-hidden card-shadow locked draft-roster-slot ${fitClass}"
+    <div class="rounded-xl border bg-white p-2 flex flex-col items-center gap-0.5 text-center overflow-hidden card-shadow locked draft-roster-slot draft-roster-slot--filled ${fitClass}"
       style="border-color:${borderColor};border-top:${borderTop}"
       title="${p.name} · pick locked">
-      <span class="text-[10px] font-black uppercase leading-none" style="color:${labelColor}">${label}</span>
-      <span class="text-[11px] font-bold text-foreground leading-tight w-full text-center truncate px-0.5">${p.name.split(' ').pop()}</span>
-      ${ppgLine}
+      <span class="text-[10px] font-black uppercase leading-none draft-roster-slot__pos" style="color:${labelColor}">${label}</span>
+      <span class="text-[11px] font-bold text-foreground leading-tight w-full text-center truncate px-0.5 draft-roster-slot__name">${p.name.split(' ').pop()}</span>
+      ${ovrLine}
     </div>`;
   }
 
@@ -1373,8 +1587,8 @@ function renderRosterSlot(pos, canPlace) {
     class="rounded-xl border-2 border-dashed p-2 flex flex-col items-center gap-1 text-center transition-all draft-roster-slot ${canDrop ? 'slot-empty droppable cursor-pointer' : 'opacity-90'}"
     style="background:${slotBg};border-color:${slotBorder}"
     aria-label="${canDrop ? `Place ${sp?.name || 'player'} at ${label}` : `${label} empty`}">
-    <span class="text-[10px] font-black uppercase" style="color:${slotColor}">${label}</span>
-    <span class="text-xs" style="color:${slotColor}">${slotText}</span>
+    <span class="text-[10px] font-black uppercase draft-roster-slot__pos" style="color:${slotColor}">${label}</span>
+    <span class="text-xs draft-roster-slot__state" style="color:${slotColor}">${slotText}</span>
   </button>`;
 }
 
@@ -1795,7 +2009,7 @@ function renderResults() {
         </div>
 
         <!-- ── Quick tiles ────────────────────────────────────────────── -->
-        <div class="results-block--hero quick-tiles">
+        <div class="results-block--hero quick-tiles dk-res-tiles">
           <div class="quick-tile">
             <p class="quick-tile__label">OVR</p>
             <p class="cond quick-tile__value" style="color:var(--fg)">${teamOvr}</p>
@@ -1816,10 +2030,10 @@ function renderResults() {
 
         ${signalChips ? `<div class="results-block--hero flex items-center justify-center gap-2 flex-wrap">${signalChips}</div>` : ''}
 
-        <div class="results-block--hero">${renderStartingFiveCard()}</div>
+        <div class="results-block--hero dk-res-five">${renderStartingFiveCard()}</div>
 
         <!-- ── Playoff CTA + Team Report ──────────────────────────────── -->
-        <div class="results-block--playoffs flex flex-col gap-3.5">
+        <div class="results-block--playoffs flex flex-col gap-3.5 dk-res-rail">
           ${madeBid ? `
           <button data-action="advance-to-playoffs" type="button" class="courtside-cta">
             <span class="courtside-cta__icon">🏆</span>
@@ -1860,12 +2074,12 @@ function renderResults() {
           </button>
         </div>
 
-        <div class="results-block--save">${renderSaveRunCard()}</div>
+        <div class="results-block--save dk-res-save">${renderSaveRunCard()}</div>
         ${renderDailyResultBanner()}
         ${renderDailySubmitCard()}
 
         <!-- ── Action buttons ────────────────────────────────────────── -->
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-2 gap-3 dk-res-actions">
           ${S.mode === 'daily'
             ? `<button data-action="back-to-menu" type="button" class="btn-neutral-outline card-shadow">Back to Menu</button>`
             : `<button data-action="restart" type="button" class="btn-neutral-outline card-shadow">Build Another</button>`}
@@ -1877,7 +2091,7 @@ function renderResults() {
           const have = getCollectedLegends().size;
           return `
           <button data-action="view-legends"
-            class="w-full rounded-2xl border cursor-pointer transition-all hover:bg-indigo-100 card-shadow flex items-center gap-3 px-4 py-3 text-left"
+            class="w-full rounded-2xl border cursor-pointer transition-all hover:bg-indigo-100 card-shadow flex items-center gap-3 px-4 py-3 text-left dk-res-legends"
             style="border-color:#c7d2fe;background:var(--surface-indigo)">
             <span class="text-2xl flex-shrink-0">🃏</span>
             <div class="min-w-0 flex-1">
@@ -2455,7 +2669,7 @@ function renderPlayoffs() {
   <div class="min-h-screen flex flex-col main-gradient">
     ${renderHeader(false)}
     <main class="flex-1 flex flex-col items-center px-4 py-6">
-      <div class="w-full max-w-3xl flex flex-col gap-3.5">
+      <div class="w-full max-w-3xl flex flex-col gap-3.5 playoffs-layout">
         <!-- ── Broadcast title band ───────────────────────────────────── -->
         <div class="broadcast-band">
           <p class="broadcast-band__eyebrow">NBA Playoffs</p>
@@ -2473,14 +2687,14 @@ function renderPlayoffs() {
             ${po.champion ? 'Continue to Championship 🏆' : 'Continue →'}
           </button>` : `
           <button data-action="sim-next-round" type="button" ${ts || po.currentRound >= 3 ? 'disabled' : ''}
-            class="btn-courtside card-shadow">
+            class="btn-courtside card-shadow dk-po-primary">
             ${ts ? 'Simulating...' : `${simLabel} →`}
           </button>
           <button data-action="sim-all-playoffs" type="button" ${ts || po.currentRound >= 3 ? 'disabled' : ''}
-            class="btn-courtside-outline btn-courtside-outline--playoffs card-shadow">
+            class="btn-courtside-outline btn-courtside-outline--playoffs card-shadow dk-po-secondary">
             Simulate Entire Playoffs →
           </button>`}
-          <button data-action="draft-new-roster" type="button" class="btn-neutral-outline card-shadow">
+          <button data-action="draft-new-roster" type="button" class="btn-neutral-outline card-shadow dk-po-tertiary">
             Draft New Roster
           </button>
         </div>
