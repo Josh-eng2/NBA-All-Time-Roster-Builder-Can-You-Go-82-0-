@@ -223,7 +223,18 @@
   <link rel="stylesheet" href="css/tailwind.css" />
   <!-- Apply saved theme before first paint to prevent flash -->
   <script>
-    try { if (localStorage.getItem('nba820_theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark'); } catch(e){}
+    try {
+      var savedTheme = localStorage.getItem('nba820_theme');
+      // The desktop redesign IS the dark "midnight broadcast" environment, so
+      // desktop opens in it by default. An explicit choice always wins (saved
+      // 'light' stays light), and mobile's default is untouched — it still
+      // opens light unless the player picked dark.
+      var deskDefaultDark = !savedTheme
+        && window.matchMedia && window.matchMedia('(min-width: 1024px)').matches;
+      if (savedTheme === 'dark' || deskDefaultDark) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    } catch(e){}
   </script>
 
   <!-- Custom CSS (animations, scrollbar, card classes) -->
