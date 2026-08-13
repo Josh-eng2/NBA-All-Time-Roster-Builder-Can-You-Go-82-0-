@@ -10,7 +10,11 @@
  *
  * Bump CACHE_VERSION when shipping asset changes so old caches are dropped.
  */
-const CACHE_VERSION = '820-v1';
+// Bumped for the desktop redesign: css/desktop.css is new, and styles.css +
+// js/ui/render.js changed. Static assets are served cache-first below, so
+// without this bump a returning visitor keeps the old render.js and sees the
+// old layout no matter how fresh index.html is.
+const CACHE_VERSION = '820-v2';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 
@@ -22,6 +26,7 @@ const PRECACHE_URLS = [
   './logo-badge.svg',
   './css/tailwind.css',
   './css/styles.css',
+  './css/desktop.css',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/apple-touch-icon.png',
