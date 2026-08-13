@@ -214,7 +214,7 @@
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;500;600;700;900&family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;500;600;700;800;900&family=Barlow+Condensed:wght@500;600;700;800&display=swap" rel="stylesheet" />
 
   <!-- Polyfill Node.js `process` global required by Firebase Analytics CDN build -->
   <script>window.process = window.process || { env: { NODE_ENV: 'production' } };</script>
@@ -228,6 +228,9 @@
 
   <!-- Custom CSS (animations, scrollbar, card classes) -->
   <link rel="stylesheet" href="css/styles.css" />
+  <!-- Desktop redesign. Loaded last so it layers over styles.css; every rule
+       inside is wrapped in @media (min-width:1024px), so mobile is untouched. -->
+  <link rel="stylesheet" href="css/desktop.css" />
 
   <!-- Confetti is lazy-loaded by js/ui/render.js (withConfetti) only when a
        celebration actually fires — it is not part of the page-load payload. -->
