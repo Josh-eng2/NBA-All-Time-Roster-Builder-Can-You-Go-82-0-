@@ -1486,35 +1486,13 @@
    ============================================================ */
 @media (min-width: 1024px) {
   /* The results screen keeps its single mobile DOM; desktop reflows it into
-     a hero band + main column + next-action rail purely with grid placement,
-     so no markup is duplicated and no block is hidden. */
+     a hero band + main column + next-action rail, so no markup is
+     duplicated and no block is hidden. The two-column composition itself
+     lives in the >=1151px block below — below that width the screen stays
+     the phone's single flex column, untouched. */
   .results-layout {
     max-width: 1120px !important;
-    display: grid;
-    grid-template-columns: minmax(0, 1.35fr) minmax(280px, 1fr);
-    grid-auto-flow: row dense;
-    align-items: start;
     gap: 16px !important;
-  }
-
-  /* Full-width hero across both columns. */
-  .results-layout > .courtside-hero { grid-column: 1 / -1; }
-
-  /* Main column */
-  .dk-res-tiles,
-  .dk-res-five,
-  .dk-res-save,
-  .dk-res-actions,
-  .results-layout > .results-block--hero { grid-column: 1; }
-
-  /* Next-action rail */
-  .dk-res-rail,
-  .dk-res-legends { grid-column: 2; }
-
-  /* Anything not explicitly placed (daily banners, submit cards) stays in
-     the main column rather than leaking into the rail. */
-  .results-layout > *:not(.courtside-hero):not(.dk-res-rail):not(.dk-res-legends) {
-    grid-column: 1;
   }
 
   /* Quick tiles read as a stat row at this width. */
@@ -1553,9 +1531,52 @@
   .dk-res-rail .courtside-cta--locked .courtside-cta__title { color: var(--dk-strong); font-size: 22px; }
   .dk-res-rail .courtside-cta--locked .courtside-cta__sub { color: var(--dk-dim); }
 
-  @media (max-width: 1150px) {
-    .results-layout { grid-template-columns: minmax(0, 1fr); }
-    .results-layout > * { grid-column: 1 !important; }
+  /* ── Two-column composition ──────────────────────────────
+     Only above 1150px; narrower desktops can't carry a comfortable rail,
+     and there they simply keep the phone's single flex column (wrappers
+     still `display: contents`, phone order values still in charge).
+     Scoping the whole composition up here — rather than declaring it at
+     1024 and unwinding it below 1151 — is what keeps that fallback exact,
+     since `order` has no "put it back" value to unwind to.
+
+     Three explicit slots: hero across the top, then one cell per column.
+     Each column is its own flex context, so the rail's blocks stack
+     tightly against each other instead of being spaced out by the main
+     column's row heights — row-sharing is what left a ragged gap beside
+     the tall Starting 5 card when the blocks were placed individually. */
+  @media (min-width: 1151px) {
+    .results-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(280px, 1fr);
+      align-items: start;
+    }
+
+    .results-layout > .courtside-hero { grid-column: 1 / -1; grid-row: 1; }
+
+    /* Main column — the read-out: what the season did. */
+    .results-col--main { grid-column: 1; grid-row: 2; }
+
+    /* Next-action rail — everything you might *do* next (enter the
+       playoffs, open the report, save the run, build another, share, view
+       legends), so the read-out stays uninterrupted and the rail no longer
+       runs out of content two thirds of the way down the screen. */
+    .results-col--rail { grid-column: 2; grid-row: 2; }
+
+    .results-col {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-width: 0;
+    }
+    /* The wrappers are the grid items now, so each column reads in document
+       order. The phone order values (css/styles.css) must be cleared or
+       they reshuffle the rail — and they are set per-class, so this reset
+       has to name the same classes to match their specificity rather than
+       relying on `*` and source order. */
+    .results-col > *,
+    .results-col > .results-block--hero,
+    .results-col > .results-block--playoffs,
+    .results-col > .results-block--save { order: 0; }
   }
 }
 
