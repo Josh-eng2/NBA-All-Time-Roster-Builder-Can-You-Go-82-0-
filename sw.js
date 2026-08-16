@@ -10,12 +10,23 @@
  *
  * Bump CACHE_VERSION when shipping asset changes so old caches are dropped.
  */
-// Bumped for the share/rematch work: js/logic/rematch.js, js/utils/referral.js
-// and js/utils/install.js are new, and events.js/render.js/shareCard.js
-// changed. Static assets are served cache-first below, so without this bump a
-// returning visitor keeps the old events.js — meaning shared rematch links
-// would open on a build that has no #/rematch route.
-const CACHE_VERSION = '820-v3';
+// The rule, which this file has now proved four times: any change to a file in
+// PRECACHE_URLS needs this version bumped in the same commit. Static assets are
+// served cache-first below, so without the bump a returning visitor keeps the
+// old copy indefinitely while network-first HTML hands them the new index —
+// a mix of old modules and new markup, which behaves worse than either alone.
+//
+//   v2  desktop redesign: css/desktop.css new, styles.css + render.js changed
+//   v3  responsive system: css/responsive.css + js/utils/viewport.js new
+//   v4  laptop-height draft tier: css/desktop.css changed again
+//   v5  share/rematch work: js/logic/rematch.js, js/utils/referral.js and
+//       js/utils/install.js are new, and events.js/render.js/shareCard.js
+//       changed — without it, a shared rematch link opens on a build whose
+//       events.js has no #/rematch route.
+//
+// v5 covers both sides of this merge: the responsive assets were already
+// precached at v4, and the share/rematch modules are added below.
+const CACHE_VERSION = '820-v5';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 
@@ -52,12 +63,12 @@ const PRECACHE_URLS = [
   './js/logic/dynastyDuel.js',
   './js/logic/rematch.js',
   './js/utils/storage.js',
+  './js/utils/viewport.js',
   './js/utils/firebase.js',
   './js/utils/crazygames.js',
   './js/utils/gamedistribution.js',
   './js/utils/referral.js',
   './js/utils/install.js',
-  './js/utils/viewport.js',
 ];
 
 self.addEventListener('install', event => {
