@@ -85,6 +85,7 @@ const HASH_ROUTE_MAP = {
   dynasty: 'mode-dynasty-duel',
   'gm-ai': 'mode-gm-ai',
   rematch: 'mode-rematch',
+  era: 'mode-era',
 };
 
 /**
@@ -122,6 +123,7 @@ function handleHashRoute() {
   const action = HASH_ROUTE_MAP[route.base];
   if (!action) return;
   if (action === 'mode-rematch') { startRematch(route.params.get('c')); return; }
+  if (action === 'mode-era')     { startEraRun(route.params.get('d')); return; }
   if ((action === 'mode-defense' || action === 'mode-fans' || action === 'mode-dynasty-duel' || action === 'mode-gm-ai')
       && S.phase === 'mode-select') {
     dispatch('open-more-modes');
@@ -151,6 +153,28 @@ function startRematch(code) {
   S.rematch       = decoded;   // preserved across the startGame() reset
   doStartGame('all');
   logAnalyticsEvent('rematch_started', { target_wins: decoded.wins, style: decoded.style });
+  render();
+}
+
+/**
+ * Starts a Classic run locked to one decade. This is what the generated era
+ * pages (eras/1990s.html and friends) link to: a reader who just scrolled the
+ * whole 1990s pool should land in a 1990s draft, not on the menu.
+ * @param {string|null} decade
+ */
+function startEraRun(decade) {
+  if (!DECADES.includes(decade)) { showToast('Unknown era — pick a mode to play'); return; }
+  S.mode = 'solo';
+  S.currentPlayer = 1;
+  S.p1 = null;
+  S.dailyChallenge = null;
+  S.dynastyOpponent = null;
+  S.rematch = null;
+  doStartGame(decade);
+  // doStartGame -> startGame() already set selectedEra from the argument; lock
+  // it so the header picker can't quietly undo the link's whole point.
+  S.eraLocked = true;
+  logAnalyticsEvent('era_link_started', { era: decade });
   render();
 }
 

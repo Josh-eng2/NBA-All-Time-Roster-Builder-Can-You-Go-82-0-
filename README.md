@@ -26,6 +26,7 @@ No sign-up, no download, no build step.
 - 📊 **Season simulator** — full 82-game simulation with playoffs
 - 🧪 **Team chemistry engine** — era, position, and playstyle fit all matter
 - 📅 **Daily Challenge** — one shared draft board and special rule per day, with streaks and a global leaderboard
+- ⚔️ **Rematch links** — share a finished run and your friend drafts your *exact* five boards, with your record as the target
 - 🏆 **Trophy room & leaderboard** — track your best runs (local, plus an optional global leaderboard)
 - 🌗 **Light / dark themes**, fully responsive on desktop, tablet, and mobile
 - ⚡ **100% client-side** — vanilla JS ES modules, no backend
@@ -64,6 +65,13 @@ global leaderboard/analytics and degrades gracefully if unavailable.
 
 Generated assets have regeneration scripts: `scripts/build_favicon.sh` (favicon.ico from
 `favicon.svg`) and `scripts/build_og_image.sh` (og-image.png from `og-image.svg`).
+
+Static content pages are generated from the player database, so they can never drift from
+what the game deals: `daily/<slug>.html` (one per Daily Challenge), `teams/<slug>.html` and
+`eras/<decade>.html` (franchise and decade rosters), and `teams.html` (the index of both).
+`node scripts/build_challenge_pages.mjs` rebuilds all of them and rewrites `sitemap.xml` —
+it is the single writer of the sitemap, and calls `scripts/build_team_pages.mjs` for the
+roster pages. A scheduled GitHub Action runs it daily.
 
 ## Keywords
 

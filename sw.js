@@ -10,11 +10,12 @@
  *
  * Bump CACHE_VERSION when shipping asset changes so old caches are dropped.
  */
-// Bumped for the desktop redesign: css/desktop.css is new, and styles.css +
-// js/ui/render.js changed. Static assets are served cache-first below, so
-// without this bump a returning visitor keeps the old render.js and sees the
-// old layout no matter how fresh index.html is.
-const CACHE_VERSION = '820-v2';
+// Bumped for the share/rematch work: js/logic/rematch.js, js/utils/referral.js
+// and js/utils/install.js are new, and events.js/render.js/shareCard.js
+// changed. Static assets are served cache-first below, so without this bump a
+// returning visitor keeps the old events.js — meaning shared rematch links
+// would open on a build that has no #/rematch route.
+const CACHE_VERSION = '820-v3';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 
@@ -27,6 +28,7 @@ const PRECACHE_URLS = [
   './css/tailwind.css',
   './css/styles.css',
   './css/desktop.css',
+  './css/responsive.css',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/apple-touch-icon.png',
@@ -48,10 +50,14 @@ const PRECACHE_URLS = [
   './js/logic/playoffs.js',
   './js/logic/aiDraft.js',
   './js/logic/dynastyDuel.js',
+  './js/logic/rematch.js',
   './js/utils/storage.js',
   './js/utils/firebase.js',
   './js/utils/crazygames.js',
   './js/utils/gamedistribution.js',
+  './js/utils/referral.js',
+  './js/utils/install.js',
+  './js/utils/viewport.js',
 ];
 
 self.addEventListener('install', event => {

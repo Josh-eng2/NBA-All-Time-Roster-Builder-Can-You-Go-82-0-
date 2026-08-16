@@ -22,6 +22,23 @@ build (config in `tailwind.config.js`). After adding/removing Tailwind classes
 in `index.html` or `js/**`, regenerate it with `bash scripts/build_tailwind.sh`
 (uses `npx`, no package.json) — same pattern as the inlined player DB.
 
+### Generated content pages
+`daily/`, `teams/`, `eras/`, `teams.html` and `sitemap.xml` are **generated** — do not hand-edit.
+Rebuild them with:
+
+```bash
+node scripts/build_challenge_pages.mjs   # also builds teams/ + eras/ and rewrites sitemap.xml
+```
+
+That script is the only writer of `sitemap.xml`; `scripts/build_team_pages.mjs` is imported by
+it (running the team script alone writes its pages but deliberately leaves the sitemap alone).
+Both only rewrite files whose content actually changed, so a no-op run produces no diff.
+
+### Service worker cache
+`sw.js` serves same-origin static assets **cache-first**. After changing any file in its
+`PRECACHE_URLS` list — or adding a new JS module — bump `CACHE_VERSION`, or returning players
+keep running the old build.
+
 ### Data regeneration (optional, not needed to run)
 The player database is committed pre-generated at `js/data/players.js` (inlined from `players.json`). Only regenerate it if you intentionally change player data:
 

@@ -22,7 +22,7 @@ export const REF_KEY = 'nba820_ref';
 
 /** Sources the link builders emit. Anything else is recorded as 'other' so a
  *  crafted or stale ?ref= can't fragment the analytics dimension. */
-const KNOWN = ['share', 'rematch', 'daily', 'story'];
+const KNOWN = ['share', 'rematch', 'daily', 'story', 'era'];
 
 function readStored() {
   try { return JSON.parse(localStorage.getItem(REF_KEY) || 'null'); } catch (_) { return null; }
