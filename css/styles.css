@@ -2194,21 +2194,35 @@ button.autopsy-strip:hover {
   flex-direction: column;
 }
 
-.results-layout > * {
+/* The .results-col wrappers exist only so the desktop composition can give
+   each column its own flow (see css/desktop.css). Here they are erased with
+   `display: contents`, which promotes the blocks inside back to direct flex
+   items of .results-layout — so the order values below still sort the whole
+   screen as one column. Every rule is therefore written twice: once for a
+   block that is a direct child, once for one inside a wrapper. */
+.results-col {
+  display: contents;
+}
+
+.results-layout > *,
+.results-col > * {
   order: 40;
 }
 
-.results-layout > .results-block--hero {
+.results-layout > .results-block--hero,
+.results-col > .results-block--hero {
   order: 10;
 }
 
 /* "Enter the Playoffs" is the point of this screen — it outranks the
    save-your-run card on phones too, where the card used to come first. */
-.results-layout > .results-block--playoffs {
+.results-layout > .results-block--playoffs,
+.results-col > .results-block--playoffs {
   order: 20;
 }
 
-.results-layout > .results-block--save {
+.results-layout > .results-block--save,
+.results-col > .results-block--save {
   order: 30;
 }
 

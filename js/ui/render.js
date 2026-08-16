@@ -2012,6 +2012,14 @@ function renderResults() {
           ${seasonStripHtml}
         </div>
 
+        <!-- The two .results-col wrappers are layout-only. They are
+             display:contents at phone and tablet widths, so the blocks
+             inside stay direct flex items of .results-layout and the
+             existing order-based phone sequence is untouched. Only the
+             desktop composition promotes them to real columns, which is
+             what lets each column flow independently instead of sharing
+             grid rows with the other. -->
+        <div class="results-col results-col--main">
         <!-- ── Quick tiles ────────────────────────────────────────────── -->
         <div class="results-block--hero quick-tiles dk-res-tiles">
           <div class="quick-tile">
@@ -2035,7 +2043,11 @@ function renderResults() {
         ${signalChips ? `<div class="results-block--hero flex items-center justify-center gap-2 flex-wrap">${signalChips}</div>` : ''}
 
         <div class="results-block--hero dk-res-five">${renderStartingFiveCard()}</div>
+        ${renderDailyResultBanner()}
+        ${renderDailySubmitCard()}
+        </div><!-- /.results-col--main -->
 
+        <div class="results-col results-col--rail">
         <!-- ── Playoff CTA + Team Report ──────────────────────────────── -->
         <div class="results-block--playoffs flex flex-col gap-3.5 dk-res-rail">
           ${madeBid ? `
@@ -2079,8 +2091,6 @@ function renderResults() {
         </div>
 
         <div class="results-block--save dk-res-save">${renderSaveRunCard()}</div>
-        ${renderDailyResultBanner()}
-        ${renderDailySubmitCard()}
 
         <!-- ── Action buttons ────────────────────────────────────────── -->
         <div class="grid grid-cols-2 gap-3 dk-res-actions">
@@ -2105,6 +2115,7 @@ function renderResults() {
             <span class="text-indigo-400 flex-shrink-0">›</span>
           </button>`;
         })() : ''}
+        </div><!-- /.results-col--rail -->
       </div>
     </main>
     ${renderFooter()}
