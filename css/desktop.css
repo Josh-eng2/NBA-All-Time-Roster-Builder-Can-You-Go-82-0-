@@ -1094,12 +1094,73 @@
     }
   }
 
+  /* ── Laptop tier ──────────────────────────────────────────
+     A 14" 1920x1080 laptop is the common case that lands here: Windows
+     recommends 150% scaling at that size, so the CSS viewport is 1280x720,
+     and Chrome's tab strip + omnibox take it to roughly 1280x610. At 125%
+     it is 1536x754; at 175%, 1097x522.
+
+     The page already fits at all of those — but the draft board was being
+     squeezed to ~174px against a 144px card, so barely one row of players
+     was visible, and at 1097x522 the card was taller than the board and its
+     "Draft" button fell below the scroll fold entirely.
+
+     The spinner is where the height comes from. Once a spin has landed, its
+     two big cells restate the team and era that the board header directly
+     underneath already says ("JAZZ · 1970S"), so it is the block that can
+     give up the most for the least. The cards then give up padding — never
+     the position, name, stats or button, which are what the pick is made
+     on. Above 760px tall nothing here applies and the desktop layout is
+     exactly as it was — 760 is chosen so the 150%-scaled fullscreen case
+     (1280x720) is included while a normal 900px+ window is not. */
+  @media (max-height: 760px) {
+    .draft-screen {
+      --dk-d-slot-cell: clamp(38px, 6.6vh, 62px);
+      --dk-d-slot-pad:  clamp(7px, 1.2vh, 12px);
+      --dk-d-slot-face: clamp(16px, 2.7vh, 22px);
+    }
+    .draft-workspace .draft-slot-machine__grid {
+      margin-bottom: clamp(4px, 0.8vh, 8px) !important;
+    }
+    .draft-workspace .draft-slot-machine__cell {
+      padding: clamp(4px, 0.8vh, 9px) 10px !important;
+    }
+    /* The "DRAFT BOARD — ROUND n" row keeps its Skip buttons; only its
+       margin goes. */
+    .draft-workspace .draft-slot-machine > .flex.items-center {
+      margin-bottom: 5px !important;
+    }
+
+    /* Cards: tighten the box, keep every piece of information in it. */
+    .draft-workspace .draft-card-body   { padding: 7px !important; }
+    .draft-workspace .draft-card__actions { padding: 0 7px 7px !important; }
+    .draft-workspace .draft-card__name  { margin-bottom: 3px !important; }
+    .draft-workspace .draft-card__head  { margin-bottom: 4px !important; }
+    .draft-workspace .draft-card-btn    { padding: 5px 0 !important; }
+  }
+
   /* Last resort before the layout would clip: the era/team spinner keeps
      only its values, and the stepper drops its phase labels. */
   @media (max-height: 660px) {
     .draft-screen .draft-stepper__name { display: none; }
     .draft-workspace .draft-slot-machine__cell .mt-2 { display: none !important; }
     .draft-workspace .draft-slot-machine > p.text-center { display: none !important; }
+  }
+
+  /* Very short (1080p at 175%, or a heavily chromed 150% window). The board
+     can only afford one row here, so the card must actually fit in one row
+     — otherwise its "Draft" button sits under the fold and the primary
+     action of the screen is invisible. The stats line is the last thing to
+     compact; the button never is. */
+  @media (max-height: 560px) {
+    .draft-screen {
+      --dk-d-slot-cell: clamp(32px, 6vh, 44px);
+      --dk-d-roster-h:  clamp(52px, 9.5vh, 72px);
+    }
+    .draft-workspace .draft-card__stats { gap: 0 5px !important; line-height: 1.25; }
+    .draft-workspace .draft-card-body   { padding: 6px !important; }
+    .draft-workspace .draft-card__actions { padding: 0 6px 6px !important; }
+    .draft-workspace .draft-board-wrap__head { margin-bottom: 4px !important; }
   }
   .draft-workspace .draft-simulate-card [data-action="simulate"] {
     height: var(--dk-d-spin-h, 56px);
