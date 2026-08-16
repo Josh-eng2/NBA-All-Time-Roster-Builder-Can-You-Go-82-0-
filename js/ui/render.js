@@ -2401,12 +2401,12 @@ function renderOptimizedLineupReportCard() {
  *  (e.g. if a targeted DOM update ever touches #app while this is open). */
 function renderTeamReportModal() {
   return `
-  <div id="team-report-backdrop" onclick="if(event.target===this)window.closeTeamReportModal()"
+  <div id="team-report-backdrop" class="app-modal-backdrop" onclick="if(event.target===this)window.closeTeamReportModal()"
     style="position:fixed;inset:0;background:var(--overlay);z-index:9998;display:flex;
            align-items:center;justify-content:center;padding:16px">
-    <div role="dialog" aria-labelledby="team-report-title" aria-modal="true"
+    <div role="dialog" aria-labelledby="team-report-title" aria-modal="true" class="app-modal-panel"
       style="background:var(--card);border:1.5px solid var(--border);border-radius:20px;width:100%;
-             max-width:640px;max-height:90vh;overflow-y:auto;color:var(--fg);
+             max-width:640px;color:var(--fg);
              font-family:'Fira Sans',sans-serif;animation:scaleIn 0.2s ease-out;
              box-shadow:0 20px 60px var(--shadow)">
       <div style="position:sticky;top:0;z-index:1;background:var(--card);display:flex;

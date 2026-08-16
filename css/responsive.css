@@ -1,0 +1,608 @@
+/* ============================================================
+   css/responsive.css — the game-wide responsive system
+   ------------------------------------------------------------
+   Loaded last, after tailwind.css / styles.css / desktop.css, so it can
+   set the shell contract without every screen having to opt in.
+
+   WHY THIS FILE EXISTS
+   Every screen in the game is rendered by js/ui/render.js with the same
+   three-part skeleton:
+
+       <div class="… min-h-screen main-gradient">   ← screen root
+         <header> or renderHeader()                 ← fixed chrome
+         <main>                                     ← content
+         <footer> (optional)                        ← fixed chrome
+       </div>
+
+   That shared skeleton is the correct level to solve responsiveness at.
+   Rather than 14 per-screen fixes, this file turns `.main-gradient` into a
+   viewport-locked flex shell exactly once, and every screen — current or
+   future — inherits it. The rules below are ordered:
+
+     1. Viewport truth      (--app-h / --app-w / safe areas)
+     2. Fluid scale         (space + type ramps, one set of tokens)
+     3. Document lock       (html/body/#app never scroll)
+     4. Screen shell        (the .main-gradient contract)
+     5. Layout modes        (width AND height driven)
+     6. Shared components   (cards, tables, controls, modals, overlays)
+     7. Per-screen fitting  (only where a screen's content needs it)
+
+   THE ONE RULE TO KEEP
+   The page never scrolls; a *panel* scrolls. Any new screen gets this for
+   free as long as its content lives inside <main>. If you find yourself
+   adding `overflow: hidden` to hide something that is being clipped, the
+   fix is upstream: something above it is not allowed to shrink (it needs
+   `min-height: 0`), or it should be inside the scrolling panel.
+   ============================================================ */
+
+/* ============================================================
+   1 · VIEWPORT TRUTH
+   ============================================================ */
+:root {
+  /* Height/width of the box the user can actually see.
+     Declaration order is the fallback chain — later wins where supported:
+       px  … ancient browsers
+       vh  … everything
+       dvh … modern, follows the mobile URL bar
+     js/utils/viewport.js then overrides --app-h/--app-w inline with the
+     live visualViewport measurement, which is the only value that also
+     accounts for the on-screen keyboard and pinch-zoom. */
+  --app-h: 100vh;
+  --app-w: 100vw;
+
+  /* Safe areas — 0 everywhere that isn't a notched/rounded device. Read
+     through variables so every consumer stays readable. */
+  --safe-t: env(safe-area-inset-top, 0px);
+  --safe-r: env(safe-area-inset-right, 0px);
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-l: env(safe-area-inset-left, 0px);
+}
+
+@supports (height: 100dvh) {
+  :root {
+    --app-h: 100dvh;
+    --app-w: 100dvw;
+  }
+}
+
+/* ============================================================
+   2 · FLUID SCALE
+   ------------------------------------------------------------
+   One ramp, used everywhere, so intermediate sizes interpolate instead of
+   jumping. Each clamp is `min` / preferred / `max`:
+     - the min is the smallest value that is still legible/tappable at
+       320x568, and it is what a genuinely tiny screen gets;
+     - the max is the current desktop value, so wide screens are unchanged.
+   Space ramps track BOTH axes (`vmin`) because a short landscape phone is
+   as constrained as a narrow portrait one.
+   ============================================================ */
+:root {
+  /* Spacing ramp */
+  --sp-2:  clamp(2px,  0.4vmin,  4px);
+  --sp-4:  clamp(3px,  0.8vmin,  6px);
+  --sp-6:  clamp(4px,  1.1vmin,  8px);
+  --sp-8:  clamp(5px,  1.5vmin, 10px);
+  --sp-12: clamp(7px,  2.2vmin, 14px);
+  --sp-16: clamp(9px,  2.8vmin, 18px);
+  --sp-24: clamp(12px, 4vmin,   26px);
+
+  /* Gutter between the screen edge and content. Grows with width, and
+     always clears the safe area on notched devices. */
+  --gutter: clamp(10px, 2.5vw, 24px);
+  --gutter-l: calc(var(--gutter) + var(--safe-l));
+  --gutter-r: calc(var(--gutter) + var(--safe-r));
+
+  /* Vertical rhythm inside a screen's content column. */
+  --stack-gap: clamp(6px, 1.4vh, 16px);
+
+  /* Type ramp — only applied to shared primitives (see §6). Screen-specific
+     type keeps its existing sizes so the visual identity is untouched. */
+  --fs-xs:  clamp(9px,  1.6vmin, 11px);
+  --fs-sm:  clamp(11px, 2vmin,   13px);
+  --fs-md:  clamp(12px, 2.3vmin, 15px);
+  --fs-lg:  clamp(15px, 3vmin,   19px);
+
+  /* Minimum comfortable hit target. Never scaled below this. */
+  --tap: 34px;
+}
+
+/* ============================================================
+   3 · DOCUMENT LOCK
+   ------------------------------------------------------------
+   Scoped to the game page only. css/styles.css already locks html/body for
+   `<html data-page="game">`; this pins #app to the same measured height and
+   — the actual change — stops #app being the page scroller. Screens now
+   scroll a panel inside themselves instead of scrolling the whole app.
+   Standalone content pages (daily.html, privacy.html) carry no data-page
+   attribute and are deliberately untouched.
+   ============================================================ */
+html[data-page="game"],
+html[data-page="game"] body {
+  height: var(--app-h);
+  max-height: var(--app-h);
+  overflow: hidden;
+  /* Kill the iOS rubber-band on the document itself. */
+  overscroll-behavior: none;
+}
+
+html[data-page="game"] #app {
+  height: var(--app-h);
+  max-height: var(--app-h);
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+
+/* The crawlable #about guide sits below the game. It must stay in the DOM
+   for search engines but must never add page scroll to the locked shell. */
+html[data-page="game"] .seo-content--crawlable {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: normal;
+  border: 0;
+}
+
+/* ============================================================
+   4 · SCREEN SHELL — the contract every screen inherits
+   ------------------------------------------------------------
+   `.main-gradient` is on all 14 screen roots (mode select, more modes,
+   legends, drafting, 1v1 drafting, results, playoffs, championship,
+   eliminated, trophy room, series preview/sim/result). Turning it into the
+   shell here is what makes the whole game fit one viewport at once.
+   ============================================================ */
+html[data-page="game"] #app > .main-gradient {
+  /* Beats Tailwind's `min-h-screen` (min-height: 100vh), which would
+     otherwise let a tall screen push past the fold. */
+  min-height: 0;
+  height: 100%;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  /* Notched devices: keep chrome out from under the status bar / home bar. */
+  padding-top: var(--safe-t);
+  padding-bottom: var(--safe-b);
+}
+
+/* Fixed chrome — never shrinks, never scrolls. */
+html[data-page="game"] #app > .main-gradient > header,
+html[data-page="game"] #app > .main-gradient > .app-header-wrap,
+html[data-page="game"] #app > .main-gradient > footer {
+  flex: 0 0 auto;
+}
+
+/* The one scrolling panel per screen. `min-height: 0` is load-bearing: without
+   it a flex child refuses to shrink below its content and the overflow escapes
+   the shell instead of scrolling inside it. */
+html[data-page="game"] #app > .main-gradient > main {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
+  padding-left: var(--gutter-l) !important;
+  padding-right: var(--gutter-r) !important;
+  padding-top: var(--sp-8) !important;
+  padding-bottom: var(--sp-16) !important;
+}
+
+/* Screens that centre their content (championship, eliminated) use
+   `justify-center`. Plain `center` cuts off the *top* of content taller than
+   the box, with no way to scroll to it — `safe` centres only while it fits
+   and falls back to start alignment when it doesn't. */
+html[data-page="game"] #app > .main-gradient > main.justify-center {
+  justify-content: safe center;
+}
+
+/* The content column inside <main>. Never let a long word or a wide table
+   force the shell wider than the viewport. */
+html[data-page="game"] #app > .main-gradient > main > * {
+  min-width: 0;
+  max-width: min(100%, var(--content-max, 42rem));
+}
+
+/* Content column width per layout mode — one variable, set in §5. */
+:root { --content-max: 42rem; }
+
+/* Fluid stack rhythm for the content column, replacing the fixed Tailwind
+   `gap-*` on the shared skeleton only. */
+html[data-page="game"] #app > .main-gradient > main > .flex.flex-col {
+  gap: var(--stack-gap);
+}
+
+/* ============================================================
+   5 · LAYOUT MODES
+   ------------------------------------------------------------
+   Eight deliberate modes, expressed as the two things that actually drive
+   layout: available width and available height. They share one token set,
+   so moving between them interpolates rather than snapping between
+   unrelated designs. Structural breakpoints appear only where content has
+   to reorganise.
+   ============================================================ */
+
+/* — Extra-small / short mobile (320x568 and up) —
+   Everything decorative yields before anything functional does. */
+@media (max-width: 420px) {
+  :root {
+    --content-max: 100%;
+    --stack-gap: clamp(5px, 1.1vh, 10px);
+  }
+}
+
+/* — Mobile portrait — */
+@media (min-width: 421px) and (max-width: 639px) {
+  :root { --content-max: 100%; }
+}
+
+/* — Tablet portrait — */
+@media (min-width: 640px) and (max-width: 1023px) {
+  :root { --content-max: 44rem; }
+}
+
+/* — Tablet landscape / small laptop — */
+@media (min-width: 1024px) and (max-width: 1365px) {
+  :root { --content-max: 60rem; }
+}
+
+/* — Standard desktop — */
+@media (min-width: 1366px) and (max-width: 1919px) {
+  :root { --content-max: 72rem; }
+}
+
+/* — Large desktop — */
+@media (min-width: 1920px) {
+  :root { --content-max: 84rem; }
+}
+
+/* — Short viewports (laptops at 768px tall, mobile landscape, a windowed
+     desktop). Height is the scarce axis here, so the vertical ramps
+     compress while type and hit targets hold. — */
+@media (max-height: 780px) {
+  :root {
+    --stack-gap: clamp(5px, 1vh, 11px);
+    --sp-16: clamp(7px, 2vmin, 13px);
+    --sp-24: clamp(9px, 2.6vmin, 16px);
+  }
+}
+
+@media (max-height: 620px) {
+  :root {
+    --stack-gap: clamp(4px, 0.8vh, 8px);
+    --sp-12: clamp(5px, 1.6vmin, 9px);
+    --sp-16: clamp(6px, 1.6vmin, 10px);
+    --sp-24: clamp(7px, 2vmin, 12px);
+  }
+}
+
+/* — Mobile landscape: wide but very short. The header is the biggest fixed
+     cost on screen, so it is the first thing to compress. — */
+@media (max-height: 500px) and (orientation: landscape) {
+  html[data-page="game"] #app > .main-gradient > main {
+    padding-top: var(--sp-4) !important;
+    padding-bottom: var(--sp-6) !important;
+  }
+}
+
+/* ============================================================
+   6 · SHARED COMPONENTS
+   ============================================================ */
+
+/* ── Headers ──────────────────────────────────────────────
+   Both headers (in-run `.app-header`, menu `.mode-header`) are `sticky` for
+   the old scrolling page. Inside the shell they are ordinary flex chrome, so
+   sticky is redundant — but harmless, and left alone so nothing shifts. What
+   they do need is a fluid height and safe-area-aware side padding. */
+html[data-page="game"] .app-header__inner,
+html[data-page="game"] .mode-header__inner {
+  height: clamp(42px, 7.5vh, 56px);
+  padding-left: var(--gutter-l);
+  padding-right: var(--gutter-r);
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+  html[data-page="game"] .app-header__inner,
+  html[data-page="game"] .mode-header__inner {
+    height: clamp(36px, 9vh, 44px);
+  }
+}
+
+/* The menu logo is a fixed 52px inline style; let it follow the header. */
+html[data-page="game"] .mode-header__logo {
+  height: clamp(30px, 6.4vh, 52px) !important;
+  width: auto;
+  max-width: 100%;
+}
+
+/* The in-run header's action strip already scrolls horizontally below 640px
+   (css/styles.css) so no control is ever unreachable. Below ~480px, though,
+   the strip is wider than the space by more than a pill, and a bisected pill
+   sitting against the wordmark reads as broken rather than scrollable.
+
+   The coach pill is the one item that can give ground: it is the widest,
+   it already has `text-overflow: ellipsis`, and the same coach is named in
+   full on the draft screen's own chip. Letting it shrink usually removes
+   the overflow entirely at 320px instead of hiding a control. */
+@media (max-width: 480px) {
+  html[data-page="game"] .app-header__actions > .header-pill--muted {
+    flex-shrink: 1;
+    min-width: 3.5rem;
+  }
+}
+
+/* If the strip still overflows (long coach + era names), fade its leading
+   edge so the cut is legible as "there is more this way" rather than as a
+   clipped element. Purely an affordance — nothing is hidden, and the strip
+   scrolls exactly as before. */
+@media (max-width: 639px) {
+  html[data-page="game"] .app-header__actions {
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 18px);
+    mask-image: linear-gradient(to right, transparent 0, #000 18px);
+  }
+}
+
+/* ── Footer ───────────────────────────────────────────────
+   6px legal text. It must not consume height it doesn't need, and it must
+   clear the home indicator. */
+html[data-page="game"] #app > .main-gradient > footer {
+  padding-left: var(--gutter-l);
+  padding-right: var(--gutter-r);
+}
+
+/* ── Tables and lists ─────────────────────────────────────
+   A table that cannot fit its columns scrolls inside its own panel rather
+   than widening the page. */
+html[data-page="game"] table {
+  width: 100%;
+  max-width: 100%;
+}
+
+html[data-page="game"] .app-scroll-x {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── Controls ─────────────────────────────────────────────
+   Buttons stay tappable no matter how short the screen gets. */
+html[data-page="game"] button,
+html[data-page="game"] [role="button"] {
+  min-height: var(--tap);
+}
+
+/* Small icon pills and inline chips opt out — they are secondary controls
+   sized to their text, and forcing 34px on them would break the header. */
+html[data-page="game"] .header-pill--icon,
+html[data-page="game"] .theme-toggle,
+html[data-page="game"] .draft-card-btn,
+html[data-page="game"] .quick-tile,
+html[data-page="game"] button.daily-community-copy,
+html[data-page="game"] .mode-header__actions button {
+  min-height: 0;
+}
+
+/* ── Readability floor ────────────────────────────────────
+   Two pieces of type in the game render below 8px, where text stops being
+   readable for most people: the footer's legal line + privacy link (6px,
+   set inline in renderFooter) and the "GRADE" caption inside the results
+   grade badge (7px). Neither is caused by the fluid ramps — they are that
+   size at every viewport — but "keep text readable" is a requirement of
+   this work, so the floor is enforced here rather than left to each
+   screen. Both stay deliberately recessive; this raises them just to the
+   readable threshold, it does not restyle them. */
+html[data-page="game"] footer p,
+html[data-page="game"] footer a {
+  font-size: 9px !important;
+  line-height: 1.25;
+}
+
+html[data-page="game"] .grade-badge__label {
+  font-size: 8px;
+}
+
+/* Inputs must never trigger iOS's zoom-on-focus, which resizes the visual
+   viewport and fights the shell. 16px is the threshold. */
+html[data-page="game"] input,
+html[data-page="game"] select,
+html[data-page="game"] textarea {
+  font-size: max(16px, var(--fs-sm));
+  max-width: 100%;
+}
+
+/* ── Modals ───────────────────────────────────────────────
+   Six modals (leaderboard, global board + team detail, daily board, daily
+   stats, team report) are built as inline-styled strings in
+   js/utils/storage.js and js/ui/render.js. They all carry these two classes
+   so their sizing lives here instead of being duplicated six times.
+
+   The panel is capped against the *measured* viewport, so it stays inside
+   the screen when the mobile URL bar is showing and when the keyboard is
+   open — `90vh` alone overflows in both cases. */
+html[data-page="game"] .app-modal-backdrop,
+.app-modal-backdrop {
+  padding: calc(var(--sp-12) + var(--safe-t))
+           calc(var(--sp-12) + var(--safe-r))
+           calc(var(--sp-12) + var(--safe-b))
+           calc(var(--sp-12) + var(--safe-l)) !important;
+  overflow: hidden;
+}
+
+.app-modal-panel {
+  max-height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  min-width: 0;
+}
+
+/* ── Anchored overlays (era picker, coach picker) ─────────
+   Dropdowns are `position: fixed`, so they escape the shell's overflow — but
+   they can still run off the bottom on a short screen. Cap them and let the
+   list scroll. */
+html[data-page="game"] .era-picker-anchor {
+  max-height: calc(var(--app-h) - 4.5rem - var(--safe-t) - var(--safe-b));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* ── Images / media ───────────────────────────────────────
+   Nothing in the game is a bitmap that must hold a ratio, but any image
+   added later inherits sane behaviour instead of blowing out a column. */
+html[data-page="game"] img,
+html[data-page="game"] svg {
+  max-width: 100%;
+}
+
+/* ============================================================
+   7 · PER-SCREEN FITTING
+   ------------------------------------------------------------
+   The shell above already guarantees "no page scroll, chrome always
+   visible". These rules go one step further on the screens whose content
+   would otherwise need scrolling at common sizes, by compressing spacing
+   (never content) until it fits.
+
+   Two screens are deliberately absent: the draft screen and the results
+   screen already own bespoke one-viewport systems (css/styles.css for
+   <=639px, css/desktop.css for >=1024px). §7 only fills the tablet gap
+   between them.
+   ============================================================ */
+
+/* ── Height-driven chrome shedding, at every width ────────
+   The cold-open welcome banner is one-time onboarding worth ~5rem. Both the
+   phone layout (<=639px, css/styles.css) and the desktop workspace
+   (>=1024px at <=900px tall, css/desktop.css) already drop it when height is
+   scarce — but neither covers 640–1023px, so a landscape tablet or a short
+   window spent a quarter of its viewport on it.
+
+   Height is the thing that actually decides this, not width, so the rule
+   belongs here and applies everywhere. A tall tablet (768x1024) keeps the
+   banner; a short one (844x390) does not. */
+@media (max-height: 900px) {
+  html[data-page="game"] .draft-cold-open { display: none !important; }
+}
+
+/* ── Drafting, tablet (640–1023px) ────────────────────────
+   Below 640 the mobile one-screen layout owns this; from 1024 the desktop
+   workspace does. In between, the screen was free to grow past the fold.
+   Same approach as both neighbours: fixed chrome, board scrolls. */
+@media (min-width: 640px) and (max-width: 1023px) {
+  html[data-page="game"] .draft-screen__main {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  html[data-page="game"] .draft-screen__inner {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    gap: var(--stack-gap) !important;
+  }
+  html[data-page="game"] .draft-board-wrap {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  html[data-page="game"] .draft-board-scroll {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 8rem;
+    max-height: none;
+  }
+  html[data-page="game"] .draft-slot-machine,
+  html[data-page="game"] .draft-roster,
+  html[data-page="game"] .draft-stat-gauges,
+  html[data-page="game"] .draft-round-bar { flex: 0 0 auto; }
+
+  /* The team/era spinner is the biggest fixed block on the screen. Both
+     neighbouring layouts scale it with height (phone via fixed compaction,
+     desktop via vh clamps); this band was still using the uncompacted
+     default, which on a landscape tablet pushed the player cards under the
+     fold. Same vh-clamp approach, so 640→1023 interpolates between them
+     instead of stepping. */
+  html[data-page="game"] .draft-slot-machine {
+    padding: clamp(8px, 1.8vh, 16px) !important;
+  }
+  html[data-page="game"] .draft-slot-machine__grid {
+    margin-bottom: clamp(6px, 1.5vh, 16px) !important;
+  }
+  html[data-page="game"] .draft-slot-machine__cell {
+    min-height: clamp(46px, 13vh, 88px) !important;
+    padding: clamp(6px, 1.6vh, 16px) 12px !important;
+  }
+  html[data-page="game"] .draft-slot-machine__cell .text-xl {
+    font-size: clamp(17px, 3.6vh, 24px) !important;
+  }
+  html[data-page="game"] .draft-slot-machine [data-action="spin"],
+  html[data-page="game"] .draft-slot-machine button[disabled] {
+    padding-top: clamp(5px, 1.2vh, 12px) !important;
+    padding-bottom: clamp(5px, 1.2vh, 12px) !important;
+  }
+  html[data-page="game"] .draft-roster-slot {
+    min-height: clamp(52px, 12vh, 96px);
+  }
+
+  /* Short landscape. The round bar's secondary line is the one genuinely
+     redundant item here — it repeats the phase already named in the bar
+     itself — so it is the only thing dropped. Everything else compacts.
+
+     Note for anyone tempted to go further: pairing the round bar and coach
+     chip into a two-column grid row saves ~40px, but turning
+     `.draft-screen__inner` into a grid breaks the flex contract the board
+     column depends on (`.draft-board-wrap { flex: 1 1 auto }`) and the
+     gauges end up overlapping the cards. At 390px tall the screen cannot
+     show spinner + cards + roster at once regardless; the board scrolls
+     inside its own panel, which is the right answer for a viewport this
+     short. */
+  @media (max-height: 480px) {
+    html[data-page="game"] .draft-round-bar__meta { display: none; }
+  }
+}
+
+/* ── Playoff bracket ──────────────────────────────────────
+   The bracket is the one genuinely wide element in the game: four columns
+   with a 34rem floor, so below ~560px it cannot fit and must not try. It
+   already scrolls inside `.playoff-bracket-wrap` (css/styles.css); this
+   caps that wrapper to the column so the overflow stays a panel scroll and
+   never becomes a document scroll, and stops the horizontal drag from
+   chaining out to the shell. */
+html[data-page="game"] .playoff-bracket-wrap {
+  max-width: 100%;
+  overscroll-behavior-x: contain;
+}
+
+/* ── Grids that must not force a minimum width ────────────
+   Any grid child that contains long text needs `min-width: 0` or the grid
+   track refuses to shrink and pushes the page wide. Applied to the shared
+   grid containers rather than hunting individual cards. */
+html[data-page="game"] .grid > *,
+html[data-page="game"] .flex > * {
+  min-width: 0;
+}
+
+/* That blanket rule is right for layout but wrong for the handful of
+   elements whose whole job is to not shrink (icon columns, fixed badges).
+   Tailwind marks those with `flex-shrink-0`; honour it. */
+html[data-page="game"] .flex > .flex-shrink-0,
+html[data-page="game"] .grid > .flex-shrink-0 {
+  min-width: auto;
+}
+
+/* ── Reduced motion ───────────────────────────────────────
+   Resizing re-lays-out constantly; users who asked for less motion should
+   not get transition churn from it. */
+@media (prefers-reduced-motion: reduce) {
+  html[data-page="game"] * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

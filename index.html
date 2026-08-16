@@ -242,6 +242,11 @@
   <!-- Desktop redesign. Loaded last so it layers over styles.css; every rule
        inside is wrapped in @media (min-width:1024px), so mobile is untouched. -->
   <link rel="stylesheet" href="css/desktop.css" />
+  <!-- Game-wide responsive system. Loaded last: it owns the shell contract
+       (viewport-locked screens, one scrolling panel, fluid space/type ramps)
+       that every screen inherits, and must be able to layer over both
+       styles.css and desktop.css. See the file header for the model. -->
+  <link rel="stylesheet" href="css/responsive.css" />
 
   <!-- Confetti is lazy-loaded by js/ui/render.js (withConfetti) only when a
        celebration actually fires — it is not part of the page-load payload. -->
