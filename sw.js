@@ -19,7 +19,11 @@
 //
 // (The previous bump, for the desktop redesign, is the same lesson: any change
 // to a file in PRECACHE_URLS needs this version bumped in the same commit.)
-const CACHE_VERSION = '820-v3';
+//
+// v4: css/desktop.css changed again for the laptop-height draft tier. Without
+// this bump a returning player keeps the old desktop.css and never sees it —
+// which is the third time this file has proved the rule above.
+const CACHE_VERSION = '820-v4';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 
