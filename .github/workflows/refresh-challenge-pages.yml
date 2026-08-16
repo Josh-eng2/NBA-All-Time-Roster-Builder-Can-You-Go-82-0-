@@ -8,6 +8,9 @@
 # The generator only rewrites files whose content actually changed, and
 # sitemap lastmod tracks real content changes rather than the run date, so a
 # quiet day produces no commit at all.
+#
+# --indexnow on the generator step pushes any changed URLs straight to Bing/
+# Yandex via the IndexNow API, instead of waiting on their own crawl.
 name: Refresh Daily Challenge pages
 
 on:
@@ -44,7 +47,7 @@ jobs:
           node-version: '22'
 
       - name: Regenerate challenge pages, daily index and sitemap
-        run: node scripts/build_challenge_pages.mjs
+        run: node scripts/build_challenge_pages.mjs --indexnow
 
       - name: Commit and push if anything changed
         run: |

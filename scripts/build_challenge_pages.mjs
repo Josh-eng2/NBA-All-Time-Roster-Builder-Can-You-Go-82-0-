@@ -16,6 +16,15 @@
  *
  * Run:  node scripts/build_challenge_pages.mjs
  * Re-run after editing the CHALLENGES catalog or regenerating players.json.
+ *
+ * --indexnow: after writing, POST any changed URLs to the IndexNow API
+ * (https://api.indexnow.org/indexnow), which fans out to Bing and Yandex.
+ * They then fetch the URL instead of waiting for their own crawl schedule —
+ * useful since a changed Daily Challenge page can otherwise sit undiscovered
+ * for days. Off by default so local runs never make network calls; the
+ * scheduled workflow passes the flag. Ownership is proven by
+ * ${INDEXNOW_KEY}.txt at the site root (see below) — the key itself isn't
+ * secret, it only needs to match that file's name and contents.
  */
 
 import { writeFileSync, readFileSync, mkdirSync } from 'node:fs';
@@ -26,6 +35,11 @@ import { dirname, join } from 'node:path';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const ORIGIN = 'https://canyougo820.com';
 const OUT_DIR = join(ROOT, 'daily');
+
+// Key file lives at the repo root (<key>.txt) so it serves from the site
+// root once deployed — that's how IndexNow verifies we own the host.
+const INDEXNOW_KEY = '8bb440ec6d685113df0538f94aed335d';
+const NOTIFY_INDEXNOW = process.argv.includes('--indexnow');
 
 // js/data/players.js removes the loading overlay on load — stub the one DOM
 // call so the module runs headlessly. Must be set before the import.
@@ -403,3 +417,39 @@ for (const w of written) {
 }
 console.log(`\nsitemap.xml: ${sitemapChanged ? 'updated' : 'unchanged'} (${entries.length} URLs)`);
 if (!changedPages && !dailyChanged && !sitemapChanged) console.log('Nothing changed — no commit needed.');
+
+// ── IndexNow ─────────────────────────────────────────────────────────────────
+// Push notification for the pages we actually rewrote this run. Google
+// ignores IndexNow (it wants the sitemap, already handled above), but Bing
+// and Yandex use it to fetch a changed URL right away instead of on their
+// own crawl schedule.
+
+async function notifyIndexNow(urls) {
+  if (!urls.length) { console.log('IndexNow: nothing changed, skipping.'); return; }
+  const body = {
+    host: new URL(ORIGIN).host,
+    key: INDEXNOW_KEY,
+    keyLocation: `${ORIGIN}/${INDEXNOW_KEY}.txt`,
+    urlList: urls,
+  };
+  try {
+    const res = await fetch('https://api.indexnow.org/indexnow', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json; charset=utf-8' },
+      body: JSON.stringify(body),
+    });
+    // 200 = accepted, 202 = accepted (key not yet verified everywhere) — both fine.
+    if (res.ok) {
+      console.log(`IndexNow: notified ${urls.length} URL(s) (HTTP ${res.status})`);
+    } else {
+      console.warn(`IndexNow: submission returned HTTP ${res.status} — not fatal, sitemap.xml is still authoritative`);
+    }
+  } catch (err) {
+    console.warn(`IndexNow: submission failed (${err.message}) — not fatal, sitemap.xml is still authoritative`);
+  }
+}
+
+if (NOTIFY_INDEXNOW) {
+  const changedUrls = entries.filter(e => e.changed).map(e => e.loc);
+  await notifyIndexNow(changedUrls);
+}
