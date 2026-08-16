@@ -23,10 +23,11 @@ import { markReturning, getCollectedLegends, getDailyStatus } from '../utils/sto
 import { cgGameplayStart, cgGameplayStop, cgGetItem }     from '../utils/crazygames.js';
 import { gdRewardedAvailable }                            from '../utils/gamedistribution.js';
 import { getDailyChallenge, checkPickLegal, checkRosterConstraint } from '../logic/challenge.js';
-import { isDualDraft, seriesLabels, MORE_MODES, fansFirstScore } from '../logic/modes.js';
+import { isDualDraft, isBlindDraft, seriesLabels, MORE_MODES, fansFirstScore } from '../logic/modes.js';
 import { seasonTier, seasonGrade } from '../logic/seasonTier.js';
 import { fetchDailyCommunityStats, isFirebaseConfigured } from '../utils/firebase.js';
-import { bindEvents }                                     from '../ui/events.js'; // circular — safe (called inside functions only)
+import { bindEvents, buildRematchCode }                   from '../ui/events.js'; // circular — safe (called inside functions only)
+import { installPromptKind }                              from '../utils/install.js';
 
 // ── Mount point ───────────────────────────────────────────────────────────────
 export const $app = document.getElementById('app');
@@ -861,6 +862,14 @@ function dailyBoardDeadEnd() {
 
 function renderModeDraftBanner() {
   if (S.mode === 'daily') return renderDailyDraftBanner();
+  if (S.mode === 'rematch' && S.rematch) {
+    const { wins, losses, style } = S.rematch;
+    return `<div class="rounded-xl border px-3 py-2 text-xs font-semibold mode-banner mode-banner--rematch"
+      style="border-color:color-mix(in srgb, #22c55e 38%, var(--border));background:color-mix(in srgb, #22c55e 13%, var(--card));color:var(--fg)">
+      ⚔️ Rematch — these are the exact five boards your challenger drafted from${style === 'blind' ? ' (Ball IQ: names only)' : ''}.
+      Beat <strong>${wins}–${losses}</strong>. No skips: the board is the board.
+    </div>`;
+  }
   if (S.mode === 'defense') {
     return `<div class="rounded-xl border px-3 py-2 text-xs font-semibold mode-banner mode-banner--defense"
       style="border-color:color-mix(in srgb, #8b5cf6 35%, var(--border));background:color-mix(in srgb, #8b5cf6 14%, var(--card));color:var(--fg)">
@@ -929,7 +938,7 @@ function renderDraftStepper(full) {
 /** Chemistry synergies rail. Reads the same cached calculateChemistry()
  *  result the gauge uses — no second calculation, no second source of truth. */
 function renderSynergyPanel() {
-  if (S.mode === 'blind') {
+  if (isBlindDraft()) {
     return `
     <div class="dk-synergy">
       <div class="dk-synergy__head"><span class="dk-section-label">Chemistry Synergies</span></div>
@@ -1293,7 +1302,7 @@ function renderStatGauges({ withOverall = false, trio = false, showSub = false }
   });
 
   let chemGauge;
-  if (S.mode === 'blind') {
+  if (isBlindDraft()) {
     // Ball IQ: don't leak natural-position fit through the gauge while the
     // mode is testing memory — it unlocks with the rest of the report.
     chemGauge = renderStatGauge({
@@ -1409,7 +1418,7 @@ function renderSlotMachine() {
         🚫 No legal picks here — spin a new board
       </button>
       ` : `
-      <p class="text-center text-xs text-muted-fg py-1">${S.mode === 'blind' ? 'Names only — select a player, then tap a roster slot to place them' : 'Draft places into an open natural slot — or tap a roster slot to choose'}</p>
+      <p class="text-center text-xs text-muted-fg py-1">${isBlindDraft() ? 'Names only — select a player, then tap a roster slot to place them' : 'Draft places into an open natural slot — or tap a roster slot to choose'}</p>
       `}
     `}
   </div>`;
@@ -1455,14 +1464,14 @@ function renderDraftCard(p, index) {
   const cardBorder      = unavailable ? 'var(--border)' : isSelected ? 'var(--primary)' : 'var(--border)';
   const cardBg          = unavailable ? 'var(--card3)' : isSelected ? 'var(--card2)' : 'var(--card)';
   const cardOpacity     = unavailable ? 'opacity:0.5;' : '';
-  const pickLabel       = S.mode === 'blind'
+  const pickLabel       = isBlindDraft()
     ? (isSelected ? '✓ Selected — Tap a Roster Slot' : 'Draft → Tap Slot')
     : isMobileViewport()
     ? (isSelected ? '✓ Selected' : 'Draft → Slot')
     : (isSelected ? '✓ Selected — Tap a Roster Slot' : 'Draft → Tap Slot');
 
   // HoopIQ — name only, no stats or position hints
-  if (S.mode === 'blind') {
+  if (isBlindDraft()) {
     return `
   <div class="rounded-xl border-2 flex flex-col overflow-hidden transition-all card-shadow draft-card draft-card--blind"
     style="border-color:${cardBorder};background:${cardBg};${cardOpacity}">
@@ -1545,13 +1554,13 @@ function renderRosterSlot(pos, canPlace) {
     const borderColor = fitBorders[fitType];
     const borderTop   = `3px solid ${fitTops[fitType]}`;
     const labelColor  = fitColors[fitType];
-    const ppgLine = S.mode === 'blind'
+    const ppgLine = isBlindDraft()
       ? ''
       : `<span class="text-[10px] text-muted-fg leading-none">${fmtPG(p.ppg)}pt</span>`;
 
     // Desktop roster cards lead with OVR (the reference's treatment) instead
     // of PPG. Emitted only at desktop widths so the mobile card is untouched.
-    const ovrLine = isDesktopLayout() && S.mode !== 'blind' && p.overall != null
+    const ovrLine = isDesktopLayout() && !isBlindDraft() && p.overall != null
       ? `<span class="cond draft-roster-slot__ovr" style="color:${ovrColor(p.overall)}">${Math.round(p.overall)}</span>
          <span class="draft-roster-slot__ovr-label">OVR</span>`
       : ppgLine;
@@ -1812,6 +1821,89 @@ function renderDailyResultBanner() {
   </div>`;
 }
 
+/**
+ * Secondary share row. "Share Result" above it stays the one-tap default
+ * (image + caption through the native sheet); this row carries the two shares
+ * that need their own affordance:
+ *
+ *   • the bare challenge link, for dropping into a group chat without an
+ *     image — only offered when the run actually produced a replayable board
+ *   • a 9:16 card, because the 1080×1200 feed card is the wrong shape for
+ *     Stories/Reels/TikTok and gets letterboxed or cropped
+ */
+function renderChallengeShareCard() {
+  const code = buildRematchCode();
+  return `
+  <div class="rounded-2xl border p-3 card-shadow dk-res-challenge" style="border-color:var(--border);background:var(--card)">
+    ${code ? `
+    <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg mb-1.5">Challenge a friend</p>
+    <p class="text-xs text-muted-fg mb-2.5 leading-snug">Sends your exact five boards. They draft the same teams and eras — your ${S.result.wins}–${S.result.losses} is the target.</p>` : ''}
+    <div class="grid ${code ? 'grid-cols-2' : 'grid-cols-1'} gap-2">
+      ${code ? `<button data-action="copy-challenge-link" type="button" class="py-2 rounded-xl font-bold text-xs text-white cursor-pointer" style="background:#f97316">🔗 Copy challenge link</button>` : ''}
+      <button data-action="share-story" type="button" class="py-2 rounded-xl font-bold text-xs border cursor-pointer" style="border-color:var(--border);background:var(--card2);color:var(--fg)">📱 Story card (9:16)</button>
+    </div>
+  </div>`;
+}
+
+// ── Rematch — head-to-head verdict banner ─────────────────────────────────────
+function renderRematchResultBanner() {
+  const rm = S.rematch;
+  const rr = S.rematchResult;
+  if (S.mode !== 'rematch' || !rm || !rr) return '';
+  const won = rr.beat;
+  const border = won ? 'color-mix(in srgb, #22c55e 45%, var(--border))' : 'color-mix(in srgb, #64748b 40%, var(--border))';
+  const bg     = won ? 'color-mix(in srgb, #22c55e 14%, var(--card))'   : 'color-mix(in srgb, #64748b 10%, var(--card))';
+  const color  = won ? (isDark() ? '#4ade80' : '#15803d') : 'var(--muted-fg)';
+  // margin is (yours − theirs), so a tie lands here as 0 — the challenger keeps
+  // the record until it is actually beaten.
+  const detail = won
+    ? `You won by ${rr.margin} game${rr.margin === 1 ? '' : 's'} on the same five boards.`
+    : rr.margin === 0
+      ? 'Dead level — a tie leaves the record standing.'
+      : `Short by ${Math.abs(rr.margin)} game${Math.abs(rr.margin) === 1 ? '' : 's'} on the same five boards.`;
+  return `
+  <div class="rounded-2xl border-2 p-4 card-shadow text-center" style="background:${bg};border-color:${border}">
+    <p class="text-xs font-black uppercase tracking-widest mb-1" style="color:${color}">${won ? '⚔️ Challenge beaten!' : '⚔️ Challenge not beaten'}</p>
+    <p class="text-sm font-bold" style="color:var(--fg)">You ${S.result.wins}–${S.result.losses} &nbsp;vs&nbsp; their ${rm.wins}–${rm.losses}</p>
+    <p class="text-xs mt-1" style="color:${color}">${detail}</p>
+    <p class="text-[10px] mt-1.5" style="color:var(--muted-fg)">Share your run to pass the same board on — the link carries your record as the new target.</p>
+  </div>`;
+}
+
+/**
+ * "Add to home screen" ask. Shown on the results screen only after a Daily
+ * Challenge, and only once the player has an actual streak going — that's the
+ * first moment there is something to come back for, and the only honest reason
+ * to want the icon on their home screen. install.js decides whether the
+ * platform can be asked at all and remembers a refusal.
+ */
+function renderInstallPromptCard() {
+  if (S.mode !== 'daily' || !S.dailyResult) return '';
+  if ((S.dailyResult.streak ?? 0) < 1) return '';
+  const kind = installPromptKind();
+  if (!kind) return '';
+  const streak = S.dailyResult.streak;
+  const body = kind === 'ios'
+    ? 'Tap <strong>Share</strong> → <strong>Add to Home Screen</strong> to keep it one tap away.'
+    : 'Add it to your home screen and the next one is one tap away.';
+  return `
+  <div class="rounded-2xl border p-4 card-shadow" style="border-color:#fdba74;background:${isDark() ? 'rgba(249,115,22,0.1)' : '#fff7ed'}">
+    <div class="flex items-center gap-3">
+      <span class="text-2xl flex-shrink-0">🔥</span>
+      <div class="min-w-0 flex-1">
+        <p class="font-black text-sm" style="color:${isDark() ? '#fdba74' : '#9a3412'}">${streak}-day streak — don't break it</p>
+        <p class="text-xs mt-0.5" style="color:${isDark() ? '#fed7aa' : '#c2410c'}">New challenge every midnight UTC. ${body}</p>
+      </div>
+    </div>
+    <div class="grid grid-cols-2 gap-2 mt-3">
+      ${kind === 'prompt'
+        ? `<button data-action="install-app" type="button" class="py-2 rounded-xl font-bold text-xs text-white cursor-pointer" style="background:#f97316">Add to home screen</button>`
+        : `<span class="py-2 rounded-xl font-bold text-xs text-center" style="background:var(--card2);color:var(--muted-fg)">Share → Add to Home Screen</span>`}
+      <button data-action="dismiss-install" type="button" class="py-2 rounded-xl font-bold text-xs border cursor-pointer" style="border-color:var(--border);background:var(--card);color:var(--muted-fg)">Not now</button>
+    </div>
+  </div>`;
+}
+
 function renderDailySubmitCard() {
   if (S.mode !== 'daily') return '';
   const r = S.result;
@@ -1918,6 +2010,7 @@ function renderResults() {
   // The mode-select screen names each run type; the hero eyebrow echoes it so
   // a shared/screenshotted result says which ruleset produced the record.
   const modeName = S.mode === 'daily'   ? 'Daily Challenge'
+                 : S.mode === 'rematch' ? (isBlindDraft() ? 'Rematch · Ball IQ' : 'Rematch')
                  : S.mode === 'blind'   ? 'Ball IQ'
                  : S.mode === 'defense' ? 'Defense Only'
                  : S.mode === 'fans'    ? 'Fans First'
@@ -2044,6 +2137,8 @@ function renderResults() {
 
         <div class="results-block--hero dk-res-five">${renderStartingFiveCard()}</div>
         ${renderDailyResultBanner()}
+        ${renderRematchResultBanner()}
+        ${renderInstallPromptCard()}
         ${renderDailySubmitCard()}
         </div><!-- /.results-col--main -->
 
@@ -2099,6 +2194,7 @@ function renderResults() {
             : `<button data-action="restart" type="button" class="btn-neutral-outline card-shadow">Build Another</button>`}
           <button data-action="share" type="button" class="btn-courtside-outline card-shadow">Share Result</button>
         </div>
+        ${renderChallengeShareCard()}
 
         ${r.newLegends > 0 ? (() => {
           const { total } = getLegendCatalog();

@@ -321,8 +321,9 @@ export function startGame(era = 'all') {
   const dailyChallenge = S.dailyChallenge ?? null; // daily mode context survives the reset
   const dailyDate      = S.dailyDate      ?? null;
   const dynastyOpponent = S.dynastyOpponent ?? null;
-  // Skips: daily/dynasty-duel = 0; classic-like = 1
-  const skipBudget = (mode === 'daily' || mode === 'dynasty-duel') ? 0 : 1;
+  const rematch         = S.rematch         ?? null; // shared-board context, same as daily's
+  // Skips: daily/dynasty-duel/rematch = 0; classic-like = 1
+  const skipBudget = (mode === 'daily' || mode === 'dynasty-duel' || mode === 'rematch') ? 0 : 1;
   S = {
     phase:            'drafting',
     coach,
@@ -362,10 +363,20 @@ export function startGame(era = 'all') {
     // Full season game log — feeds the results screen's season strip/pips
     seasonGames:     [],
 
+    // The (team, decade) the wheel landed on for each round, indexed by round
+    // so a skip overwrites its round rather than appending. This is what a
+    // shared rematch link encodes — see logic/rematch.js.
+    boardLog:        [],
+
     // Daily Challenge context (null outside daily runs)
     dailyChallenge,
     dailyDate,
     dailyResult: null,       // { pass, pending, detail, streak } — set at sim time
+
+    // Rematch context (null outside runs opened from a shared board link):
+    // { code, board, style, wins, losses }
+    rematch,
+    rematchResult: null,     // { beat, margin } — set at sim time
 
     // Dynasty Duel / More Modes extras
     dynastyOpponent,
