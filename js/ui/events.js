@@ -11,7 +11,7 @@
  */
 
 import {
-  S, startGame, startGame1v1, POSITIONS,
+  S, startGame, startGame1v1, POSITIONS, TOTAL_ROUNDS,
   TEAMS, DECADES, COACHES, CPU_TEAMS, pick, pickCosmetic, buildBracket, getPlayerSeed, SNAKE_ORDER,
   getUtcDateString, seedDailyRng, clearDailyRng,
 } from '../logic/state.js';
@@ -36,7 +36,12 @@ import { buildShareCardBlob, buildShareCaption } from './shareCard.js';
 import { getDailyChallenge, checkPickLegal, evaluateObjective, dailyScore } from '../logic/challenge.js';
 import { pickDynastyForPlay, dynastyDuelScore } from '../logic/dynastyDuel.js';
 import { chooseAiPick, bestAiSlot } from '../logic/aiDraft.js';
-import { isDualDraft, getModeConfig, fansFirstScore, fansFirstPassed } from '../logic/modes.js';
+import { isDualDraft, isBlindDraft, getModeConfig, fansFirstScore, fansFirstPassed } from '../logic/modes.js';
+import {
+  encodeBoardCode, decodeBoardCode, isRematchableMode,
+  buildRematchUrl, buildDailyUrl, buildPlainUrl,
+} from '../logic/rematch.js';
+import { showInstallPrompt, dismissInstallPrompt } from '../utils/install.js';
 import { seasonTier } from '../logic/seasonTier.js';
 import {
   render, $app, fmtDecadeShort, showToast,
@@ -79,30 +84,98 @@ const HASH_ROUTE_MAP = {
   fans: 'mode-fans',
   dynasty: 'mode-dynasty-duel',
   'gm-ai': 'mode-gm-ai',
+  rematch: 'mode-rematch',
+  era: 'mode-era',
 };
+
+/**
+ * Splits the hash into its route and query half — `#/rematch?c=a01f…` carries
+ * a payload, every other route is bare. Returns null for an absent or empty
+ * hash so callers can treat "no deep link" as one case.
+ * @returns {{ base: string, params: URLSearchParams }|null}
+ */
+function parseHashRoute() {
+  const raw = (location.hash || '').replace(/^#\/?/, '');
+  if (!raw || raw === '/') return null;
+  const q    = raw.indexOf('?');
+  const base = (q >= 0 ? raw.slice(0, q) : raw).toLowerCase();
+  if (!base) return null;
+  let params;
+  try { params = new URLSearchParams(q >= 0 ? raw.slice(q + 1) : ''); }
+  catch (_) { params = new URLSearchParams(); }
+  return { base, params };
+}
 
 /** True when the current URL hash matches a known deep-link route (e.g.
  *  #/daily) — used by main.js to decide whether a first-time visitor with a
  *  shared link should skip the cold-open draft and land on that route
  *  instead of having the hash silently dropped. */
 export function hasKnownHashRoute() {
-  const h = (location.hash || '').replace(/^#\/?/, '').toLowerCase();
-  return !!h && h !== '/' && !!HASH_ROUTE_MAP[h];
+  const route = parseHashRoute();
+  return !!route && !!HASH_ROUTE_MAP[route.base];
 }
 
 /** Deep-link hashes from the mode-select screen (e.g. #/daily, #/trophies). */
 function handleHashRoute() {
   if (S.phase !== 'mode-select' && S.phase !== 'more-modes') return;
-  const h = (location.hash || '').replace(/^#\/?/, '').toLowerCase();
-  if (!h || h === '/') return;
-  const action = HASH_ROUTE_MAP[h];
-  if (action) {
-    if ((action === 'mode-defense' || action === 'mode-fans' || action === 'mode-dynasty-duel' || action === 'mode-gm-ai')
-        && S.phase === 'mode-select') {
-      dispatch('open-more-modes');
-    }
-    dispatch(action);
+  const route = parseHashRoute();
+  if (!route) return;
+  const action = HASH_ROUTE_MAP[route.base];
+  if (!action) return;
+  if (action === 'mode-rematch') { startRematch(route.params.get('c')); return; }
+  if (action === 'mode-era')     { startEraRun(route.params.get('d')); return; }
+  if ((action === 'mode-defense' || action === 'mode-fans' || action === 'mode-dynasty-duel' || action === 'mode-gm-ai')
+      && S.phase === 'mode-select') {
+    dispatch('open-more-modes');
   }
+  dispatch(action);
+}
+
+/**
+ * Opens a run on a friend's exact board. A code that fails to decode (stale
+ * link, truncated paste, a TEAMS reorder that invalidated the wire format)
+ * drops the player on the menu with an explanation rather than starting a
+ * "rematch" against a board that isn't the one they were sent.
+ * @param {string|null} code
+ */
+function startRematch(code) {
+  const decoded = decodeBoardCode(code);
+  if (!decoded) {
+    logAnalyticsEvent('rematch_link_invalid', {});
+    showToast("That challenge link isn't valid — pick a mode to play");
+    return;
+  }
+  S.mode          = 'rematch';
+  S.currentPlayer = 1;
+  S.p1            = null;
+  S.dailyChallenge = null;
+  S.dynastyOpponent = null;
+  S.rematch       = decoded;   // preserved across the startGame() reset
+  doStartGame('all');
+  logAnalyticsEvent('rematch_started', { target_wins: decoded.wins, style: decoded.style });
+  render();
+}
+
+/**
+ * Starts a Classic run locked to one decade. This is what the generated era
+ * pages (eras/1990s.html and friends) link to: a reader who just scrolled the
+ * whole 1990s pool should land in a 1990s draft, not on the menu.
+ * @param {string|null} decade
+ */
+function startEraRun(decade) {
+  if (!DECADES.includes(decade)) { showToast('Unknown era — pick a mode to play'); return; }
+  S.mode = 'solo';
+  S.currentPlayer = 1;
+  S.p1 = null;
+  S.dailyChallenge = null;
+  S.dynastyOpponent = null;
+  S.rematch = null;
+  doStartGame(decade);
+  // doStartGame -> startGame() already set selectedEra from the argument; lock
+  // it so the header picker can't quietly undo the link's whole point.
+  S.eraLocked = true;
+  logAnalyticsEvent('era_link_started', { era: decade });
+  render();
 }
 
 function handleClick(e) {
@@ -305,7 +378,11 @@ function dispatch(action) {
   }
 
   // ── UI helpers ─────────────────────────────────────────────────────────────
-  if (action === 'share')                  { doShare();                          return; }
+  if (action === 'share')                  { doShare('feed');                    return; }
+  if (action === 'share-story')            { doShare('story');                   return; }
+  if (action === 'copy-challenge-link')    { doCopyChallengeLink();              return; }
+  if (action === 'install-app')            { doInstallApp();                     return; }
+  if (action === 'dismiss-install')        { dismissInstallPrompt('not_now'); render(); return; }
   if (action === 'open-leaderboard')       { showLeaderboardModal();             return; }
   if (action === 'open-global-leaderboard'){ showGlobalLeaderboardModal();       return; }
   if (action === 'submit-global')          { doSubmitGlobal();                   return; }
@@ -322,6 +399,7 @@ function dispatch(action) {
 function startFreshDraft() {
   if (S.mode === 'daily') return;
   S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; S.dailyChallenge = null; S.dynastyOpponent = null;
+  S.rematch = null; // a fresh draft is never still chasing a shared board
   render();
   gdShowAd();
 }
@@ -492,7 +570,12 @@ export function doSpin() {
       const rigStar = usePity && !rigGoat && !isDualDraft() && S.round <= 2;
       const pity    = usePity && !rigGoat && !rigStar && !isDualDraft() && (S.drySpins ?? 0) >= 1;
       if (pity) logAnalyticsEvent('pity_spin_triggered', { round: S.round + 1 });
-      const spin = rigGoat ? spinResultAtLeast('goat')
+      // A rematch replays the sender's board, so the wheel is not consulted at
+      // all — the rigging and pity rules above only decide where a free spin
+      // lands, and this round's landing is already known.
+      const forced = forcedSpin();
+      const spin = forced ? forced
+        : rigGoat ? spinResultAtLeast('goat')
         : (rigStar || pity) ? spinResultAtLeast('star')
         : spinResult();
       if (!spin) {
@@ -501,6 +584,7 @@ export function doSpin() {
         render();
         return;
       }
+      recordBoardSpin(spin);
       S.currentSpin      = spin;
       S.spinState        = 'done';
       S.availablePlayers = getAvailablePlayers(spin.team, spin.decade);
@@ -513,13 +597,42 @@ export function doSpin() {
 }
 
 /**
+ * The (team, decade) this round must land on when replaying a shared board,
+ * or null to spin normally.
+ *
+ * Returns null if the slot has no players left for THIS drafter, which the
+ * sender may not have hit: `draftedPlayerNames` blocks a player's cross-era
+ * twin, so a slot whose only entry is that twin can be empty for one player
+ * and stocked for the other. Spinning normally is a far better failure than
+ * handing them a board with nothing on it.
+ */
+function forcedSpin() {
+  if (S.mode !== 'rematch') return null;
+  const spin = S.rematch?.board?.[S.round];
+  if (!spin) return null;
+  return getAvailablePlayers(spin.team, spin.decade).length ? spin : null;
+}
+
+/**
+ * Records where the wheel landed for the current round, so the finished run
+ * can be shared as a replayable board (logic/rematch.js). Indexed by round
+ * rather than appended: a skip re-spins the same round and must overwrite it,
+ * not add a sixth entry.
+ */
+function recordBoardSpin(spin) {
+  if (isDualDraft() || !spin) return;
+  if (!Array.isArray(S.boardLog)) S.boardLog = [];
+  S.boardLog[S.round] = { team: spin.team, decade: spin.decade };
+}
+
+/**
  * Builds the pick board from the current availablePlayers.
  * Classic/1v1: sorted best-first by popularity.
  * HoopIQ (blind): Fisher-Yates shuffled — card order must not leak quality.
  */
 function buildDraftBoard() {
   const pool = [...S.availablePlayers];
-  if (S.mode === 'blind') {
+  if (isBlindDraft()) {
     for (let i = pool.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [pool[i], pool[j]] = [pool[j], pool[i]];
@@ -577,6 +690,7 @@ function animateSkipReveal(spin, tumbleTeam, tumbleDecade) {
 
     if (ticks >= total) {
       clearInterval(interval);
+      recordBoardSpin(spin);
       S.currentSpin      = spin;
       S.spinState        = 'done';
       S.availablePlayers = getAvailablePlayers(spin.team, spin.decade);
@@ -957,6 +1071,17 @@ function doSimulate() {
     if (ch) logAnalyticsEvent('daily_completed', { challenge: ch.id, passed: verdict.pass, wins: S.result.wins });
   }
 
+  // Rematch verdict — the whole point of the shared board is this comparison.
+  // A tie counts as falling short: the challenger keeps the record until it is
+  // actually beaten.
+  if (S.mode === 'rematch' && S.rematch) {
+    const margin = S.result.wins - S.rematch.wins;
+    S.rematchResult = { beat: margin > 0, margin };
+    logAnalyticsEvent('rematch_completed', {
+      beat: margin > 0, margin, target_wins: S.rematch.wins, wins: S.result.wins,
+    });
+  }
+
   // Simulation is fully resolved above — land directly on the results screen,
   // no paced game-by-game reveal in between.
   if ((S._prevBestWins || 0) > 0 && S.result.wins > S._prevBestWins) {
@@ -1174,6 +1299,22 @@ function formatDailyShareLabel() {
   return `Daily Challenge — ${label}${chBit}${vBit}`;
 }
 
+/**
+ * Board code for the finished run, or null when this run can't be replayed —
+ * an unshareable mode, or a board log that didn't capture all five rounds
+ * (a run restored from an older save, or one that hit the exhausted-pool
+ * bail-out in doSpin).
+ */
+export function buildRematchCode() {
+  if (!S.result || !isRematchableMode(S.mode)) return null;
+  const board = (S.boardLog || []).slice(0, TOTAL_ROUNDS);
+  if (board.length !== TOTAL_ROUNDS || board.some(b => !b?.team || !b?.decade)) return null;
+  // A rematch of a rematch keeps the original draft style, so a chain of
+  // challenges on one board all play by the same rules.
+  const style = S.mode === 'rematch' ? (S.rematch?.style || 'solo') : S.mode;
+  return encodeBoardCode({ board, wins: S.result.wins, style });
+}
+
 function buildResultCardData() {
   const r = S.result;
   if (!r) return null;
@@ -1188,6 +1329,14 @@ function buildResultCardData() {
     return { pos, name: p.name, team: p.team || '', decade: p.decade ? fmtDecadeShort(p.decade) : '' };
   }).filter(Boolean);
 
+  // Link priority: a replayable board beats everything, because it's the only
+  // link that makes "can you beat it?" answerable. The Daily needs no code —
+  // every player already draws that day's board — so it deep-links to #/daily.
+  const rematchCode = buildRematchCode();
+  const shareUrl = S.mode === 'daily' ? buildDailyUrl()
+    : rematchCode                     ? buildRematchUrl(rematchCode)
+    : buildPlainUrl();
+
   return {
     wins: r.wins, losses: r.losses, winPct: r.winPct,
     chemScore: r.chemScore, longestStreak: r.longestStreak,
@@ -1195,30 +1344,63 @@ function buildResultCardData() {
     isChampion: !!S.playoffs?.champion,
     starters,
     dailyLabel: S.mode === 'daily' ? formatDailyShareLabel() : null,
+    rematchCode,
+    shareUrl,
+    // Set when this run was itself a rematch — the caption leads with the
+    // head-to-head rather than the bare record.
+    beatTarget: S.mode === 'rematch' && S.rematch
+      ? { targetWins: S.rematch.wins, beat: !!S.rematchResult?.beat }
+      : null,
   };
 }
 
-function doShare() {
+function doShare(variant = 'feed') {
   const data = buildResultCardData();
   if (!data) return;
-  shareResultCard(data);
+  shareResultCard(data, variant);
 }
 
-async function shareResultCard(data) {
+/**
+ * Shares the result card, degrading through native share → download+clipboard
+ * → text-only. Every branch reports to analytics: without it there's no way to
+ * tell whether shares are happening at all, let alone whether the links convert.
+ *
+ * A resolved navigator.share() is treated as completed. That is the strongest
+ * signal the API gives — it does not report which target the user chose, or
+ * whether they ultimately sent the message — so `share_completed` means "the
+ * sheet closed without cancelling", not "a friend received this".
+ */
+async function shareResultCard(data, variant = 'feed') {
   const caption = buildShareCaption(data);
+  const base = { mode: S.mode ?? 'solo', variant, has_code: !!data.rematchCode };
+  logAnalyticsEvent('share_attempted', base);
+
   let blob = null;
-  try { blob = await buildShareCardBlob(data); } catch (e) { /* canvas unsupported — degrade to text-only share below */ }
+  try { blob = await buildShareCardBlob(data, variant); }
+  catch (e) { logAnalyticsEvent('share_card_failed', base); /* canvas unsupported — text-only below */ }
 
   if (blob) {
-    const file = new File([blob], 'can-you-go-82-0.png', { type: 'image/png' });
+    const name = variant === 'story' ? 'can-you-go-82-0-story.png' : 'can-you-go-82-0.png';
+    const file = new File([blob], name, { type: 'image/png' });
     if (navigator.canShare?.({ files: [file] })) {
-      try { await navigator.share({ title: '82-0', text: caption, files: [file] }); return; }
-      catch (e) { if (e?.name === 'AbortError') return; /* user cancelled — otherwise fall through to download */ }
+      try {
+        await navigator.share({ title: '82-0', text: caption, files: [file] });
+        logAnalyticsEvent('share_completed', { ...base, method: 'native_files' });
+        return;
+      } catch (e) {
+        if (e?.name === 'AbortError') {
+          logAnalyticsEvent('share_dismissed', { ...base, method: 'native_files' });
+          return;
+        }
+        logAnalyticsEvent('share_failed', { ...base, method: 'native_files' });
+        // fall through to download
+      }
     }
-    downloadBlob(blob, 'can-you-go-82-0.png');
+    downloadBlob(blob, name);
+    logAnalyticsEvent('share_completed', { ...base, method: 'download' });
     if (navigator.clipboard) {
       navigator.clipboard.writeText(caption)
-        .then(()  => showToast('🖼️ Card downloaded + caption copied!'))
+        .then(()  => showToast('🖼️ Card downloaded + link copied!'))
         .catch(() => showToast('🖼️ Card downloaded!'));
     } else {
       showToast('🖼️ Card downloaded!');
@@ -1227,14 +1409,46 @@ async function shareResultCard(data) {
   }
 
   if (navigator.share) {
-    navigator.share({ title: '82-0', text: caption }).catch(() => {});
+    navigator.share({ title: '82-0', text: caption })
+      .then(() => logAnalyticsEvent('share_completed', { ...base, method: 'native_text' }))
+      .catch(e => logAnalyticsEvent(
+        e?.name === 'AbortError' ? 'share_dismissed' : 'share_failed',
+        { ...base, method: 'native_text' },
+      ));
   } else if (navigator.clipboard) {
     navigator.clipboard.writeText(caption)
-      .then(()  => showToast('Copied to clipboard! 🏀'))
-      .catch(() => showToast('Failed to copy to clipboard'));
+      .then(()  => { logAnalyticsEvent('share_completed', { ...base, method: 'clipboard' }); showToast('Copied to clipboard! 🏀'); })
+      .catch(() => { logAnalyticsEvent('share_failed', { ...base, method: 'clipboard' }); showToast('Failed to copy to clipboard'); });
   } else {
+    logAnalyticsEvent('share_failed', { ...base, method: 'none' });
     showToast('Failed to copy to clipboard');
   }
+}
+
+/** Replays the captured install dialog. Either outcome retires the card, so
+ *  the results screen re-renders once the choice is made. */
+async function doInstallApp() {
+  const outcome = await showInstallPrompt();
+  if (outcome === 'unavailable') showToast('Install unavailable on this browser');
+  else if (outcome === 'accepted') showToast('🏀 Added — see you tomorrow!');
+  render();
+}
+
+/** Copies just the rematch link — the low-friction path for someone who wants
+ *  to drop a challenge into a group chat without an image attached. */
+function doCopyChallengeLink() {
+  const data = buildResultCardData();
+  if (!data?.rematchCode) return;
+  const base = { mode: S.mode ?? 'solo', variant: 'link', has_code: true };
+  logAnalyticsEvent('share_attempted', base);
+  if (!navigator.clipboard) {
+    logAnalyticsEvent('share_failed', { ...base, method: 'clipboard' });
+    showToast('Clipboard unavailable on this browser');
+    return;
+  }
+  navigator.clipboard.writeText(data.shareUrl)
+    .then(()  => { logAnalyticsEvent('share_completed', { ...base, method: 'clipboard' }); showToast('🔗 Challenge link copied — same board, your record to beat!', 3200); })
+    .catch(() => { logAnalyticsEvent('share_failed', { ...base, method: 'clipboard' }); showToast('Failed to copy link'); });
 }
 
 function downloadBlob(blob, filename) {

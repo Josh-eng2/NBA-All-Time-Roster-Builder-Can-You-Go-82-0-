@@ -2,6 +2,11 @@
  * scripts/build_challenge_pages.mjs — generates one static page per Daily
  * Challenge into daily/<slug>.html, plus rewrites sitemap.xml.
  *
+ * It also drives scripts/build_team_pages.mjs (franchise + era roster pages)
+ * and merges those URLs into the sitemap it writes. One writer for sitemap.xml
+ * means the two generators can't clobber each other's entries; run this script
+ * to publish either set.
+ *
  * Why per-challenge and not per-day: the catalog holds 16 challenges on a
  * daily rotation, so a given challenge recurs roughly every two to three
  * weeks. A page per calendar day would therefore be a near-duplicate of the
@@ -27,28 +32,18 @@
  * secret, it only needs to match that file's name and contents.
  */
 
-import { writeFileSync, readFileSync, mkdirSync } from 'node:fs';
-import { execFileSync } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+import { readFileSync, mkdirSync } from 'node:fs';
+import { join } from 'node:path';
+import {
+  ROOT, ORIGIN, TODAY, esc, slugify, writeIfChanged, lastmodFor,
+  notifyIndexNow, loadPlayerDb,
+} from './lib/seo-utils.mjs';
+import { buildTeamPages } from './build_team_pages.mjs';
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const ORIGIN = 'https://canyougo820.com';
 const OUT_DIR = join(ROOT, 'daily');
-
-// Key file lives at the repo root (<key>.txt) so it serves from the site
-// root once deployed — that's how IndexNow verifies we own the host.
-const INDEXNOW_KEY = '8bb440ec6d685113df0538f94aed335d';
 const NOTIFY_INDEXNOW = process.argv.includes('--indexnow');
 
-// js/data/players.js removes the loading overlay on load — stub the one DOM
-// call so the module runs headlessly. Must be set before the import.
-globalThis.document = { getElementById: () => null };
-
-const playersMod = await import('../js/data/players.js');
-playersMod.loadDatabase();
-const DB = playersMod.DB;
-if (!DB) throw new Error('player DB failed to load');
+const DB = await loadPlayerDb();
 
 const { CHALLENGES, getDailyChallenge, getLockedPlayer } =
   await import('../js/logic/challenge.js');
@@ -56,18 +51,8 @@ const { CHALLENGES, getDailyChallenge, getLockedPlayer } =
 // First day the Daily Challenge existed (first commit of js/logic/challenge.js).
 // Dates before this are not real history and are never generated.
 const LAUNCH = '2026-07-14';
-const TODAY = new Date().toISOString().slice(0, 10);
 
 // ── helpers ──────────────────────────────────────────────────────────────────
-
-const esc = s => String(s)
-  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-  .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-
-const slugify = s => String(s).toLowerCase()
-  .replace(/['’]/g, '')
-  .replace(/[^a-z0-9]+/g, '-')
-  .replace(/^-+|-+$/g, '');
 
 const fmtDate = ds => new Date(ds + 'T00:00:00Z')
   .toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
@@ -83,47 +68,6 @@ function datesSinceLaunch() {
 
 const teamOf = key => key.split('_')[0];
 const decadeOf = key => key.split('_')[1];
-
-/** Writes only when content actually differs. Returns true if it wrote. */
-function writeIfChanged(path, content) {
-  try {
-    if (readFileSync(path, 'utf8') === content) return false;
-  } catch (_) { /* file doesn't exist yet */ }
-  writeFileSync(path, content, 'utf8');
-  return true;
-}
-
-/** Last commit date for a path, 'YYYY-MM-DD', or null outside a git checkout. */
-function gitDate(relPath) {
-  try {
-    const out = execFileSync('git', ['log', '-1', '--format=%cs', '--', relPath],
-      { cwd: ROOT, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
-    return /^\d{4}-\d{2}-\d{2}$/.test(out) ? out : null;
-  } catch (_) { return null; }
-}
-
-/** loc -> lastmod from the sitemap we're about to replace. */
-const prevLastmod = (() => {
-  const map = new Map();
-  try {
-    const xml = readFileSync(join(ROOT, 'sitemap.xml'), 'utf8');
-    for (const m of xml.matchAll(/<loc>([^<]+)<\/loc>\s*<lastmod>([^<]+)<\/lastmod>/g)) {
-      map.set(m[1], m[2]);
-    }
-  } catch (_) { /* first run */ }
-  return map;
-})();
-
-/**
- * lastmod must reflect when the page's content last actually changed, not
- * when this script last ran — a sitemap that stamps every URL with today on
- * every build trains Google to ignore the field. So: today only if we just
- * rewrote the file, otherwise the date git last recorded a change to it.
- */
-function lastmodFor(url, relPath, changed) {
-  if (changed) return TODAY;
-  return gitDate(relPath) || prevLastmod.get(url) || TODAY;
-}
 
 /** Real counts from the player DB, so each page states verifiable specifics. */
 function poolStats(filterFn) {
@@ -391,14 +335,21 @@ console.log(`Challenge index in daily.html: ${dailyChanged ? 'updated' : 'unchan
 
 // ── sitemap ──────────────────────────────────────────────────────────────────
 
+// Franchise + era roster pages live in their own generator but share this
+// sitemap, so they're built here and merged in below.
+const teamEntries = await buildTeamPages();
+
 const entries = [
   { loc: `${ORIGIN}/`,           rel: 'index.html', changed: false },
   { loc: `${ORIGIN}/daily.html`, rel: 'daily.html', changed: dailyChanged },
   ...written.map(w => ({ loc: `${ORIGIN}/daily/${w.slug}.html`, rel: w.rel, changed: w.changed })),
+  ...teamEntries.map(e => ({ loc: e.loc, rel: e.rel, changed: e.changed })),
 ];
 
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <!-- Generated by scripts/build_challenge_pages.mjs — do not edit by hand.
+     Covers the daily challenge pages it writes itself plus the franchise/era
+     pages from scripts/build_team_pages.mjs.
      lastmod is the date each page's content last changed, not the date this
      script last ran. -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -415,39 +366,21 @@ console.log(`\n${written.length} challenge pages (${changedPages} changed this r
 for (const w of written) {
   console.log(`  ${w.slug}.html`.padEnd(28) + `${String(w.days).padStart(2)} day(s) run` + (w.changed ? '   [updated]' : ''));
 }
+
+const changedTeamPages = teamEntries.filter(e => e.changed).length;
+console.log(`\n${teamEntries.length} franchise/era pages (${changedTeamPages} changed this run):`);
+for (const e of teamEntries) {
+  console.log(`  ${e.rel}`.padEnd(34) + `${String(e.n).padStart(3)} players` + (e.changed ? '   [updated]' : ''));
+}
+
 console.log(`\nsitemap.xml: ${sitemapChanged ? 'updated' : 'unchanged'} (${entries.length} URLs)`);
-if (!changedPages && !dailyChanged && !sitemapChanged) console.log('Nothing changed — no commit needed.');
+if (!changedPages && !changedTeamPages && !dailyChanged && !sitemapChanged) console.log('Nothing changed — no commit needed.');
 
 // ── IndexNow ─────────────────────────────────────────────────────────────────
-// Push notification for the pages we actually rewrote this run. Google
-// ignores IndexNow (it wants the sitemap, already handled above), but Bing
-// and Yandex use it to fetch a changed URL right away instead of on their
-// own crawl schedule.
-
-async function notifyIndexNow(urls) {
-  if (!urls.length) { console.log('IndexNow: nothing changed, skipping.'); return; }
-  const body = {
-    host: new URL(ORIGIN).host,
-    key: INDEXNOW_KEY,
-    keyLocation: `${ORIGIN}/${INDEXNOW_KEY}.txt`,
-    urlList: urls,
-  };
-  try {
-    const res = await fetch('https://api.indexnow.org/indexnow', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json; charset=utf-8' },
-      body: JSON.stringify(body),
-    });
-    // 200 = accepted, 202 = accepted (key not yet verified everywhere) — both fine.
-    if (res.ok) {
-      console.log(`IndexNow: notified ${urls.length} URL(s) (HTTP ${res.status})`);
-    } else {
-      console.warn(`IndexNow: submission returned HTTP ${res.status} — not fatal, sitemap.xml is still authoritative`);
-    }
-  } catch (err) {
-    console.warn(`IndexNow: submission failed (${err.message}) — not fatal, sitemap.xml is still authoritative`);
-  }
-}
+// Push notification for the pages we actually rewrote this run (see
+// lib/seo-utils.mjs). Google ignores IndexNow — it wants the sitemap, already
+// handled above — but Bing and Yandex use it to fetch a changed URL right away
+// instead of on their own crawl schedule.
 
 if (NOTIFY_INDEXNOW) {
   const changedUrls = entries.filter(e => e.changed).map(e => e.loc);

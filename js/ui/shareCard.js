@@ -2,17 +2,31 @@
  * js/ui/shareCard.js — Canvas-rendered shareable result card
  *
  * Exports:
- *   buildShareCardBlob(data) — draws a branded PNG, resolves a Blob
- *   buildShareCaption(data)  — plain-text caption for the same result
+ *   buildShareCardBlob(data, variant) — draws a branded PNG, resolves a Blob
+ *   buildShareCaption(data)           — plain-text caption for the same result
  *
  * `data` shape (built by events.js buildResultCardData()):
  *   { wins, losses, winPct, chemScore, longestStreak, tierLabel, tierEmoji,
- *     isChampion, starters: [{ pos, name, team, decade }], dailyLabel? }
+ *     isChampion, starters: [{ pos, name, team, decade }], dailyLabel?,
+ *     shareUrl, rematchCode?, beatTarget?: { targetWins, beat } }
+ *
+ * Two aspect ratios, same content block:
+ *   feed  1080×1200 — timelines (X, Reddit, Discord, iMessage)
+ *   story 1080×1920 — TikTok / Reels / Stories
+ *
+ * The story variant is not a re-layout. The block is a cursor-stack that
+ * vertically centres itself in whatever height it's given, so the taller canvas
+ * simply gains margin above and below — which is exactly where those apps park
+ * their own UI (profile chrome up top, caption and buttons at the bottom).
+ * Filling that space would only put content under their overlays.
  */
 
 import { chemTier } from '../logic/chemistry.js';
 
-const W = 1080, H = 1200;
+const W = 1080;
+
+/** Canvas height per variant. `feed` is the original card, unchanged. */
+const VARIANT_H = { feed: 1200, story: 1920 };
 
 const TIER_COLORS = {
   '🏆': { text: '#fcd34d', bg: 'rgba(251,191,36,0.16)', border: 'rgba(252,211,77,0.55)' },
@@ -97,13 +111,16 @@ function drawScoreRecord(ctx, wins, losses, cx, y, fontPx, winsColor) {
   ctx.fillText(L.lossText, x, y);
 }
 
-function drawCard(ctx, data) {
-  const { wins, losses, winPct, chemScore, longestStreak, tierLabel, tierEmoji, isChampion, starters, dailyLabel } = data;
+function drawCard(ctx, data, H) {
+  const { wins, losses, winPct, chemScore, longestStreak, tierLabel, tierEmoji, isChampion, starters, dailyLabel, beatTarget } = data;
   const tc = isChampion ? TIER_COLORS['🏆'] : (TIER_COLORS[tierEmoji] || TIER_COLORS['✅']);
   const hasStreak = longestStreak >= 5;
+  const hasVerdict = !!beatTarget;
 
   // ── Background ──
-  const bg = ctx.createRadialGradient(W * 0.68, H * 0.3, 60, W * 0.5, H * 0.5, 1000);
+  // Gradient radius tracks the canvas rather than a fixed 1000px, so the story
+  // variant doesn't end up a flat slab with the falloff all in the top third.
+  const bg = ctx.createRadialGradient(W * 0.68, H * 0.3, 60, W * 0.5, H * 0.5, Math.max(W, H) * 0.85);
   bg.addColorStop(0, '#1e293b');
   bg.addColorStop(1, '#0a1120');
   ctx.fillStyle = bg;
@@ -118,11 +135,13 @@ function drawCard(ctx, data) {
   // (streak chip present or not).
   const BRAND = 96, PILL = 116, SCORE = 238, META = 40;
   const GAP_META_PANEL = 26, GAP_META_STREAK = 14, STREAK = 60, GAP_STREAK_PANEL = 26;
+  const VERDICT = 60, GAP_VERDICT = 14;
   const PANEL_HEAD = 56, ROW_H = 50, PANEL_PAD_BOTTOM = 26, GAP_PANEL_FOOTER = 34;
   const FOOTER = 92;
 
   const panelH  = PANEL_HEAD + starters.length * ROW_H + PANEL_PAD_BOTTOM;
   const contentH = BRAND + PILL + SCORE + META
+    + (hasVerdict ? GAP_VERDICT + VERDICT : 0)
     + (hasStreak ? GAP_META_STREAK + STREAK + GAP_STREAK_PANEL : GAP_META_PANEL)
     + panelH + GAP_PANEL_FOOTER + FOOTER;
   let cy = Math.max(40, Math.round((H - contentH) / 2));
@@ -182,6 +201,23 @@ function drawCard(ctx, data) {
   const metaBits = [`Win% ${winPct}%`, chemScore != null ? `Team Chemistry ${chemTier(chemScore).label}` : null].filter(Boolean);
   ctx.fillText(metaBits.join('    ·    '), W / 2, cy + META / 2);
   cy += META;
+
+  // ── Head-to-head chip (this run answered someone else's challenge) ──
+  if (hasVerdict) {
+    cy += GAP_VERDICT;
+    const won = beatTarget.beat;
+    const text = won
+      ? `⚔️ BEAT ${beatTarget.targetWins} WINS ON THE SAME BOARD`
+      : `⚔️ CHASING ${beatTarget.targetWins} WINS — CAME UP SHORT`;
+    ctx.font = "900 21px 'Arial Black', Arial, sans-serif";
+    const vw = trackedWidth(ctx, text, 1.5) + 56;
+    roundRect(ctx, W / 2 - vw / 2, cy, vw, VERDICT, VERDICT / 2);
+    ctx.fillStyle = won ? 'rgba(34,197,94,0.14)' : 'rgba(148,163,184,0.12)'; ctx.fill();
+    ctx.lineWidth = 2; ctx.strokeStyle = won ? 'rgba(74,222,128,0.5)' : 'rgba(148,163,184,0.4)'; ctx.stroke();
+    ctx.fillStyle = won ? '#4ade80' : '#94a3b8'; ctx.textBaseline = 'middle';
+    fillTextTracked(ctx, text, W / 2, cy + VERDICT / 2 + 1, 1.5, 'center');
+    cy += VERDICT;
+  }
 
   // ── Streak chip (only when the run actually had a notable streak) ──
   if (hasStreak) {
@@ -247,16 +283,29 @@ function drawCard(ctx, data) {
   fillTextTracked(ctx, 'canyougo820.com', W / 2, cy + 44, 2, 'center');
   ctx.font = '500 19px Arial, sans-serif';
   ctx.fillStyle = '#64748b';
-  ctx.fillText('Can you beat this record? Play free →', W / 2, cy + 72);
+  // An image can't carry a clickable link, so when the caption has a rematch
+  // URL attached the footer's job is to say the board is replayable — that's
+  // what makes the invitation credible rather than a slogan.
+  ctx.fillText(
+    data.rematchCode ? 'Draft this exact board — challenge link in the caption →'
+      : data.dailyLabel ? "Same board for everyone today — can you beat this? →"
+      : 'Can you beat this record? Play free →',
+    W / 2, cy + 72,
+  );
 }
 
-/** @returns {Promise<Blob>} a PNG blob of the rendered result card */
-export function buildShareCardBlob(data) {
+/**
+ * @param {object} data
+ * @param {'feed'|'story'} [variant]
+ * @returns {Promise<Blob>} a PNG blob of the rendered result card
+ */
+export function buildShareCardBlob(data, variant = 'feed') {
+  const H = VARIANT_H[variant] || VARIANT_H.feed;
   const canvas = document.createElement('canvas');
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext('2d');
   if (!ctx) return Promise.reject(new Error('Canvas unavailable'));
-  drawCard(ctx, data);
+  drawCard(ctx, data, H);
   return new Promise((resolve, reject) => {
     canvas.toBlob(blob => (blob ? resolve(blob) : reject(new Error('toBlob failed'))), 'image/png');
   });
@@ -264,7 +313,8 @@ export function buildShareCardBlob(data) {
 
 /** @returns {string} plain-text caption to pair with the image (or stand alone) */
 export function buildShareCaption(data) {
-  const { wins, losses, tierLabel, tierEmoji, chemScore, isChampion, starters, dailyLabel } = data;
+  const { wins, losses, tierLabel, tierEmoji, chemScore, isChampion, starters,
+          dailyLabel, shareUrl, rematchCode, beatTarget } = data;
   const headline = isChampion
     ? `🏆 ${wins}-${losses} — NBA CHAMPIONS`
     : `${tierEmoji} ${wins}-${losses} — ${tierLabel}`;
@@ -274,14 +324,30 @@ export function buildShareCaption(data) {
   const chemLine = chemScore != null
     ? `\nTeam Chemistry: ${chemTier(chemScore).label}`
     : '';
+
+  // The closing line is the whole growth mechanic: it has to state what the
+  // link actually does. A rematch link hands over the identical five boards,
+  // so it can promise a fair fight; the generic link can't and doesn't.
+  const verdictLine = beatTarget
+    ? (beatTarget.beat
+        ? `Beat ${beatTarget.targetWins} wins on the same board ✅`
+        : `Chased ${beatTarget.targetWins} wins on the same board — came up short`)
+    : null;
+  const cta = rematchCode
+    ? `Same 5 boards, same picks on the table. Can you beat ${wins}-${losses}?\n→ ${shareUrl}`
+    : dailyLabel
+      ? `Everyone gets this board today. Can you beat it?\n→ ${shareUrl}`
+      : `Can you beat it? → ${shareUrl}`;
+
   return [
     dailyLabel || null,
     headline,
+    verdictLine,
     '',
     'Starting 5:',
     starterLines,
     chemLine,
     '',
-    'Can you beat it? → canyougo820.com',
+    cta,
   ].filter(l => l !== null).join('\n').replace(/\n{3,}/g, '\n\n').trim();
 }

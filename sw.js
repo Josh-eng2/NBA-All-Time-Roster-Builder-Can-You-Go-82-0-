@@ -10,20 +10,23 @@
  *
  * Bump CACHE_VERSION when shipping asset changes so old caches are dropped.
  */
-// Bumped for the responsive system: css/responsive.css and js/utils/viewport.js
-// are new, and desktop.css / styles.css / render.js / storage.js / main.js all
-// changed. Static assets are served cache-first below, so without this bump a
-// returning visitor keeps the old desktop.css and render.js while the
-// network-first HTML hands them the new responsive.css — a mix of old markup
-// and new stylesheet, which lays out worse than either version alone.
+// The rule, which this file has now proved four times: any change to a file in
+// PRECACHE_URLS needs this version bumped in the same commit. Static assets are
+// served cache-first below, so without the bump a returning visitor keeps the
+// old copy indefinitely while network-first HTML hands them the new index —
+// a mix of old modules and new markup, which behaves worse than either alone.
 //
-// (The previous bump, for the desktop redesign, is the same lesson: any change
-// to a file in PRECACHE_URLS needs this version bumped in the same commit.)
+//   v2  desktop redesign: css/desktop.css new, styles.css + render.js changed
+//   v3  responsive system: css/responsive.css + js/utils/viewport.js new
+//   v4  laptop-height draft tier: css/desktop.css changed again
+//   v5  share/rematch work: js/logic/rematch.js, js/utils/referral.js and
+//       js/utils/install.js are new, and events.js/render.js/shareCard.js
+//       changed — without it, a shared rematch link opens on a build whose
+//       events.js has no #/rematch route.
 //
-// v4: css/desktop.css changed again for the laptop-height draft tier. Without
-// this bump a returning player keeps the old desktop.css and never sees it —
-// which is the third time this file has proved the rule above.
-const CACHE_VERSION = '820-v4';
+// v5 covers both sides of this merge: the responsive assets were already
+// precached at v4, and the share/rematch modules are added below.
+const CACHE_VERSION = '820-v5';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 
@@ -58,11 +61,14 @@ const PRECACHE_URLS = [
   './js/logic/playoffs.js',
   './js/logic/aiDraft.js',
   './js/logic/dynastyDuel.js',
+  './js/logic/rematch.js',
   './js/utils/storage.js',
   './js/utils/viewport.js',
   './js/utils/firebase.js',
   './js/utils/crazygames.js',
   './js/utils/gamedistribution.js',
+  './js/utils/referral.js',
+  './js/utils/install.js',
 ];
 
 self.addEventListener('install', event => {

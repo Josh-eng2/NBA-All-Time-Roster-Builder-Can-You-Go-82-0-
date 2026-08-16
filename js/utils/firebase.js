@@ -206,6 +206,24 @@ async function getDb() {
   return _db;
 }
 
+// First-touch referral source, stamped onto every event so any funnel question
+// ("do players who arrive from a shared link finish a season?") can be answered
+// by splitting on one dimension instead of joining sessions by hand.
+//
+// Read straight from storage rather than importing utils/referral.js: that
+// module logs its own landing event through here, so importing it would make
+// the two files circular. Only a successful read is cached — an event that
+// fires before captureReferral() has written the key (module-load events race
+// with init) must not pin the dimension to null for the rest of the session.
+let _refSource = null;
+function referralParam() {
+  if (!_refSource) {
+    try { _refSource = JSON.parse(localStorage.getItem('nba820_ref') || 'null')?.ref ?? null; }
+    catch (_) { _refSource = null; }
+  }
+  return _refSource ? { ref_source: _refSource } : null;
+}
+
 /**
  * Logs a Firebase Analytics event. Silently no-ops if Analytics is blocked.
  * @param {string} eventName
@@ -214,7 +232,7 @@ async function getDb() {
 export function logAnalyticsEvent(eventName, params = {}) {
   ensureInit().then(() => {
     try {
-      if (_analytics) logEvent(_analytics, eventName, params);
+      if (_analytics) logEvent(_analytics, eventName, { ...params, ...referralParam() });
     } catch (_) { /* silently ignore */ }
   }).catch(() => {});
 }

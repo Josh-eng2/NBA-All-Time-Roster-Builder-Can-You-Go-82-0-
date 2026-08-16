@@ -4,12 +4,16 @@
 
 import { S } from './state.js';
 
-/** @typedef {'solo'|'blind'|'daily'|'1v1'|'gm-ai'|'dynasty-duel'|'defense'|'fans'} ModeId */
+/** @typedef {'solo'|'blind'|'daily'|'rematch'|'1v1'|'gm-ai'|'dynasty-duel'|'defense'|'fans'} ModeId */
 
 export const MODE_CONFIG = {
   solo:            { draft: 'solo',   postDraft: 'season',        pity: true,  skips: 1, simProfile: 'classic' },
   blind:           { draft: 'solo',   postDraft: 'season',        pity: true,  skips: 1, simProfile: 'classic' },
   daily:           { draft: 'solo',   postDraft: 'season',        pity: true,  skips: 0, simProfile: 'classic' },
+  // Rematch replays a friend's exact board from a shared link. Zero skips for
+  // the same reason daily has none — a skip re-rolls the wheel, and the whole
+  // premise is that both players drafted from identical boards.
+  rematch:         { draft: 'solo',   postDraft: 'season',        pity: true,  skips: 0, simProfile: 'classic' },
   '1v1':           { draft: 'dual',   postDraft: 'series',        pity: false, skips: 1, simProfile: 'classic' },
   'gm-ai':         { draft: 'dual',   postDraft: 'series',        pity: false, skips: 1, simProfile: 'classic' },
   'dynasty-duel':  { draft: 'solo',   postDraft: 'dynastySeries', pity: true,  skips: 0, simProfile: 'classic' },
@@ -24,6 +28,16 @@ export function getModeConfig(mode = S?.mode) {
 /** Dual-roster snake draft (human 1v1 or GM vs AI). */
 export function isDualDraft(mode = S?.mode) {
   return mode === '1v1' || mode === 'gm-ai';
+}
+
+/**
+ * Names-only drafting (Ball IQ). A rematch replays the draft style its code
+ * carries, so a Ball IQ run shared as a rematch stays a Ball IQ run for the
+ * recipient — otherwise they'd be chasing a blind-drafted record with the full
+ * stat board in front of them.
+ */
+export function isBlindDraft(mode = S?.mode) {
+  return mode === 'blind' || (mode === 'rematch' && S?.rematch?.style === 'blind');
 }
 
 /** Modes reached from the Challenges screen (not primary tiles). */

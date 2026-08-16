@@ -1,9 +1,13 @@
-# Keeps the generated Daily Challenge pages current.
+# Keeps the generated static pages current.
 #
 # Each daily/<slug>.html page lists the dates its challenge has run, and a new
 # date is drawn every midnight UTC. Without this the archive silently goes
 # stale — the pages would still be correct, just perpetually missing the most
 # recent days.
+#
+# The same run rebuilds the franchise/era roster pages (teams/, eras/,
+# teams.html) and the merged sitemap, so a player-data regeneration is picked
+# up without a second scheduled job.
 #
 # The generator only rewrites files whose content actually changed, and
 # sitemap lastmod tracks real content changes rather than the run date, so a
@@ -11,7 +15,7 @@
 #
 # --indexnow on the generator step pushes any changed URLs straight to Bing/
 # Yandex via the IndexNow API, instead of waiting on their own crawl.
-name: Refresh Daily Challenge pages
+name: Refresh generated pages
 
 on:
   schedule:
@@ -46,7 +50,7 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Regenerate challenge pages, daily index and sitemap
+      - name: Regenerate challenge, franchise and era pages, daily index and sitemap
         run: node scripts/build_challenge_pages.mjs --indexnow
 
       - name: Commit and push if anything changed
@@ -61,5 +65,5 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "Refresh Daily Challenge pages ($(date -u +%Y-%m-%d))"
+          git commit -m "Refresh generated pages ($(date -u +%Y-%m-%d))"
           git push

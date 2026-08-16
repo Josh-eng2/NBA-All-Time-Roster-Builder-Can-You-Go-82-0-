@@ -11,6 +11,8 @@ import { applySecondaryPositions }    from './logic/positions.js';
 import { render }                     from './ui/render.js';
 import { S, startGame } from './logic/state.js';
 import { logAnalyticsEvent }          from './utils/firebase.js';
+import { captureReferral }            from './utils/referral.js';
+import { initInstallPrompt }          from './utils/install.js';
 import { isReturningPlayer }          from './utils/storage.js';
 import { cgLoadingStart, cgLoadingStop, initCrazyGamesData } from './utils/crazygames.js';
 import { initViewport }                from './utils/viewport.js';
@@ -37,6 +39,12 @@ async function init() {
   // Before anything paints: the shell sizes itself from --app-h, and the
   // loading overlay is already on screen.
   initViewport();
+  // Attribution and the install-prompt capture both have to run before the
+  // first paint: ?ref= must be banked before any gameplay event fires so the
+  // events carry it, and beforeinstallprompt is dispatched early and only once
+  // — miss it and there is no way to ask for an install later.
+  captureReferral();
+  initInstallPrompt();
   cgLoadingStart();
   // Must resolve before anything below reads/writes saved progress (Legends,
   // Trophy Room, personal bests) — decides whether those go through the
