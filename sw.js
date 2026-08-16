@@ -10,11 +10,16 @@
  *
  * Bump CACHE_VERSION when shipping asset changes so old caches are dropped.
  */
-// Bumped for the desktop redesign: css/desktop.css is new, and styles.css +
-// js/ui/render.js changed. Static assets are served cache-first below, so
-// without this bump a returning visitor keeps the old render.js and sees the
-// old layout no matter how fresh index.html is.
-const CACHE_VERSION = '820-v2';
+// Bumped for the responsive system: css/responsive.css and js/utils/viewport.js
+// are new, and desktop.css / styles.css / render.js / storage.js / main.js all
+// changed. Static assets are served cache-first below, so without this bump a
+// returning visitor keeps the old desktop.css and render.js while the
+// network-first HTML hands them the new responsive.css — a mix of old markup
+// and new stylesheet, which lays out worse than either version alone.
+//
+// (The previous bump, for the desktop redesign, is the same lesson: any change
+// to a file in PRECACHE_URLS needs this version bumped in the same commit.)
+const CACHE_VERSION = '820-v3';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 
@@ -27,6 +32,7 @@ const PRECACHE_URLS = [
   './css/tailwind.css',
   './css/styles.css',
   './css/desktop.css',
+  './css/responsive.css',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/apple-touch-icon.png',
@@ -49,6 +55,7 @@ const PRECACHE_URLS = [
   './js/logic/aiDraft.js',
   './js/logic/dynastyDuel.js',
   './js/utils/storage.js',
+  './js/utils/viewport.js',
   './js/utils/firebase.js',
   './js/utils/crazygames.js',
   './js/utils/gamedistribution.js',
