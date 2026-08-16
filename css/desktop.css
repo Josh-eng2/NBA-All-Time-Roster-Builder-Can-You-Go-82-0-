@@ -626,47 +626,136 @@
 @media (min-width: 1024px) {
   /* The desktop draft is a two-column workspace: the draft machine and
      roster on the left, live team status on the right. renderDrafting()
-     emits this structure only at desktop (see isDesktopDraftLayout). */
-  .draft-screen__main { padding: 22px 24px 48px !important; }
+     emits this structure only at desktop (see isDesktopDraftLayout).
+
+     The whole screen is pinned to one viewport — the page never scrolls
+     while drafting. Three regions absorb whatever height is left over
+     after the fixed chrome (header, stepper, slot machine, roster strip):
+     the draft board grid and the synergy list scroll inside themselves.
+     Every fixed dimension below is a clamp() on `vh`, so the layout
+     scales continuously with the window instead of stepping between
+     breakpoints — a 1600px-tall monitor and a 700px laptop both land on
+     one screenful with no dead space and no clipped roster.
+
+     The `--dk-d-*` tokens are the whole scaling system: change a clamp
+     here and every rule that reads it follows. Keep the lower bound of
+     each clamp at the smallest size the element is still legible at —
+     that lower bound is what a short window actually gets. */
+  .draft-screen {
+    /* Vertical rhythm */
+    --dk-d-gap:        clamp(7px, 1.35vh, 16px);
+    --dk-d-pad-y:      clamp(8px, 1.9vh, 22px);
+    /* Slot machine (team/era spinner) */
+    --dk-d-slot-pad:   clamp(10px, 1.9vh, 22px);
+    --dk-d-slot-cell:  clamp(52px, 10.5vh, 120px);
+    --dk-d-slot-face:  clamp(20px, 3.3vh, 34px);
+    --dk-d-spin-h:     clamp(38px, 5.4vh, 58px);
+    /* Roster strip */
+    --dk-d-roster-h:   clamp(60px, 11vh, 118px);
+    --dk-d-roster-pad: clamp(6px, 1.3vh, 14px);
+    --dk-d-roster-pos: clamp(15px, 2.1vh, 22px);
+    --dk-d-roster-ovr: clamp(14px, 1.9vh, 20px);
+    /* Round stepper strip */
+    --dk-d-step-pad:   clamp(7px, 1.3vh, 14px);
+    --dk-d-step-round: clamp(18px, 2.5vh, 26px);
+    /* Team-status gauges */
+    --dk-d-gauge-w:    clamp(66px, 9.6vh, 104px);
+    --dk-d-gauge-h:    clamp(56px, 8.2vh, 89px);
+    --dk-d-gauge-badge:clamp(26px, 3.5vh, 38px);
+    --dk-d-gauge-val:  clamp(18px, 2.4vh, 26px);
+    --dk-d-panel-pad:  clamp(10px, 1.7vh, 18px);
+
+    /* Tailwind's `min-h-screen` would let the column grow past the fold;
+       a hard height is what makes the leftover-space maths below work. */
+    min-height: 0;
+    height: 100dvh;
+    max-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .draft-screen__main {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    padding: var(--dk-d-pad-y) 24px !important;
+  }
 
   .draft-workspace {
     width: 100%;
     max-width: 1340px;
+    height: 100%;
+    min-height: 0;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    /* On a tall monitor the board needs less height than it is offered.
+       Centring spends the surplus as even margin above and below rather
+       than as one dead gap between the cards and the roster strip. */
+    justify-content: center;
+    gap: var(--dk-d-gap);
   }
 
+  /* `0 1 auto`, not `1`: the columns take their content's height when it
+     fits and shrink (never grow) when it doesn't, handing the overflow to
+     the board's and synergy list's own scrollbars. */
   .draft-workspace__cols {
+    flex: 0 1 auto;
+    max-height: 100%;
+    min-height: 0;
     display: grid;
-    grid-template-columns: minmax(0, 1.62fr) minmax(300px, 1fr);
-    gap: 16px;
-    align-items: start;
+    grid-template-columns: minmax(0, 1.62fr) minmax(272px, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    gap: var(--dk-d-gap);
+    align-items: stretch;
   }
   .draft-workspace__left,
   .draft-workspace__right {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: var(--dk-d-gap);
     min-width: 0;
+    min-height: 0;
+    /* A no-op while the board is on screen (its `flex: 1` leaves no free
+       space to distribute). It only bites once the roster is complete and
+       the board is gone, centring the simulate card against the full-height
+       synergy rail instead of stranding it at the top. */
+    justify-content: center;
   }
 
-  /* Narrower desktops can't carry two comfortable columns — collapse to
-     one before anything overlaps. */
+  /* Narrower desktops keep both columns — stacking them is what pushed
+     the roster off the fold. The rail just gets tighter instead. */
   @media (max-width: 1200px) {
-    .draft-workspace__cols { grid-template-columns: minmax(0, 1fr); }
+    .draft-workspace__cols { grid-template-columns: minmax(0, 1.9fr) minmax(232px, 0.85fr); }
   }
+
+  /* ── Who stretches, who stays put ──────────────────────────
+     Exactly one child per column is allowed to grow. Everything else is
+     `flex: 0 0 auto` so it keeps its natural height and the leftover
+     lands in the scrollable region. */
+  .draft-workspace__left  > *,
+  .draft-workspace__right > * { flex: 0 0 auto; min-height: 0; }
+
+  .draft-workspace .draft-board-wrap {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .draft-workspace .draft-board-wrap__head { flex: 0 0 auto; margin-bottom: 8px !important; }
 
   /* ── Round stepper strip ───────────────────────────────── */
   .draft-stepper {
     display: flex;
     align-items: center;
     gap: 18px;
-    padding: 14px 18px;
+    padding: var(--dk-d-step-pad, 14px) 18px;
     border-radius: 16px;
     background: var(--dk-elev);
     border: 1px solid var(--dk-line);
-    flex-wrap: wrap;
+    /* No wrapping on the draft screen: a second row is exactly the kind of
+       unbudgeted height that used to push the roster past the fold. */
+    flex-wrap: nowrap;
   }
   .draft-stepper--complete {
     background: linear-gradient(100deg,
@@ -682,9 +771,11 @@
   .draft-stepper--complete .draft-stepper__eyebrow { color: var(--dk-green); }
   .draft-stepper__round {
     font-family: 'Barlow Condensed', 'Fira Sans', sans-serif;
-    font-size: 26px; font-weight: 800; color: var(--dk-strong); margin-top: 2px;
+    font-size: var(--dk-d-step-round, 26px);
+    font-weight: 800; color: var(--dk-strong); margin-top: 2px;
+    white-space: nowrap;
   }
-  .draft-stepper__round small { color: var(--dk-faint); font-size: 18px; }
+  .draft-stepper__round small { color: var(--dk-faint); font-size: 0.7em; }
 
   .draft-stepper__phases {
     flex: 1; display: flex; align-items: center; gap: 7px; min-width: 220px;
@@ -716,10 +807,27 @@
   }
 
   /* Coach chip sits inside the stepper strip on desktop. */
-  .draft-stepper .draft-coach-chip { flex-shrink: 0; margin: 0; }
-  .draft-stepper .draft-coach-chip > button,
-  .draft-stepper .draft-coach-chip > div {
-    height: 40px;
+  .draft-stepper .draft-coach-chip { flex-shrink: 0; margin: 0; position: relative; }
+
+  /* Float the coach list under its chip. Inline (as on mobile) it would grow
+     the stepper by ~250px, and on a fixed-height screen that height comes
+     straight out of the draft board below it. */
+  .draft-stepper .draft-coach-chip__picker {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 60;
+    width: 380px;
+    max-width: 90vw;
+    background: var(--dk-panel) !important;
+    border: 1px solid var(--dk-line) !important;
+    box-shadow: var(--dk-shadow-lg);
+  }
+  /* The chip itself only — `> div` alone also caught the picker below and
+     crushed it to one row. */
+  .draft-stepper .draft-coach-chip > button:not(.draft-coach-chip__picker),
+  .draft-stepper .draft-coach-chip > div:not(.draft-coach-chip__picker) {
+    height: clamp(30px, 4vh, 40px);
     padding: 0 14px !important;
     border-radius: 11px !important;
     background: var(--dk-panel-2) !important;
@@ -732,30 +840,32 @@
     border-radius: 20px !important;
     border: 1px solid var(--dk-line) !important;
     background: var(--dk-elev-hi) !important;
-    padding: 22px !important;
+    padding: var(--dk-d-slot-pad, 22px) !important;
     box-shadow: var(--dk-shadow-lg);
   }
   .draft-workspace .draft-slot-machine__grid {
     gap: 14px !important;
-    margin-bottom: 18px !important;
+    margin-bottom: clamp(8px, 1.6vh, 18px) !important;
   }
   .draft-workspace .draft-slot-machine__cell {
-    min-height: 120px !important;
+    min-height: var(--dk-d-slot-cell, 120px) !important;
     border-radius: 16px !important;
     border-width: 2px !important;
-    padding: 22px 16px !important;
+    padding: clamp(8px, 1.6vh, 22px) 16px !important;
     background: var(--dk-inset) !important;
   }
   .draft-workspace .draft-slot-machine__cell .text-xl {
     font-family: 'Barlow Condensed', 'Fira Sans', sans-serif;
-    font-size: 34px !important;
+    font-size: var(--dk-d-slot-face, 34px) !important;
     font-weight: 800;
   }
   /* The spin action is the loudest control on the screen. */
   .draft-workspace .draft-slot-machine [data-action="spin"] {
-    height: 58px;
+    height: var(--dk-d-spin-h, 58px);
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
     border-radius: 14px !important;
-    font-size: 16px !important;
+    font-size: clamp(12px, 1.7vh, 16px) !important;
     letter-spacing: 0.1em;
     background: linear-gradient(180deg, #3b82f6, #2563eb) !important;
     border: none;
@@ -763,7 +873,17 @@
     animation: dkGlowBlue 2.4s infinite;
   }
   .draft-workspace .draft-slot-machine button[disabled] {
-    height: 58px; border-radius: 14px !important; font-size: 16px !important;
+    height: var(--dk-d-spin-h, 58px);
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    border-radius: 14px !important;
+    font-size: clamp(12px, 1.7vh, 16px) !important;
+  }
+  /* The "Draft places into an open natural slot…" helper line. */
+  .draft-workspace .draft-slot-machine > p.text-center {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    line-height: 1.3;
   }
 
   /* ── Roster grid ───────────────────────────────────────── */
@@ -771,12 +891,12 @@
     grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
     gap: 10px !important;
   }
-  .draft-workspace .draft-roster__head { margin-bottom: 10px !important; }
+  .draft-workspace .draft-roster__head { margin-bottom: clamp(4px, 0.9vh, 10px) !important; }
 
   .draft-workspace .draft-roster-slot {
-    min-height: 118px;
+    min-height: var(--dk-d-roster-h, 118px);
     border-radius: 14px !important;
-    padding: 14px 8px !important;
+    padding: var(--dk-d-roster-pad, 14px) 8px !important;
     gap: 4px;
     justify-content: center;
     transition: border-color 0.15s ease, transform 0.15s ease;
@@ -791,27 +911,48 @@
   }
   .draft-workspace .draft-roster-slot__pos {
     font-family: 'Barlow Condensed', 'Fira Sans', sans-serif;
-    font-size: 22px !important;
+    font-size: var(--dk-d-roster-pos, 22px) !important;
     font-weight: 800;
   }
-  .draft-workspace .draft-roster-slot--filled .draft-roster-slot__pos { font-size: 16px !important; }
+  .draft-workspace .draft-roster-slot--filled .draft-roster-slot__pos {
+    font-size: clamp(12px, 1.6vh, 16px) !important;
+  }
   .draft-workspace .draft-roster-slot__name {
     font-size: 13px !important; font-weight: 700; line-height: 1.1;
     max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
   .draft-workspace .draft-roster-slot__ovr {
     font-family: 'Barlow Condensed', 'Fira Sans', sans-serif;
-    font-size: 20px; font-weight: 800; line-height: 1;
+    font-size: var(--dk-d-roster-ovr, 20px); font-weight: 800; line-height: 1;
   }
   .draft-workspace .draft-roster-slot__ovr-label {
     font-size: 9px; font-weight: 700; text-transform: uppercase;
     letter-spacing: 0.05em; color: var(--dk-dim);
   }
 
+  /* The draft board is the left column's elastic region: it takes whatever
+     height is left after the slot machine and roster strip, and scrolls
+     internally when the spin returns more players than fit. A fixed `vh`
+     cap here is what used to overflow the fold on short windows. */
   .draft-workspace .draft-board-scroll {
+    flex: 1 1 auto;
     height: auto;
-    max-height: 46vh;
-    min-height: 15rem;
+    min-height: 0;
+    max-height: none;
+    /* Reserve the scrollbar's width always, so drafting a player (which can
+       drop the board below the scroll threshold) doesn't reflow the grid. */
+    scrollbar-gutter: stable;
+  }
+  /* The spinning skeleton has no content to give it height. */
+  .draft-workspace .draft-board-scroll--shell { min-height: 6rem; }
+
+  /* Fluid card count instead of a hard 3-up: the board fills its width with
+     as many ~168px cards as fit, so a typical five-player spin lands on one
+     row on a wide column and reflows down gracefully on a narrow one. */
+  .draft-workspace .draft-board-grid {
+    grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)) !important;
+    gap: 10px !important;
+    align-content: start;
   }
 
   /* ── Team status panel ─────────────────────────────────── */
@@ -819,25 +960,46 @@
     border-radius: 20px;
     border: 1px solid var(--dk-line);
     background: var(--dk-elev);
-    padding: 18px 16px 16px;
+    padding: var(--dk-d-panel-pad, 18px) 14px;
   }
   .dk-team-status__label {
-    display: block; text-align: center; margin-bottom: 14px;
+    display: block; text-align: center;
+    margin-bottom: clamp(6px, 1.3vh, 14px);
     font-size: 11px; font-weight: 800; letter-spacing: 0.14em;
     text-transform: uppercase; color: var(--dk-dim);
   }
-  .dk-team-status .draft-stat-gauges { gap: 10px; }
+  .dk-team-status .draft-stat-gauges { gap: 8px; }
+
+  /* The rail's gauges follow the same vh scale as everything else, so the
+     dashboard shrinks with the window rather than squeezing the synergy
+     panel below it off the screen. */
+  .dk-team-status .draft-stat-gauge {
+    --gauge-w:     var(--dk-d-gauge-w, 104px);
+    --gauge-h:     var(--dk-d-gauge-h, 89px);
+    --gauge-badge: var(--dk-d-gauge-badge, 38px);
+    padding: clamp(8px, 1.5vh, 16px) 4px clamp(7px, 1.3vh, 14px) !important;
+  }
+  .dk-team-status .draft-stat-gauge__value { font-size: var(--dk-d-gauge-val, 26px); }
 
   /* ── Chemistry synergies panel ─────────────────────────── */
   .dk-synergy {
     border-radius: 18px;
     border: 1px solid var(--dk-line);
     background: var(--dk-elev);
-    padding: 16px;
+    padding: var(--dk-d-panel-pad, 16px);
+  }
+  /* On the draft screen the synergy panel is the rail's elastic region —
+     it fills the space under the gauges and scrolls its own list. */
+  .draft-workspace__right .dk-synergy {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
   }
   .dk-synergy__head {
+    flex: 0 0 auto;
     display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 12px;
+    margin-bottom: clamp(6px, 1.2vh, 12px);
   }
   .dk-synergy__count {
     font-size: 10px; font-weight: 800; color: var(--dk-green);
@@ -849,6 +1011,9 @@
   .dk-synergy__list {
     display: flex; flex-direction: column; gap: 7px;
     max-height: 360px; overflow-y: auto;
+  }
+  .draft-workspace__right .dk-synergy__list {
+    flex: 1 1 auto; min-height: 0; max-height: none;
   }
   .dk-synergy__item {
     border-radius: 10px; padding: 9px 12px;
@@ -869,6 +1034,7 @@
     display: flex; flex-direction: column; align-items: center;
     justify-content: center; gap: 8px; padding: 22px 10px; text-align: center;
   }
+  .draft-workspace__right .dk-synergy__empty { flex: 1 1 auto; min-height: 0; padding: 10px; }
   .dk-synergy__empty-icon { font-size: 26px; opacity: 0.5; }
   .dk-synergy__empty-text {
     margin: 0; font-size: 12px; color: var(--dk-dim); max-width: 26ch;
@@ -882,10 +1048,61 @@
     background: linear-gradient(120deg,
                   color-mix(in srgb, var(--dk-blue) 16%, transparent),
                   transparent 70%), var(--dk-elev);
-    padding: 22px !important;
+    /* --dk-d-slot-pad is only defined inside .draft-screen; .dk-simulate-card
+       also appears on the results screens, where the fallback applies. */
+    padding: var(--dk-d-slot-pad, 22px) !important;
+  }
+
+  /* ── Short windows: buy height for the board ───────────────
+     Fitting on one screen is not enough — a draft card whose "Draft"
+     button sits below the fold of its own scroll region is a card you
+     can't use without hunting for it. Below these heights the screen
+     spends its remaining budget on the cards and drops the chrome that
+     is nice-to-have.
+
+     The drop order is by value to the pick you are making right now:
+     the one-time welcome banner goes first, the trait chips only after
+     that, and the spinner's decorations last.
+
+     First to go: the cold-open welcome. It is one-time onboarding worth
+     ~5rem, and below this height that 5rem is the difference between
+     seeing a whole draft card and seeing two thirds of one. Mobile hides
+     it outright (css/styles.css). */
+  @media (max-height: 900px) {
+    .draft-screen .draft-cold-open { display: none !important; }
+  }
+
+  /* Trade the trait chips for card height, exactly as the mobile
+     one-viewport layout does — position, name, stats and the Draft
+     button are what the pick is actually made on. */
+  @media (max-height: 780px) {
+    .draft-workspace .draft-card-traits { display: none !important; }
+    .draft-workspace .draft-card-body { padding: 9px !important; }
+    .draft-workspace .draft-card__head { margin-bottom: 5px !important; }
+    .draft-workspace .draft-card__name { margin-bottom: 4px !important; }
+    .draft-workspace .draft-card__actions { padding: 0 9px 9px !important; }
+    .draft-workspace .draft-card-btn { padding: 6px 0 !important; }
+
+    /* Slot-machine chrome compacts too: the team/era values stay large,
+       the labels and LOCKED pills give up their margins. */
+    .draft-workspace .draft-slot-machine > .flex.items-center { margin-bottom: 7px !important; }
+    .draft-workspace .draft-slot-machine__cell .text-\[10px\] { margin-bottom: 2px !important; }
+    .draft-workspace .draft-slot-machine__cell .mt-2 {
+      margin-top: 3px !important;
+      font-size: 9px !important;
+      padding: 1px 7px !important;
+    }
+  }
+
+  /* Last resort before the layout would clip: the era/team spinner keeps
+     only its values, and the stepper drops its phase labels. */
+  @media (max-height: 660px) {
+    .draft-screen .draft-stepper__name { display: none; }
+    .draft-workspace .draft-slot-machine__cell .mt-2 { display: none !important; }
+    .draft-workspace .draft-slot-machine > p.text-center { display: none !important; }
   }
   .draft-workspace .draft-simulate-card [data-action="simulate"] {
-    height: 56px;
+    height: var(--dk-d-spin-h, 56px);
     border-radius: 14px !important;
     font-size: 15px !important;
     letter-spacing: 0.06em;

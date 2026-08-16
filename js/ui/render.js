@@ -774,8 +774,12 @@ function renderCoachChip() {
         class="w-full rounded-xl border bg-card px-3 py-2 flex items-center gap-2 card-shadow cursor-pointer transition-all hover:border-primary text-left"
         style="border-color:${S.coachPickerOpen ? coach.accent : 'var(--border)'}">${chipInner}</button>`;
 
+  // The picker is in normal flow on mobile (it pushes the column down, which
+  // is fine there). On desktop the chip lives inside the fixed-height stepper
+  // strip, so css/desktop.css floats this same node under the chip instead of
+  // letting it reflow the one-viewport draft layout — hence the hook class.
   const picker = !locked && S.coachPickerOpen ? `
-    <div class="rounded-xl border border-border bg-white card-shadow overflow-hidden animate-scale-in">
+    <div class="rounded-xl border border-border bg-white card-shadow overflow-hidden animate-scale-in draft-coach-chip__picker">
       <p class="text-[10px] font-bold uppercase tracking-widest text-muted-fg px-3 pt-2.5 pb-1.5">Pick your system — locks on first spin</p>
       ${COACHES.map(c => `
       <button data-action="coach-pick-${c.id}"
