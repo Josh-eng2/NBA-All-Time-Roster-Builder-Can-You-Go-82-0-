@@ -13,6 +13,7 @@ import { S, startGame } from './logic/state.js';
 import { logAnalyticsEvent }          from './utils/firebase.js';
 import { isReturningPlayer }          from './utils/storage.js';
 import { cgLoadingStart, cgLoadingStop, initCrazyGamesData } from './utils/crazygames.js';
+import { initViewport }                from './utils/viewport.js';
 // events.js is imported for its side-effect: attaching window helpers
 // (closeLeaderboardModal) needed by inline onclick in rendered HTML.
 import { doSpin, hasKnownHashRoute } from './ui/events.js';
@@ -33,6 +34,9 @@ import { doSpin, hasKnownHashRoute } from './ui/events.js';
  * and goes straight to the normal mode-select flow so the hash still routes.
  */
 async function init() {
+  // Before anything paints: the shell sizes itself from --app-h, and the
+  // loading overlay is already on screen.
+  initViewport();
   cgLoadingStart();
   // Must resolve before anything below reads/writes saved progress (Legends,
   // Trophy Room, personal bests) — decides whether those go through the

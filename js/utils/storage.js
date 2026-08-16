@@ -313,9 +313,9 @@ function renderLeaderboardModal() {
       }).join('');
 
   return `
-  <div id="lb-modal-backdrop" onclick="if(event.target===this)closeLeaderboardModal()"
+  <div id="lb-modal-backdrop" class="app-modal-backdrop" onclick="if(event.target===this)closeLeaderboardModal()"
     style="position:fixed;inset:0;background:var(--overlay);z-index:9998;display:flex;align-items:center;justify-content:center;padding:16px">
-    <div style="background:var(--card);border:1.5px solid var(--border);border-radius:20px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;padding:24px;font-family:'Fira Sans',sans-serif;color:var(--fg);animation:scaleIn 0.2s ease-out;box-shadow:0 20px 60px var(--shadow)">
+    <div class="app-modal-panel" style="background:var(--card);border:1.5px solid var(--border);border-radius:20px;width:100%;max-width:480px;padding:24px;font-family:'Fira Sans',sans-serif;color:var(--fg);animation:scaleIn 0.2s ease-out;box-shadow:0 20px 60px var(--shadow)">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
         <div>
           <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--primary);margin:0 0 4px">Personal Best</p>
@@ -491,9 +491,9 @@ function _globalLbTeamDetailHtml(entry) {
     </div>`;
 
   return `
-  <div id="global-lb-detail-backdrop" onclick="if(event.target===this)window.closeGlobalLbTeamDetail()"
+  <div id="global-lb-detail-backdrop" class="app-modal-backdrop" onclick="if(event.target===this)window.closeGlobalLbTeamDetail()"
     style="position:fixed;inset:0;background:var(--overlay);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px">
-    <div style="background:var(--card);border:1.5px solid var(--border);border-radius:20px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto;padding:22px;font-family:Fira Sans,sans-serif;color:var(--fg);animation:scaleIn 0.2s ease-out;box-shadow:0 20px 60px var(--shadow)">
+    <div class="app-modal-panel" style="background:var(--card);border:1.5px solid var(--border);border-radius:20px;width:100%;max-width:420px;padding:22px;font-family:Fira Sans,sans-serif;color:var(--fg);animation:scaleIn 0.2s ease-out;box-shadow:0 20px 60px var(--shadow)">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px">
         <div style="min-width:0">
           <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--primary);margin:0 0 4px">Team Breakdown</p>
@@ -625,11 +625,11 @@ function _globalModalShellHtml(activeTab) {
     </button>`).join('');
 
   return `
-  <div id="global-lb-modal-backdrop" onclick="if(event.target===this)window.closeGlobalLeaderboardModal()"
+  <div id="global-lb-modal-backdrop" class="app-modal-backdrop" onclick="if(event.target===this)window.closeGlobalLeaderboardModal()"
     style="position:fixed;inset:0;background:var(--overlay);z-index:9998;display:flex;
            align-items:center;justify-content:center;padding:16px">
-    <div style="background:var(--card);border:1.5px solid var(--border);border-radius:20px;width:100%;
-                max-width:520px;max-height:90vh;overflow-y:auto;padding:24px;
+    <div class="app-modal-panel" style="background:var(--card);border:1.5px solid var(--border);border-radius:20px;width:100%;
+                max-width:520px;padding:24px;
                 font-family:Fira Sans,sans-serif;color:var(--fg);
                 animation:scaleIn 0.2s ease-out;box-shadow:0 20px 60px var(--shadow)">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
@@ -968,11 +968,11 @@ function _dailyLbRowsHtml(entries) {
 function _dailyModalShellHtml(dateLabel) {
   const ch = getDailyChallenge(getUtcDateString());
   return `
-  <div id="daily-lb-modal-backdrop" onclick="if(event.target===this)window.closeDailyLeaderboardModal()"
+  <div id="daily-lb-modal-backdrop" class="app-modal-backdrop" onclick="if(event.target===this)window.closeDailyLeaderboardModal()"
     style="position:fixed;inset:0;background:var(--overlay);z-index:9998;display:flex;
            align-items:center;justify-content:center;padding:16px">
-    <div style="background:var(--card);border:1.5px solid var(--border);border-radius:20px;width:100%;
-                max-width:520px;max-height:90vh;overflow-y:auto;padding:24px;
+    <div class="app-modal-panel" style="background:var(--card);border:1.5px solid var(--border);border-radius:20px;width:100%;
+                max-width:520px;padding:24px;
                 font-family:Fira Sans,sans-serif;color:var(--fg);
                 animation:scaleIn 0.2s ease-out;box-shadow:0 20px 60px var(--shadow)">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
@@ -1115,12 +1115,12 @@ export function showDailyStatsModal() {
   const div = document.createElement('div');
   div.id = 'daily-stats-modal-root';
   div.innerHTML = `
-  <div id="daily-stats-modal-backdrop" onclick="if(event.target===this)window.closeDailyStatsModal()"
+  <div id="daily-stats-modal-backdrop" class="app-modal-backdrop" onclick="if(event.target===this)window.closeDailyStatsModal()"
     style="position:fixed;inset:0;background:var(--overlay);z-index:9998;display:flex;
            align-items:center;justify-content:center;padding:16px">
-    <div role="dialog" aria-labelledby="daily-stats-title" aria-modal="true"
+    <div role="dialog" aria-labelledby="daily-stats-title" aria-modal="true" class="app-modal-panel"
       style="background:var(--card);border:1.5px solid var(--border);border-radius:20px;width:100%;
-             max-width:380px;max-height:90vh;overflow-y:auto;padding:28px 24px 24px;
+             max-width:380px;padding:28px 24px 24px;
              font-family:Fira Sans,sans-serif;color:var(--fg);
              animation:scaleIn 0.2s ease-out;box-shadow:0 20px 60px var(--shadow)">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px">
