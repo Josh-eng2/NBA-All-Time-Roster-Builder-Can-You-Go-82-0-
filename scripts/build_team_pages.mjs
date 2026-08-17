@@ -26,10 +26,19 @@ import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   ROOT, ORIGIN, esc, slugify, writeIfChanged, loadPlayerDb,
+  breadcrumbLd, assertTitleFits,
 } from './lib/seo-utils.mjs';
 
 const POSITIONS = ['PG', 'SG', 'SF', 'PF', 'C'];
 const POS_NAME = { PG: 'Point Guard', SG: 'Shooting Guard', SF: 'Small Forward', PF: 'Power Forward', C: 'Center' };
+
+/**
+ * Spoken form of each decade, for titles. People search "best 90s nba
+ * players" far more than "best 1990s nba players", but the 2000s onward have
+ * no shorter spoken form ("00s" is not what anyone types), so those stay as
+ * they are and the title simply reads naturally.
+ */
+const DECADE_SHORT = { '1960s': '60s', '1970s': '70s', '1980s': '80s', '1990s': '90s' };
 
 /** Franchises with fewer players than this get no page rather than a thin one. */
 const MIN_FRANCHISE_PLAYERS = 12;
@@ -113,6 +122,7 @@ ${five.map(({ pos, player }) => player
 /** Shared <head>. `depth` is how many directories deep the page sits. */
 function head({ title, desc, url, jsonLd, depth = 1 }) {
   const up = '../'.repeat(depth);
+  assertTitleFits(title, url);
   if (desc.length > 158) throw new Error(`meta description too long (${desc.length}): ${desc}`);
   return `<!DOCTYPE html>
 <html lang="en">
@@ -157,9 +167,14 @@ ${JSON.stringify(jsonLd, null, 2).split('\n').map(l => '  ' + l).join('\n')}
 `;
 }
 
-function jsonLdFor(title, url, desc) {
-  return {
-    '@context': 'https://schema.org',
+/**
+ * An @graph rather than a lone WebPage, so each page can also carry the
+ * BreadcrumbList (and, where it renders one, the ItemList) that gives it a
+ * chance at a search treatment beyond a bare link. `extra` entries must all
+ * describe markup that is actually visible on the page.
+ */
+function jsonLdFor(title, url, desc, extra = []) {
+  const page = {
     '@type': 'WebPage',
     name: title,
     url,
@@ -174,6 +189,55 @@ function jsonLdFor(title, url, desc) {
       gamePlatform: 'Web Browser',
     },
   };
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [page, ...extra.filter(Boolean)],
+  };
+}
+
+/** Trail shared by every franchise and era page. */
+const HUB_CRUMB = [
+  ['Can You Go 82-0?', ORIGIN + '/'],
+  ['All franchises & eras', `${ORIGIN}/teams.html`],
+];
+
+/**
+ * ItemList mirroring the visible <ol class="tp-five"> starting five. Ordered,
+ * ranked and on the page, which is what makes it markup rather than a claim.
+ */
+function fiveLd(name, five) {
+  const picked = five.filter(f => f.player);
+  if (!picked.length) return null;
+  return {
+    '@type': 'ItemList',
+    name,
+    itemListOrder: 'https://schema.org/ItemListOrderAscending',
+    numberOfItems: picked.length,
+    itemListElement: picked.map(({ pos, player }, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: `${player.name} — ${POS_NAME[pos]}`,
+    })),
+  };
+}
+
+/**
+ * Builds a description that leads with real player names and still fits
+ * Google's ~158-char snippet. Names are the part a searcher actually reacts
+ * to ("Magic Johnson, Kobe Bryant, LeBron James" beats "all 50 legends,
+ * rated"), but they vary wildly in length, so drop one name at a time until
+ * the line fits rather than shipping a truncated snippet.
+ */
+function descWithNames(names, tail, fallback) {
+  // A player has one row per franchise he played for, so the rating order for
+  // a decade repeats names (Wilt Chamberlain holds the top three 1960s rows on
+  // his own). Dedupe before slicing or the snippet reads as a stutter.
+  const unique = [...new Set(names)];
+  for (let n = Math.min(3, unique.length); n >= 1; n--) {
+    const d = `${unique.slice(0, n).join(', ')} — ${tail}`;
+    if (d.length <= 158) return d;
+  }
+  return fallback;
 }
 
 // ── Franchise page ───────────────────────────────────────────────────────────
@@ -181,9 +245,18 @@ function jsonLdFor(title, url, desc) {
 function renderTeamPage(team, players, decades, allTeams) {
   const slug = slugify(team);
   const url = `${ORIGIN}/teams/${slug}.html`;
-  const title = `${team} All-Time Roster — Every Era, Rated`;
-  const desc = `All ${players.length} ${team} legends in the 82-0 draft pool, rated and split by decade, plus the franchise's all-time starting five.`;
   const five = bestFive(players);
+  // "<team> all-time starting 5" and "<team> all-time roster" are what people
+  // actually type. The old title led with "Every Era, Rated" — a phrase with
+  // no search demand — and these 30 pages drew zero impressions in three
+  // months. The starting five was already the page's best content; now the
+  // title claims it.
+  const title = `${team} All-Time Starting 5 — Full Roster by Era`;
+  const desc = descWithNames(
+    five.filter(f => f.player).map(f => f.player.name),
+    `see the all-time ${team} starting five, plus all ${players.length} ${team} legends rated and split by decade.`,
+    `All ${players.length} ${team} legends in the 82-0 draft pool, rated and split by decade, plus the franchise's all-time starting five.`,
+  );
   const byDecade = decades
     .map(d => ({ decade: d, list: players.filter(p => p.decade === d) }))
     .filter(g => g.list.length);
@@ -194,7 +267,10 @@ function renderTeamPage(team, players, decades, allTeams) {
   const best = players[0];
   const others = allTeams.filter(t => t !== team).slice(0, 12);
 
-  return head({ title, desc, url, jsonLd: jsonLdFor(title, url, desc) }) + `
+  return head({ title, desc, url, jsonLd: jsonLdFor(title, url, desc, [
+    breadcrumbLd([...HUB_CRUMB, [`${team} all-time roster`, url]]),
+    fiveLd(`All-time ${team} starting five`, five),
+  ]) }) + `
   <section class="seo-content cp-page tp-page">
     <div class="seo-inner">
       <p class="cp-crumb"><a href="../teams.html">← All franchises &amp; eras</a></p>
@@ -251,9 +327,22 @@ ${statTable(g.list, { showDecade: false })}
 function renderEraPage(decade, players, teamsInDecade, allDecades) {
   const url = `${ORIGIN}/eras/${decade}.html`;
   const label = `${decade}`;
-  const title = `The ${label} All-Time NBA Team — Every Player, Rated`;
-  const desc = `All ${players.length} ${label} legends in the 82-0 draft pool across ${teamsInDecade.length} franchises, rated, with the decade's all-time starting five.`;
+  const short = DECADE_SHORT[decade] || label;
   const five = bestFive(players);
+  // Leads with "Best <decade> NBA players" — the phrase with the demand —
+  // and carries the spoken decade ("90s") as well as the written one, since
+  // searchers use both and the page should match either.
+  const title = `Best ${label} NBA Players & the All-Time ${short} Team`;
+  // Named from the rating order, not the positional five: the query this page
+  // answers is "best <decade> NBA players", so the snippet should open with
+  // the decade's highest-rated names (both lists are visible on the page).
+  // Slice wide, not to 3: descWithNames dedupes, and the top rows of a decade
+  // can all belong to one player who changed franchises.
+  const desc = descWithNames(
+    players.slice(0, 12).map(p => p.name),
+    `the best ${label} NBA players, rated — all ${players.length} across ${teamsInDecade.length} franchises, plus the all-time ${short} starting five.`,
+    `All ${players.length} ${label} legends in the 82-0 draft pool across ${teamsInDecade.length} franchises, rated, with the decade's all-time starting five.`,
+  );
   const top = players.slice(0, 20);
   const byTeam = teamsInDecade
     .map(t => ({ team: t, list: players.filter(p => p.team === t) }))
@@ -264,7 +353,10 @@ function renderEraPage(decade, players, teamsInDecade, allDecades) {
   const topApg = leader(players, 'apg');
   const topBpg = leader(players, 'bpg');
 
-  return head({ title, desc, url, jsonLd: jsonLdFor(title, url, desc) }) + `
+  return head({ title, desc, url, jsonLd: jsonLdFor(title, url, desc, [
+    breadcrumbLd([...HUB_CRUMB, [`${label} all-time team`, url]]),
+    fiveLd(`All-time ${label} starting five`, five),
+  ]) }) + `
   <section class="seo-content cp-page tp-page">
     <div class="seo-inner">
       <p class="cp-crumb"><a href="../teams.html">← All franchises &amp; eras</a></p>
@@ -322,11 +414,18 @@ ${statTable(g.list, { showDecade: false })}
  */
 function renderHubPage(teams, eras) {
   const url = `${ORIGIN}/teams.html`;
-  const title = 'All-Time NBA Rosters by Franchise & Era';
   const totalPlayers = new Set(teams.flatMap(t => t.players.map(p => p.id))).size;
-  const desc = `Every one of the ${totalPlayers} legends in the 82-0 draft pool, indexed by all ${teams.length} franchises and ${eras.length} decades, with all-time starting fives.`;
+  // The hub is the one page that can plausibly rank for the whole-league
+  // version of the query the 30 franchise pages each chase individually.
+  const title = `Every NBA Team's All-Time Starting 5 — All ${teams.length} Franchises`;
+  const desc = `The all-time starting five for all ${teams.length} NBA franchises and every decade since the 1960s — ${totalPlayers} legends, rated and ranked.`;
 
-  return head({ title, desc, url, jsonLd: jsonLdFor(title, url, desc), depth: 0 }) + `
+  return head({
+    title, desc, url, depth: 0,
+    jsonLd: jsonLdFor(title, url, desc, [
+      breadcrumbLd([['Can You Go 82-0?', ORIGIN + '/'], ['All franchises & eras', url]]),
+    ]),
+  }) + `
   <section class="seo-content cp-page tp-page">
     <div class="seo-inner">
       <p class="cp-crumb"><a href="./">← Back to the game</a></p>

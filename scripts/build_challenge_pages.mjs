@@ -36,7 +36,7 @@ import { readFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   ROOT, ORIGIN, TODAY, esc, slugify, writeIfChanged, lastmodFor,
-  notifyIndexNow, loadPlayerDb,
+  notifyIndexNow, loadPlayerDb, breadcrumbLd, assertTitleFits,
 } from './lib/seo-utils.mjs';
 import { buildTeamPages } from './build_team_pages.mjs';
 
@@ -137,6 +137,38 @@ const STRATEGY = {
   'build-around-giannis': 'Giannis fills the power forward slot with two-way production but limited outside shooting. Surround him with shooters and a real point guard; a second non-shooting big will crowd the paint in the sim.',
 };
 
+/**
+ * The rule, short enough to sit in a <title>.
+ *
+ * Challenge names are internal codenames — "Old School", "Swat Team", "The
+ * King's Court" — and they tell a searcher nothing about what the page holds.
+ * Search Console had three of these pages ranking at position 1.0 with a 0%
+ * click-through rate: Google put them first and nobody clicked, which is a
+ * title problem rather than a ranking problem. Pairing the codename with the
+ * actual rule gives the result something to promise.
+ *
+ * Keyed by id, like STRATEGY, so renaming a challenge cannot silently
+ * de-sync the two.
+ */
+const RULE_SHORT = {
+  'nineties-only':        '1990s Players Only',
+  'y2k-ball':             '2000s Players Only',
+  'old-school':           'Pre-1990 Players Only',
+  'modern-era':           '2010s & 2020s Only',
+  'budget-ball':          'Least-Loved Players Only',
+  'no-la-boston':         'No Lakers, No Celtics',
+  'win-65':               'Win 65 of 82',
+  'win-70':               'Win 70 of 82',
+  'volume-scorer':        'One 30+ PPG Starter',
+  'swat-team':            '8+ Blocks Per Game',
+  'chemistry-class':      'Perfect Chemistry',
+  'wire-to-wire':         '20-Game Win Streak',
+  'build-around-shaq':    'Build Around Shaq',
+  'build-around-lebron':  'Build Around LeBron',
+  'build-around-magic':   'Build Around Magic',
+  'build-around-giannis': 'Build Around Giannis',
+};
+
 const TYPE_LABEL = {
   constraint: 'Draft constraint',
   objective:  'Season objective',
@@ -153,11 +185,19 @@ const TYPE_BLURB = {
 function renderPage(ch, slug, dates) {
   const facts = ruleFacts(ch);
   const locked = ch.type === 'locked' ? getLockedPlayer(ch) : null;
-  const title = `${ch.title} — 82-0 Daily Challenge`;
-  // Kept under ~158 chars so Google renders it in full. The suffix is dropped
-  // rather than truncated mid-sentence when a long rule leaves no room.
-  const suffix = ` How the ${ch.title} daily challenge works and how to clear it.`;
-  const metaDesc = (ch.desc + suffix).length <= 158 ? ch.desc + suffix : ch.desc;
+  const rule = RULE_SHORT[ch.id];
+  if (!rule) throw new Error(`no RULE_SHORT entry for challenge "${ch.id}"`);
+  const title = assertTitleFits(`${ch.title}: ${rule} — NBA Daily Challenge`, ch.id);
+  // Kept under ~158 chars so Google renders it in full. Try the richest
+  // closing line first and fall back through shorter ones, rather than
+  // truncating mid-sentence, when a long rule leaves no room.
+  const suffixes = [
+    ` Full rules, the roster that clears it, and how to beat ${ch.title} in the 82-0 NBA daily challenge.`,
+    ` Full rules and how to clear ${ch.title} in the 82-0 daily challenge.`,
+    ` How the ${ch.title} daily challenge works and how to clear it.`,
+    '',
+  ];
+  const metaDesc = ch.desc + (suffixes.find(s => (ch.desc + s).length <= 158) ?? '');
   if (metaDesc.length > 158) throw new Error(`meta description too long for "${ch.id}" (${metaDesc.length})`);
   const url = `${ORIGIN}/daily/${slug}.html`;
 
@@ -204,19 +244,27 @@ function renderPage(ch, slug, dates) {
   <script type="application/ld+json">
 ${JSON.stringify({
   '@context': 'https://schema.org',
-  '@type': 'WebPage',
-  name: title,
-  url,
-  description: ch.desc,
-  inLanguage: 'en',
-  isPartOf: { '@type': 'WebSite', name: 'Can You Go 82-0?', url: ORIGIN + '/' },
-  about: {
-    '@type': 'VideoGame',
-    name: 'Can You Go 82-0?',
-    url: ORIGIN + '/',
-    applicationCategory: 'GameApplication',
-    gamePlatform: 'Web Browser',
+  '@graph': [{
+    '@type': 'WebPage',
+    name: title,
+    url,
+    description: ch.desc,
+    inLanguage: 'en',
+    isPartOf: { '@type': 'WebSite', name: 'Can You Go 82-0?', url: ORIGIN + '/' },
+    about: {
+      '@type': 'VideoGame',
+      name: 'Can You Go 82-0?',
+      url: ORIGIN + '/',
+      applicationCategory: 'GameApplication',
+      gamePlatform: 'Web Browser',
+    },
   },
+  // Matches the visible `.cp-crumb` trail rendered just below.
+  breadcrumbLd([
+    ['Can You Go 82-0?', ORIGIN + '/'],
+    ['Daily Challenge archive', `${ORIGIN}/daily.html`],
+    [ch.title, url],
+  ])],
 }, null, 2).split('\n').map(l => '  ' + l).join('\n')}
   </script>
 </head>

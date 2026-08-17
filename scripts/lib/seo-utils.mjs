@@ -33,6 +33,47 @@ export const slugify = s => String(s).toLowerCase()
   .replace(/[^a-z0-9]+/g, '-')
   .replace(/^-+|-+$/g, '');
 
+/**
+ * BreadcrumbList JSON-LD.
+ *
+ * Search Console's "Search appearance" report is empty — these pages earn no
+ * rich result of any kind, so every listing is a bare blue link. Breadcrumbs
+ * are the one treatment Google still shows broadly for pages like these: they
+ * replace the raw URL line in the result and tell the searcher the page sits
+ * inside a real franchise/era index rather than being a loose page.
+ *
+ * This markup is only legal because every generated page renders a visible
+ * trail (the `.cp-crumb` link back to its hub) — Google requires the
+ * breadcrumb be on the page, not invented in the schema. Keep that link if
+ * you keep this call.
+ *
+ * `trail` is [name, url] pairs, root first; the last entry is the current
+ * page and still carries its own url, per Google's spec.
+ */
+export const breadcrumbLd = trail => ({
+  '@type': 'BreadcrumbList',
+  itemListElement: trail.map(([name, item], i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    name,
+    item,
+  })),
+});
+
+/**
+ * Guard for a <title>. Google truncates the result link at roughly 600px —
+ * about 60 characters — and a title that gets cut mid-phrase loses exactly
+ * the keyword it was lengthened to carry. Generated titles are built from
+ * team/challenge names of varying length, so this catches a bad one at build
+ * time instead of after it ships to 50-odd pages.
+ */
+export function assertTitleFits(title, ctx) {
+  if (title.length > 60) {
+    throw new Error(`title too long (${title.length} chars) for ${ctx}: ${title}`);
+  }
+  return title;
+}
+
 /** Writes only when content actually differs. Returns true if it wrote. */
 export function writeIfChanged(path, content) {
   try {
