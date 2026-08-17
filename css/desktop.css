@@ -696,6 +696,45 @@
     gap: var(--dk-d-gap);
   }
 
+  /* ── Before the first spin ────────────────────────────────
+     There is no board yet, so the left column is just the spinner and an
+     empty roster. Nothing claims the leftover height, the centring above
+     splits it evenly top and bottom, and the screen reads as a small block
+     marooned in the middle of a large empty page.
+
+     Hand that space to the spinner. It is the only thing on screen you can
+     act on before a spin, so a larger TEAM/ERA pair and a full-width SPIN
+     button is the honest use of the room — and it puts the roster strip at
+     the bottom exactly where it sits once the board appears, so nothing
+     jumps when the spin lands. The cells are capped so a tall monitor gets
+     a generous spinner rather than an absurd one. */
+  .draft-workspace--no-board .draft-workspace__cols { flex: 1 1 auto; }
+
+  /* Spinner at the top, roster strip at the bottom — the same geometry the
+     screen has once the board arrives, so the roster does not jump when the
+     spin lands. Whatever is left over sits between them, which is exactly
+     where the board will appear. */
+  .draft-workspace--no-board .draft-workspace__left {
+    justify-content: space-between;
+  }
+
+  .draft-workspace--no-board .draft-workspace__left .draft-slot-machine {
+    flex: 1 1 auto;
+    min-height: 0;
+    /* Capped, and the cap is what keeps the card honest: the grid below is
+       the only part allowed to grow, so the card can never end up taller
+       than its own content and leave dead space under the SPIN button. */
+    max-height: clamp(260px, 64vh, 620px);
+    display: flex;
+    flex-direction: column;
+  }
+  .draft-workspace--no-board .draft-slot-machine__grid {
+    flex: 1 1 auto;
+    min-height: 0;
+    align-items: stretch;
+  }
+  .draft-workspace--no-board .draft-slot-machine__cell { height: 100%; }
+
   /* `0 1 auto`, not `1`: the columns take their content's height when it
      fits and shrink (never grow) when it doesn't, handing the overflow to
      the board's and synergy list's own scrollbars. */
@@ -1637,7 +1676,8 @@
     .results-col > *,
     .results-col > .results-block--hero,
     .results-col > .results-block--playoffs,
-    .results-col > .results-block--save { order: 0; }
+    .results-col > .results-block--save,
+    .results-col > .dk-res-legends { order: 0; }
   }
 }
 

@@ -375,9 +375,23 @@ html[data-page="game"] [role="button"] {
   min-height: var(--tap);
 }
 
-/* Small icon pills and inline chips opt out — they are secondary controls
-   sized to their text, and forcing 34px on them would break the header. */
-html[data-page="game"] .header-pill--icon,
+/* Small pills and inline chips opt out — they are secondary controls sized
+   by their own rules, and forcing 34px on them breaks the row they sit in.
+
+   `.header-pill` covers the whole family deliberately, not just the icon
+   variant. The header action strip mixes elements: the coach and era pills
+   render as <span> when locked and <button> when interactive, the icons are
+   <button>, and Restart is a <button>. A min-height that lands on only the
+   <button>s made Restart 34px next to 23px pills between 640px and 1023px —
+   one control taller than the rest of the row, which reads as misaligned.
+   Height here belongs to the header's own rules (css/styles.css sizes the
+   pills, css/desktop.css gives them a uniform 38px from 1024px up) so that
+   every pill matches whatever its neighbours are, regardless of tag.
+
+   It also keeps them inside `.app-header__actions`, which is an
+   `overflow-y: hidden` scroll strip below 640px — anything taller than the
+   strip gets clipped rather than overflowing. */
+html[data-page="game"] .header-pill,
 html[data-page="game"] .theme-toggle,
 html[data-page="game"] .draft-card-btn,
 html[data-page="game"] .quick-tile,
