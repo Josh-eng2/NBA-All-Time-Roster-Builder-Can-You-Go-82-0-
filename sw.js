@@ -23,10 +23,9 @@
 //       js/utils/install.js are new, and events.js/render.js/shareCard.js
 //       changed — without it, a shared rematch link opens on a build whose
 //       events.js has no #/rematch route.
-//
-// v5 covers both sides of this merge: the responsive assets were already
-// precached at v4, and the share/rematch modules are added below.
-const CACHE_VERSION = '820-v5';
+//   v6  header pill alignment, pre-spin draft layout, legends placement:
+//       desktop.css, styles.css, responsive.css and render.js all changed.
+const CACHE_VERSION = '820-v6';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 
