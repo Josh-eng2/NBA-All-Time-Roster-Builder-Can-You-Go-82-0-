@@ -372,6 +372,14 @@ html[data-page="game"] body {
   padding: 0.25rem 0.5rem;
   cursor: pointer;
   transition: border-color 0.15s, color 0.15s;
+  /* `.header-pill` centres on the cross axis but leaves the main axis at
+     flex-start, which is right for the text pills (the coach name truncates
+     from the end). An icon pill has one glyph and a fixed width from 1024px
+     up — css/desktop.css gives it width:34px and padding:0 — so flex-start
+     pins the glyph to the left edge with all 18px of slack on the right.
+     Centre it explicitly; below 1024px the box is shrink-to-fit so this
+     changes nothing there. */
+  justify-content: center;
 }
 
 .header-pill--icon:hover {
