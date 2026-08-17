@@ -2226,6 +2226,15 @@ button.autopsy-strip:hover {
   order: 30;
 }
 
+/* Legends-collected is a footnote to the run, so on one column it stays last
+   — after the action buttons. It lives in the desktop left column now (see
+   renderResults), which would otherwise float it to the top of the order-40
+   group here; this keeps the phone sequence exactly as it was. */
+.results-layout > .dk-res-legends,
+.results-col > .dk-res-legends {
+  order: 50;
+}
+
 /* ── Static SEO content (index.html below-game guide + daily.html archive) ──
    Plain CSS on the shared theme tokens — deliberately not Tailwind classes,
    so these crawlable pages need no tailwind.css rebuild. */

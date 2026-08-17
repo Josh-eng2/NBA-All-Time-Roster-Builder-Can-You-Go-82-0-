@@ -1001,7 +1001,13 @@ function renderDrafting() {
     <div class="min-h-screen main-gradient draft-screen">
       ${renderHeader(true)}
       <main class="flex flex-col items-center draft-screen__main">
-        <div class="draft-workspace">
+        <!-- Before the first spin the left column holds only the spinner and
+             the empty roster — no board — so nothing in it wants the leftover
+             height and the whole workspace ends up floating in the middle of
+             the screen. Flagging that state lets css/desktop.css hand the
+             space to the spinner instead, which is the only thing you can
+             act on at that moment. -->
+        <div class="draft-workspace${shouldShowDraftBoard(full) ? '' : ' draft-workspace--no-board'}">
           ${banners}
           ${renderDraftStepper(full)}
           <div class="draft-workspace__cols">
@@ -2136,6 +2142,27 @@ function renderResults() {
         ${signalChips ? `<div class="results-block--hero flex items-center justify-center gap-2 flex-wrap">${signalChips}</div>` : ''}
 
         <div class="results-block--hero dk-res-five">${renderStartingFiveCard()}</div>
+
+        <!-- Legends collected sits under the Starting 5 rather than in the
+             rail: it reports on the run you just played, which is what this
+             column is for, and the rail is reserved for what you do next.
+             The phone layout is unchanged — css/styles.css orders this block
+             last there, so it still reads after the action buttons. -->
+        ${r.newLegends > 0 ? (() => {
+          const { total } = getLegendCatalog();
+          const have = getCollectedLegends().size;
+          return `
+          <button data-action="view-legends"
+            class="w-full rounded-2xl border cursor-pointer transition-all hover:bg-indigo-100 card-shadow flex items-center gap-3 px-4 py-3 text-left dk-res-legends"
+            style="border-color:#c7d2fe;background:var(--surface-indigo)">
+            <span class="text-2xl flex-shrink-0">🃏</span>
+            <div class="min-w-0 flex-1">
+              <p class="text-sm font-black text-indigo-700">+${r.newLegends} new legend${r.newLegends === 1 ? '' : 's'} collected!</p>
+              <p class="text-xs text-indigo-500 mt-0.5">${have}/${total} all-time legends in your collection · tap to view</p>
+            </div>
+            <span class="text-indigo-400 flex-shrink-0">›</span>
+          </button>`;
+        })() : ''}
         ${renderDailyResultBanner()}
         ${renderRematchResultBanner()}
         ${renderInstallPromptCard()}
@@ -2195,22 +2222,6 @@ function renderResults() {
           <button data-action="share" type="button" class="btn-courtside-outline card-shadow">Share Result</button>
         </div>
         ${renderChallengeShareCard()}
-
-        ${r.newLegends > 0 ? (() => {
-          const { total } = getLegendCatalog();
-          const have = getCollectedLegends().size;
-          return `
-          <button data-action="view-legends"
-            class="w-full rounded-2xl border cursor-pointer transition-all hover:bg-indigo-100 card-shadow flex items-center gap-3 px-4 py-3 text-left dk-res-legends"
-            style="border-color:#c7d2fe;background:var(--surface-indigo)">
-            <span class="text-2xl flex-shrink-0">🃏</span>
-            <div class="min-w-0 flex-1">
-              <p class="text-sm font-black text-indigo-700">+${r.newLegends} new legend${r.newLegends === 1 ? '' : 's'} collected!</p>
-              <p class="text-xs text-indigo-500 mt-0.5">${have}/${total} all-time legends in your collection · tap to view</p>
-            </div>
-            <span class="text-indigo-400 flex-shrink-0">›</span>
-          </button>`;
-        })() : ''}
         </div><!-- /.results-col--rail -->
       </div>
     </main>
