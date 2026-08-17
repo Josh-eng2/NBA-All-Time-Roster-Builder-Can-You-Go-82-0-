@@ -1648,7 +1648,12 @@
     .results-layout {
       display: grid;
       grid-template-columns: minmax(0, 1.35fr) minmax(280px, 1fr);
-      align-items: start;
+      /* `stretch`, not `start`: it makes both columns the height of the
+         taller one, which is what lets the two columns finish level instead
+         of the shorter one stopping ~64px early. Which column is taller
+         varies with mode (daily adds banners to the left), so this is
+         deliberately symmetric rather than assuming the rail always wins. */
+      align-items: stretch;
     }
 
     .results-layout > .courtside-hero { grid-column: 1 / -1; grid-row: 1; }
@@ -1678,6 +1683,21 @@
     .results-col > .results-block--playoffs,
     .results-col > .results-block--save,
     .results-col > .dk-res-legends { order: 0; }
+
+    /* With the columns now equal height, one card per column takes up the
+       slack so the pair ends flush rather than leaving a ragged gap under
+       the shorter one. Each is the last card in its column and each is a
+       single banner whose contents centre happily at any height, so they
+       are the right ones to stretch — everything above them keeps its own
+       size. */
+    .results-col--main > .dk-res-legends,
+    .results-col--rail > .dk-res-challenge {
+      flex: 1 1 auto;
+      min-height: 0;
+    }
+    /* The legends banner is a button laid out as a row; centring keeps its
+       icon and two lines optically placed once it is taller than its text. */
+    .results-col--main > .dk-res-legends { align-items: center; }
   }
 }
 

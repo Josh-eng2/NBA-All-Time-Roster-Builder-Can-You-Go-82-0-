@@ -356,6 +356,12 @@ function renderHeader(showRestart = false) {
   </div>`;
 }
 
+/**
+ * Legal line + Privacy link. Rendered on the mode-select screen only — it is
+ * the entry point every player passes through, so the disclosure stays one
+ * click from anywhere without repeating on all eleven screens. Do not add
+ * this back to gameplay screens; it was removed from them deliberately.
+ */
 function renderFooter() {
   return `
   <footer class="w-full mt-auto" style="padding:2px 0">
@@ -677,7 +683,6 @@ function renderMoreModesScreen() {
         ${cards}
       </div>
     </main>
-    ${renderFooter()}
   </div>`;
 }
 
@@ -739,7 +744,6 @@ function renderLegends() {
         </button>
       </div>
     </main>
-    ${renderFooter()}
   </div>`;
 }
 
@@ -2225,7 +2229,6 @@ function renderResults() {
         </div><!-- /.results-col--rail -->
       </div>
     </main>
-    ${renderFooter()}
   </div>`;
 }
 
@@ -2822,7 +2825,6 @@ function renderPlayoffs() {
         </div>
       </div>
     </main>
-    ${renderFooter()}
   </div>`;
 }
 
@@ -2861,7 +2863,6 @@ function renderChampionship() {
         </div>
       </div>
     </main>
-    ${renderFooter()}
   </div>`;
 }
 
@@ -2903,7 +2904,6 @@ function renderEliminated() {
         </div>
       </div>
     </main>
-    ${renderFooter()}
   </div>`;
 }
 
@@ -3013,7 +3013,6 @@ function renderTrophyRoom() {
         ${trophies.length > 0 ? `<div class="flex flex-col gap-4">${trophyCards}</div>` : ''}
       </div>
     </main>
-    ${renderFooter()}
   </div>`;
 }
 
@@ -3169,7 +3168,6 @@ function renderSeriesResult() {
 
       </div>
     </main>
-    ${renderFooter()}
   </div>`;
 }
 
@@ -3254,7 +3252,6 @@ function renderSeriesPreview() {
 
       </div>
     </main>
-    ${renderFooter()}
   </div>`;
 }
 
@@ -3365,7 +3362,6 @@ function renderSeriesSim() {
 
       </div>
     </main>
-    ${renderFooter()}
   </div>`;
 }
 

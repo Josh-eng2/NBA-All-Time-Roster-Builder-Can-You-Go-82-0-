@@ -25,7 +25,9 @@
 //       events.js has no #/rematch route.
 //   v6  header pill alignment, pre-spin draft layout, legends placement:
 //       desktop.css, styles.css, responsive.css and render.js all changed.
-const CACHE_VERSION = '820-v6';
+//   v7  footer scoped to the menu, icon glyphs centred, results columns
+//       levelled: desktop.css, styles.css and render.js changed.
+const CACHE_VERSION = '820-v7';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 
