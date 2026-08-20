@@ -59,6 +59,12 @@ Any static file server works.
 ## Tech
 
 Vanilla JavaScript (ES modules), HTML, and CSS — no backend and no build step to play.
+Engine logic is covered by dependency-free tests using Node's built-in runner:
+
+```bash
+node --test 'tests/*.test.mjs'
+```
+
 Tailwind is compiled ahead of time into the committed `css/tailwind.css`; re-run
 `scripts/build_tailwind.sh` after changing Tailwind classes. Firebase powers an optional
 global leaderboard/analytics and degrades gracefully if unavailable.

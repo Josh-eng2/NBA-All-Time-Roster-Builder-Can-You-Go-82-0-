@@ -115,21 +115,37 @@ function usingCgData() {
   return (_dataEnv === 'crazygames' || _dataEnv === 'local') && !!window.CrazyGames?.SDK?.data;
 }
 
+// The three accessors below all follow the same shape: try the Data Module
+// when we're embedded on CrazyGames, and fall back to localStorage if that
+// call throws. The fallback matters — the SDK branch used to be unguarded, so
+// a Data Module failure (quota, transport, a partial stub) meant the write
+// went nowhere at all rather than landing in localStorage, silently losing a
+// player's progress. localStorage itself throws in Safari private mode and
+// wherever site data is blocked, so that branch is guarded too: a save that
+// cannot be persisted must never break the run in progress.
+
 /** Drop-in replacement for localStorage.getItem — routes through the
  *  CrazyGames Data Module when embedded there, else plain localStorage. */
 export function cgGetItem(key) {
-  if (usingCgData()) return window.CrazyGames.SDK.data.getItem(key);
+  if (usingCgData()) {
+    try { return window.CrazyGames.SDK.data.getItem(key); } catch (_) { /* fall through */ }
+  }
   try { return localStorage.getItem(key); } catch (_) { return null; }
 }
 
 /** Drop-in replacement for localStorage.setItem. */
 export function cgSetItem(key, value) {
-  if (usingCgData()) { window.CrazyGames.SDK.data.setItem(key, value); return; }
-  localStorage.setItem(key, value);
+  if (usingCgData()) {
+    try { window.CrazyGames.SDK.data.setItem(key, value); return; } catch (_) { /* fall through */ }
+  }
+  try { localStorage.setItem(key, value); }
+  catch (e) { console.warn('[storage] could not persist', key, e); }
 }
 
 /** Drop-in replacement for localStorage.removeItem. */
 export function cgRemoveItem(key) {
-  if (usingCgData()) { window.CrazyGames.SDK.data.removeItem(key); return; }
+  if (usingCgData()) {
+    try { window.CrazyGames.SDK.data.removeItem(key); return; } catch (_) { /* fall through */ }
+  }
   try { localStorage.removeItem(key); } catch (_) {}
 }

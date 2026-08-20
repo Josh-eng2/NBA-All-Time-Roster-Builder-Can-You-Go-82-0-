@@ -39,7 +39,16 @@
 //   v11 fans gauge ceiling 500 -> 750 (popularity data now tops out at 350,
 //       not 140 — 500 was pinning at the median for star-chasing rosters):
 //       utils/storage.js changed.
-const CACHE_VERSION = '820-v11';
+//   v12 audit pass. Changed precached files: firebase.js (clamps
+//       avgPopularity/fansM to the deployed Firestore rule ranges — global
+//       submissions were being rejected server-side), chemistry.js + render.js
+//       (the live draft chemistry gauge now scores the same optimized lineup
+//       the season simulation uses), storage.js + render.js (fans display),
+//       shareCard.js (Win% now matches the record), crazygames.js (storage
+//       fallbacks), styles.css (trophy card below 1024px, header pill
+//       ellipsis, roster fit colours). js/utils/pageIntegrity.js is also new
+//       to the precache list below.
+const CACHE_VERSION = '820-v12';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 
@@ -56,6 +65,10 @@ const PRECACHE_URLS = [
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/apple-touch-icon.png',
+  // Loaded by index.html as a classic script before any third-party SDK, so
+  // it belongs in the shell — without it a first-run-then-offline visit has
+  // no page-integrity guard at all.
+  './js/utils/pageIntegrity.js',
   // App shell modules — enough for Classic play offline after install.
   './js/main.js',
   './js/data/players.js',

@@ -112,7 +112,7 @@ function drawScoreRecord(ctx, wins, losses, cx, y, fontPx, winsColor) {
 }
 
 function drawCard(ctx, data, H) {
-  const { wins, losses, winPct, chemScore, longestStreak, tierLabel, tierEmoji, isChampion, starters, dailyLabel, beatTarget } = data;
+  const { wins, losses, chemScore, longestStreak, tierLabel, tierEmoji, isChampion, starters, dailyLabel, beatTarget } = data;
   const tc = isChampion ? TIER_COLORS['🏆'] : (TIER_COLORS[tierEmoji] || TIER_COLORS['✅']);
   const hasStreak = longestStreak >= 5;
   const hasVerdict = !!beatTarget;
@@ -198,7 +198,13 @@ function drawCard(ctx, data, H) {
   ctx.font = '600 27px Arial, sans-serif';
   ctx.fillStyle = '#94a3b8';
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  const metaBits = [`Win% ${winPct}%`, chemScore != null ? `Team Chemistry ${chemTier(chemScore).label}` : null].filter(Boolean);
+  // The record's own win percentage, not the engine's per-game win
+  // PROBABILITY (`winPct`). The results screen labels that one "Projected";
+  // beside a bare W-L on a shared image it read as arithmetic and disagreed
+  // with the score above it (64-18 captioned "Win% 73.1%").
+  const played     = (wins ?? 0) + (losses ?? 0);
+  const recordPct  = played ? ((wins / played) * 100).toFixed(1) : '0.0';
+  const metaBits = [`Win% ${recordPct}%`, chemScore != null ? `Team Chemistry ${chemTier(chemScore).label}` : null].filter(Boolean);
   ctx.fillText(metaBits.join('    ·    '), W / 2, cy + META / 2);
   cy += META;
 

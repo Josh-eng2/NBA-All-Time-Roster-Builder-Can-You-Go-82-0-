@@ -381,10 +381,22 @@ let _playerNameMap   = null;
 // agree and nothing enforced it.
 export const FANS_TEAM_MAX = 750;
 
+/** Per-starter share of the team gauge — the denominator for a single
+ *  player's fans bar, so one full bar and five full bars mean the same thing.
+ *  Exported for render.js's Fans report card. */
+export const FANS_PLAYER_MAX = FANS_TEAM_MAX / 5;
+
+// Mirrors fansBarCol() in ui/render.js. The light-mode slate used to be
+// #94a3b8, which measures 2.56:1 on the white modal card — under the 3:1 AA
+// floor for a graphic that carries meaning — and the amber #d97706 measured
+// 3.05:1 as badge text. render.js fixed both; this copy hadn't been updated,
+// so the global-leaderboard modal still painted the failing values.
+// These modals render on a fixed light surface, so only the light ramp
+// applies here.
 function _fansBarCol(avg) {
   if (avg >= 80) return '#2563eb';
-  if (avg >= 60) return '#d97706';
-  return '#94a3b8';
+  if (avg >= 60) return '#b45309';
+  return '#64748b';
 }
 
 /** Same 2K-style OVR tier coloring as ovrColor() in render.js — duplicated
@@ -399,7 +411,7 @@ function _ovrColor(rating) {
 }
 
 function _fansTierFromAvg(avg) {
-  if (!avg) return { tier: 'Unknown', barCol: '#94a3b8' };
+  if (!avg) return { tier: 'Unknown', barCol: _fansBarCol(0) };
   return {
     tier:   avg >= 85 ? 'Superstar Lineup' : avg >= 70 ? 'Star Power' : avg >= 55 ? 'Solid Roster' : 'Under the Radar',
     barCol: _fansBarCol(avg),
@@ -442,10 +454,16 @@ function _resolveStarterLineup(entry) {
 
 function _teamFansFromEntry(entry, lineup) {
   const players = lineup.map(l => l.player).filter(Boolean);
-  let avg = Number(entry.avgPopularity) || 0;
-  if (!avg && players.length) {
-    avg = players.reduce((s, p) => s + (p.popularity ?? 50), 0) / players.length;
-  }
+  // Prefer the resolved lineup over the submitted `avgPopularity`. The stored
+  // field is clamped to 0-100 to satisfy the Firestore rules (see
+  // utils/firebase.js), while player popularity now runs to 350 — so the wire
+  // value would pin every star roster to the top tier. Recomputing from the
+  // entry's own starter names gives the real full-scale average, exactly as
+  // `sum` below already does. The stored value stays the fallback for entries
+  // whose names no longer resolve.
+  let avg = players.length
+    ? players.reduce((s, p) => s + (p.popularity ?? 50), 0) / players.length
+    : (Number(entry.avgPopularity) || 0);
   if (!avg) return null;
   const sum  = players.length
     ? players.reduce((s, p) => s + (p.popularity ?? 50), 0)

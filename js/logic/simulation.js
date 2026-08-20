@@ -15,7 +15,7 @@
 import { DB }                  from '../data/players.js';
 import { calculateChemistry, chemScoreFromBonus } from '../logic/chemistry.js';
 import { TEAMS, pickCosmetic, S } from '../logic/state.js';
-import { eraFactor, eraAdjustedStat, eraAdjustedLine, decadeFromBucketKey } from '../logic/era.js';
+import { eraAdjustedStat, eraAdjustedLine, decadeFromBucketKey } from '../logic/era.js';
 import { getModeConfig }       from '../logic/modes.js';
 
 // ── Sigmoid tuning knobs ──────────────────────────────────────────────────────
@@ -76,6 +76,9 @@ function computeSimBaselines() {
 // every round to drive the live system meter.
 const COACH_BOOST_FLOOR = 0.008;
 const COACH_BOOST_RANGE = 0.032;
+/** Boost at full system mastery. Exported so the Team Report's mastery grade
+ *  reads the same ceiling the sim awards instead of re-declaring it. */
+export const COACH_BOOST_MAX = COACH_BOOST_FLOOR + COACH_BOOST_RANGE;
 
 const clamp01 = v => Math.max(0, Math.min(1, v));
 
