@@ -31,8 +31,8 @@
 //       js/data/players.js changed. Without it a returning user keeps the
 //       stale precached DB, where every roster sits under POP_FLOOR and the
 //       fans mechanics stay inert.
-//   v9  fans gauge ceiling raised to 700 and de-duplicated: render.js and
-//       utils/storage.js changed.
+//   v9  fans gauge constant de-duplicated into utils/storage.js (ceiling
+//       stays 500): render.js and utils/storage.js changed.
 const CACHE_VERSION = '820-v9';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
