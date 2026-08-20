@@ -29,7 +29,7 @@ import {
   showDailyStatsModal, closeDailyStatsModal,
   saveModeLeaderboard, getDynastyDuelStatus, markDynastyDuelPlayed,
 } from '../utils/storage.js';
-import { submitGlobalScore, submitDailyScore, logAnalyticsEvent, isFirebaseConfigured } from '../utils/firebase.js';
+import { submitGlobalScore, submitDailyScore, logAnalyticsEvent } from '../utils/firebase.js';
 import { cgGetItem, cgSetItem } from '../utils/crazygames.js';
 import { gdShowAd, gdShowRewardedAd } from '../utils/gamedistribution.js';
 import { buildShareCardBlob, buildShareCaption } from './shareCard.js';

@@ -17,9 +17,9 @@ import {
 } from '../logic/state.js';
 import { calculateChemistry, chemTier, chemTierColors }                             from '../logic/chemistry.js';
 import { rosterFull, availableDecades, getLegendCatalog, getSkips } from '../logic/draft.js';
-import { coachSystemProgress }                            from '../logic/simulation.js';
+import { coachSystemProgress, COACH_BOOST_MAX }           from '../logic/simulation.js';
 import { getBracketDisplayState }                         from '../logic/playoffs.js';
-import { markReturning, getCollectedLegends, getDailyStatus, FANS_TEAM_MAX } from '../utils/storage.js';
+import { markReturning, getCollectedLegends, getDailyStatus, FANS_TEAM_MAX, FANS_PLAYER_MAX } from '../utils/storage.js';
 import { cgGameplayStart, cgGameplayStop, cgGetItem }     from '../utils/crazygames.js';
 import { gdRewardedAvailable }                            from '../utils/gamedistribution.js';
 import { getDailyChallenge, checkPickLegal, checkRosterConstraint } from '../logic/challenge.js';
@@ -52,9 +52,6 @@ function iconBall(cls = '') {
     <path d="M19.07 4.93a14.5 14.5 0 0 0 0 14.14"/>
     <path d="M2 12h20"/><path d="M12 2v20"/>
   </svg>`;
-}
-function iconCheck(cls = '') {
-  return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>`;
 }
 function isDark() {
   return document.documentElement.getAttribute('data-theme') === 'dark';
@@ -150,9 +147,6 @@ function calcTeamFans(players) {
 
 function themeIcon() {
   return isDark() ? '☀️' : '🌙';
-}
-function iconPlus(cls = '') {
-  return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16m8-8H4"/></svg>`;
 }
 
 // ── Public helpers ────────────────────────────────────────────────────────────
@@ -337,7 +331,7 @@ function renderHeader(showRestart = false) {
           <span>82-0</span>
         </h1>
         <div class="app-header__actions">
-          ${coachObj ? `<span class="header-pill header-pill--muted">${coachObj.system}</span>` : ''}
+          ${coachObj ? `<span class="header-pill header-pill--muted" title="${esc(coachObj.system)}"><span class="header-pill__text">${coachObj.system}</span></span>` : ''}
           ${eraPill}
           <button data-action="open-leaderboard" type="button" class="header-pill header-pill--icon" title="Personal Best" aria-label="Personal Best">🏅</button>
           <button data-action="open-global-leaderboard" type="button" class="header-pill header-pill--icon" title="Global Leaderboard" aria-label="Global Leaderboard">🌍</button>
@@ -518,6 +512,7 @@ function renderDailyModeCard() {
       <div class="flex-1 min-w-0">
         <p class="font-black text-sm text-foreground flex flex-wrap items-center gap-x-2 gap-y-1">Daily Challenge ${tick}</p>
         <p class="text-[11px] text-muted-fg mt-0.5 leading-snug">${ch.title}: you went <span style="color:#f97316;font-weight:700">${r.wins}–${r.losses}</span></p>
+        ${renderCommunityStatsLine()}
       </div>
       <button data-action="open-daily-stats" class="text-[11px] font-bold px-2 py-1.5 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:var(--border);background:var(--card);color:var(--muted-fg)" title="Daily Challenge Stats">Stats</button>
       <button data-action="open-daily-leaderboard" class="text-[11px] font-bold px-2 py-1.5 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:var(--border);background:var(--card);color:var(--muted-fg)">Board</button>
@@ -1305,8 +1300,10 @@ function renderStatGauges({ withOverall = false, trio = false, showSub = false }
   const fans   = calcTeamFans(roster);
   const fansGauge = renderStatGauge({
     id: 'fans', icon: '👥', pct: fans.pct,
-    value: `${Math.round(fans.sum)}M`, suffix: '',
-    label: 'Fans', color: fans.barCol,
+    // Empty roster reads "—", matching the Chemistry and Overall gauges
+    // beside it. "0M" claimed a measured value where none exists yet.
+    value: fans.count ? `${Math.round(fans.sum)}M` : '—', suffix: '',
+    label: 'Fans', color: fans.count ? fans.barCol : 'var(--muted-fg)',
     sub: sub(fans.count ? (fans.tier || 'Building') : 'No draw yet'),
   });
 
@@ -1319,8 +1316,19 @@ function renderStatGauges({ withOverall = false, trio = false, showSub = false }
       lockedNote: 'Unlocks after you simulate',
     });
   } else {
-    // As-placed slots so this matches the visible roster chips (the sim still
-    // runs optimizeLineup inside calculateChemistry by default).
+    // Scored exactly the way simulateSeason() will score it: no
+    // `asPlacedSlots`, so calculateChemistry runs its own optimizeLineup.
+    //
+    // This gauge used to score the slots the player had tapped instead, to
+    // match the roster chips. But the engine re-assigns the floor at sim
+    // time and ignores placement entirely (see computeAutopsy's note), so
+    // for any deliberately out-of-position roster the two disagreed — over
+    // 2,000 sampled rosters the placed-vs-optimized chemistry score differed
+    // by 33 points on average (worst 41), i.e. the draft screen read "Very
+    // Weak" and the results screen read "Very Strong" for the same five
+    // players. A live meter that claims to predict the season has to predict
+    // the season. Rosters placed naturally — every one-tap draft — are
+    // unaffected: the two scorings agree exactly there.
     const placedPairs = POSITIONS
       .map(pos => ({ pos, player: S.roster[pos] }))
       .filter(x => x.player);
@@ -1336,11 +1344,12 @@ function renderStatGauges({ withOverall = false, trio = false, showSub = false }
         sub: sub('No pairings yet'),
       });
     } else {
-      const asPlacedSlots = placedPairs.map(x => x.pos);
-      const rosterKey = 'placed|' + (S.coach || '') + '|' + asPlacedSlots.map((s, i) => s + ':' + starters[i].id).join(',');
+      // Keyed on the starters themselves, not their slots — the optimizer
+      // decides the floor, so two placements of the same five score alike.
+      const rosterKey = 'opt|' + (S.coach || '') + '|' + starters.map(p => p.id).join(',');
       if (_chemCache.key !== rosterKey) {
         _chemCache.key    = rosterKey;
-        _chemCache.result = calculateChemistry(starters, S.coach, { asPlacedSlots });
+        _chemCache.result = calculateChemistry(starters, S.coach);
       }
       const tier  = chemTier(_chemCache.result.chemScore);
       const color = chemTierColors(tier.id, isDark()).color;
@@ -1555,11 +1564,28 @@ function renderRosterSlot(pos, canPlace) {
   if (p) {
     const fitType  = p.pos === pos ? 'primary' : (p.secondaryPos || []).includes(pos) ? 'flex' : 'place';
     const fitClass  = 'fit-' + fitType;
-    // Match empty-slot + chem language: primary green, flex amber, OOP/versatile
-    // red — chemistry.js's Versatile penalty is -12%, a real cost, not a minor one.
-    const fitColors = { primary: '#16a34a', flex: '#d97706', place: '#dc2626' };
-    const fitBorders = { primary: '#86efac', flex: '#fde68a', place: '#fca5a5' };
-    const fitTops = { primary: '#16a34a', flex: '#d97706', place: '#dc2626' };
+    // Primary green, flex amber, off-position slate.
+    //
+    // The off-position chip used to be red, on the grounds that chemistry.js
+    // charges a -12% "Versatile" penalty. It does — but for a roster the
+    // lineup optimizer cannot seat naturally, NOT for where the player tapped:
+    // the engine re-assigns the whole floor at sim time (see computeAutopsy),
+    // so a placement never costs anything by itself. Red announced a penalty
+    // that never lands. Slate still tells you this isn't their natural spot,
+    // without calling a free choice a mistake.
+    //
+    // Theme-aware, like the empty-slot branch below already was. These label
+    // colours were a single fixed-light set painted onto the dark card too:
+    // the 10px position label measured 3.3:1 for green in light mode and
+    // 3.1:1 for slate in dark, both under the 4.5:1 AA floor for small text.
+    // The values below clear it on both surfaces (light card #fff, dark card
+    // #1e293b / #080d1a) and reuse the dark tints the empty slot already uses.
+    const dark = isDark();
+    const fitColors  = dark
+      ? { primary: '#4ade80', flex: '#fbbf24', place: '#cbd5e1' }
+      : { primary: '#15803d', flex: '#b45309', place: '#64748b' };
+    const fitBorders = { primary: '#86efac', flex: '#fde68a', place: '#cbd5e1' };
+    const fitTops    = { primary: '#16a34a', flex: '#d97706', place: '#94a3b8' };
     const borderColor = fitBorders[fitType];
     const borderTop   = `3px solid ${fitTops[fitType]}`;
     const labelColor  = fitColors[fitType];
@@ -1593,22 +1619,33 @@ function renderRosterSlot(pos, canPlace) {
   const primaryMatch = showFit && canDrop && sp && sp.pos === pos;
   const flexMatch    = showFit && canDrop && sp && !primaryMatch &&
     (sp.secondaryPos || []).includes(pos);
-  // Out-of-position is a real cost — chemistry.js's optimizeLineup() scores
-  // every slot on a 3-tier scale (primary/flex/oop) and oop nets the
-  // "Versatile" penalty (-12%). Red keeps the roster chip in agreement with
-  // chemistry copy instead of downplaying it as a neutral placement.
+  // Off-position drops read slate, not red — see the filled-slot note above:
+  // the engine re-assigns the floor at sim time, so no placement carries a
+  // penalty of its own. The three tiers still say whether this is the
+  // player's natural spot, which is what a drafter wants to know.
   const oopMatch     = showFit && canDrop && sp && !primaryMatch && !flexMatch;
 
   const slotBg     = !canDrop ? 'var(--card3)' : (isDark() ? 'rgba(234,179,8,0.08)' : '#fffbeb');
-  const slotBorder = !canDrop ? 'var(--border)' : (primaryMatch ? (isDark() ? '#4ade80' : '#86efac') : flexMatch ? (isDark() ? '#fbbf24' : '#fde68a') : (isDark() ? '#f87171' : '#fca5a5'));
-  const slotColor  = !canDrop ? 'var(--muted)' : (primaryMatch ? (isDark() ? '#4ade80' : '#16a34a') : flexMatch ? (isDark() ? '#fbbf24' : '#d97706') : (isDark() ? '#f87171' : '#dc2626'));
-  const slotText   = !canDrop ? 'Empty' : primaryMatch ? 'Primary' : flexMatch ? 'Flex' : oopMatch ? 'Versatile' : 'Place';
+  const slotBorder = !canDrop ? 'var(--border)' : (primaryMatch ? (isDark() ? '#4ade80' : '#86efac') : flexMatch ? (isDark() ? '#fbbf24' : '#fde68a') : (isDark() ? '#94a3b8' : '#cbd5e1'));
+  const slotColor  = !canDrop ? 'var(--muted)' : (primaryMatch ? (isDark() ? '#4ade80' : '#16a34a') : flexMatch ? (isDark() ? '#fbbf24' : '#d97706') : (isDark() ? '#cbd5e1' : '#64748b'));
+  const slotText   = !canDrop ? 'Empty' : primaryMatch ? 'Primary' : flexMatch ? 'Flex' : oopMatch ? 'Off-Position' : 'Place';
+  // Short form for the accessible name (read out five times in a row);
+  // the long form explains the consequence on hover.
+  const fitWord    = primaryMatch ? 'natural position'
+                   : flexMatch    ? 'secondary position'
+                   : 'off position';
+  const slotTitle  = !canDrop ? '' : primaryMatch
+    ? `${sp.name} is a natural ${label}`
+    : flexMatch
+    ? `${sp.name} covers ${label} as a secondary position`
+    : `${label} is not ${sp.name}'s natural spot — the lineup optimizer still picks the best floor at tip-off, so this costs nothing`;
 
   return `
   <button type="button" ${canDrop ? `data-action="place-${pos}"` : 'disabled'}
     class="rounded-xl border-2 border-dashed p-2 flex flex-col items-center gap-1 text-center transition-all draft-roster-slot ${canDrop ? 'slot-empty droppable cursor-pointer' : 'opacity-90'}"
     style="background:${slotBg};border-color:${slotBorder}"
-    aria-label="${canDrop ? `Place ${sp?.name || 'player'} at ${label}` : `${label} empty`}">
+    ${slotTitle ? `title="${esc(slotTitle)}"` : ''}
+    aria-label="${canDrop ? `Place ${esc(sp.name)} at ${label} — ${fitWord}` : `${label} empty`}">
     <span class="text-[10px] font-black uppercase draft-roster-slot__pos" style="color:${slotColor}">${label}</span>
     <span class="text-xs draft-roster-slot__state" style="color:${slotColor}">${slotText}</span>
   </button>`;
@@ -1779,6 +1816,8 @@ function renderSaveRunCard() {
                 id="team-name-input"
                 type="text"
                 maxlength="30"
+                aria-label="Team name"
+                enterkeyhint="done"
                 value="${esc(S.teamName || '')}"
                 placeholder="Untitled Team"
                 class="w-full rounded-xl border border-border bg-white px-3 py-2.5 text-sm font-semibold text-foreground placeholder:text-muted-fg focus:outline-none focus:border-primary focus:ring-2 focus:ring-blue-100 transition-all"
@@ -1947,6 +1986,8 @@ function renderDailySubmitCard() {
           id="daily-team-name-input"
           type="text"
           maxlength="30"
+          aria-label="Franchise name for today's Daily Challenge board"
+          enterkeyhint="done"
           value="${esc(S.teamName || '')}"
           placeholder="Franchise Name"
           class="w-full rounded-xl border border-border bg-white px-3 py-2.5 text-sm font-semibold text-foreground placeholder:text-muted-fg focus:outline-none focus:border-primary focus:ring-2 focus:ring-orange-100 transition-all"
@@ -2255,7 +2296,7 @@ function renderSeasonImpactReportCard() {
 
   const coachObj = r.coachBoost ? (S.coach ? COACHES.find(c => c.id === S.coach) : null) : null;
   const coachRow = coachObj ? (() => {
-    const pctOfMax = r.coachBoost / 0.040;
+    const pctOfMax = r.coachBoost / COACH_BOOST_MAX;
     const grade    = pctOfMax >= 0.75 ? 'Mastered' : pctOfMax >= 0.4 ? 'Building' : 'Faint';
     return `<div class="rounded-lg px-3 py-2 text-sm font-bold border" style="background:${coachObj.accent}12;border-color:${coachObj.accent}40;color:${coachObj.accent}">📋 ${coachObj.system}: +${(r.coachBoost * 100).toFixed(1)}% · ${grade}</div>`;
   })() : '';
@@ -2365,7 +2406,14 @@ function renderFansReportCard() {
       <div class="mt-3 flex flex-col gap-1.5">
         ${[...Object.entries(S.roster)].filter(([, p]) => p).map(([pos, p]) => {
           const pop    = p.popularity ?? 50;
-          const pct    = Math.max(0, Math.round(((pop - 35) / 65) * 100));
+          // Share of one starter's slot in the team gauge (FANS_TEAM_MAX / 5),
+          // so a full player bar and a full team gauge mean the same thing.
+          // The old (pop - 35) / 65 window was written for a 0-100 popularity
+          // scale; popularity now runs to 350, so it returned up to 484% and
+          // pinned every star to a full bar — the breakdown stopped
+          // distinguishing anyone. Clamped, because the NAMED overrides
+          // deliberately exceed a single slot's share.
+          const pct    = Math.max(0, Math.min(100, Math.round((pop / FANS_PLAYER_MAX) * 100)));
           // Was an inline copy of fansBarCol()'s tiers that drifted out of
           // sync with it — its light slate (#94a3b8) rendered these fills at
           // 2.08:1 against the track, under the 3:1 floor for a graphic that
@@ -2622,6 +2670,8 @@ function renderGlobalSubmitCard(champion) {
           id="global-team-name-input"
           type="text"
           maxlength="30"
+          aria-label="Team name for the global leaderboard"
+          enterkeyhint="done"
           value="${esc(S.teamName || '')}"
           placeholder="Franchise Name"
           class="w-full rounded-xl border border-border bg-white px-3 py-2.5 text-sm font-semibold text-foreground placeholder:text-muted-fg focus:outline-none focus:border-primary focus:ring-2 focus:ring-blue-100 transition-all"
@@ -2868,7 +2918,6 @@ function renderChampionship() {
 function renderEliminated() {
   const po = S.playoffs;
   const r  = S.result;
-  const lastRound = po.rounds[po.rounds.length - 1];
   const roundSummary = po.rounds.map((round, i) => {
     const sr  = round.find(s => s.teamA.isPlayer || s.teamB.isPlayer);
     if (!sr) return '';
@@ -3429,6 +3478,34 @@ function syncHashRoute() {
   }
 }
 
+/**
+ * Wires one team-name input: live character counter plus Enter-to-submit.
+ * The submit action is dispatched by clicking the real button so the click
+ * delegation in ui/events.js stays the single entry point (and its
+ * in-flight guards still apply).
+ *
+ * @param {string} inputId
+ * @param {string} counterId
+ * @param {string} submitAction  data-action of the paired submit button
+ * @param {boolean} active       false when this field isn't on screen
+ */
+function wireTeamNameField(inputId, counterId, submitAction, active) {
+  if (!active) return;
+  const input   = document.getElementById(inputId);
+  const counter = document.getElementById(counterId);
+  if (!input) return;
+  if (counter) {
+    const update = () => { counter.textContent = 30 - input.value.length; };
+    update();
+    input.addEventListener('input', update);
+  }
+  input.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    $app.querySelector(`[data-action="${submitAction}"]`)?.click();
+  });
+}
+
 // ── Main render dispatcher ────────────────────────────────────────────────────
 export function render() {
   updateCrazyGamesGameplayState();
@@ -3446,38 +3523,18 @@ export function render() {
   bindEvents();
   syncHashRoute();
 
-  // Wire up character counter for the local save input (results screen)
-  if (S.phase === 'results' && !S.runSaved) {
-    const input   = document.getElementById('team-name-input');
-    const counter = document.getElementById('team-name-counter');
-    if (input && counter) {
-      const update = () => { counter.textContent = 30 - input.value.length; };
-      update();
-      input.addEventListener('input', update);
-    }
-  }
-
-  // Wire up character counter for the global submit input (championship / eliminated)
-  if (!S.globalScoreSubmitted) {
-    const gInput   = document.getElementById('global-team-name-input');
-    const gCounter = document.getElementById('global-team-name-counter');
-    if (gInput && gCounter) {
-      const update = () => { gCounter.textContent = 30 - gInput.value.length; };
-      update();
-      gInput.addEventListener('input', update);
-    }
-  }
-
-  // Wire up character counter for the daily board submit input
-  if (S.phase === 'results' && S.mode === 'daily' && !S.dailyScoreSubmitted) {
-    const dInput   = document.getElementById('daily-team-name-input');
-    const dCounter = document.getElementById('daily-team-name-counter');
-    if (dInput && dCounter) {
-      const update = () => { dCounter.textContent = 30 - dInput.value.length; };
-      update();
-      dInput.addEventListener('input', update);
-    }
-  }
+  // Character counter + Enter-to-submit for each team-name field. The inputs
+  // are not inside a <form>, so Enter did nothing and the only way to submit
+  // was to reach for the button — a dead end for keyboard users and a
+  // surprise for everyone else. Both listeners live on nodes that render()
+  // replaces wholesale, so they are collected with the old DOM; there is
+  // nothing to clean up.
+  wireTeamNameField('team-name-input', 'team-name-counter', 'save-run',
+    S.phase === 'results' && !S.runSaved);
+  wireTeamNameField('global-team-name-input', 'global-team-name-counter', 'submit-global',
+    !S.globalScoreSubmitted);
+  wireTeamNameField('daily-team-name-input', 'daily-team-name-counter', 'submit-daily',
+    S.phase === 'results' && S.mode === 'daily' && !S.dailyScoreSubmitted);
 
   // Community pass-rate for Daily Challenge (mode select + daily results)
   if (

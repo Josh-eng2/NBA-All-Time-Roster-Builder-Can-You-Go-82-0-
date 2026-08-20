@@ -258,6 +258,53 @@ export function logAnalyticsEvent(eventName, params = {}) {
  * }} entry
  * @returns {Promise<string>} Firestore document ID
  */
+/**
+ * Coerces an optional numeric field into the range the deployed Firestore
+ * rules accept, or drops it entirely when it isn't a finite number.
+ *
+ * The rules validate every field and reject the WHOLE document on any
+ * violation, so an out-of-range value doesn't degrade the entry — it loses
+ * the submission. Same defensive reasoning as the `starters` truncation
+ * below, and the reason this exists: `avgPopularity` and `fansM` are derived
+ * from player popularity, whose data ceiling was raised (140 -> 350) after
+ * these rules were written. A star-chasing roster now reports avgPopularity
+ * ~150-300 and fansM ~90-320, so the great majority of global submissions
+ * were being refused at the door.
+ *
+ * Clamping is deliberate over widening the rules: the rules are deployed
+ * server-side and can't be changed from this repo, and the leaderboard UI
+ * recomputes the true full-scale numbers from the entry's own starter names
+ * anyway (see _teamFansFromEntry in utils/storage.js), so nothing the player
+ * sees depends on the clamped copy.
+ */
+function clampWireNumber(value, min, max) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return null;
+  return Math.max(min, Math.min(max, n));
+}
+
+export function buildGlobalDoc(entry) {
+  return {
+    teamName:    (entry.teamName || 'Untitled Team').slice(0, 30),
+    wins:         entry.wins        ?? 0,
+    losses:       entry.losses      ?? 0,
+    champion:    !!(entry.champion  ?? false),
+    coachId:     (entry.coachId     ?? '').slice(0, 20),
+    coachName:   (entry.coachName   ?? '').slice(0, 30),
+    era:         (entry.era         ?? 'all').slice(0, 10),
+    chemScore:    clampWireNumber(entry.chemScore, 0, 100) ?? 0,
+    // Bounds mirror the Firestore rules documented at the top of this file.
+    ...(clampWireNumber(entry.avgPopularity, 0, 100) != null
+      ? { avgPopularity: clampWireNumber(entry.avgPopularity, 0, 100) } : {}),
+    ...(clampWireNumber(entry.fansM, 0, 50) != null
+      ? { fansM: clampWireNumber(entry.fansM, 0, 50) } : {}),
+    // Rules cap starters at 100 chars — truncate here too so a long-named
+    // roster can never fail the whole write.
+    starters:    (entry.starters    ?? '').slice(0, 100),
+    timestampMs:  entry.timestampMs ?? 0,
+  };
+}
+
 export async function submitGlobalScore(entry) {
   if (!isFirebaseConfigured()) throw new Error('Firebase not configured — see js/utils/firebase.js setup instructions');
   const wins = entry.wins ?? 0;
@@ -266,20 +313,7 @@ export async function submitGlobalScore(entry) {
   if (!db) throw new Error('Firebase unavailable — leaderboard could not load');
   const col = collection(db, 'leaderboard');
   const ref = await addDoc(col, {
-    teamName:    (entry.teamName || 'Untitled Team').slice(0, 30),
-    wins:         entry.wins        ?? 0,
-    losses:       entry.losses      ?? 0,
-    champion:     entry.champion    ?? false,
-    coachId:      entry.coachId     ?? '',
-    coachName:    entry.coachName   ?? '',
-    era:          entry.era         ?? 'all',
-    chemScore:    entry.chemScore   ?? 0,
-    ...(entry.avgPopularity != null ? { avgPopularity: entry.avgPopularity } : {}),
-    ...(entry.fansM       != null ? { fansM:       entry.fansM       } : {}),
-    // Rules cap starters at 100 chars — truncate here too so a long-named
-    // roster can never fail the whole write.
-    starters:    (entry.starters    ?? '').slice(0, 100),
-    timestampMs:  entry.timestampMs ?? 0,
+    ...buildGlobalDoc(entry),
     timestamp:    serverTimestamp(),
     // ── FUTURE: per-run stat leaders on the GLOBAL board ──────────────────
     // Per-player season stats already persist to the LOCAL leaderboard
@@ -346,6 +380,39 @@ export async function fetchLeaderboard(filter = 'alltime') {
  * }} entry
  * @returns {Promise<string>} Firestore document ID
  */
+/**
+ * Wire shape for one dailyLeaderboard document (everything but the
+ * server-stamped `timestamp`). Split out of submitDailyScore for the same
+ * reason as buildGlobalDoc: the deployed rules reject the whole document on
+ * any field violation, so the field coercion is the part worth testing.
+ *
+ * `score` is recomputed from wins/passed rather than trusted: the rule
+ * asserts `score == wins * 10 + (passed ? 200 : 0)` exactly, so any caller
+ * drift between the three fields would silently lose the submission.
+ * Mirrors dailyScore() in logic/challenge.js.
+ */
+export function buildDailyDoc(entry) {
+  const wins   = clampWireNumber(entry.wins,   0, 82) ?? 0;
+  const passed = !!entry.passed;
+  return {
+    date:         entry.date,
+    teamName:    (entry.teamName || 'Untitled Team').slice(0, 30),
+    wins,
+    losses:       clampWireNumber(entry.losses, 0, 82) ?? 0,
+    champion:    !!(entry.champion  ?? false),
+    coachId:     (entry.coachId     ?? '').slice(0, 20),
+    coachName:   (entry.coachName   ?? '').slice(0, 30),
+    chemScore:    clampWireNumber(entry.chemScore, 0, 100) ?? 0,
+    starters:    (entry.starters    ?? '').slice(0, 100),
+    timestampMs:  entry.timestampMs ?? 0,
+    // Day's specific challenge (era rules, rating caps, win targets, …):
+    // score = wins*10 + 200 pass bonus — the board's primary sort key.
+    challengeId: (entry.challengeId ?? '').slice(0, 40),
+    passed,
+    score:        wins * 10 + (passed ? 200 : 0),
+  };
+}
+
 export async function submitDailyScore(entry) {
   if (!isFirebaseConfigured()) throw new Error('Firebase not configured — see js/utils/firebase.js setup instructions');
   const wins = entry.wins ?? 0;
@@ -355,22 +422,8 @@ export async function submitDailyScore(entry) {
   if (!db) throw new Error('Firebase unavailable — leaderboard could not load');
   const col = collection(db, 'dailyLeaderboard');
   const ref = await addDoc(col, {
-    date:         entry.date,
-    teamName:    (entry.teamName || 'Untitled Team').slice(0, 30),
-    wins:         entry.wins        ?? 0,
-    losses:       entry.losses      ?? 0,
-    champion:     entry.champion    ?? false,
-    coachId:      entry.coachId     ?? '',
-    coachName:    entry.coachName   ?? '',
-    chemScore:    entry.chemScore   ?? 0,
-    starters:    (entry.starters    ?? '').slice(0, 100),
-    timestampMs:  entry.timestampMs ?? 0,
+    ...buildDailyDoc(entry),
     timestamp:    serverTimestamp(),
-    // Day's specific challenge (era rules, rating caps, win targets, …):
-    // score = wins*10 + 200 pass bonus — the board's primary sort key.
-    challengeId:  (entry.challengeId ?? '').slice(0, 40),
-    passed:       !!entry.passed,
-    score:        Math.max(0, Math.min(2000, Math.round(entry.score ?? 0))),
   });
   return ref.id;
 }
