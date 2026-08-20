@@ -1,13 +1,29 @@
 'use strict';
 /**
  * scripts/add_popularity.js
- * Adds a `popularity` integer (1-100) to every player in players.json.
+ * Adds a `popularity` integer to every player in players.json.
  * Run:  node scripts/add_popularity.js
  *
  * Logic:
  *  1. Named overrides for every well-known player (curated by hand).
  *  2. For everyone else: stat-based formula using ppg as the main driver,
  *     with a small deterministic jitter so role-players aren't all identical.
+ *
+ * Scale: the formula path is capped at 100 before POPULARITY_SCALE, but the
+ * NAMED overrides are deliberately NOT — the household names run past it (max
+ * 140 today). simulation.js reads this against POP_FLOOR 35 / POP_CEIL 100 and
+ * leaves popNorm unclamped above, so those few genuinely global stars keep
+ * pushing popMul past MUL_MAX instead of tying with a merely-famous roster.
+ *
+ * Consumers keyed to this scale — keep them in step when it moves:
+ *   simulation.js  POP_FLOOR 35 / POP_CEIL 100, and the `fansM` curve
+ *   modes.js       fansFirstPassed avgPopularity >= 70
+ *   render.js      fans tiers 55/70/85, FANS_TEAM_MAX 500
+ *   challenge.js   Boos Only maxPopTotal 300
+ *   simulation.js  coachSystemProgress('jackson') star threshold 85
+ * Re-run this script whenever NAMED changes: the shipped data once drifted a
+ * full rescale behind this table, which pinned every roster under POP_FLOOR
+ * and silently made all of the above inert.
  */
 const fs   = require('fs');
 const path = require('path');
@@ -530,7 +546,7 @@ for (const key of Object.keys(db)) {
   }
 }
 
-fs.writeFileSync(SRC, JSON.stringify(db, null, 2), 'utf8');
+fs.writeFileSync(SRC, JSON.stringify(db, null, 2) + '\n', 'utf8');
 
 console.log(`Done.`);
 console.log(`  Total players     : ${total}`);
