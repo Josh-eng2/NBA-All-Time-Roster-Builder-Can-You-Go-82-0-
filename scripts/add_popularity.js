@@ -11,9 +11,10 @@
  *
  * Scale: the formula path is capped at 100 before POPULARITY_SCALE, but the
  * NAMED overrides are deliberately NOT — the household names run past it (max
- * 140 today). simulation.js reads this against POP_FLOOR 35 / POP_CEIL 100 and
- * leaves popNorm unclamped above, so those few genuinely global stars keep
- * pushing popMul past MUL_MAX instead of tying with a merely-famous roster.
+ * 350 today, Jordan/LeBron). simulation.js reads this against POP_FLOOR 35 /
+ * POP_CEIL 100 and leaves popNorm unclamped above, so those few genuinely
+ * global stars keep pushing popMul past MUL_MAX instead of tying with a
+ * merely-famous roster.
  *
  * Consumers keyed to this scale — keep them in step when it moves:
  *   simulation.js  POP_FLOOR 35 / POP_CEIL 100, and the `fansM` curve
@@ -532,7 +533,11 @@ function formulaPopularity(player) {
 // Global tuning knob — every popularity value (named override or formula-
 // derived) is scaled by this before being written. Single point of control
 // so re-running this script never undoes a deliberate global rebalance.
-const POPULARITY_SCALE = 0.4;
+// 1.0 = NAMED's own scale, so its ceiling (350, Jordan/LeBron) is the
+// shipped ceiling. Was 0.4, capping the ceiling at 140 — every consumer
+// keyed to POP_CEIL=100 (see the header note) should be re-checked against
+// the new distribution, not just the top of it, since this scales everyone.
+const POPULARITY_SCALE = 1.0;
 
 let total = 0, named = 0, formula = 0;
 
