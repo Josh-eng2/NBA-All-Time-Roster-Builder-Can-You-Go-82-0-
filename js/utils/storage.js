@@ -372,7 +372,12 @@ const GLOBAL_TABS = [
 let _globalLbCache   = [];
 let _playerNameMap   = null;
 
-const FANS_TEAM_MAX  = 500;
+// 5 starters × the top of the popularity scale. The NAMED overrides in
+// scripts/add_popularity.js deliberately run past POP_CEIL (140 at the top
+// today), so a 500 ceiling pinned the gauge at 100% for any star roster.
+// Exported so render.js shares this one definition — the two copies had to
+// agree and nothing enforced it.
+export const FANS_TEAM_MAX = 700;
 
 function _fansBarCol(avg) {
   if (avg >= 80) return '#2563eb';

@@ -19,7 +19,7 @@ import { calculateChemistry, chemTier, chemTierColors }                         
 import { rosterFull, availableDecades, getLegendCatalog, getSkips } from '../logic/draft.js';
 import { coachSystemProgress }                            from '../logic/simulation.js';
 import { getBracketDisplayState }                         from '../logic/playoffs.js';
-import { markReturning, getCollectedLegends, getDailyStatus } from '../utils/storage.js';
+import { markReturning, getCollectedLegends, getDailyStatus, FANS_TEAM_MAX } from '../utils/storage.js';
 import { cgGameplayStart, cgGameplayStop, cgGetItem }     from '../utils/crazygames.js';
 import { gdRewardedAvailable }                            from '../utils/gamedistribution.js';
 import { getDailyChallenge, checkPickLegal, checkRosterConstraint } from '../logic/challenge.js';
@@ -81,7 +81,6 @@ if (typeof window !== 'undefined' && window.matchMedia) {
   else if (mq.addListener) mq.addListener(onFlip); // Safari < 14
 }
 
-const FANS_TEAM_MAX = 500; // 5 starters × 100 max fans each
 
 // ── Team Overall ──────────────────────────────────────────────────────────────
 /** Live team OVR for the drafting screen.
