@@ -27,7 +27,13 @@
 //       desktop.css, styles.css, responsive.css and render.js all changed.
 //   v7  footer scoped to the menu, icon glyphs centred, results columns
 //       levelled: desktop.css, styles.css and render.js changed.
-const CACHE_VERSION = '820-v7';
+//   v8  popularity data regenerated against the current NAMED table:
+//       js/data/players.js changed. Without it a returning user keeps the
+//       stale precached DB, where every roster sits under POP_FLOOR and the
+//       fans mechanics stay inert.
+//   v9  fans gauge ceiling raised to 700 and de-duplicated: render.js and
+//       utils/storage.js changed.
+const CACHE_VERSION = '820-v9';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 
