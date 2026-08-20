@@ -33,7 +33,10 @@
 //       fans mechanics stay inert.
 //   v9  fans gauge constant de-duplicated into utils/storage.js (ceiling
 //       stays 500): render.js and utils/storage.js changed.
-const CACHE_VERSION = '820-v9';
+//   v10 popularity ceiling raised 140 -> 350 (POPULARITY_SCALE 0.4 -> 1.0 in
+//       add_popularity.js, NAMED's own scale): js/data/players.js changed.
+//       This rescales every player, not just the top — see the commit.
+const CACHE_VERSION = '820-v10';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 
