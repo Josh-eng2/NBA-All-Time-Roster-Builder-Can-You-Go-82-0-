@@ -372,12 +372,15 @@ const GLOBAL_TABS = [
 let _globalLbCache   = [];
 let _playerNameMap   = null;
 
-// 5 starters × the top of the popularity scale. The NAMED overrides in
-// scripts/add_popularity.js deliberately run past POP_CEIL (140 at the top
-// today), so a 500 ceiling pinned the gauge at 100% for any star roster.
+// Gauge denominator: 5 starters × 100 fans each.
+// Deliberately NOT the top of the popularity scale — the NAMED overrides in
+// scripts/add_popularity.js run past POP_CEIL (140 today), so a roster of
+// household names sums past this and reads a full meter. That saturation is
+// intended: the gauge answers "is this a marquee lineup", not "how close to
+// the most famous five in the game".
 // Exported so render.js shares this one definition — the two copies had to
 // agree and nothing enforced it.
-export const FANS_TEAM_MAX = 700;
+export const FANS_TEAM_MAX = 500;
 
 function _fansBarCol(avg) {
   if (avg >= 80) return '#2563eb';
