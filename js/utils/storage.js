@@ -372,15 +372,14 @@ const GLOBAL_TABS = [
 let _globalLbCache   = [];
 let _playerNameMap   = null;
 
-// Gauge denominator: 5 starters × 100 fans each.
-// Deliberately NOT the top of the popularity scale — the NAMED overrides in
-// scripts/add_popularity.js run past POP_CEIL (140 today), so a roster of
-// household names sums past this and reads a full meter. That saturation is
-// intended: the gauge answers "is this a marquee lineup", not "how close to
-// the most famous five in the game".
+// Gauge denominator. Deliberately NOT the top of the popularity scale — the
+// NAMED overrides in scripts/add_popularity.js run past POP_CEIL (350 today,
+// Jordan/LeBron), so a roster of household names sums past this and reads a
+// full meter. That saturation is intended: the gauge answers "is this a
+// marquee lineup", not "how close to the most famous five in the game".
 // Exported so render.js shares this one definition — the two copies had to
 // agree and nothing enforced it.
-export const FANS_TEAM_MAX = 500;
+export const FANS_TEAM_MAX = 750;
 
 function _fansBarCol(avg) {
   if (avg >= 80) return '#2563eb';

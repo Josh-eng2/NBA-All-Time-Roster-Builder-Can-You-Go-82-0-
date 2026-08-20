@@ -36,7 +36,10 @@
 //   v10 popularity ceiling raised 140 -> 350 (POPULARITY_SCALE 0.4 -> 1.0 in
 //       add_popularity.js, NAMED's own scale): js/data/players.js changed.
 //       This rescales every player, not just the top — see the commit.
-const CACHE_VERSION = '820-v10';
+//   v11 fans gauge ceiling 500 -> 750 (popularity data now tops out at 350,
+//       not 140 — 500 was pinning at the median for star-chasing rosters):
+//       utils/storage.js changed.
+const CACHE_VERSION = '820-v11';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 
