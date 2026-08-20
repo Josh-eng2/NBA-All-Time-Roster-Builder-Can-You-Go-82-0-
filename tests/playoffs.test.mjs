@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import { loadGame } from './helpers.mjs';
 
 const g = await loadGame();
-const { getPlayerSeed, buildBracket, CPU_TEAMS } = g.state;
+const { getPlayerSeed, buildBracket, CPU_TEAMS, PLAYOFF_FIELD_SHIFT } = g.state;
 const { QF_SEED_PAIRS, applyPlayoffRound, getBracketDisplayState, seriesWinner } = g.playoffs;
 
 test('seeding is a monotonic ladder over the whole win range', () => {
@@ -146,12 +146,31 @@ test('an untouched bracket renders as empty rather than throwing', () => {
   assert.equal(view.finals.top, null);
 });
 
-test('the CPU field is the strongest teams, sorted, and never mutated', () => {
+test('the bracket draws the top CPU tier, lowered by the shift, without mutating CPU_TEAMS', () => {
   const before = JSON.stringify(CPU_TEAMS);
   buildBracket(1, 2.0);
   buildBracket(8, 1.0);
-  assert.equal(JSON.stringify(CPU_TEAMS), before, 'buildBracket must not sort CPU_TEAMS in place');
-  const filled = buildBracket(1, 2.0).flat().filter(t => !t.isPlayer).map(t => t.strength);
-  assert.deepEqual([...filled].sort((a, b) => b - a).slice(0, 7).length, 7);
-  for (const s of filled) assert.ok(s >= 1.9, 'the bracket should draw from the top CPU tier');
+  // Load-bearing: logic/dynastyDuel.js reads these same strengths and faces
+  // those teams at full power. If buildBracket ever mutated them in place, it
+  // would silently retune a mode that has nothing to do with the bracket.
+  assert.equal(JSON.stringify(CPU_TEAMS), before, 'buildBracket must not mutate or sort CPU_TEAMS in place');
+
+  const cpuSorted = [...CPU_TEAMS].sort((a, b) => b.strength - a.strength);
+  const filled = buildBracket(1, 2.0).flat().filter(t => !t.isPlayer);
+  assert.equal(filled.length, 7);
+
+  // Each entrant is one of the top 7, lowered by exactly the shift, with its
+  // identity intact — the whole point of shifting rather than rewriting them.
+  for (const t of filled) {
+    const source = cpuSorted.find(c => c.name === t.name);
+    assert.ok(source, `${t.name} is not one of the CPU teams`);
+    assert.ok(Math.abs(t.strength - (source.strength - PLAYOFF_FIELD_SHIFT)) < 1e-9,
+      `${t.name}: expected ${source.strength} - ${PLAYOFF_FIELD_SHIFT}, got ${t.strength}`);
+  }
+  // Ranking among the field is preserved by a constant shift.
+  const names = filled.map(t => t.name);
+  assert.deepEqual(
+    [...filled].sort((a, b) => b.strength - a.strength).map(t => t.name),
+    cpuSorted.filter(c => names.includes(c.name)).map(c => c.name),
+    'a constant shift must not reorder the field');
 });

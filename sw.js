@@ -48,7 +48,11 @@
 //       fallbacks), styles.css (trophy card below 1024px, header pill
 //       ellipsis, roster fit colours). js/utils/pageIntegrity.js is also new
 //       to the precache list below.
-const CACHE_VERSION = '820-v12';
+//   v13 playoff title odds retuned so the bracket is winnable: state.js gains
+//       PLAYOFF_FIELD_SHIFT and simulation.js PLAYOFF_SERIES_K. Without the
+//       bump a returning player keeps the old modules, where every roster at
+//       2.00 strength or below wins the title 0% of the time.
+const CACHE_VERSION = '820-v13';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 

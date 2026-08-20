@@ -38,6 +38,30 @@ const SIM_K      = 2.00;
 const SIM_CENTER = 1.50;
 const WIN_CAP    = 0.99;
 
+// ── Playoff series steepness ──────────────────────────────────────────────────
+// Per-game steepness for a postseason best-of-7 (simulateSeries below). Lower
+// than the 6 used for head-to-head modes because a title needs THREE series
+// won back to back, and that compounding is unforgiving: at 6, a 0.3 strength
+// deficit is a 14% per-game dog, ~1% to take the series, and ~0% to take three.
+//
+// Retuned 6 -> 3 together with PLAYOFF_FIELD_SHIFT (logic/state.js). Measured
+// title odds, 12,000 simulated postseasons per rung, using the strengths real
+// rosters actually produce at each win total:
+//
+//   wins   strength   before   after
+//     82      2.60     95.9%   87.6%
+//     75      2.40     51.5%   60.1%
+//     70      2.30     18.6%   40.0%
+//     65      2.10      0.1%    7.0%
+//     60      2.00      0.0%    2.0%   <- the calibration anchor
+//     55      1.90      0.0%    0.2%
+//     50      1.80      0.0%    0.0%
+//
+// The anchor is deliberate: a 60-win season should be able to win it, but
+// rarely. Everything below 55 wins remains a longshot by construction — the
+// bracket is still seven all-time teams, just no longer an unreachable one.
+const PLAYOFF_SERIES_K = 3;
+
 let _baselinesCache = null;
 
 /**
@@ -549,6 +573,9 @@ function decorateSeasonGames(games, winPct) {
  * Scores fall in the 88–128 range; margin typically 2–22 pts.
  */
 function generateGameScore(p1Strength, p2Strength) {
+  // Deliberately steeper than PLAYOFF_SERIES_K: 1v1, GM vs AI and Dynasty Duel
+  // are decided by a SINGLE best-of-7, so there is no three-round compounding
+  // to soften. The better roster should read as the clear favourite here.
   const p1WinProb = 1 / (1 + Math.exp(-6 * (p1Strength - p2Strength)));
   const p1Wins    = Math.random() < p1WinProb;
 
@@ -641,7 +668,7 @@ export function simulateDynastySeries(playerSeason, opponent) {
  * @returns {{ playerWins: number, oppWins: number, games: string[], won: boolean }}
  */
 export function simulateSeries(playerStrength, opponentStrength) {
-  const pWin = 1 / (1 + Math.exp(-6 * (playerStrength - opponentStrength)));
+  const pWin = 1 / (1 + Math.exp(-PLAYOFF_SERIES_K * (playerStrength - opponentStrength)));
   let playerWins = 0, oppWins = 0;
   const games = [];
   while (playerWins < 4 && oppWins < 4) {

@@ -251,9 +251,34 @@ export function getPlayerSeed(wins) {
 }
 
 /**
+ * How far the CPU field is lowered for the playoff bracket only.
+ *
+ * The strengths in CPU_TEAMS describe these teams at full power, and Dynasty
+ * Duel still faces them that way. But the postseason stacks the seven best of
+ * them into one bracket, and their raw band (1.95–2.38) sits above almost the
+ * whole player-strength distribution — a 60-win roster lands around 2.00, so
+ * it was an underdog in every round of a three-round gauntlet. Compounded over
+ * three best-of-7s that made the title mathematically unreachable: measured
+ * over 3,000 simulated postseasons per rung, every roster at 2.00 strength or
+ * below won it 0.00% of the time, while the results screen still invited any
+ * 20-win team in to "chase the ring".
+ *
+ * Lowering the whole field by a constant keeps every team's identity and their
+ * ranking relative to each other, and only changes where the field sits next
+ * to the player. Paired with PLAYOFF_SERIES_K (see logic/simulation.js) this
+ * is calibrated so a 60-win season converts about 2% of the time — see the
+ * ladder documented there.
+ *
+ * Scoped to the bracket rather than applied to CPU_TEAMS itself, because
+ * logic/dynastyDuel.js reads those same strengths and its one-off best-of-7 is
+ * a different question from surviving three rounds.
+ */
+export const PLAYOFF_FIELD_SHIFT = 0.10;
+
+/**
  * Builds the first-round bracket of four matchups.
  * The player occupies their seed slot; remaining 7 slots are filled by the
- * top CPU teams sorted by strength.
+ * top CPU teams sorted by strength, each lowered by PLAYOFF_FIELD_SHIFT.
  *
  * @param {number} playerSeed       1–8
  * @param {number} playerStrength   adjusted Elo-like strength number
@@ -267,7 +292,14 @@ export function buildBracket(playerSeed, playerStrength) {
 
   let cpuIdx = 0;
   for (let i = 0; i < 8; i++) {
-    if (!seeds[i]) seeds[i] = { ...cpuSorted[cpuIdx++], isPlayer: false };
+    if (!seeds[i]) {
+      const cpu = cpuSorted[cpuIdx++];
+      seeds[i] = {
+        ...cpu,
+        strength: +(cpu.strength - PLAYOFF_FIELD_SHIFT).toFixed(3),
+        isPlayer: false,
+      };
+    }
   }
 
   // Classic 1v8, 4v5, 3v6, 2v7 bracket — adjacent pairs advance together
