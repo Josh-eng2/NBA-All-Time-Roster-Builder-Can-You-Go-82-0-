@@ -88,6 +88,101 @@ test('a fans-budget challenge can always still be completed after a legal pick',
   assert.ok(cheapest * 5 < cap, 'the cheapest possible five must fit the budget');
 });
 
+// The test above drafts the CHEAPEST legal player each round, which can never
+// paint itself into a corner. A player chasing star power does the opposite,
+// and that is how a Boos Only run reached 296 of a 300 budget with four
+// starters while the cheapest player the wheel could still deal cost 7 — no
+// legal fifth pick existed anywhere and the run could only spin forever.
+// checkPickLegal alone cannot see that coming (its fallback floor is the
+// DB-wide minimum, which is 0); isPickDraftable judges against the pool that
+// is actually still draftable.
+
+/** Plays a whole budget run through the real draft loop, taking the most
+ *  expensive legal player on every board. Returns null if it ever strands. */
+function greedyBudgetRun(challenge, legalFn) {
+  g.state.clearDailyRng();
+  g.state.S.mode = 'daily';
+  g.state.S.dailyChallenge = challenge;
+  g.state.startGame('all');
+  const S = g.state.S;
+  S.mode = 'daily';
+  S.selectedEra = 'all';
+
+  for (let round = 0; round < g.state.POSITIONS.length; round++) {
+    let placed = false;
+    for (let spin = 0; spin < 3000 && !placed; spin++) {
+      const landed = g.draft.spinResult();
+      if (!landed) break;
+      const board = g.draft.getAvailablePlayers(landed.team, landed.decade)
+        .slice().sort((a, b) => (b.popularity ?? 50) - (a.popularity ?? 50));
+      const filled = g.state.POSITIONS.map(p => S.roster[p]).filter(Boolean);
+      for (const p of board) {
+        const hydrated = { ...p, team: landed.team, decade: landed.decade };
+        if (!legalFn(challenge, hydrated, filled).legal) continue;
+        S.roster[g.state.POSITIONS.find(x => !S.roster[x])] = hydrated;
+        S.usedPlayerIds.push(p.id);
+        S.draftedPlayerNames.add(p.name);
+        S.usedDecades.push(landed.decade);
+        placed = true;
+        break;
+      }
+    }
+    if (!placed) return null;
+  }
+  return g.state.POSITIONS.map(p => S.roster[p]);
+}
+
+test('a star-chasing fans-budget run can always be finished', () => {
+  const budget = CHALLENGES.find(c => c.params.maxPopTotal != null);
+  const cap    = budget.params.maxPopTotal;
+  let best = 0;
+  for (let i = 0; i < 120; i++) {
+    const five = greedyBudgetRun(budget, g.draft.isPickDraftable);
+    assert.ok(five, 'a Boos Only run was drafted into a state with no legal pick left');
+    const sum = five.reduce((s, p) => s + (p.popularity ?? 50), 0);
+    assert.ok(sum < cap, `finished roster busts the budget: ${sum} >= ${cap}`);
+    assert.equal(new Set(five.map(p => p.name)).size, 5, 'a player was drafted twice');
+    best = Math.max(best, sum);
+  }
+  // …and the guard must not be so cautious that the budget stops being usable.
+  assert.ok(best > cap * 0.9,
+    `the budget became unusable — best roster only reached ${best} of ${cap} fans`);
+});
+
+test('the remaining-slots floor is an assignment the draft could really make', () => {
+  const budget = CHALLENGES.find(c => c.params.maxPopTotal != null);
+  g.state.clearDailyRng();
+  g.state.S.mode = 'daily';
+  g.state.S.dailyChallenge = budget;
+  g.state.startGame('all');
+  g.state.S.mode = 'daily';
+  g.state.S.selectedEra = 'all';
+
+  // With nothing drafted, four more slots must cost at least the four cheapest
+  // DISTINCT players — never the same 0-fans player counted once per decade
+  // he appears in, which is what let a run strand.
+  const cheapestByName = new Map();
+  for (const p of all) {
+    const c = p.popularity ?? 50;
+    if (!cheapestByName.has(p.name) || c < cheapestByName.get(p.name)) cheapestByName.set(p.name, c);
+  }
+  const distinct = [...cheapestByName.values()].sort((a, b) => a - b);
+  const floor4 = g.draft.cheapestRemainingTotal(4, null);
+  assert.ok(floor4 >= distinct.slice(0, 4).reduce((s, c) => s + c, 0),
+    'the floor is below the four cheapest distinct players — it is double-counting someone');
+  assert.equal(g.draft.cheapestRemainingTotal(0, null), 0, 'no slots left costs nothing');
+
+  // The player being judged is still in the pool; counting him as one of his
+  // own future slots is exactly the double-count that stranded a run.
+  const zero = all.filter(p => (p.popularity ?? 50) === 0)[0];
+  if (zero) {
+    const withHim    = g.draft.cheapestRemainingTotal(1, null);
+    const withoutHim = g.draft.cheapestRemainingTotal(1, null, zero.name);
+    assert.ok(withoutHim >= withHim,
+      'excluding the pick under judgement must never lower the floor');
+  }
+});
+
 test('pick legality and the finished-roster check agree with each other', () => {
   for (const ch of CHALLENGES) {
     // Build the strictest-legal roster we can for this challenge.

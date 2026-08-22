@@ -16,18 +16,23 @@ import {
   getUtcDateString, getPlayerSeed,
 } from '../logic/state.js';
 import { calculateChemistry, chemTier, chemTierColors }                             from '../logic/chemistry.js';
-import { rosterFull, availableDecades, getLegendCatalog, getSkips } from '../logic/draft.js';
+import { rosterFull, availableDecades, getLegendCatalog, getSkips, isPickDraftable } from '../logic/draft.js';
 import { coachSystemProgress, COACH_BOOST_MAX }           from '../logic/simulation.js';
 import { getBracketDisplayState }                         from '../logic/playoffs.js';
 import { markReturning, getCollectedLegends, getDailyStatus, FANS_TEAM_MAX, FANS_PLAYER_MAX } from '../utils/storage.js';
 import { cgGameplayStart, cgGameplayStop, cgGetItem }     from '../utils/crazygames.js';
 import { gdRewardedAvailable }                            from '../utils/gamedistribution.js';
-import { getDailyChallenge, checkPickLegal, checkRosterConstraint } from '../logic/challenge.js';
+import { getDailyChallenge, checkRosterConstraint } from '../logic/challenge.js';
 import { isDualDraft, isBlindDraft, seriesLabels, MORE_MODES, fansFirstScore } from '../logic/modes.js';
 import { seasonTier, seasonGrade } from '../logic/seasonTier.js';
 import { fetchDailyCommunityStats, isFirebaseConfigured } from '../utils/firebase.js';
-import { bindEvents, buildRematchCode }                   from '../ui/events.js'; // circular — safe (called inside functions only)
+import { bindEvents, buildRematchCode, hasKnownHashRoute } from '../ui/events.js'; // circular — safe (called inside functions only)
 import { installPromptKind }                              from '../utils/install.js';
+import { isDark, ovrColor, fansBarCol }                   from '../ui/theme.js';
+
+// Re-exported so the module's public surface is unchanged by the move of
+// these ramps into ui/theme.js (see that file for why they moved).
+export { ovrColor };
 
 // ── Mount point ───────────────────────────────────────────────────────────────
 export const $app = document.getElementById('app');
@@ -53,10 +58,6 @@ function iconBall(cls = '') {
     <path d="M2 12h20"/><path d="M12 2v20"/>
   </svg>`;
 }
-function isDark() {
-  return document.documentElement.getAttribute('data-theme') === 'dark';
-}
-
 function isMobileViewport() {
   return typeof window !== 'undefined' && window.matchMedia('(max-width: 639px)').matches;
 }
@@ -106,21 +107,6 @@ function ovrTierLabel(ovr) {
   return 'Role Players';
 }
 
-function fansBarCol(avg, dark = isDark()) {
-  // Dark blue was #60a5fa: 2.98:1 as a bar fill on --border (needs 3) and
-  // 4.07:1 as the 12px tier badge on --surface-muted (needs 4.5). #93c5fd
-  // clears both at 4.2:1 / 5.7:1 and sits with the other dark tier tints.
-  if (avg >= 80) return dark ? '#93c5fd' : '#2563eb';
-  // Light amber was #d97706: 3.05:1 as the 12px tier badge (needs 4.5) and
-  // 2.58:1 as a bar fill on the --border track (needs 3). #b45309 clears both
-  // at 4.8:1 / 4.1:1, and is the darker amber the design handoff already
-  // specifies for badge text.
-  if (avg >= 60) return dark ? '#fbbf24' : '#b45309';
-  // Light-mode slate was #94a3b8, which is 2.56:1 on the white card — under
-  // the 3:1 WCAG AA floor even for large bold text. #64748b measures 4.76:1.
-  return dark ? '#cbd5e1' : '#64748b';
-}
-
 function fansTierFromAvg(avg) {
   // barCol paints the Fans gauge, which sits on a themed card, so it has to
   // follow the theme. This used to pass `false` unconditionally, so light-mode
@@ -134,11 +120,14 @@ function fansTierFromAvg(avg) {
   };
 }
 
-/** Sum roster fans for UI. Boos Only daily caps the meter at maxPopTotal (300). */
+/** Sum roster fans for UI. Boos Only daily caps the meter at maxPopTotal (300).
+ *  Mode-gated like every other dailyChallenge read (placePlayer, the draft
+ *  banner, the card dimming) so a challenge left on S can never rescale the
+ *  gauge in a mode that isn't playing by its rules. */
 function calcTeamFans(players) {
   const list = players.filter(Boolean);
   const sum  = list.reduce((s, p) => s + (p.popularity ?? 50), 0);
-  const max  = S.dailyChallenge?.params?.maxPopTotal ?? FANS_TEAM_MAX;
+  const max  = (S.mode === 'daily' ? S.dailyChallenge?.params?.maxPopTotal : null) ?? FANS_TEAM_MAX;
   const pct  = Math.min(100, Math.round((sum / max) * 100));
   const avg  = list.length ? sum / list.length : 0;
   const { tier, barCol } = fansTierFromAvg(avg);
@@ -185,18 +174,6 @@ export function fmtPlayerLine(p) {
   if (!p) return '—';
   const era = [p.team, p.decade ? fmtDecadeShort(p.decade) : ''].filter(Boolean).join(' ');
   return era ? `${p.name} (${era})` : p.name;
-}
-
-// ── Team rating (0–100 overall) display helper ────────────────────────────────
-/** 2K-style tier color for a 0–100 overall. Cutoffs 97/92/85 are the old
- * rating-scale 90/82/74 tiers' percentile equivalents on the `overall`
- * (era-adjusted 2K) scale the sim now averages. */
-export function ovrColor(rating) {
-  const r = rating ?? 0;
-  if (r >= 97) return '#d97706'; // gold — GOAT tier
-  if (r >= 92) return '#2563eb'; // blue — star
-  if (r >= 85) return '#0f766e'; // teal — solid starter
-  return '#64748b';              // slate — role player
 }
 
 // ── Confetti (lazy) ───────────────────────────────────────────────────────────
@@ -265,8 +242,11 @@ function renderEraPickerSheet() {
 
   function eraRow(eraId, label, subtitle, action) {
     const selected = active === eraId;
+    // role="option" + aria-selected: the panel declares role="listbox", and a
+    // listbox whose children aren't options exposes nothing to a screen reader
+    // — the selected era was unannounced and the rows read as loose buttons.
     return `
-    <button data-action="${action}"
+    <button data-action="${action}" role="option" aria-selected="${selected}"
       class="era-picker-row${selected ? ' era-picker-row--active' : ''}">
       <span class="era-picker-row__label">${label}</span>
       ${subtitle ? `<span class="era-picker-row__sub">${subtitle}</span>` : ''}
@@ -853,7 +833,7 @@ function dailyBoardDeadEnd() {
   const filled = Object.values(S.roster || {}).filter(Boolean);
   return !S.draftBoard.some(p =>
     !(S.draftedPlayerNames?.has(p.name)) &&
-    checkPickLegal(S.dailyChallenge,
+    isPickDraftable(S.dailyChallenge,
       { ...p, team: S.currentSpin?.team, decade: S.currentSpin?.decade }, filled).legal
   );
 }
@@ -1473,7 +1453,7 @@ function renderDraftCard(p, index) {
   let dailyBlock = null;
   if (S.dailyChallenge && S.mode === 'daily' && !alreadyOnRoster) {
     const filled = Object.values(S.roster || {}).filter(Boolean);
-    const check  = checkPickLegal(S.dailyChallenge,
+    const check  = isPickDraftable(S.dailyChallenge,
       { ...p, team: S.currentSpin?.team, decade: S.currentSpin?.decade }, filled);
     if (!check.legal) dailyBlock = check.reason;
   }
@@ -1615,7 +1595,10 @@ function renderRosterSlot(pos, canPlace) {
   // natural slots would leak the position the mode asks you to know.
   const canDrop      = canPlace;
   const sp           = S.selectedPlayer;
-  const showFit      = S.mode !== 'blind';
+  // isBlindDraft(), not `mode === 'blind'`: a Ball IQ board replayed as a
+  // rematch keeps the names-only rules, so the Primary/Flex/Off-Position hints
+  // must stay hidden there too.
+  const showFit      = !isBlindDraft();
   const primaryMatch = showFit && canDrop && sp && sp.pos === pos;
   const flexMatch    = showFit && canDrop && sp && !primaryMatch &&
     (sp.secondaryPos || []).includes(pos);
@@ -2728,13 +2711,45 @@ function renderBracketMatchup(top, bottom, opts = {}) {
 // ("Conference Quarterfinals") used on the simulate buttons.
 const BRACKET_ROUND_LABELS = ['Quarterfinals', 'Semifinals', 'Finals'];
 
+/**
+ * One-sentence description of the bracket for assistive tech. The tree is
+ * exposed as a single image (its visual structure carries the meaning, and the
+ * matchup markup is layout, not a list), so the label has to carry the state a
+ * sighted player reads off it — "NBA Playoff bracket" alone said nothing about
+ * seed, round, series score or who is still alive.
+ */
+function bracketAriaLabel(po, display) {
+  const bits = [`NBA Playoff bracket, ${BRACKET_ROUND_LABELS.length} rounds`];
+  bits.push(`your team is the number ${po.playerSeed} seed`);
+  const slots = po.currentRound === 0 ? display.qf
+              : po.currentRound === 1 ? display.sf
+              : [display.finals];
+  const mine  = slots.find(m => m?.top?.isPlayer || m?.bottom?.isPlayer);
+  if (display.champion) {
+    bits.push(`${display.champion.isPlayer ? 'your team is' : `${display.champion.name} are`} the champion`);
+  } else if (po.eliminated) {
+    bits.push(`eliminated in the ${po.eliminatedIn}`);
+  } else if (mine) {
+    const iAmTop = !!mine.top?.isPlayer;
+    const opp    = (iAmTop ? mine.bottom : mine.top)?.name;
+    const my     = iAmTop ? mine.topScore : mine.bottomScore;
+    const theirs = iAmTop ? mine.bottomScore : mine.topScore;
+    const round  = BRACKET_ROUND_LABELS[Math.min(po.currentRound, BRACKET_ROUND_LABELS.length - 1)];
+    bits.push(my !== null && theirs !== null
+      ? `${round} against ${opp ?? 'an opponent'}, series ${my} to ${theirs}`
+      : `${round} against ${opp ?? 'an opponent'}`);
+  }
+  return bits.join(', ') + '.';
+}
+
 function renderPlayoffBracketTree(po) {
-  const { qf, sf, finals, champion } = getBracketDisplayState(po);
+  const display = getBracketDisplayState(po);
+  const { qf, sf, finals, champion } = display;
   const roundLabels = BRACKET_ROUND_LABELS;
 
   return `
   <div class="playoff-bracket-wrap brk-o">
-    <div class="playoff-bracket" role="img" aria-label="NBA Playoff bracket">
+    <div class="playoff-bracket" role="img" aria-label="${esc(bracketAriaLabel(po, display))}">
       <div class="playoff-bracket__col playoff-bracket__col--qf">
         <p class="playoff-bracket__round-label">${roundLabels[0]}</p>
         <div class="playoff-bracket__stack">
@@ -3111,9 +3126,12 @@ function renderSeriesResult() {
     </div>`;
   }).join('');
 
+  // Theme-aware, like every other chemTier badge on the results screens: this
+  // sits on a themed card (--surface-sky / --surface-cream), so the fixed
+  // light ramp was painting dark-on-dark here.
   const chemBadge = (chemScore) => {
     const tier = chemTier(chemScore);
-    const { color: c, bg } = chemTierColors(tier.id, false);
+    const { color: c, bg } = chemTierColors(tier.id, isDark());
     return `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full border" style="color:${c};background:${bg};border-color:${c}30">${tier.label}</span>`;
   };
 
@@ -3467,11 +3485,11 @@ const HASH_BY_PHASE = {
 
 function syncHashRoute() {
   // Don't clobber an inbound deep link while sitting on the menu — main.js
-  // dispatches hashchange after first paint to honor #/daily etc.
-  if (S.phase === 'mode-select') {
-    const inbound = (location.hash || '').replace(/^#\/?/, '');
-    if (inbound && inbound !== '/') return;
-  }
+  // dispatches hashchange after first paint to honor #/daily etc. Only a
+  // *routable* hash is protected: leaving on any non-empty one meant coming
+  // back to the menu from a run left the URL stuck on #/results (or #/draft,
+  // #/playoffs) with nothing behind it.
+  if (S.phase === 'mode-select' && hasKnownHashRoute()) return;
   const next = HASH_BY_PHASE[S.phase] || '#/';
   if (location.hash !== next) {
     try { history.replaceState(null, '', next); } catch (_) {}
@@ -3494,11 +3512,15 @@ function wireTeamNameField(inputId, counterId, submitAction, active) {
   const input   = document.getElementById(inputId);
   const counter = document.getElementById(counterId);
   if (!input) return;
-  if (counter) {
-    const update = () => { counter.textContent = 30 - input.value.length; };
-    update();
-    input.addEventListener('input', update);
-  }
+  // Mirror what is typed onto S so a re-render (toggling the theme, an
+  // unhandled action, a submit error) re-emits it as the field's `value`.
+  // Without this every re-render silently wiped a half-typed team name.
+  const update = () => {
+    S.teamName = input.value.slice(0, 30);
+    if (counter) counter.textContent = 30 - input.value.length;
+  };
+  update();
+  input.addEventListener('input', update);
   input.addEventListener('keydown', e => {
     if (e.key !== 'Enter') return;
     e.preventDefault();

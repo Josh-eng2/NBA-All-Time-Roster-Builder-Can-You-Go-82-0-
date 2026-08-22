@@ -5,7 +5,7 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { loadGame, flattenDb } from './helpers.mjs';
+import { loadGame, flattenDb, mod } from './helpers.mjs';
 
 const g   = await loadGame();
 const all = flattenDb(g.DB);
@@ -150,4 +150,121 @@ test('the Legends catalog covers every distinct player exactly once', () => {
     assert.deepEqual(pops, [...pops].sort((a, b) => b - a), `${decade} is not popularity-sorted`);
   }
   assert.equal(listed.size, distinct.size);
+});
+
+// ── Skip re-roll pools ──────────────────────────────────────────────────────
+// A skip re-rolls the wheel, so it has to obey exactly the rules the wheel
+// obeys. The team pool was built from raw TEAMS and ignored a challenge's
+// banned franchises, so a skip could land on a board where every player was
+// off-limits.
+
+test('a Team Skip never lands on the current team, an empty slot, or a banned franchise', () => {
+  const S = draftState({
+    mode: 'daily',
+    dailyChallenge: { id: 'no-la-boston', type: 'constraint', params: { excludeTeams: ['Lakers', 'Celtics'], minWins: 60 } },
+  });
+  for (const decade of g.state.DECADES) {
+    for (const team of g.state.TEAMS) {
+      const pool = g.draft.skipTeamPool({ team, decade });
+      assert.ok(!pool.includes(team), `${team} skipped onto itself`);
+      for (const t of pool) {
+        assert.ok(!['Lakers', 'Celtics'].includes(t), `skip pool offered the banned ${t}`);
+        assert.ok(g.draft.getAvailablePlayers(t, decade).length > 0,
+          `skip pool offered ${t}_${decade} with nothing left to draft`);
+      }
+    }
+  }
+  // Without a ban in force, the pool is drawn from every stocked franchise.
+  S.dailyChallenge = null;
+  S.mode = 'solo';
+  assert.ok(g.draft.skipTeamPool({ team: 'Bulls', decade: '1990s' }).includes('Lakers'));
+});
+
+test('an Era Skip keeps the franchise and only offers eras it still has players in', () => {
+  draftState();
+  for (const team of g.state.TEAMS) {
+    const pool = g.draft.skipDecadePool({ team, decade: '1990s' });
+    assert.ok(!pool.includes('1990s'), `${team} skipped onto its current era`);
+    for (const d of pool) {
+      assert.ok(g.draft.getAvailablePlayers(team, d).length > 0,
+        `era skip offered ${team}_${d} with nothing left to draft`);
+    }
+  }
+});
+
+test('the skip pools tolerate being asked before the wheel has landed', () => {
+  draftState();
+  assert.deepEqual(g.draft.skipTeamPool(null), []);
+  assert.deepEqual(g.draft.skipDecadePool(null), []);
+});
+
+// ── AI GM pick policy ───────────────────────────────────────────────────────
+// chooseAiPick() used to recompute the roster's "before" chemistry once per
+// board player even though it cannot vary between them. Hoisting it halves
+// the work of a CPU turn — and must not move a single pick.
+
+const ai = await import(mod('js/logic/aiDraft.js'));
+
+/** Reference scorer: the policy written out longhand, per candidate. */
+function referencePick(board, roster, coachId) {
+  const POS = ['PG', 'SG', 'SF', 'PF', 'C'];
+  const empty = POS.filter(p => !roster[p]);
+  const fits = (player, pos) =>
+    player.pos === pos ? 1 : (player.secondaryPos || []).includes(pos) ? 0.55 : 0.15;
+  const score = player => {
+    const ratingNorm = Math.max(0, Math.min(1, ((player.overall ?? 82) - 74) / 25));
+    const popNorm    = Math.max(0, ((player.popularity ?? 50) - 35) / 65);
+    const posNeed    = empty.reduce((m, pos) => Math.max(m, fits(player, pos)), 0);
+    const slot = ai.bestAiSlot(player, roster);
+    let chemDelta = 0;
+    if (slot) {
+      const before = g.chem.calculateChemistry(Object.values(roster).filter(Boolean), coachId).chemBonus;
+      const after  = g.chem.calculateChemistry(
+        Object.values({ ...roster, [slot]: player }).filter(Boolean), coachId).chemBonus;
+      chemDelta = Math.max(0, Math.min(1, (after - before + 0.05) / 0.25));
+    }
+    return 0.45 * ratingNorm + 0.25 * popNorm + 0.20 * posNeed + 0.10 * chemDelta;
+  };
+  let best = null, bestScore = -Infinity;
+  for (const p of board) {
+    const sc = score(p);
+    if (sc > bestScore || (sc === bestScore && (p.overall ?? 0) > (best?.overall ?? 0))) {
+      bestScore = sc; best = p;
+    }
+  }
+  return best;
+}
+
+test('the AI GM picks the same player at every stage of a roster', () => {
+  const POS = ['PG', 'SG', 'SF', 'PF', 'C'];
+  const byPos = pos => all.filter(p => p.pos === pos);
+  const boards = ['Bulls_1990s', 'Lakers_1980s', 'Warriors_2010s', 'Spurs_2000s']
+    .map(k => g.DB[k]).filter(Boolean);
+
+  for (const coach of [null, 'jackson', 'auerbach', 'kerr']) {
+    for (let filled = 0; filled <= 4; filled++) {
+      const roster = Object.fromEntries(POS.map(p => [p, null]));
+      POS.slice(0, filled).forEach((pos, i) => { roster[pos] = byPos(pos)[i * 3]; });
+      for (const board of boards) {
+        const picked = ai.chooseAiPick(board, roster, coach);
+        const expect = referencePick(board, roster, coach);
+        assert.equal(picked?.id, expect?.id,
+          `AI pick drifted (coach ${coach}, ${filled} filled)`);
+        assert.ok(board.includes(picked), 'the AI picked a player that was not on the board');
+      }
+    }
+  }
+});
+
+test('the AI GM always places into an empty slot, and gives up when full', () => {
+  const POS = ['PG', 'SG', 'SF', 'PF', 'C'];
+  const roster = Object.fromEntries(POS.map(p => [p, null]));
+  const player = all.find(p => p.pos === 'C');
+  for (let i = 0; i < 5; i++) {
+    const slot = ai.bestAiSlot(player, roster);
+    assert.ok(POS.includes(slot), 'expected an empty slot');
+    assert.equal(roster[slot], null, 'the AI targeted a slot that was already filled');
+    roster[slot] = all[i];
+  }
+  assert.equal(ai.bestAiSlot(player, roster), null, 'a full roster must yield no slot');
 });

@@ -425,7 +425,54 @@ export async function submitDailyScore(entry) {
     ...buildDailyDoc(entry),
     timestamp:    serverTimestamp(),
   });
+  // The day's cached documents are now stale — the player must see their own
+  // submission the moment they open the board.
+  invalidateDailyDocs();
   return ref.id;
+}
+
+// One UTC day's dailyLeaderboard documents, shared by the board list and the
+// community pass-rate. Both used to issue the identical
+// `where('date','==',date) limit(500)` query, and the daily modal fires them
+// together in a Promise.all — so opening it cost two full reads of the same
+// documents, plus a third from the mode-select/results pass-rate line.
+// A short TTL keeps the board fresh (and submitDailyScore drops the entry
+// outright, so a player always sees their own run immediately).
+const DAILY_DOCS_TTL_MS = 60000;
+let _dailyDocs = { date: null, at: 0, promise: null };
+
+/** @param {string} date 'YYYY-MM-DD' @returns {Promise<object[]>} */
+function fetchDailyDocs(date) {
+  if (!isFirebaseConfigured()) {
+    return Promise.reject(new Error('Firebase not configured — see js/utils/firebase.js setup instructions'));
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date || '')) {
+    return Promise.reject(new Error('Invalid date'));
+  }
+  const now = Date.now();
+  if (_dailyDocs.date === date && _dailyDocs.promise && now - _dailyDocs.at < DAILY_DOCS_TTL_MS) {
+    return _dailyDocs.promise;
+  }
+  const pending = (async () => {
+    const db = await getDb();
+    if (!db) throw new Error('Firebase unavailable — leaderboard could not load');
+    const col = collection(db, 'dailyLeaderboard');
+    // Single equality filter, no orderBy — needs no composite index. Sorted
+    // client-side, same pattern fetchLeaderboard() uses for 24h/weekly.
+    const snap = await getDocs(query(col, where('date', '==', date), limit(500)));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  })().catch(err => {
+    // A failed read must not be cached — the next call has to retry.
+    if (_dailyDocs.promise === pending) invalidateDailyDocs();
+    throw err;
+  });
+  _dailyDocs = { date, at: now, promise: pending };
+  return pending;
+}
+
+/** Drops the cached day so the next read hits Firestore. */
+function invalidateDailyDocs() {
+  _dailyDocs = { date: null, at: 0, promise: null };
 }
 
 /**
@@ -437,15 +484,9 @@ export async function submitDailyScore(entry) {
  * @returns {Promise<object[]>}
  */
 export async function fetchDailyLeaderboard(date) {
-  if (!isFirebaseConfigured()) throw new Error('Firebase not configured — see js/utils/firebase.js setup instructions');
-  const db  = await getDb();
-  if (!db) throw new Error('Firebase unavailable — leaderboard could not load');
-  const col = collection(db, 'dailyLeaderboard');
-  // Single equality filter, no orderBy — needs no composite index. Sorted
-  // client-side, same pattern fetchLeaderboard() uses for 24h/weekly.
-  const q    = query(col, where('date', '==', date), limit(500));
-  const snap = await getDocs(q);
-  let entries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  // filter() below produces a fresh array, so the shared cached one is never
+  // sorted or mutated in place.
+  let entries = await fetchDailyDocs(date);
 
   // Defense-in-depth against hand-forged documents (writes only need the
   // public web config, and rules can't verify a run actually happened):
@@ -477,17 +518,10 @@ export async function fetchDailyLeaderboard(date) {
  * @returns {Promise<{ attempts: number, passed: number, pct: number|null }>}
  */
 export async function fetchDailyCommunityStats(date) {
-  if (!isFirebaseConfigured()) throw new Error('Firebase not configured — see js/utils/firebase.js setup instructions');
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date || '')) throw new Error('Invalid date');
-  const db  = await getDb();
-  if (!db) throw new Error('Firebase unavailable — leaderboard could not load');
-  const col = collection(db, 'dailyLeaderboard');
-  const q    = query(col, where('date', '==', date), limit(500));
-  const snap = await getDocs(q);
+  const docs = await fetchDailyDocs(date);
   let attempts = 0;
   let passed   = 0;
-  for (const d of snap.docs) {
-    const data = d.data();
+  for (const data of docs) {
     // Skip pre-challenge-system submissions that never recorded a verdict.
     if (typeof data.passed !== 'boolean') continue;
     attempts += 1;

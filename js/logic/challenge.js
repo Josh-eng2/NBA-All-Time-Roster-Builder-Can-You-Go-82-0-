@@ -20,7 +20,7 @@
  * Exports:
  *   todayUTC()                          → 'YYYY-MM-DD' (supports ?dailydate= dev override)
  *   getDailyChallenge(dateStr?)         → catalog entry for the day
- *   checkPickLegal(ch, player, S)      → { legal, reason } at draft time
+ *   checkPickLegal(ch, player, filled, opts) → { legal, reason } at draft time
  *   checkRosterConstraint(ch, starters) → { pass, detail } live/final roster check
  *   evaluateObjective(ch, S)            → { pass, pending, detail } post-sim
  *   dailyScore(ch, S)                   → leaderboard score for the run
@@ -30,10 +30,17 @@
 import { DB }                  from '../data/players.js';
 import { decadeFromBucketKey } from './era.js';
 
-// Cheapest player popularity in the DB — used to prove a budget pick can
-// still be completed with the remaining slots. Derived from the live DB
-// (memoized) so a data regeneration can't silently break the feasibility
-// math; 35 is the current floor and the fallback before DB load.
+// Cheapest total the remaining roster slots could conceivably be filled for,
+// when the caller can't see the live draft pool. Derived from the live DB
+// (memoized) so a data regeneration can't silently break the feasibility math.
+//
+// This is the OPTIMISTIC bound and it is deliberately weak: the DB's floor is
+// 0, so `remaining * minPopularity()` is 0 and the check degenerates into
+// "does this pick alone bust the budget". That is how a Boos Only run could be
+// drafted into a dead end — four picks totalling 296 of a 300 budget, with the
+// cheapest player the wheel could still deal costing 7. Callers that know what
+// is actually still draftable pass `remainingFloor` (see isPickDraftable in
+// logic/draft.js); this fallback only serves callers that don't.
 let _minPopCache = null;
 function minPopularity() {
   if (_minPopCache != null) return _minPopCache;
@@ -232,9 +239,17 @@ export function getLockedPlayer(challenge) {
  * carry `team`/`decade` (attach from the current spin when checking board
  * entries). `filled` = starters already on the roster.
  *
+ * @param {object} challenge
+ * @param {object} player
+ * @param {object[]} [filled]
+ * @param {{ remainingFloor?: number }} [opts] — `remainingFloor` is the
+ *   cheapest total the slots left AFTER this pick could be filled for, given
+ *   what the wheel can still deal. Supply it wherever the draft pool is
+ *   visible (logic/draft.js isPickDraftable); without it the budget check
+ *   falls back to the DB-wide floor, which cannot see a dead end coming.
  * @returns {{ legal: boolean, reason: string|null }}
  */
-export function checkPickLegal(challenge, player, filled = []) {
+export function checkPickLegal(challenge, player, filled = [], opts = {}) {
   const P = challenge?.params;
   if (!P) return { legal: true, reason: null };
 
@@ -248,12 +263,21 @@ export function checkPickLegal(challenge, player, filled = []) {
     return { legal: false, reason: `${player.decade} is outside today's window` };
   }
   if (P.maxPopTotal != null) {
-    // Block picks that make the budget mathematically impossible: current sum
-    // + this player + a floor-priced player in every remaining slot.
+    // Block picks that make the budget impossible to finish: current sum +
+    // this player + the cheapest the remaining slots can still be filled for.
+    // Blocking only the pick that busts the budget outright is not enough —
+    // it lets a roster walk into a state where no legal fifth pick exists
+    // anywhere and the run can only spin forever.
     const sum       = filled.reduce((s, p) => s + (p.popularity ?? 50), 0);
     const remaining = Math.max(0, 5 - filled.length - 1);
-    if (sum + (player.popularity ?? 50) + remaining * minPopularity() >= P.maxPopTotal) {
-      return { legal: false, reason: `Too many fans — busts the ${P.maxPopTotal} budget` };
+    const floor     = opts.remainingFloor ?? remaining * minPopularity();
+    if (sum + (player.popularity ?? 50) + floor >= P.maxPopTotal) {
+      return {
+        legal: false,
+        reason: remaining > 0 && (sum + (player.popularity ?? 50)) < P.maxPopTotal
+          ? `Too pricey — leaves no room to fill the last ${remaining} spot${remaining === 1 ? '' : 's'}`
+          : `Too many fans — busts the ${P.maxPopTotal} budget`,
+      };
     }
   }
   return { legal: true, reason: null };

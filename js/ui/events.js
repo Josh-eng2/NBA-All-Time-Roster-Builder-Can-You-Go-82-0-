@@ -17,7 +17,8 @@ import {
 } from '../logic/state.js';
 import {
   spinResult, spinResultAtLeast, getAvailablePlayers, availableDecades,
-  playerTier, rosterFull, getSkips, useSkip,
+  skipTeamPool, skipDecadePool, isPickDraftable, playerTier, rosterFull,
+  getSkips, useSkip,
 } from '../logic/draft.js';
 import { simulateSeason, simulateSeries, simulateHeadToHeadSeries, simulateDynastySeries } from '../logic/simulation.js';
 import { applyPlayoffRound } from '../logic/playoffs.js';
@@ -33,7 +34,7 @@ import { submitGlobalScore, submitDailyScore, logAnalyticsEvent } from '../utils
 import { cgGetItem, cgSetItem } from '../utils/crazygames.js';
 import { gdShowAd, gdShowRewardedAd } from '../utils/gamedistribution.js';
 import { buildShareCardBlob, buildShareCaption } from './shareCard.js';
-import { getDailyChallenge, checkPickLegal, evaluateObjective, dailyScore } from '../logic/challenge.js';
+import { getDailyChallenge, evaluateObjective, dailyScore } from '../logic/challenge.js';
 import { pickDynastyForPlay, dynastyDuelScore } from '../logic/dynastyDuel.js';
 import { chooseAiPick, bestAiSlot } from '../logic/aiDraft.js';
 import { isDualDraft, isBlindDraft, getModeConfig, fansFirstScore, fansFirstPassed } from '../logic/modes.js';
@@ -335,8 +336,10 @@ function dispatch(action) {
     // (natural pos, then secondary). Falls back to "tap a slot" only when
     // every preferred slot is already filled.
     // Ball IQ (blind): never auto-place — placing into the natural slot would
-    // leak the position the mode asks you to know by memory.
-    if (S.mode !== 'blind') {
+    // leak the position the mode asks you to know by memory. isBlindDraft(),
+    // not `mode === 'blind'`: a rematch of a Ball IQ board replays that style
+    // (see logic/modes.js), and auto-placing there leaked the same hint.
+    if (!isBlindDraft()) {
       const roster = isDualDraft()
         ? (S.currentPlayer === 1 ? S.p1Roster : S.p2Roster)
         : S.roster;
@@ -658,7 +661,7 @@ function updateDryCounter() {
     if (playerTier(p) === 'starter') return false;
     if (!filled) return true;
     const hydrated = { ...p, team: S.currentSpin?.team, decade: S.currentSpin?.decade };
-    return checkPickLegal(S.dailyChallenge, hydrated, filled).legal;
+    return isPickDraftable(S.dailyChallenge, hydrated, filled).legal;
   });
   S.drySpins = hasStar ? 0 : (S.drySpins ?? 0) + 1;
 }
@@ -704,10 +707,7 @@ function animateSkipReveal(spin, tumbleTeam, tumbleDecade) {
 
 function doSkipTeam() {
   if (getSkips().team <= 0 || !S.currentSpin || S.spinState !== 'done') { render(); return; }
-  // A skip must actually change the team — exclude the current one.
-  const pool = TEAMS.filter(t =>
-    t !== S.currentSpin.team && getAvailablePlayers(t, S.currentSpin.decade).length > 0
-  );
+  const pool = skipTeamPool(S.currentSpin);
   if (!pool.length) { showToast('No other team has players left in this era'); render(); return; }
   useSkip('team');
   animateSkipReveal({ team: pick(pool), decade: S.currentSpin.decade }, true, false);
@@ -721,11 +721,7 @@ function doSkipDecade() {
   // Same 'done' gate as doSkipTeam — a skip triggered mid-tumble would burn
   // the budget AND start a second interval racing the one already running.
   if (getSkips().decade <= 0 || !S.currentSpin || S.spinState !== 'done') { render(); return; }
-  // A skip keeps the team — only land on eras where THIS team has players,
-  // so the fallback can never silently swap the franchise mid-animation.
-  const pool = availableDecades().filter(d =>
-    d !== S.currentSpin.decade && getAvailablePlayers(S.currentSpin.team, d).length > 0
-  );
+  const pool = skipDecadePool(S.currentSpin);
   if (!pool.length) { showToast(`No other era has ${S.currentSpin.team} players left`); render(); return; }
   useSkip('decade');
   animateSkipReveal({ team: S.currentSpin.team, decade: pick(pool) }, false, true);
@@ -739,9 +735,14 @@ async function doWatchAdForSkips() {
   if (_rewardedAdBusy || S.adSkipsEarned) return;
   if (S.mode === 'daily' || S.mode === 'dynasty-duel') return;
   _rewardedAdBusy = true;
+  // An ad takes seconds; the draft it was watched for may be gone by the time
+  // it ends. Every await below hands the reward to whatever run is live now
+  // unless the run is re-checked — see the gameId guards on the submit paths.
+  const adGameId = S.gameId;
   const watched = await gdShowRewardedAd();
   _rewardedAdBusy = false;
   if (!watched) { showToast('No ad available right now — try again later'); return; }
+  if (S.gameId !== adGameId || S.phase !== 'drafting') return; // that draft is over
   S.adSkipsEarned = true;
   if (S.mode === '1v1' || S.mode === 'gm-ai') {
     const k = `p${S.currentPlayer}`;
@@ -767,7 +768,7 @@ function placePlayer(pos) {
   // left on S can never veto picks in another mode.
   if (S.mode === 'daily' && S.dailyChallenge) {
     const filled = Object.values(S.roster || {}).filter(Boolean);
-    const { legal, reason } = checkPickLegal(S.dailyChallenge, player, filled);
+    const { legal, reason } = isPickDraftable(S.dailyChallenge, player, filled);
     if (!legal) {
       showToast(`🚫 ${reason}`);
       return false;
@@ -828,7 +829,8 @@ function placePlayer(pos) {
     S.currentPlayer = SNAKE_ORDER[completedPicks];
     render();
     if (S.mode === 'gm-ai' && S.currentPlayer === 2 && S.p2Round < 5) {
-      setTimeout(() => doAiTurn(), 750);
+      const turnGameId = S.gameId;
+      setTimeout(() => { if (S.gameId === turnGameId) doAiTurn(); }, 750);
     }
     return true;
   }
@@ -1159,8 +1161,11 @@ async function doSaveRun() {
   }
   render();
 
+  const runGameId = S.gameId;
   await doSubmitGlobal();
-  if (!S.globalScoreSubmitted && !S.globalSubmitError) {
+  // Only report on the run that was actually saved — S is replaced wholesale
+  // when a new draft starts, and this await can outlive the results screen.
+  if (S.gameId === runGameId && !S.globalScoreSubmitted && !S.globalSubmitError) {
     showToast('✅ Saved to your personal leaderboard!');
   }
 }
@@ -1203,15 +1208,24 @@ async function doSubmitGlobal() {
     btn.style.cursor     = 'not-allowed';
   }
 
+  // The network round-trip can outlive this run: "Build Another" -> picking a
+  // mode calls startGame(), which REPLACES S. Writing the outcome back
+  // unconditionally stamped the next run's fresh state as already-submitted,
+  // under the previous run's team name.
+  const runGameId = S.gameId;
+  const stillThisRun = () => S.gameId === runGameId;
+
   try {
     await submitGlobalScore(buildGlobalScorePayload());
+    if (!stillThisRun()) return;
     S.globalScoreSubmitted    = true;
     S.globalSubmitError       = null;
     S.globalSubmittedChampion = S.playoffs?.champion ?? false;
     render();
     showToast('✅ Submitted to personal & global leaderboards!');
   } catch (err) {
-    S.globalSubmitError = err.message || 'Submission failed — check your connection.';
+    if (!stillThisRun()) return;
+    S.globalSubmitError = err?.message || 'Submission failed — check your connection.';
     render();
     showToast('✅ Saved to your personal leaderboard · global submit failed');
   } finally {
@@ -1269,14 +1283,20 @@ async function doSubmitDaily() {
     btn.style.cursor  = 'not-allowed';
   }
 
+  // Same gameId guard as doSubmitGlobal — S is replaced by the next run.
+  const runGameId = S.gameId;
+  const stillThisRun = () => S.gameId === runGameId;
+
   try {
     await submitDailyScore(buildDailyScorePayload());
+    if (!stillThisRun()) return;
     S.dailyScoreSubmitted = true;
     S.dailySubmitError    = null;
     render();
     showToast('✅ On the daily leaderboard!');
   } catch (err) {
-    S.dailySubmitError = err.message || 'Submission failed — check your connection.';
+    if (!stillThisRun()) return;
+    S.dailySubmitError = err?.message || 'Submission failed — check your connection.';
     render();
     showToast('⚠️ Daily submit failed — check your connection');
   } finally {
@@ -1322,6 +1342,7 @@ function buildResultCardData() {
   const tier = seasonTier(r.wins);
   const tierLabel = tier.label;
   const tierEmoji = tier.emoji;
+  const tierId    = tier.id;   // shareCard.js keys its palette on this
 
   const starters = POSITIONS.map(pos => {
     const p = S.roster[pos];
@@ -1340,7 +1361,7 @@ function buildResultCardData() {
   return {
     wins: r.wins, losses: r.losses, winPct: r.winPct,
     chemScore: r.chemScore, longestStreak: r.longestStreak,
-    tierLabel, tierEmoji,
+    tierId, tierLabel, tierEmoji,
     isChampion: !!S.playoffs?.champion,
     starters,
     dailyLabel: S.mode === 'daily' ? formatDailyShareLabel() : null,
@@ -1523,7 +1544,10 @@ function doAdvanceToPlayoffs() {
 
 function doSimNextRound() {
   const po = S.playoffs;
-  if (po.tickState) return;
+  // currentRound === 3 means the Finals are already in the books; a fourth
+  // round would push a phantom result onto po.rounds and corrupt the bracket
+  // the display state is derived from.
+  if (!po || po.tickState || po.currentRound >= 3) return;
 
   const results = computeRoundResults(po.bracket);
 
@@ -1558,7 +1582,7 @@ function doSimNextRound() {
 
 function doSimAllPlayoffs() {
   const po = S.playoffs;
-  if (po.tickState || po.currentRound >= 3) return;
+  if (!po || po.tickState || po.currentRound >= 3) return;
 
   while (po.currentRound < 3) {
     const results = computeRoundResults(po.bracket);

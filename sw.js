@@ -48,7 +48,16 @@
 //       fallbacks), styles.css (trophy card below 1024px, header pill
 //       ellipsis, roster fit colours). js/utils/pageIntegrity.js is also new
 //       to the precache list below.
-const CACHE_VERSION = '820-v12';
+//   v13 audit pass. New precached module: js/ui/theme.js (the single theme /
+//       tier-colour ramp that ui/render.js and utils/storage.js had been
+//       keeping hand-copied, drifting, light-only duplicates of). Changed
+//       precached files: challenge.js + draft.js (a fans-budget Daily run
+//       could be drafted into a state with no legal pick left — the pick
+//       lookahead now judges against what is actually still draftable),
+//       render.js, storage.js, events.js, shareCard.js, aiDraft.js,
+//       simulation.js, firebase.js and css/tailwind.css (regenerated — the
+//       committed build was missing `w-7`/`grid-cols-1`).
+const CACHE_VERSION = '820-v13';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 
@@ -75,6 +84,7 @@ const PRECACHE_URLS = [
   './js/ui/events.js',
   './js/ui/render.js',
   './js/ui/shareCard.js',
+  './js/ui/theme.js',
   './js/logic/state.js',
   './js/logic/draft.js',
   './js/logic/era.js',

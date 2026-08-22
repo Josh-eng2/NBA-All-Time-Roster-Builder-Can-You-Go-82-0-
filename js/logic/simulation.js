@@ -55,10 +55,12 @@ function computeSimBaselines() {
   const all   = [];
   for (const [bucketKey, players] of Object.entries(DB)) {
     const decade = decadeFromBucketKey(bucketKey);
-    for (const p of players) all.push({ ...eraAdjustedLine({ ...p, decade }) });
+    // eraAdjustedLine() already returns a fresh object, and `all` is local —
+    // the extra spread and the sort's defensive copy were pure allocation.
+    for (const p of players) all.push(eraAdjustedLine({ ...p, decade }));
   }
   const score  = p => p.ppg * 0.35 + p.rpg * 0.20 + p.apg * 0.20 + p.spg * 0.15 + p.bpg * 0.10;
-  const sorted = [...all].sort((a, b) => score(b) - score(a));
+  const sorted = all.sort((a, b) => score(b) - score(a));
   const cut    = Math.round(sorted.length * 5 / 7); // tier cut unchanged — keeps STARTER_BASE identical
   const sTier  = sorted.slice(0, cut);
   const avg    = (arr, stat) => arr.reduce((s, p) => s + p[stat], 0) / arr.length;
