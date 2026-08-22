@@ -24,6 +24,14 @@ import { getModeConfig }       from '../logic/modes.js';
 //             (raise to make 82-0 rarer, lower to make it easier)
 // WIN_CAP:    per-game win probability ceiling — 0.99 means even a maxed
 //             roster can lose any given night, so 82-0 is never guaranteed
+// WIN_FLOOR:  per-game win probability floor — mirrors WIN_CAP at the bottom
+//             of the curve. Without it the worst possible roster (weakest
+//             stats at every slot, zero chemistry) bottomed out around 5 %,
+//             a ~5-win pace worse than any team in NBA history (the 1972-73
+//             76ers' 9-73 record is an ~11 % pace). 12 % keeps a scrubs-only
+//             team just above that real-world floor instead of a fictional
+//             worse-than-ever-happened collapse, with no effect on builds
+//             that already clear it.
 //
 // Retuned (K 5→3.5, CENTER 1.62→1.8, CAP 1.0→0.99) after the previous curve
 // made perfection routine: a star-chasing roster hit 80-win medians and went
@@ -37,6 +45,7 @@ import { getModeConfig }       from '../logic/modes.js';
 const SIM_K      = 2.00;
 const SIM_CENTER = 1.50;
 const WIN_CAP    = 0.99;
+const WIN_FLOOR  = 0.12;
 
 let _baselinesCache = null;
 
@@ -465,7 +474,8 @@ export function simulateSeason(starters, coach = null, profile = null) {
 
   const fansM = +(Math.pow(popNorm, 1.5) * 38 + 2).toFixed(1);
 
-  const winPct = Math.min(WIN_CAP, 1 / (1 + Math.exp(-SIM_K * (adjustedStrength - SIM_CENTER))));
+  const winPct = Math.max(WIN_FLOOR, Math.min(WIN_CAP,
+    1 / (1 + Math.exp(-SIM_K * (adjustedStrength - SIM_CENTER)))));
 
   let wins = 0;
   const games = [];
