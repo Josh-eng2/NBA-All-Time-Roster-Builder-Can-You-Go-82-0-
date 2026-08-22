@@ -59,7 +59,8 @@ Any static file server works.
 ## Tech
 
 Vanilla JavaScript (ES modules), HTML, and CSS — no backend and no build step to play.
-Engine logic is covered by dependency-free tests using Node's built-in runner:
+Engine logic and screen rendering are covered by dependency-free tests using
+Node's built-in runner:
 
 ```bash
 node --test 'tests/*.test.mjs'

@@ -4,6 +4,7 @@
 import { S, ALL_POSITIONS, TEAMS, DECADES, pick } from '../logic/state.js';
 import { DB }                                     from '../data/players.js';
 import { isDualDraft, getModeConfig }             from '../logic/modes.js';
+import { checkPickLegal }                         from '../logic/challenge.js';
 
 /** True once all slots are filled for the active context. */
 export function rosterFull() {
@@ -35,6 +36,39 @@ export function availableDecades() {
 export function eligibleTeams() {
   const banned = S.mode === 'daily' ? S.dailyChallenge?.params?.excludeTeams : null;
   return banned?.length ? TEAMS.filter(t => !banned.includes(t)) : TEAMS;
+}
+
+/**
+ * Teams a "Skip Team" re-roll may land on: eligible for the current mode,
+ * still stocked for this drafter, and never the team already on the wheel.
+ *
+ * Lives here rather than in the click handler because it is a draft-pool rule:
+ * built from raw TEAMS it ignored a challenge's banned franchises and could
+ * hand a skip a board where every player is off-limits.
+ *
+ * @param {{team: string, decade: string}|null} currentSpin
+ * @returns {string[]}
+ */
+export function skipTeamPool(currentSpin) {
+  if (!currentSpin) return [];
+  return eligibleTeams().filter(t =>
+    t !== currentSpin.team && getAvailablePlayers(t, currentSpin.decade).length > 0
+  );
+}
+
+/**
+ * Decades a "Skip Era" re-roll may land on. Keeps the team fixed — only eras
+ * where THIS franchise still has players qualify, so a skip can never
+ * silently swap the franchise mid-animation.
+ *
+ * @param {{team: string, decade: string}|null} currentSpin
+ * @returns {string[]}
+ */
+export function skipDecadePool(currentSpin) {
+  if (!currentSpin) return [];
+  return availableDecades().filter(d =>
+    d !== currentSpin.decade && getAvailablePlayers(currentSpin.team, d).length > 0
+  );
 }
 
 /** All players from a given team/decade slot. */
@@ -84,6 +118,129 @@ export function getAvailablePlayers(team, decade) {
     !S.usedPlayerIds.includes(p.id) &&
     !(S.draftedPlayerNames?.has(p.name))
   );
+}
+
+// ── Daily Challenge legality, evaluated against the live draft pool ──────────
+// checkPickLegal() is a pure rules function and cannot see what is still
+// draftable. For the fans-budget challenge that blind spot is the difference
+// between a legal pick and a dead run, so the lookahead is computed here —
+// this module is the one that knows what the wheel can still deal.
+
+// The pool only changes when a player is drafted or the era selection changes,
+// and renderDraftCard asks for this once per card on the board, so it is
+// memoized on exactly those inputs.
+let _floorCache = { key: null, byDecade: null };
+
+/**
+ * Still-draftable players grouped by decade, each group sorted cheapest first.
+ * Names carried alongside the cost because the floor below has to pick
+ * DISTINCT players — several of the cheapest in the database appear in two
+ * decades (Karl Malone, popularity 0, is in both the 1980s and 1990s Jazz),
+ * and drafting him once removes him from both.
+ */
+function draftableCosts(afterDecade) {
+  const key = `${S.gameId}|${S.usedPlayerIds?.length ?? 0}|${S.selectedEra}|${S.usedDecades?.length ?? 0}`;
+  if (_floorCache.key !== key) _floorCache = { key, byDecade: new Map() };
+  const cacheKey = afterDecade ?? '';
+  if (_floorCache.byDecade.has(cacheKey)) return _floorCache.byDecade.get(cacheKey);
+
+  // Mirrors availableDecades()'s own reset: if excluding this pick's decade
+  // would leave nothing, the pool is the full remaining set again.
+  const remaining = availableDecades();
+  const decades   = remaining.filter(d => d !== afterDecade);
+  const pool      = decades.length ? decades : remaining;
+  const teams     = eligibleTeams();
+
+  const groups = [];
+  const flat   = [];
+  const seen   = new Set();
+  for (const d of pool) {
+    const byName = new Map();   // one entry per player, whatever team he is on
+    for (const t of teams) {
+      for (const p of getAvailablePlayers(t, d)) {
+        const cost = p.popularity ?? 50;
+        if (!byName.has(p.name) || cost < byName.get(p.name)) byName.set(p.name, cost);
+        if (seen.has(p.name)) continue;
+        seen.add(p.name);
+        flat.push(cost);
+      }
+    }
+    if (!byName.size) continue;
+    groups.push([...byName].map(([name, cost]) => ({ name, cost }))
+      .sort((a, b) => a.cost - b.cost));
+  }
+  flat.sort((a, b) => a - b);
+  groups.sort((a, b) => a[0].cost - b[0].cost);
+  const costs = { flat, groups };
+  _floorCache.byDecade.set(cacheKey, costs);
+  return costs;
+}
+
+/**
+ * Cheapest total `slots` more roster spots could be filled for, drawing only
+ * on players the wheel can still deal after a pick from `afterDecade`.
+ *
+ * Each remaining pick lands on a decade the run hasn't used yet (see
+ * availableDecades), so this fills one slot per decade, cheapest decade first,
+ * skipping anyone already counted. Two properties matter:
+ *
+ *   • it is ACHIEVABLE — distinct players in distinct decades — so it is never
+ *     below what finishing the roster will actually cost, which is what stops
+ *     a budget run being drafted into a dead end;
+ *   • it is near-minimal, so it does not block picks that could still be
+ *     completed.
+ *
+ * @param {number} slots
+ * @param {string|null} afterDecade
+ * @param {string|null} excludeName  the player being picked right now — he is
+ *   still in the pool while his own pick is being judged, and counting him as
+ *   a future slot is how a 0-popularity name in two decades let a run reach a
+ *   state with no legal last pick.
+ * @returns {number} Infinity when the remaining slots cannot be filled at all
+ */
+export function cheapestRemainingTotal(slots, afterDecade = null, excludeName = null) {
+  if (slots <= 0) return 0;
+  const { flat, groups } = draftableCosts(afterDecade);
+  if (!flat.length) return Infinity; // nothing left to draft — never solvable
+
+  const taken = new Set(excludeName ? [excludeName] : []);
+  let total = 0;
+  let filled = 0;
+  for (const group of groups) {
+    if (filled === slots) break;
+    const next = group.find(p => !taken.has(p.name));
+    if (!next) continue;
+    taken.add(next.name);
+    total += next.cost;
+    filled++;
+  }
+  // More slots than decades left: availableDecades() resets once the decade
+  // pool runs out, so the rest come from whatever is cheapest overall.
+  for (let i = filled; i < slots; i++) total += flat[Math.min(i, flat.length - 1)];
+  return total;
+}
+
+/**
+ * Daily Challenge legality for a pick, judged against what is actually still
+ * draftable. Use this everywhere a board card or a placement is validated;
+ * checkPickLegal() alone cannot tell a legal pick from one that strands the
+ * run with no legal fifth player anywhere.
+ *
+ * @param {object} challenge
+ * @param {object} player   hydrated with team/decade, as placePlayer attaches them
+ * @param {object[]} filled starters already on the roster
+ * @returns {{ legal: boolean, reason: string|null }}
+ */
+export function isPickDraftable(challenge, player, filled = []) {
+  // The lookahead only bears on the fans budget, and it walks the whole pool —
+  // skip it entirely on the other fifteen challenges.
+  if (challenge?.params?.maxPopTotal == null) {
+    return checkPickLegal(challenge, player, filled);
+  }
+  const slots = Math.max(0, ALL_POSITIONS.length - filled.length - 1);
+  return checkPickLegal(challenge, player, filled, {
+    remainingFloor: cheapestRemainingTotal(slots, player?.decade ?? null, player?.name ?? null),
+  });
 }
 
 // ── Skip budgets ──────────────────────────────────────────────────────────────

@@ -4,11 +4,12 @@
  * Exports:
  *   buildShareCardBlob(data, variant) — draws a branded PNG, resolves a Blob
  *   buildShareCaption(data)           — plain-text caption for the same result
+ *   tierPalette(tierId, isChampion)   — the card's colour treatment for a tier
  *
  * `data` shape (built by events.js buildResultCardData()):
- *   { wins, losses, winPct, chemScore, longestStreak, tierLabel, tierEmoji,
- *     isChampion, starters: [{ pos, name, team, decade }], dailyLabel?,
- *     shareUrl, rematchCode?, beatTarget?: { targetWins, beat } }
+ *   { wins, losses, winPct, chemScore, longestStreak, tierId, tierLabel,
+ *     tierEmoji, isChampion, starters: [{ pos, name, team, decade }],
+ *     dailyLabel?, shareUrl, rematchCode?, beatTarget?: { targetWins, beat } }
  *
  * Two aspect ratios, same content block:
  *   feed  1080×1200 — timelines (X, Reddit, Discord, iMessage)
@@ -28,13 +29,31 @@ const W = 1080;
 /** Canvas height per variant. `feed` is the original card, unchanged. */
 const VARIANT_H = { feed: 1200, story: 1920 };
 
+// Keyed by seasonTier() id, not by its emoji. The emoji keys this table used
+// to carry ('⚡', '😬') no longer exist in logic/seasonTier.js, so the two
+// tiers it does emit ('⭐' elite, '📋' rebuild) both fell through to the '✅'
+// blue — a rebuild season and a playoff season shared a colour, and the
+// contender tier never got its own. Ids are stable; emoji are presentation.
 const TIER_COLORS = {
-  '🏆': { text: '#fcd34d', bg: 'rgba(251,191,36,0.16)', border: 'rgba(252,211,77,0.55)' },
-  '🔥': { text: '#fbbf24', bg: 'rgba(251,191,36,0.13)', border: 'rgba(251,191,36,0.45)' },
-  '⚡': { text: '#4ade80', bg: 'rgba(34,197,94,0.13)',  border: 'rgba(74,222,128,0.45)' },
-  '✅': { text: '#60a5fa', bg: 'rgba(59,130,246,0.13)', border: 'rgba(96,165,250,0.45)' },
-  '😬': { text: '#f87171', bg: 'rgba(239,68,68,0.13)',  border: 'rgba(248,113,113,0.45)' },
+  perfect:  { text: '#fcd34d', bg: 'rgba(251,191,36,0.16)', border: 'rgba(252,211,77,0.55)' },
+  historic: { text: '#fbbf24', bg: 'rgba(251,191,36,0.13)', border: 'rgba(251,191,36,0.45)' },
+  elite:    { text: '#4ade80', bg: 'rgba(34,197,94,0.13)',  border: 'rgba(74,222,128,0.45)' },
+  playoff:  { text: '#60a5fa', bg: 'rgba(59,130,246,0.13)', border: 'rgba(96,165,250,0.45)' },
+  rebuild:  { text: '#f87171', bg: 'rgba(239,68,68,0.13)',  border: 'rgba(248,113,113,0.45)' },
 };
+
+/**
+ * Palette for a seasonTier() id, falling back to the playoff treatment for an
+ * id this table hasn't been taught. Exported so the tier set and the palette
+ * can be pinned against each other — they silently drifted apart once, when
+ * the table was keyed on emoji.
+ * @param {string} tierId
+ * @param {boolean} [isChampion]
+ */
+export function tierPalette(tierId, isChampion = false) {
+  if (isChampion) return TIER_COLORS.perfect;
+  return TIER_COLORS[tierId] || TIER_COLORS.playoff;
+}
 
 function roundRect(ctx, x, y, w, h, r) {
   ctx.beginPath();
@@ -112,8 +131,8 @@ function drawScoreRecord(ctx, wins, losses, cx, y, fontPx, winsColor) {
 }
 
 function drawCard(ctx, data, H) {
-  const { wins, losses, chemScore, longestStreak, tierLabel, tierEmoji, isChampion, starters, dailyLabel, beatTarget } = data;
-  const tc = isChampion ? TIER_COLORS['🏆'] : (TIER_COLORS[tierEmoji] || TIER_COLORS['✅']);
+  const { wins, losses, chemScore, longestStreak, tierId, tierLabel, tierEmoji, isChampion, starters, dailyLabel, beatTarget } = data;
+  const tc = tierPalette(tierId, isChampion);
   const hasStreak = longestStreak >= 5;
   const hasVerdict = !!beatTarget;
 

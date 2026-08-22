@@ -38,6 +38,7 @@ import { cgGetItem, cgSetItem }                    from '../utils/crazygames.js'
 import { getDailyChallenge }                       from '../logic/challenge.js';
 import { weekKeyUTC }                              from '../logic/dynastyDuel.js';
 import { chemTier, chemTierColors }                from '../logic/chemistry.js';
+import { isDark, ovrColor, fansBarCol }            from '../ui/theme.js';
 
 const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 
@@ -386,41 +387,23 @@ export const FANS_TEAM_MAX = 750;
  *  Exported for render.js's Fans report card. */
 export const FANS_PLAYER_MAX = FANS_TEAM_MAX / 5;
 
-// Mirrors fansBarCol() in ui/render.js. The light-mode slate used to be
-// #94a3b8, which measures 2.56:1 on the white modal card — under the 3:1 AA
-// floor for a graphic that carries meaning — and the amber #d97706 measured
-// 3.05:1 as badge text. render.js fixed both; this copy hadn't been updated,
-// so the global-leaderboard modal still painted the failing values.
-// These modals render on a fixed light surface, so only the light ramp
-// applies here.
-function _fansBarCol(avg) {
-  if (avg >= 80) return '#2563eb';
-  if (avg >= 60) return '#b45309';
-  return '#64748b';
-}
-
-/** Same 2K-style OVR tier coloring as ovrColor() in render.js — duplicated
- *  locally rather than imported to avoid a render.js <-> storage.js cycle
- *  (render.js already imports from storage.js). */
-function _ovrColor(rating) {
-  const r = rating ?? 0;
-  if (r >= 97) return '#d97706';
-  if (r >= 92) return '#2563eb';
-  if (r >= 85) return '#0f766e';
-  return '#64748b';
-}
-
+// These modals are NOT a fixed light surface: their panel is `var(--card)`,
+// which is #1e293b under [data-theme="dark"]. The tier ramps below used to be
+// hand-copied light-only duplicates of render.js's, so the CHEM column painted
+// e.g. #b45309 on that dark card at 2.9:1 — under the 4.5:1 AA floor for its
+// 13px bold text. They now read the live theme through ui/theme.js's single
+// shared ramp.
 function _fansTierFromAvg(avg) {
-  if (!avg) return { tier: 'Unknown', barCol: _fansBarCol(0) };
+  if (!avg) return { tier: 'Unknown', barCol: fansBarCol(0) };
   return {
     tier:   avg >= 85 ? 'Superstar Lineup' : avg >= 70 ? 'Star Power' : avg >= 55 ? 'Solid Roster' : 'Under the Radar',
-    barCol: _fansBarCol(avg),
+    barCol: fansBarCol(avg),
   };
 }
 
 function _chemStyle(score) {
   const tier = chemTier(score);
-  const { color, bg } = chemTierColors(tier.id, false);
+  const { color, bg } = chemTierColors(tier.id, isDark());
   return { label: tier.label, color, bg };
 }
 
@@ -493,7 +476,7 @@ function _globalLbTeamDetailHtml(entry) {
         <p style="font-weight:700;font-size:14px;color:var(--fg);margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:Fira Sans,sans-serif">${esc(pName)}</p>
         ${era ? `<p style="font-size:11px;color:var(--muted-fg);margin:2px 0 0;font-family:Fira Sans,sans-serif">${esc(era)}</p>` : ''}
       </div>
-      ${player ? `<span style="font-size:9px;font-weight:700;padding:2px 6px;border-radius:999px;flex-shrink:0;background:${_ovrColor(player.overall)}18;color:${_ovrColor(player.overall)};font-family:Fira Sans,sans-serif">OVR ${Math.round(player.overall ?? 0)}</span>` : ''}
+      ${player ? `<span style="font-size:9px;font-weight:700;padding:2px 6px;border-radius:999px;flex-shrink:0;background:${ovrColor(player.overall)}18;color:${ovrColor(player.overall)};font-family:Fira Sans,sans-serif">OVR ${Math.round(player.overall ?? 0)}</span>` : ''}
     </div>`;
   }).join('');
 
@@ -686,8 +669,11 @@ async function _loadGlobalLb(tab) {
     if (tableEl) tableEl.innerHTML = _globalLbRowsHtml(entries);
   } catch (err) {
     const tableEl = document.getElementById('global-lb-table');
-    const isPermission = err.message.includes('permission') || err.message.includes('Permission') || err.message.includes('PERMISSION');
-    const msg     = err.message.includes('not configured')
+    // Never read .message off a bare throw — a non-Error rejection here used
+    // to raise a TypeError inside the catch and leave the spinner forever.
+    const reason = String(err?.message ?? err ?? '');
+    const isPermission = /permission/i.test(reason);
+    const msg     = reason.includes('not configured')
       ? 'Firebase not set up yet — see <code>js/utils/firebase.js</code> for instructions.'
       : isPermission
         ? 'Firestore permission denied — open Firebase Console → Firestore → Rules and publish the allow-read rule. <button onclick="window.switchGlobalLbTab(\'' + tab + '\')" style="text-decoration:underline;cursor:pointer;font-family:Fira Sans,sans-serif">Retry</button>'
@@ -1041,8 +1027,9 @@ async function _loadDailyLb(date) {
       }
     }
   } catch (err) {
-    const isPermission = err.message.includes('permission') || err.message.includes('Permission') || err.message.includes('PERMISSION');
-    const msg = err.message.includes('not configured')
+    const reason = String(err?.message ?? err ?? '');
+    const isPermission = /permission/i.test(reason);
+    const msg = reason.includes('not configured')
       ? 'Firebase not set up yet — see <code>js/utils/firebase.js</code> for instructions.'
       : isPermission
         ? 'Firestore permission denied — open Firebase Console → Firestore → Rules and publish the dailyLeaderboard rule.'

@@ -25,12 +25,16 @@ node --test 'tests/*.test.mjs'
 ```
 
 They import the shipped ES modules straight out of `js/`, so they exercise the
-same code the browser runs. Run them after any change to `js/logic/**` or
-`js/utils/firebase.js`. See `tests/README.md` for what each file pins.
+same code the browser runs. Run them after any change under `js/`. See
+`tests/README.md` for what each file pins.
 
-The UI layer has no automated coverage: verify it by playing the game in a
-browser — draft a 5-player roster via the decade wheel, pick a coach, then click
-**SIMULATE 82 GAMES** and confirm a season-result screen appears.
+`render.test.mjs` and `ui-regressions.test.mjs` cover the UI layer too, on a
+tiny DOM stub (`tests/dom-stub.mjs`) — enough to render every screen and catch
+the crashes, `NaN`s and leaked `undefined`s that blank one. They do **not**
+model layout, CSS or event delivery, so still verify a real change by playing
+the game in a browser: draft a 5-player roster via the decade wheel, pick a
+coach, then click **SIMULATE 82 GAMES** and confirm a season-result screen
+appears.
 
 One committed-generated stylesheet: `css/tailwind.css` is a static Tailwind
 build (config in `tailwind.config.js`). After adding/removing Tailwind classes
