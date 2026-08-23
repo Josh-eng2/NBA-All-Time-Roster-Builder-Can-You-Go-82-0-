@@ -134,15 +134,59 @@ let initializeApp, getApps, getFirestore, collection, addDoc, getDocs,
     query, orderBy, limit, where, serverTimestamp, Timestamp,
     getAnalytics, logEvent;
 
+const SDK_BASE = 'https://www.gstatic.com/firebasejs/10.12.4';
+
+/**
+ * Assembles the SDK from three settled dynamic imports.
+ *
+ * Analytics is OPTIONAL and Firestore is not. `firebase-analytics.js` is on
+ * essentially every ad/tracker blocklist (uBlock Origin, Brave Shields,
+ * Firefox ETP, Pi-hole, NextDNS), while `firebase-firestore.js` is on almost
+ * none — so loading all three with Promise.all meant one blocked analytics
+ * module rejected the lot, left the Firebase app uninitialised, and made every
+ * leaderboard read AND every score submission fail with "Firebase unavailable"
+ * for a player whose Firestore access was working perfectly.
+ *
+ * Split out and exported so that contract has a test, because the failure it
+ * guards against cannot be reproduced from Node (every https import fails
+ * there, so the interesting case — analytics down, Firestore up — never
+ * arises on its own).
+ *
+ * @param {PromiseSettledResult<any>[]} settled  [app, firestore, analytics]
+ * @returns {{ app: object, firestore: object, analytics: object|null }|null}
+ *   null only when a REQUIRED module is missing.
+ */
+export function sdkFromSettled([app, firestore, analytics] = []) {
+  if (app?.status !== 'fulfilled' || firestore?.status !== 'fulfilled') return null;
+  return {
+    app:       app.value,
+    firestore: firestore.value,
+    analytics: analytics?.status === 'fulfilled' ? analytics.value : null,
+  };
+}
+
+// A failed load is retried rather than remembered forever: the CDN being
+// unreachable for the few hundred ms around page load used to disable the
+// leaderboard for the whole session, and the "Retry" button in the modal's
+// error message re-entered this same rejected promise, so it could never
+// succeed. The cooldown keeps a genuinely offline client from re-importing on
+// every analytics event.
+const SDK_RETRY_COOLDOWN_MS = 30000;
 let _sdkPromise = null;
+let _sdkRetryAt = 0;
+
 function loadSdk() {
   if (!_sdkPromise) {
-    _sdkPromise = Promise.all([
-      import('https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js'),
-      import('https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js'),
-      import('https://www.gstatic.com/firebasejs/10.12.4/firebase-analytics.js'),
-    ]).then(([app, firestore, analytics]) => ({ app, firestore, analytics }))
-      .catch(() => null);
+    if (Date.now() < _sdkRetryAt) return Promise.resolve(null);
+    _sdkPromise = Promise.allSettled([
+      import(`${SDK_BASE}/firebase-app.js`),
+      import(`${SDK_BASE}/firebase-firestore.js`),
+      import(`${SDK_BASE}/firebase-analytics.js`),
+    ]).then(settled => {
+      const sdk = sdkFromSettled(settled);
+      if (!sdk) { _sdkPromise = null; _sdkRetryAt = Date.now() + SDK_RETRY_COOLDOWN_MS; }
+      return sdk;
+    });
   }
   return _sdkPromise;
 }
@@ -180,18 +224,31 @@ let _initPromise = null;
 function ensureInit() {
   if (!_initPromise) {
     _initPromise = (async () => {
+      // Nothing to retry when there are no credentials — that memo is kept.
       if (!isFirebaseConfigured()) return;
       const sdk = await loadSdk();
-      if (!sdk) return; // CDN blocked/unreachable — leaderboard & analytics silently unavailable
-      try {
-        ({ initializeApp, getApps } = sdk.app);
-        ({ getFirestore, collection, addDoc, getDocs,
-           query, orderBy, limit, where, serverTimestamp, Timestamp } = sdk.firestore);
-        ({ getAnalytics, logEvent } = sdk.analytics);
-        const existing = getApps();
-        _app = existing.length ? existing[0] : initializeApp(FIREBASE_CONFIG);
-        try { _analytics = getAnalytics(_app); } catch (_) { /* blocked by adblocker */ }
-      } catch (_) { _app = null; }
+      if (sdk) {
+        try {
+          ({ initializeApp, getApps } = sdk.app);
+          ({ getFirestore, collection, addDoc, getDocs,
+             query, orderBy, limit, where, serverTimestamp, Timestamp } = sdk.firestore);
+          // `?? {}`: analytics is optional, so sdk.analytics is null whenever
+          // that module was blocked. Destructuring null throws, and the throw
+          // would land in the catch below and null out _app — reintroducing
+          // the exact "analytics takes Firestore down with it" bug one layer
+          // lower down.
+          ({ getAnalytics, logEvent } = sdk.analytics ?? {});
+          const existing = getApps();
+          _app = existing.length ? existing[0] : initializeApp(FIREBASE_CONFIG);
+          if (getAnalytics) {
+            try { _analytics = getAnalytics(_app); } catch (_) { /* blocked by adblocker */ }
+          }
+        } catch (_) { _app = null; }
+      }
+      // A failed init must not be remembered, or ensureInit() would never call
+      // loadSdk() again and its retry cooldown could never fire — the modal's
+      // Retry button would be re-entering a permanently failed memo.
+      if (!_app) _initPromise = null;
     })();
   }
   return _initPromise;
