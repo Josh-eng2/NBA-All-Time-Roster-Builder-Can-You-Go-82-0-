@@ -12,7 +12,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { loadGame, flattenDb, bestFive, mod } from './helpers.mjs';
 
-const { buildGlobalDoc, buildDailyDoc } = await import(mod('js/utils/firebase.js'));
+const { buildGlobalDoc, buildDailyDoc, sdkFromSettled } = await import(mod('js/utils/firebase.js'));
 
 // Bounds transcribed from the rules block in js/utils/firebase.js. If the
 // deployed rules ever change, change them here in the same commit.
@@ -128,4 +128,40 @@ test('buildDailyDoc keeps score == wins*10 + pass bonus, the rule asserts equali
     passed: g.challenge.evaluateObjective(ch, S).pass,
   });
   assert.equal(doc.score, expected, 'wire score and dailyScore() must agree');
+});
+
+// ── SDK assembly ────────────────────────────────────────────────────────────
+// The leaderboard needs firebase-app + firebase-firestore. It does NOT need
+// firebase-analytics — but that module is on essentially every ad/tracker
+// blocklist while firestore is on almost none, and loading all three with
+// Promise.all meant one blocked analytics file rejected the lot. The Firebase
+// app was then never initialised, so getDb() returned null and EVERY score
+// submission and leaderboard read failed with "Firebase unavailable" for a
+// player whose Firestore access was working fine.
+
+const ok   = value => ({ status: 'fulfilled', value });
+const dead = () => ({ status: 'rejected', reason: new Error('ERR_BLOCKED_BY_CLIENT') });
+const APP = { initializeApp() {}, getApps: () => [] };
+const FS  = { getFirestore() {} };
+const AN  = { getAnalytics() {}, logEvent() {} };
+
+test('a blocked analytics module still leaves a usable Firestore SDK', () => {
+  const sdk = sdkFromSettled([ok(APP), ok(FS), dead()]);
+  assert.ok(sdk, 'an ad blocker on firebase-analytics.js must not disable the leaderboard');
+  assert.equal(sdk.app, APP);
+  assert.equal(sdk.firestore, FS);
+  assert.equal(sdk.analytics, null, 'analytics must be reported absent, not faked');
+});
+
+test('the SDK is unusable only when a module the leaderboard needs is missing', () => {
+  assert.equal(sdkFromSettled([dead(), ok(FS), ok(AN)]), null, 'no firebase-app means no app');
+  assert.equal(sdkFromSettled([ok(APP), dead(), ok(AN)]), null, 'no firestore means no leaderboard');
+  assert.equal(sdkFromSettled([dead(), dead(), dead()]), null, 'everything offline');
+  assert.equal(sdkFromSettled([]), null, 'a malformed settle list is not a usable SDK');
+  assert.equal(sdkFromSettled(), null, 'no arguments is not a usable SDK');
+});
+
+test('all three modules loading gives the full SDK', () => {
+  const sdk = sdkFromSettled([ok(APP), ok(FS), ok(AN)]);
+  assert.deepEqual(sdk, { app: APP, firestore: FS, analytics: AN });
 });

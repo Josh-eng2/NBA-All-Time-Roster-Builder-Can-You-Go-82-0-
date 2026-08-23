@@ -55,8 +55,12 @@
 //       could be drafted into a state with no legal pick left — the pick
 //       lookahead now judges against what is actually still draftable),
 //       render.js, storage.js, events.js, shareCard.js, aiDraft.js,
-//       simulation.js, firebase.js and css/tailwind.css (regenerated — the
-//       committed build was missing `w-7`/`grid-cols-1`).
+//       simulation.js and css/tailwind.css (regenerated — the committed build
+//       was missing `w-7`/`grid-cols-1`). firebase.js matters most here: it
+//       loaded firebase-analytics.js as a REQUIRED module, so an ad blocker
+//       on that one file took the whole leaderboard down. A returning player
+//       kept on the old precached copy keeps that bug, so this bump is what
+//       actually ships the fix.
 const CACHE_VERSION = '820-v13';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
