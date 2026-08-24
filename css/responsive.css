@@ -619,4 +619,16 @@ html[data-page="game"] .grid > .flex-shrink-0 {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+  /* …except a busy spinner, which is a status indicator rather than
+     decoration. The blanket rule above collapsed it to a 0.01ms single
+     iteration, so the boot screen showed a frozen partial circle with no
+     sign that anything was loading. `prefers-reduced-motion` is aimed at
+     vestibular triggers — large, parallax and zooming motion — and both
+     WCAG and the spec exempt animation that carries essential information.
+     Kept slower than the default, which is the same accommodation
+     Bootstrap and GOV.UK make for their spinners. */
+  html[data-page="game"] .app-spinner {
+    animation-duration: 1.5s !important;
+    animation-iteration-count: infinite !important;
+  }
 }
