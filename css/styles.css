@@ -3,6 +3,24 @@
    (everything that Tailwind's utility classes can't cover)
    ============================================================ */
 
+/* ── Loading / busy spinner ────────────────────────────────
+   `@keyframes _spin` used to live in an inline <style> INSIDE
+   #loading-overlay, and js/data/players.js removes that overlay once the
+   database is in — which deleted the keyframes from the document. Every
+   later user of the same animation (the global + daily leaderboard modals
+   in js/utils/storage.js) was then painting a circle that could never
+   turn. Defining it here, in a stylesheet that outlives the boot screen,
+   is the whole fix; .app-spinner exists so the two call sites share one
+   definition instead of repeating the animation shorthand inline. */
+@keyframes _spin { to { transform: rotate(360deg); } }
+
+.app-spinner {
+  border-radius: 50%;
+  border: 3px solid var(--border);
+  border-top-color: var(--primary);
+  animation: _spin 0.7s linear infinite;
+}
+
 /* ── Theme variables ──────────────────────────────────────── */
 :root {
   --bg:          #f8fafc;

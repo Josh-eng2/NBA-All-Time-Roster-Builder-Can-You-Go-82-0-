@@ -562,7 +562,7 @@ window.closeGlobalLbTeamDetail = closeGlobalLbTeamDetail;
 function _globalLbLoadingHtml() {
   return `
   <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 0;gap:12px">
-    <div style="width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:_spin 0.7s linear infinite"></div>
+    <div class="app-spinner" role="progressbar" aria-label="Loading leaderboard" style="width:28px;height:28px"></div>
     <p style="font-size:13px;color:var(--muted-fg);font-family:Fira Sans,sans-serif">Loading leaderboard…</p>
   </div>`;
 }

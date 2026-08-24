@@ -61,7 +61,15 @@
 //       on that one file took the whole leaderboard down. A returning player
 //       kept on the old precached copy keeps that bug, so this bump is what
 //       actually ships the fix.
-const CACHE_VERSION = '820-v13';
+//   v14 loading spinner. `@keyframes _spin` lived in an inline <style> inside
+//       #loading-overlay, which js/data/players.js removes once the database
+//       is in — so the keyframes were deleted at boot and the leaderboard
+//       modals' spinners could never turn. It now lives in css/styles.css as
+//       .app-spinner, shared by both call sites, and is exempt from
+//       css/responsive.css's prefers-reduced-motion freeze (a busy indicator
+//       is status, not decoration). Changed: index.html, css/styles.css,
+//       css/responsive.css, js/utils/storage.js.
+const CACHE_VERSION = '820-v14';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 
