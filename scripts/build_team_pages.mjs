@@ -31,6 +31,7 @@ import {
 
 const POSITIONS = ['PG', 'SG', 'SF', 'PF', 'C'];
 const POS_NAME = { PG: 'Point Guard', SG: 'Shooting Guard', SF: 'Small Forward', PF: 'Power Forward', C: 'Center' };
+const POS_PLURAL = { PG: 'point guards', SG: 'shooting guards', SF: 'small forwards', PF: 'power forwards', C: 'centers' };
 
 /**
  * Spoken form of each decade, for titles. People search "best 90s nba
@@ -42,6 +43,58 @@ const DECADE_SHORT = { '1960s': '60s', '1970s': '70s', '1980s': '80s', '1990s': 
 
 /** Franchises with fewer players than this get no page rather than a thin one. */
 const MIN_FRANCHISE_PLAYERS = 12;
+
+/**
+ * City + nickname for each franchise. The game only ever needs the nickname
+ * (TEAMS in js/logic/state.js), but search does not work that way: Search
+ * Console recorded these pages taking impressions for "charlotte hornets all
+ * time roster" (position 57) and "denver nuggets all time starting 5"
+ * (position 59) while the words "Charlotte" and "Denver" appeared nowhere on
+ * them. A page that never states the city it is about is competing for those
+ * queries on the nickname alone.
+ *
+ * Nickname stays the everyday voice of the copy — repeating "Los Angeles
+ * Lakers" in every sentence reads like keyword stuffing and Google treats it
+ * as such. The full name carries the title, the H1, the opening line and the
+ * schema; the nickname carries the rest.
+ */
+const FRANCHISE_FULL_NAME = {
+  Lakers: 'Los Angeles Lakers',       Bulls: 'Chicago Bulls',
+  Warriors: 'Golden State Warriors',  Celtics: 'Boston Celtics',
+  Heat: 'Miami Heat',                 Spurs: 'San Antonio Spurs',
+  Knicks: 'New York Knicks',          Jazz: 'Utah Jazz',
+  Pistons: 'Detroit Pistons',         Magic: 'Orlando Magic',
+  Suns: 'Phoenix Suns',               Nuggets: 'Denver Nuggets',
+  Sixers: 'Philadelphia 76ers',       Rockets: 'Houston Rockets',
+  Thunder: 'Oklahoma City Thunder',   Bucks: 'Milwaukee Bucks',
+  Mavericks: 'Dallas Mavericks',      Cavaliers: 'Cleveland Cavaliers',
+  Blazers: 'Portland Trail Blazers',  Nets: 'Brooklyn Nets',
+  Kings: 'Sacramento Kings',          Raptors: 'Toronto Raptors',
+  Hawks: 'Atlanta Hawks',             Hornets: 'Charlotte Hornets',
+  Pacers: 'Indiana Pacers',           Clippers: 'Los Angeles Clippers',
+  Timberwolves: 'Minnesota Timberwolves', Pelicans: 'New Orleans Pelicans',
+  Grizzlies: 'Memphis Grizzlies',     Wizards: 'Washington Wizards',
+};
+
+/** Full name, falling back to the nickname if a franchise is ever added here. */
+const fullName = team => FRANCHISE_FULL_NAME[team] || team;
+
+/**
+ * First title template that fits inside assertTitleFits' 60-char budget.
+ * Prefixing the city pushes the longest names ("Minnesota Timberwolves",
+ * "Portland Trail Blazers") past the limit on the preferred wording, so fall
+ * back to a shorter phrasing rather than dropping the city — the city is the
+ * part search demand hangs on, "by Era" is not.
+ */
+function franchiseTitle(team) {
+  const full = fullName(team);
+  const candidates = [
+    `${full} All-Time Starting 5 — Full Roster by Era`,
+    `${full} All-Time Roster & Starting 5`,
+    `${full} All-Time Roster`,
+  ];
+  return candidates.find(t => t.length <= 60) || candidates[candidates.length - 1];
+}
 
 const DECADE_CONTEXT = {
   '1960s': 'The league was smaller and the pace enormous, so the raw rebounding and scoring numbers here dwarf anything modern — read them in the context of their era, which is exactly what the game\'s era-adjusted ratings do.',
@@ -117,6 +170,32 @@ ${five.map(({ pos, player }) => player
     ? `        <li><b>${esc(POS_NAME[pos])}</b> — ${esc(player.name)} <span class="tp-five__meta">(${esc(player.decade)}${player.teamLabel ? ` · ${esc(player.teamLabel)}` : ''}) · ${player.overall ?? '—'} OVR · ${num(player.ppg)} pts, ${num(player.rpg)} reb, ${num(player.apg)} ast</span></li>`
     : `        <li><b>${esc(POS_NAME[pos])}</b> — <span class="tp-five__meta">no eligible player in this pool</span></li>`).join('\n')}
       </ol>`;
+}
+
+/**
+ * Ranked depth at each position, not just the starter.
+ *
+ * Search Console shows "spurs power forward all time" landing here at
+ * position 52. The starting five already names the best player at each spot,
+ * but it names him inside one list with no heading a position query can
+ * match, and it says nothing about who is behind him. This section gives each
+ * position its own heading and its real depth chart — which is also the
+ * question a drafter actually has when the wheel lands on a franchise and the
+ * starter is gone.
+ *
+ * Derived per franchise from that franchise's own players, so it is real
+ * content rather than a template repeated 30 times.
+ */
+function positionDepth(team, players) {
+  return POSITIONS.map(pos => {
+    const atPos = players.filter(p => p.pos === pos).slice(0, 3);
+    if (!atPos.length) return '';
+    const names = atPos.map((p, i) => `        <li>${i === 0 ? '<b>' : ''}${esc(p.name)}${i === 0 ? '</b>' : ''} <span class="tp-five__meta">(${esc(p.decade)}) · ${p.overall ?? '—'} OVR · ${num(p.ppg)} pts, ${num(p.rpg)} reb, ${num(p.apg)} ast</span></li>`).join('\n');
+    return `      <h3>Best ${esc(team)} ${esc(POS_PLURAL[pos])} of all time</h3>
+      <ol class="tp-five">
+${names}
+      </ol>`;
+  }).filter(Boolean).join('\n\n');
 }
 
 /** Shared <head>. `depth` is how many directories deep the page sits. */
@@ -251,11 +330,16 @@ function renderTeamPage(team, players, decades, allTeams) {
   // no search demand — and these 30 pages drew zero impressions in three
   // months. The starting five was already the page's best content; now the
   // title claims it.
-  const title = `${team} All-Time Starting 5 — Full Roster by Era`;
+  //
+  // The city was added after that change earned impressions but no clicks:
+  // the queries arriving here are city-qualified ("charlotte hornets all time
+  // roster") and the page did not contain the city at all.
+  const full = fullName(team);
+  const title = franchiseTitle(team);
   const desc = descWithNames(
     five.filter(f => f.player).map(f => f.player.name),
-    `see the all-time ${team} starting five, plus all ${players.length} ${team} legends rated and split by decade.`,
-    `All ${players.length} ${team} legends in the 82-0 draft pool, rated and split by decade, plus the franchise's all-time starting five.`,
+    `see the all-time ${full} starting five, plus all ${players.length} ${team} legends rated and split by decade.`,
+    `All ${players.length} ${full} legends in the 82-0 draft pool, rated and split by decade, plus the franchise's all-time starting five.`,
   );
   const byDecade = decades
     .map(d => ({ decade: d, list: players.filter(p => p.decade === d) }))
@@ -265,17 +349,21 @@ function renderTeamPage(team, players, decades, allTeams) {
   const topRpg = leader(players, 'rpg');
   const topApg = leader(players, 'apg');
   const best = players[0];
-  const others = allTeams.filter(t => t !== team).slice(0, 12);
+  // Every other franchise, not a 12-name slice. These pages sit at position
+  // 52-93 for the queries they already draw, and a slice left 17 of them
+  // reachable only from the hub — the cheapest available help is for all 30
+  // to link each other, so crawl paths and internal link equity are even.
+  const others = allTeams.filter(t => t !== team);
 
   return head({ title, desc, url, jsonLd: jsonLdFor(title, url, desc, [
-    breadcrumbLd([...HUB_CRUMB, [`${team} all-time roster`, url]]),
-    fiveLd(`All-time ${team} starting five`, five),
+    breadcrumbLd([...HUB_CRUMB, [`${full} all-time roster`, url]]),
+    fiveLd(`All-time ${full} starting five`, five),
   ]) }) + `
   <section class="seo-content cp-page tp-page">
     <div class="seo-inner">
       <p class="cp-crumb"><a href="../teams.html">← All franchises &amp; eras</a></p>
 
-      <h1>${esc(team)} all-time roster</h1>
+      <h1>${esc(full)} all-time roster</h1>
       <p><strong>${players.length} ${esc(team)} legends across ${byDecade.length} decades are in the draft pool.</strong>
          Spin into ${esc(team)} in any of those eras and this is the board you are picking from.</p>
       <p><a class="seo-cta" href="../">▶ Draft a ${esc(team)} legend now</a></p>
@@ -293,7 +381,16 @@ ${fiveList(five)}
         <div><dt>Top playmaker</dt><dd>${esc(topApg.name)} — ${num(topApg.apg)} assists per game</dd></div>
       </dl>
 
+      <h2>${esc(team)} depth chart at every position</h2>
+      <p>The starter above plus who is behind him. When the wheel lands on the
+         ${esc(team)} and your first choice is already off the board, this is
+         the fallback at each spot.</p>
+${positionDepth(team, players)}
+
       <h2>Every ${esc(team)} player, by era</h2>
+      <p>All ${players.length} ${esc(team)} legends in the pool, past and present — from the
+         franchise's earliest draftable names through its current stars, grouped by the
+         decade each is drafted from.</p>
 ${byDecade.map(g => `      <h3>${esc(g.decade)} ${esc(team)} — ${g.list.length} player${g.list.length === 1 ? '' : 's'}</h3>
 ${statTable(g.list, { showDecade: false })}
       <p class="tp-era-link"><a href="../eras/${g.decade}.html">See the full ${esc(g.decade)} all-time pool →</a></p>`).join('\n\n')}
@@ -306,7 +403,7 @@ ${statTable(g.list, { showDecade: false })}
          numbers on this page are the numbers your roster plays with.</p>
 
       <h2>Other franchises</h2>
-      <p class="tp-links">${others.map(t => `<a href="${slugify(t)}.html">${esc(t)}</a>`).join(' · ')}</p>
+      <p class="tp-links">${others.map(t => `<a href="${slugify(t)}.html">${esc(fullName(t))}</a>`).join(' · ')}</p>
 
       <p class="seo-links">
         <a href="../">← Back to the game</a> &middot;
@@ -383,9 +480,9 @@ ${fiveList(five.map(f => ({ ...f, player: f.player && { ...f.player, teamLabel: 
 ${statTable(top, { showTeam: true, showDecade: false })}
 
       <h2>Every franchise in the ${esc(label)}</h2>
-${byTeam.map(g => `      <h3>${esc(g.team)} — ${g.list.length} player${g.list.length === 1 ? '' : 's'}</h3>
+${byTeam.map(g => `      <h3>${esc(fullName(g.team))} — ${g.list.length} ${esc(label)} player${g.list.length === 1 ? '' : 's'}</h3>
 ${statTable(g.list, { showDecade: false })}
-      <p class="tp-era-link"><a href="../teams/${slugify(g.team)}.html">All-time ${esc(g.team)} roster →</a></p>`).join('\n\n')}
+      <p class="tp-era-link"><a href="../teams/${slugify(g.team)}.html">All-time ${esc(fullName(g.team))} roster →</a></p>`).join('\n\n')}
 
       <h2>Other eras</h2>
       <p class="tp-links">${allDecades.filter(d => d !== decade).map(d => `<a href="${d}.html">${esc(d)}</a>`).join(' · ')}</p>
@@ -449,7 +546,7 @@ ${teams.map(t => {
     .map(e => ({ decade: e.decade, n: t.players.filter(p => p.decade === e.decade).length }))
     .sort((a, b) => b.n - a.n)[0];
   return `        <tr>
-          <td><a href="teams/${slugify(t.team)}.html">${esc(t.team)}</a></td>
+          <td><a href="teams/${slugify(t.team)}.html">${esc(fullName(t.team))}</a></td>
           <td class="tp-num">${t.players.length}</td>
           <td>${esc(best.name)} (${best.overall})</td>
           <td>${esc(deepest.decade)} (${deepest.n})</td>

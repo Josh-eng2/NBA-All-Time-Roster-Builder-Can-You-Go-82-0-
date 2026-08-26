@@ -191,23 +191,46 @@
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "VideoGame",
-    "name": "Can You Go 82-0?",
-    "alternateName": ["82-0", "82-0 NBA Team Generator", "NBA Team Generator", "NBA All-Time Roster Builder", "NBA Season Simulator"],
-    "url": "https://canyougo820.com/",
-    "description": "A free browser game: draft an all-time NBA roster from legends across every era, build team chemistry, pick your coach, and run the season simulator to chase a perfect 82-0 record.",
-    "genre": ["Sports", "Simulation", "Strategy"],
-    "applicationCategory": "GameApplication",
-    "gamePlatform": "Web Browser",
-    "operatingSystem": "Any (modern web browser)",
-    "browserRequirements": "Requires JavaScript",
-    "keywords": "82-0, NBA simulator, NBA season simulator, NBA roster builder, all-time NBA team, basketball simulator",
-    "inLanguage": "en",
-    "offers": {
-      "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "USD"
-    }
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://canyougo820.com/#website",
+        "name": "Can You Go 82-0?",
+        "url": "https://canyougo820.com/",
+        "description": "Free browser game: draft an all-time NBA roster and simulate a season chasing a perfect 82-0 record.",
+        "inLanguage": "en",
+        "alternateName": [
+          "Can You Go 82-0",
+          "canyougo820",
+          "canyougo82-0",
+          "Can You Go 82 0",
+          "82-0",
+          "82-0 Challenge",
+          "82-0 NBA Team Generator"
+        ]
+      },
+      {
+        "@type": "VideoGame",
+        "@id": "https://canyougo820.com/#game",
+        "name": "Can You Go 82-0?",
+        "alternateName": ["82-0", "82-0 Challenge", "82-0 Challenge Generator", "82-0 NBA Team Generator", "NBA Team Generator", "NBA All-Time Roster Builder", "NBA Season Simulator"],
+        "url": "https://canyougo820.com/",
+        "isPartOf": { "@id": "https://canyougo820.com/#website" },
+        "description": "A free browser game: draft an all-time NBA roster from legends across every era, build team chemistry, pick your coach, and run the season simulator to chase a perfect 82-0 record.",
+        "genre": ["Sports", "Simulation", "Strategy"],
+        "applicationCategory": "GameApplication",
+        "gamePlatform": "Web Browser",
+        "operatingSystem": "Any (modern web browser)",
+        "browserRequirements": "Requires JavaScript",
+        "keywords": "82-0, 82-0 challenge, 82-0 team generator, NBA simulator, NBA season simulator, NBA roster builder, all-time NBA team, basketball simulator",
+        "inLanguage": "en",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        }
+      }
+    ]
   }
   </script>
 
