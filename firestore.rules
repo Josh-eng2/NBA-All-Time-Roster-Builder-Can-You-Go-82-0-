@@ -1,0 +1,112 @@
+// firestore.rules — reference copy of the Firestore Security Rules this
+// project's global leaderboard depends on.
+//
+// This file is NOT deployed automatically. This repo is a static site with
+// no backend and no Firebase CLI / deploy workflow (see AGENTS.md /
+// README.md) — nothing reads this file at build or run time. It exists so
+// the rules actually protecting the live database have a version-controlled
+// source of truth that reviewers and future edits can diff against, instead
+// of living only in the Firebase Console with no history.
+//
+// To publish a change: paste this file's contents into
+// Firebase Console → Firestore Database → Rules → Publish.
+//
+// Keep this file, the SETUP INSTRUCTIONS comment at the top of
+// js/utils/firebase.js, and the numeric bounds in that file's
+// clampWireNumber() calls all in sync with whatever is actually deployed —
+// a mismatch either clamps away real precision (client bound tighter than
+// the rule) or silently loses submissions to a rule the client never
+// learns about (client bound looser than the rule).
+//
+// avgPopularity/fansM: 0-1000 / 0-2200. Widened from an original 0-100 /
+// 0-50 after the player-popularity data ceiling was raised (140 -> 350),
+// which pushed a real star-chasing roster's avgPopularity/fansM past the
+// original bounds and caused the great majority of global submissions to
+// be rejected outright.
+//
+// timestampMs: intentionally NOT compared against request.time. It is
+// client-reported (Date.now()), and comparing it to Firestore's server
+// clock (e.g. `timestampMs <= request.time.toMillis() + 60000`) rejects
+// every write from a device whose clock reads meaningfully ahead of
+// Firestore's — a common, entirely legitimate condition (unsynced system
+// clock, wrong timezone, clock drift) that fails with the exact same
+// generic PERMISSION_DENIED as every other cause. Do not add that
+// comparison back. Time-window reads (24h/weekly) instead filter on the
+// `timestamp` field, which Firestore stamps server-side via
+// serverTimestamp() and is authoritative regardless of the client's clock.
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /leaderboard/{docId} {
+      allow read: if true;
+      allow create: if request.resource.data.wins is number
+                    && request.resource.data.wins >= 0
+                    && request.resource.data.wins <= 82
+                    && request.resource.data.losses is number
+                    && request.resource.data.losses >= 0
+                    && request.resource.data.losses <= 82
+                    && request.resource.data.teamName is string
+                    && request.resource.data.teamName.size() <= 30
+                    && request.resource.data.coachId is string
+                    && request.resource.data.coachId.size() <= 20
+                    && request.resource.data.coachName is string
+                    && request.resource.data.coachName.size() <= 30
+                    && request.resource.data.era is string
+                    && request.resource.data.era.size() <= 10
+                    && request.resource.data.starters is string
+                    && request.resource.data.starters.size() <= 100
+                    && request.resource.data.chemScore is number
+                    && request.resource.data.chemScore >= 0
+                    && request.resource.data.chemScore <= 100
+                    && (!('avgPopularity' in request.resource.data)
+                        || (request.resource.data.avgPopularity is number
+                            && request.resource.data.avgPopularity >= 0
+                            && request.resource.data.avgPopularity <= 1000))
+                    && (!('fansM' in request.resource.data)
+                        || (request.resource.data.fansM is number
+                            && request.resource.data.fansM >= 0
+                            && request.resource.data.fansM <= 2200))
+                    && request.resource.data.champion is bool
+                    && request.resource.data.timestampMs is number;
+      allow update, delete: if false;
+    }
+
+    match /dailyLeaderboard/{docId} {
+      allow read: if true;
+      allow create: if request.resource.data.date is string
+                    && request.resource.data.date.size() == 10
+                    && request.resource.data.wins is number
+                    && request.resource.data.wins >= 0
+                    && request.resource.data.wins <= 82
+                    && request.resource.data.losses is number
+                    && request.resource.data.losses >= 0
+                    && request.resource.data.losses <= 82
+                    && request.resource.data.teamName is string
+                    && request.resource.data.teamName.size() <= 30
+                    && request.resource.data.coachId is string
+                    && request.resource.data.coachId.size() <= 20
+                    && request.resource.data.coachName is string
+                    && request.resource.data.coachName.size() <= 30
+                    && request.resource.data.chemScore is number
+                    && request.resource.data.chemScore >= 0
+                    && request.resource.data.chemScore <= 100
+                    && request.resource.data.starters is string
+                    && request.resource.data.starters.size() <= 100
+                    && request.resource.data.champion is bool
+                    && request.resource.data.timestampMs is number
+                    && request.resource.data.challengeId is string
+                    && request.resource.data.challengeId.size() <= 40
+                    && request.resource.data.passed is bool
+                    && request.resource.data.score is number
+                    && request.resource.data.score >= 0
+                    && request.resource.data.score <= 2000;
+      allow update, delete: if false;
+    }
+
+    // Not used by any code currently in this repo. Left as-is — flagged in
+    // review, not something the leaderboard work above touches.
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}
