@@ -5,7 +5,9 @@
  * ──────────────────
  * 1. Go to https://console.firebase.google.com → create a project.
  * 2. Click "Firestore Database" → Create database → Start in production mode.
- * 3. Set Firestore Rules (Firestore → Rules tab):
+ * 3. Set Firestore Rules (Firestore → Rules tab) — kept in sync as
+ *    ../../firestore.rules at the repo root, which is the copy to paste;
+ *    the block below is a read-along reference only:
  *
  *      rules_version = '2';
  *      service cloud.firestore {
