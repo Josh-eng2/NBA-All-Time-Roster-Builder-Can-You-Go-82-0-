@@ -69,7 +69,18 @@
 //       css/responsive.css's prefers-reduced-motion freeze (a busy indicator
 //       is status, not decoration). Changed: index.html, css/styles.css,
 //       css/responsive.css, js/utils/storage.js.
-const CACHE_VERSION = '820-v14';
+//   v15 global/daily leaderboard submissions were still failing after v13's
+//       fix (which only covered one blocked-analytics-module case). Root
+//       cause: Firestore's default web transport streams over a long-lived
+//       HTTP/2 connection, which a fair number of restrictive networks and
+//       proxies interfere with — silently hanging or resetting the write
+//       instead of erroring cleanly. getDb() now opens Firestore via
+//       initializeFirestore(app, { experimentalAutoDetectLongPolling: true }),
+//       Firebase's own documented fix, falling back to plain getFirestore()
+//       if the app was already initialized elsewhere. Submission failures also
+//       now surface the underlying Firestore error code instead of one bare
+//       "check your connection" for every cause. Changed: firebase.js only.
+const CACHE_VERSION = '820-v15';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 

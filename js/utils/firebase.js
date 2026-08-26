@@ -130,7 +130,7 @@
 // ENTIRE module graph — no render, no mode-select, nothing. A dynamic import
 // confined to ensureInit() below lets that failure degrade to "leaderboard
 // and analytics unavailable" instead of "game never boots".
-let initializeApp, getApps, getFirestore, collection, addDoc, getDocs,
+let initializeApp, getApps, getFirestore, initializeFirestore, collection, addDoc, getDocs,
     query, orderBy, limit, where, serverTimestamp, Timestamp,
     getAnalytics, logEvent;
 
@@ -230,7 +230,7 @@ function ensureInit() {
       if (sdk) {
         try {
           ({ initializeApp, getApps } = sdk.app);
-          ({ getFirestore, collection, addDoc, getDocs,
+          ({ getFirestore, initializeFirestore, collection, addDoc, getDocs,
              query, orderBy, limit, where, serverTimestamp, Timestamp } = sdk.firestore);
           // `?? {}`: analytics is optional, so sdk.analytics is null whenever
           // that module was blocked. Destructuring null throws, and the throw
@@ -255,11 +255,57 @@ function ensureInit() {
 }
 ensureInit();
 
+/**
+ * Firestore's default web transport streams over a long-lived HTTP/2
+ * connection (WebChannel). That stream is exactly the shape a fair number of
+ * restrictive networks and proxies interfere with — corporate firewalls,
+ * some VPNs, buffering intermediaries — silently hanging or resetting it
+ * instead of erroring cleanly, which surfaces here as submitGlobalScore()
+ * eventually rejecting with a generic "unavailable"/network error. None of
+ * that is reachable from a plain REST POST (bypasses the streaming layer
+ * entirely) or from Node (a different transport), which is why the previous
+ * "leaderboard is failing" diagnosis — one blocked analytics import taking
+ * the whole SDK down — was real but not the only cause: fixing it does
+ * nothing for a submission that fails because the WRITE stream itself never
+ * got through.
+ *
+ * `experimentalAutoDetectLongPolling` is Firebase's own documented fix: probe
+ * once, and only fall back to plain long-polling if the streaming transport
+ * doesn't work. It has no cost on a normal connection (the streaming path is
+ * still tried first) and turns a hard failure into a slightly slower success
+ * on the networks where it matters. Despite the flag's name this has shipped
+ * as the standard recommendation for exactly this symptom for years.
+ *
+ * initializeFirestore() throws FAILED_PRECONDITION if this database instance
+ * was already initialized elsewhere (e.g. a host page that embeds this game
+ * and has its own Firebase app under the same config) with different
+ * settings — falls back to the plain getFirestore() instance in that case
+ * rather than losing the leaderboard entirely over a setting we can't apply.
+ *
+ * Pulled out of getDb() as a pure function of its inputs so the fallback
+ * logic has a unit test: the module-level SDK functions below are only ever
+ * populated by a dynamic `import('https://...')`, which Node's loader
+ * rejects outright, so getDb() itself can never be exercised from the test
+ * suite — this can.
+ *
+ * @param {object} app
+ * @param {{ initializeFirestore?: Function, getFirestore?: Function }} fns
+ * @returns {object|null}
+ */
+export function firestoreDbFor(app, { initializeFirestore, getFirestore } = {}) {
+  if (!app) return null;
+  if (initializeFirestore) {
+    try {
+      return initializeFirestore(app, { experimentalAutoDetectLongPolling: true });
+    } catch (_) { /* already initialized elsewhere with different settings — fall through */ }
+  }
+  return getFirestore ? getFirestore(app) : null;
+}
+
 async function getDb() {
   await ensureInit();
   if (_db) return _db;
-  if (!_app || !getFirestore) return null;
-  _db = getFirestore(_app);
+  _db = firestoreDbFor(_app, { initializeFirestore, getFirestore });
   return _db;
 }
 
@@ -362,6 +408,27 @@ export function buildGlobalDoc(entry) {
   };
 }
 
+/**
+ * Rethrows a Firestore SDK rejection with its `.code` (e.g. "unavailable",
+ * "permission-denied") folded into the message. The UI's error banner and
+ * toast otherwise showed a bare "Submission failed — check your connection"
+ * for every failure alike, so a genuine rules rejection and a network-level
+ * block on the write stream (see the long-polling note on getDb()) were
+ * indistinguishable from the outside — there was no way to tell which one a
+ * player was actually hitting without adding console access to their session.
+ * @param {Promise} p
+ */
+export async function withFirestoreErrorCode(p) {
+  try {
+    return await p;
+  } catch (err) {
+    if (err?.code && !String(err.message || '').includes(err.code)) {
+      err.message = `${err.message} (${err.code})`;
+    }
+    throw err;
+  }
+}
+
 export async function submitGlobalScore(entry) {
   if (!isFirebaseConfigured()) throw new Error('Firebase not configured — see js/utils/firebase.js setup instructions');
   const wins = entry.wins ?? 0;
@@ -369,7 +436,7 @@ export async function submitGlobalScore(entry) {
   const db  = await getDb();
   if (!db) throw new Error('Firebase unavailable — leaderboard could not load');
   const col = collection(db, 'leaderboard');
-  const ref = await addDoc(col, {
+  const ref = await withFirestoreErrorCode(addDoc(col, {
     ...buildGlobalDoc(entry),
     timestamp:    serverTimestamp(),
     // ── FUTURE: per-run stat leaders on the GLOBAL board ──────────────────
@@ -382,7 +449,7 @@ export async function submitGlobalScore(entry) {
     // Firebase Console → Firestore → Rules), THEN uncomment the line above and
     // pass `leaders` from the save-run handler. Leaving it out keeps global
     // submissions working until then.
-  });
+  }));
   return ref.id;
 }
 
@@ -414,7 +481,7 @@ export async function fetchLeaderboard(filter = 'alltime') {
     q = query(col, where('timestamp', '>', cutoff), orderBy('timestamp', 'desc'), limit(250));
   }
 
-  const snap    = await getDocs(q);
+  const snap    = await withFirestoreErrorCode(getDocs(q));
   const entries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   if (filter !== 'alltime') entries.sort((a, b) => b.wins - a.wins);
   return entries.slice(0, 10);
@@ -478,10 +545,10 @@ export async function submitDailyScore(entry) {
   const db  = await getDb();
   if (!db) throw new Error('Firebase unavailable — leaderboard could not load');
   const col = collection(db, 'dailyLeaderboard');
-  const ref = await addDoc(col, {
+  const ref = await withFirestoreErrorCode(addDoc(col, {
     ...buildDailyDoc(entry),
     timestamp:    serverTimestamp(),
-  });
+  }));
   // The day's cached documents are now stale — the player must see their own
   // submission the moment they open the board.
   invalidateDailyDocs();
@@ -516,7 +583,7 @@ function fetchDailyDocs(date) {
     const col = collection(db, 'dailyLeaderboard');
     // Single equality filter, no orderBy — needs no composite index. Sorted
     // client-side, same pattern fetchLeaderboard() uses for 24h/weekly.
-    const snap = await getDocs(query(col, where('date', '==', date), limit(500)));
+    const snap = await withFirestoreErrorCode(getDocs(query(col, where('date', '==', date), limit(500))));
     return snap.docs.map(d => ({ id: d.id, ...d.data() }));
   })().catch(err => {
     // A failed read must not be cached — the next call has to retry.

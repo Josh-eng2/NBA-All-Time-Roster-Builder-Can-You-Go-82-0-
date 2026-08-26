@@ -12,7 +12,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { loadGame, flattenDb, bestFive, mod } from './helpers.mjs';
 
-const { buildGlobalDoc, buildDailyDoc, sdkFromSettled } = await import(mod('js/utils/firebase.js'));
+const { buildGlobalDoc, buildDailyDoc, sdkFromSettled, firestoreDbFor, withFirestoreErrorCode } = await import(mod('js/utils/firebase.js'));
 
 // Bounds transcribed from the rules block in js/utils/firebase.js. If the
 // deployed rules ever change, change them here in the same commit.
@@ -164,4 +164,90 @@ test('the SDK is unusable only when a module the leaderboard needs is missing', 
 test('all three modules loading gives the full SDK', () => {
   const sdk = sdkFromSettled([ok(APP), ok(FS), ok(AN)]);
   assert.deepEqual(sdk, { app: APP, firestore: FS, analytics: AN });
+});
+
+// ── Firestore transport: auto-detect long polling ────────────────────────────
+// Firestore's default web transport streams over a long-lived HTTP/2
+// connection (WebChannel), which restrictive networks and proxies — corporate
+// firewalls, some VPNs, buffering intermediaries — are prone to silently
+// hanging or resetting instead of erroring cleanly. That surfaces as
+// submitGlobalScore() eventually rejecting with a generic network error, and
+// is reachable from neither a raw REST replay (bypasses the streaming layer
+// entirely) nor from Node (a different transport) — which is why fixing the
+// earlier "one blocked module takes the whole SDK down" bug was real but not
+// sufficient on its own: a submission whose WRITE STREAM never gets through
+// fails the exact same way whether or not the SDK finished loading.
+//
+// `experimentalAutoDetectLongPolling` is Firebase's own documented fix for
+// this failure class: probe once, fall back to long-polling only if the
+// streaming transport doesn't work. firestoreDbFor() is the pulled-out,
+// pure-function shape of that choice — getDb() itself can never run under
+// Node (its SDK functions only ever arrive via a dynamic `import('https://…')`,
+// which Node's loader rejects outright), so this is what stands in for it.
+
+test('the database is opened with auto-detect long polling when available', () => {
+  const calls = [];
+  const fakeApp = { name: 'app' };
+  const fakeDb  = { tag: 'initialized' };
+  const db = firestoreDbFor(fakeApp, {
+    initializeFirestore: (app, settings) => { calls.push(['initializeFirestore', app, settings]); return fakeDb; },
+    getFirestore:        (app)           => { calls.push(['getFirestore', app]); return fakeDb; },
+  });
+  assert.equal(db, fakeDb);
+  assert.equal(calls.length, 1, 'getFirestore must not be called when initializeFirestore succeeded');
+  assert.deepEqual(calls[0], ['initializeFirestore', fakeApp, { experimentalAutoDetectLongPolling: true }]);
+});
+
+test('a database already initialised elsewhere falls back to getFirestore', () => {
+  // initializeFirestore() throws FAILED_PRECONDITION if this app's Firestore
+  // instance already exists under different settings — e.g. a host page
+  // embedding this game that initialised its own Firebase app first. Losing
+  // the leaderboard entirely over a setting we can't apply would be worse
+  // than dropping just the long-polling preference.
+  const fakeDb = { tag: 'plain' };
+  const db = firestoreDbFor({}, {
+    initializeFirestore: () => { throw new Error('FAILED_PRECONDITION: already initialized'); },
+    getFirestore:        () => fakeDb,
+  });
+  assert.equal(db, fakeDb, 'must fall back to getFirestore() rather than surface the throw');
+});
+
+test('a missing app or a missing SDK never throws', () => {
+  assert.equal(firestoreDbFor(null, { initializeFirestore: () => ({}), getFirestore: () => ({}) }), null);
+  assert.equal(firestoreDbFor({}, {}), null, 'neither function available');
+  assert.equal(firestoreDbFor({}, { getFirestore: () => 'plain-only' }), 'plain-only',
+    'an older SDK build without initializeFirestore must still work');
+});
+
+// ── Surfacing the real Firestore error code ─────────────────────────────────
+// The UI showed the identical "Submission failed — check your connection" for
+// a rules rejection and for a network-level transport failure alike, so there
+// was no way to tell which one a report was describing without console access
+// to the reporting player's own browser.
+
+test('a Firestore rejection is rethrown with its error code folded in', async () => {
+  const err = new Error('The operation could not be completed');
+  err.code = 'unavailable';
+  await assert.rejects(
+    () => withFirestoreErrorCode(Promise.reject(err)),
+    e => e.message.includes('unavailable') && e.message.includes('could not be completed'),
+  );
+});
+
+test('a code already present in the message is not duplicated', async () => {
+  const err = new Error('permission-denied: insufficient permissions');
+  err.code = 'permission-denied';
+  await assert.rejects(
+    () => withFirestoreErrorCode(Promise.reject(err)),
+    e => (e.message.match(/permission-denied/g) || []).length === 1,
+  );
+});
+
+test('a rejection with no .code passes through unchanged', async () => {
+  const err = new Error('plain failure');
+  await assert.rejects(() => withFirestoreErrorCode(Promise.reject(err)), e => e.message === 'plain failure');
+});
+
+test('a fulfilled promise is unaffected', async () => {
+  assert.equal(await withFirestoreErrorCode(Promise.resolve('ok')), 'ok');
 });
