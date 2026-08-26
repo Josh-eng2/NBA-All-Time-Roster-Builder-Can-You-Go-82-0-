@@ -34,11 +34,11 @@
  *                          && (!('avgPopularity' in request.resource.data)
  *                              || (request.resource.data.avgPopularity is number
  *                                  && request.resource.data.avgPopularity >= 0
- *                                  && request.resource.data.avgPopularity <= 100))
+ *                                  && request.resource.data.avgPopularity <= 1000))
  *                          && (!('fansM' in request.resource.data)
  *                              || (request.resource.data.fansM is number
  *                                  && request.resource.data.fansM >= 0
- *                                  && request.resource.data.fansM <= 50))
+ *                                  && request.resource.data.fansM <= 2200))
  *                          && request.resource.data.champion is bool
  *                          && request.resource.data.timestampMs is number;
  *            allow update, delete: if false;
@@ -51,15 +51,29 @@
  *    renders them for every visitor. The client also numeric-coerces on read
  *    (storage.js) as defense in depth.
  *
- *    `timestampMs` is client-reported and intentionally NOT compared against
- *    request.time — an earlier rule did `timestampMs <= request.time.toMillis()
- *    + 60000`, which rejected writes from any device whose system clock ran
- *    fast (symptom: submission works on phone, fails on desktop, because
- *    phones sync time over the cellular network while desktop clocks can
- *    drift or have a misconfigured timezone). Time-window reads (24h/weekly)
- *    filter on the `timestamp` field instead, which Firestore stamps via
- *    serverTimestamp() and is authoritative regardless of the submitting
- *    client's clock.
+ *    avgPopularity/fansM bounds (0-1000 / 0-2200) are generous headroom
+ *    above the ~350 / ~410 theoretical maximums the current player data and
+ *    fansM formula can produce — see the comment above clampWireNumber()
+ *    below for the client-side mirror of these two numbers, which MUST be
+ *    updated together with whatever is actually deployed here.
+ *
+ *    `timestampMs` is client-reported and MUST NOT be compared against
+ *    request.time — do not add `&& request.resource.data.timestampMs <=
+ *    request.time.toMillis() + 60000` (or any variant of it) to this rule.
+ *    That comparison rejects every write from a device whose system clock
+ *    reports a time more than a minute ahead of Firestore's server clock —
+ *    a genuinely common condition (unsynced clocks, a wrong timezone, a VM
+ *    or container with clock drift), and it fails with the exact same
+ *    generic PERMISSION_DENIED the client shows for a dozen unrelated
+ *    causes, so it is very easy to reintroduce this by accident while
+ *    editing the rule for something else and not notice for weeks. If this
+ *    project's LIVE rules currently have that comparison, remove it and
+ *    republish — every affected player's submissions are being silently
+ *    rejected at the door regardless of what the client code does. Time-
+ *    window reads (24h/weekly) filter on the `timestamp` field instead,
+ *    which Firestore stamps via serverTimestamp() and is authoritative
+ *    regardless of the submitting client's clock — so nothing actually
+ *    needs this check to be trustworthy in the first place.
  *
  *    Also add this second rule block for the Daily Challenge leaderboard
  *    (same file, same `match /databases/{database}/documents {` block):
@@ -368,17 +382,29 @@ export function logAnalyticsEvent(eventName, params = {}) {
  * The rules validate every field and reject the WHOLE document on any
  * violation, so an out-of-range value doesn't degrade the entry — it loses
  * the submission. Same defensive reasoning as the `starters` truncation
- * below, and the reason this exists: `avgPopularity` and `fansM` are derived
- * from player popularity, whose data ceiling was raised (140 -> 350) after
- * these rules were written. A star-chasing roster now reports avgPopularity
- * ~150-300 and fansM ~90-320, so the great majority of global submissions
- * were being refused at the door.
+ * below.
  *
- * Clamping is deliberate over widening the rules: the rules are deployed
- * server-side and can't be changed from this repo, and the leaderboard UI
- * recomputes the true full-scale numbers from the entry's own starter names
- * anyway (see _teamFansFromEntry in utils/storage.js), so nothing the player
- * sees depends on the clamped copy.
+ * `avgPopularity`/`fansM` are derived from player popularity, whose data
+ * ceiling was raised (140 -> 350) after the ORIGINAL rules were written —
+ * a star-chasing roster reports avgPopularity ~150-300 and fansM ~90-320,
+ * both well past that original 0-100 / 0-50 rule ceiling, so the great
+ * majority of global submissions were being refused at the door. The
+ * deployed rules were subsequently widened to 0-1000 / 0-2200 to actually
+ * fit the real range (headroom well above the ~350 / ~410 theoretical
+ * maximums the current data and formulas can produce) — the bounds below
+ * must always match whatever the CURRENTLY deployed rules say, not the
+ * game's own believed data range, since a mismatch here either clamps away
+ * real precision for no reason (bound too tight) or loses submissions to a
+ * rule the client never learns about (bound too loose). If the deployed
+ * rules change again, change these two numbers in the same commit.
+ *
+ * Clamping is kept even with the wider bounds as defense-in-depth: the
+ * rules are deployed server-side and can't be changed from this repo, so a
+ * future data change that pushes past even this ceiling degrades to a
+ * clamped submission instead of losing the whole entry. The leaderboard UI
+ * also recomputes the true full-scale numbers from the entry's own starter
+ * names anyway (see _teamFansFromEntry in utils/storage.js), so nothing the
+ * player sees depends on the clamped copy.
  */
 function clampWireNumber(value, min, max) {
   const n = Number(value);
@@ -396,11 +422,12 @@ export function buildGlobalDoc(entry) {
     coachName:   (entry.coachName   ?? '').slice(0, 30),
     era:         (entry.era         ?? 'all').slice(0, 10),
     chemScore:    clampWireNumber(entry.chemScore, 0, 100) ?? 0,
-    // Bounds mirror the Firestore rules documented at the top of this file.
-    ...(clampWireNumber(entry.avgPopularity, 0, 100) != null
-      ? { avgPopularity: clampWireNumber(entry.avgPopularity, 0, 100) } : {}),
-    ...(clampWireNumber(entry.fansM, 0, 50) != null
-      ? { fansM: clampWireNumber(entry.fansM, 0, 50) } : {}),
+    // Bounds mirror the CURRENTLY deployed Firestore rules (see the comment
+    // above clampWireNumber) — 0-1000 / 0-2200, not the game's own data range.
+    ...(clampWireNumber(entry.avgPopularity, 0, 1000) != null
+      ? { avgPopularity: clampWireNumber(entry.avgPopularity, 0, 1000) } : {}),
+    ...(clampWireNumber(entry.fansM, 0, 2200) != null
+      ? { fansM: clampWireNumber(entry.fansM, 0, 2200) } : {}),
     // Rules cap starters at 100 chars — truncate here too so a long-named
     // roster can never fail the whole write.
     starters:    (entry.starters    ?? '').slice(0, 100),

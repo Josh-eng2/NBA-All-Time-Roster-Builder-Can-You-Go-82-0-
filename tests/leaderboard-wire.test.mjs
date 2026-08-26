@@ -5,8 +5,11 @@
  *
  * Regression guard for exactly that: after the player-popularity ceiling was
  * raised (140 -> 350), `avgPopularity` and `fansM` computed by the simulation
- * routinely ran past the rules' 100 / 50 bounds, and the great majority of
- * global-leaderboard submissions were being refused server-side.
+ * routinely ran past the rules' original 100 / 50 bounds, and the great
+ * majority of global-leaderboard submissions were being refused server-side.
+ * The deployed rules were subsequently widened to 0-1000 / 0-2200 to actually
+ * fit the real range — these bounds must always match whatever the
+ * CURRENTLY deployed rules say, not the game's own believed data range.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -20,8 +23,8 @@ const GLOBAL_BOUNDS = {
   wins:          [0, 82],
   losses:        [0, 82],
   chemScore:     [0, 100],
-  avgPopularity: [0, 100],
-  fansM:         [0, 50],
+  avgPopularity: [0, 1000],
+  fansM:         [0, 2200],
 };
 const STRING_CAPS = { teamName: 30, coachId: 20, coachName: 30, era: 10, starters: 100 };
 
@@ -47,14 +50,32 @@ test('buildGlobalDoc clamps out-of-range numbers into the rule ranges', () => {
   const doc = buildGlobalDoc({
     teamName: 'x'.repeat(60), wins: 82, losses: 0, champion: 1,
     coachId: 'a'.repeat(40), coachName: 'b'.repeat(60), era: 'c'.repeat(30),
-    chemScore: 140, avgPopularity: 305, fansM: 324,
+    // Comfortably past the CURRENT rule ceilings (1000 / 2200), not just the
+    // superseded 100 / 50 ones — a regression back to the tight bounds would
+    // otherwise pass this test by accident (305/324 already clamp under both).
+    chemScore: 140, avgPopularity: 1500, fansM: 2500,
     starters: 'd'.repeat(300), timestampMs: 1,
   });
   assertWithinRules(doc, 'clamped');
-  assert.equal(doc.avgPopularity, 100);
-  assert.equal(doc.fansM, 50);
+  assert.equal(doc.avgPopularity, 1000);
+  assert.equal(doc.fansM, 2200);
   assert.equal(doc.chemScore, 100);
   assert.equal(doc.champion, true);
+});
+
+test('buildGlobalDoc does not clamp a real star-chasing roster\'s avgPopularity/fansM', () => {
+  // The whole reason the rules were widened: a real 5-star roster's numbers
+  // must reach the document as computed, not pinned to the old 100 / 50
+  // ceiling the rules no longer impose.
+  const doc = buildGlobalDoc({
+    teamName: 'Dream Team', wins: 70, losses: 12, champion: true,
+    coachId: 'jackson', coachName: 'Phil Jackson', era: 'all',
+    chemScore: 90, avgPopularity: 280, fansM: 260,
+    starters: 'A, B, C, D, E', timestampMs: Date.now(),
+  });
+  assertWithinRules(doc, 'star-chasing');
+  assert.equal(doc.avgPopularity, 280, 'a real avgPopularity under 1000 must pass through unclamped');
+  assert.equal(doc.fansM, 260, 'a real fansM under 2200 must pass through unclamped');
 });
 
 test('buildGlobalDoc omits non-numeric optional fields rather than sending NaN', () => {
@@ -81,13 +102,20 @@ test('every simulated roster produces a rules-valid global document', async () =
     }));
   }
 
-  // Sanity check that this test has teeth: the raw simulation output really
-  // does run past the rule bounds, which is the bug the clamp exists for.
+  // The current 1000 / 2200 rule bounds are generous enough that realistic
+  // simulation output — even the strongest legal roster in the database —
+  // should never actually need clamping; buildGlobalDoc's clamp is a
+  // defensive backstop for a future data change, not something normal play
+  // is expected to hit (that WAS true under the original 100 / 50 bounds,
+  // which is why they had to be widened — see the comment above
+  // clampWireNumber() in js/utils/firebase.js). If this ever starts firing,
+  // either the data ceiling moved again or the deployed rules got tighter —
+  // both are worth knowing about explicitly rather than silently clamping.
   const superTeam = g.sim.simulateSeason(bestFive(all), 'jackson');
-  assert.ok(superTeam.avgPopularity > 100,
-    'expected the superteam to exceed the avgPopularity rule bound pre-clamp');
-  assert.ok(superTeam.fansM > 50,
-    'expected the superteam to exceed the fansM rule bound pre-clamp');
+  assert.ok(superTeam.avgPopularity <= 1000 && superTeam.fansM <= 2200,
+    `the strongest roster in the DB now exceeds the deployed rule bounds pre-clamp ` +
+    `(avgPopularity ${superTeam.avgPopularity}, fansM ${superTeam.fansM}) — ` +
+    `widen GLOBAL_BOUNDS/clampWireNumber AND the deployed Firestore rules together`);
 
   for (const starters of rosters) {
     const r = g.sim.simulateSeason(starters, 'jackson');
