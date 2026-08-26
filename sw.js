@@ -80,7 +80,17 @@
 //       if the app was already initialized elsewhere. Submission failures also
 //       now surface the underlying Firestore error code instead of one bare
 //       "check your connection" for every cause. Changed: firebase.js only.
-const CACHE_VERSION = '820-v15';
+//   v16 the deployed Firestore rules' avgPopularity/fansM ceilings were
+//       widened (100/50 -> 1000/2200) to actually fit the current data
+//       range, but firebase.js's own clamp was still capping submissions at
+//       the old, superseded 100/50 — quietly throwing away real precision
+//       the rules would have accepted. clampWireNumber() calls and the
+//       in-file setup-instructions comment now mirror the wider, currently-
+//       deployed bounds. This does not fix "global submit failed" by
+//       itself — that also requires removing the rules' clock-sensitive
+//       `timestampMs <= request.time.toMillis() + 60000` check, which is
+//       server-side config outside this repo. Changed: firebase.js only.
+const CACHE_VERSION = '820-v16';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 
