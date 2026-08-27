@@ -302,6 +302,23 @@ function dispatch(action) {
     if (S.mode === 'daily') return;
     confirmLeave(() => { S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null; S.dailyChallenge = null; S.dynastyOpponent = null; render(); gdShowAd(); }); return;
   }
+  // Leaving the Daily is not the same as re-rolling it, which is why this
+  // exists alongside the deliberate `restart` no-op above. The attempt is only
+  // spent when the season is simulated (markDailyPlayed), and the board is
+  // seeded from the UTC date, so the player comes back to the identical
+  // challenge — the confirm says so rather than letting them guess.
+  if (action === 'daily-to-menu') {
+    confirmLeave(
+      () => {
+        S.mode = null; S.phase = 'mode-select'; S.coach = null; S.p1 = null;
+        S.dailyChallenge = null; S.dynastyOpponent = null;
+        render(); gdShowAd();
+      },
+      { title: 'Leave the Daily? Your picks so far are lost, but today\'s attempt is not — the same challenge will be waiting.',
+        confirmLabel: 'Yes, Leave' },
+    );
+    return;
+  }
   if (action === 'draft-new-roster') { startFreshDraft(); return; }
   if (action === 'view-trophies')    { S.phase = 'trophy-room'; render(); return; }
   if (action === 'view-legends')     { S.legendsReturnPhase = S.phase; S.phase = 'legends'; render(); return; }

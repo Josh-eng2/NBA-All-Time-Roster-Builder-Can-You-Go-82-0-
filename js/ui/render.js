@@ -284,11 +284,23 @@ function renderHeader(showRestart = false) {
       </button>`
     : `<span class="header-pill">${eraLabel}${S.eraLocked ? '<span class="header-pill__lock" aria-hidden="true">🔒</span>' : ''}</span>`;
 
-  // Daily Challenge is one attempt — never offer Restart mid-run.
-  // Dynasty Duel is unlimited; Restart is fine.
-  const canRestart = showRestart && S.mode !== 'daily';
+  // Daily Challenge is one attempt — never offer Restart mid-run, because
+  // Restart would re-roll the run. Dynasty Duel is unlimited; Restart is fine.
+  //
+  // Leaving, however, is not re-rolling, and Daily used to offer neither: its
+  // draft screen carried no Restart and no route to the menu, so a player who
+  // opened the Daily to see what it was had no way back except reloading the
+  // page. Nothing was being protected by that — markDailyPlayed only fires at
+  // sim time, so abandoning mid-draft leaves nba820_daily_last unset and the
+  // attempt intact, and the board is seeded from the UTC date, so coming back
+  // deals the identical board. Daily therefore gets Menu where every other
+  // mode gets Restart.
+  const canRestart  = showRestart && S.mode !== 'daily';
+  const canLeaveDaily = showRestart && S.mode === 'daily';
   const restartBtn = canRestart
     ? `<button data-action="restart" type="button" class="header-pill header-pill--muted header-pill--restart">Restart</button>`
+    : canLeaveDaily
+    ? `<button data-action="daily-to-menu" type="button" class="header-pill header-pill--muted header-pill--restart">Menu</button>`
     : '';
 
   const eraOverlay = eraPickerOpen ? `
@@ -324,6 +336,9 @@ function renderHeader(showRestart = false) {
     ${canRestart ? `
     <div class="mobile-restart-bar">
       <button data-action="restart" type="button" class="mobile-restart-bar__btn">↩ Restart Run</button>
+    </div>` : canLeaveDaily ? `
+    <div class="mobile-restart-bar">
+      <button data-action="daily-to-menu" type="button" class="mobile-restart-bar__btn">← Menu</button>
     </div>` : ''}
     ${eraOverlay}
   </div>`;
