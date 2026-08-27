@@ -550,8 +550,16 @@ function decorateSeasonGames(games, winPct) {
  * Generates a realistic NBA-style score for one head-to-head game.
  * Scores fall in the 88–128 range; margin typically 2–22 pts.
  */
-function generateGameScore(p1Strength, p2Strength) {
-  const p1WinProb = 1 / (1 + Math.exp(-6 * (p1Strength - p2Strength)));
+/**
+ * `steepness` is the logistic coefficient on the strength gap. At the default
+ * 6 a gap of 0.4 is already an 8%-per-game underdog, which is right for two
+ * drafted rosters (1v1, GM vs AI) where both sides come from the same
+ * distribution and close matchups should stay close.
+ *
+ * Dynasty Duel passes a softer value — see DYNASTY_STEEPNESS.
+ */
+function generateGameScore(p1Strength, p2Strength, steepness = 6) {
+  const p1WinProb = 1 / (1 + Math.exp(-steepness * (p1Strength - p2Strength)));
   const p1Wins    = Math.random() < p1WinProb;
 
   // Tempo: faster teams score more
@@ -602,6 +610,24 @@ export function simulateHeadToHeadSeries(p1Starters, p1Coach, p2Starters, p2Coac
  * Best-of-7 vs a Dynasty Duel CPU team (no opposing roster cards).
  * Returns the same shape as simulateHeadToHeadSeries for shared series UI.
  */
+/**
+ * Dynasty Duel matches a drafted roster against a fixed legendary team, and
+ * the two are not drawn from the same distribution: the opponent pool runs
+ * 1.87–2.38 (CPU_TEAMS) while the calibration anchors at the top of this file
+ * put random builds at a 1.41 median and a 1.78 p90. Under the default
+ * steepness of 6 that made every matchup a 0% series for anything short of a
+ * star-chasing build — the mode invites you to "play as often as you want"
+ * and then could not be won.
+ *
+ * 2.5 widens the competitive band without softening the fantasy. Series win
+ * rates against the pool's weakest / median / strongest:
+ *   random build 1.41 →  6% /  2% /  0%   (an upset is rare but possible)
+ *   p90 build    1.78 → 44% / 28% /  2%
+ *   star build   2.36 → 99% / 92% / 47%   ('96 Bulls stay a coin flip)
+ * The elite dynasties are still elite; they are no longer arithmetic walls.
+ */
+const DYNASTY_STEEPNESS = 2.5;
+
 export function simulateDynastySeries(playerSeason, opponent) {
   const p1Str = playerSeason.strength;
   const p2Str = opponent.strength;
@@ -619,7 +645,7 @@ export function simulateDynastySeries(playerSeason, opponent) {
   const games = [];
   let p1Wins = 0, p2Wins = 0;
   while (p1Wins < 4 && p2Wins < 4) {
-    const g = generateGameScore(p1Str, p2Str);
+    const g = generateGameScore(p1Str, p2Str, DYNASTY_STEEPNESS);
     if (g.p1Won) p1Wins++; else p2Wins++;
     games.push({ gameNum: games.length + 1, ...g, p1WinsAfter: p1Wins, p2WinsAfter: p2Wins });
   }
