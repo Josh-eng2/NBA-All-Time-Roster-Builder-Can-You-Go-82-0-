@@ -472,6 +472,23 @@ async function hydrateDailyCommunityStats() {
   }
 }
 
+/**
+ * Countdown to the next Daily Challenge. The board rolls at UTC midnight
+ * (getUtcDateString is what getDailyStatus compares), so this counts to the
+ * next 00:00Z rather than the viewer's local midnight.
+ *
+ * Rendered once per render() rather than ticking on a timer: the card is a
+ * menu item, not a live clock, and an interval here would keep firing behind
+ * every other screen. Rounding is deliberate — "in 7h 4m" reads better than a
+ * second-accurate value that is stale the moment it paints.
+ */
+function timeToNextDaily(now = new Date()) {
+  const next = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1);
+  const mins = Math.max(0, Math.ceil((next - now.getTime()) / 60000));
+  const h = Math.floor(mins / 60), m = mins % 60;
+  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
+
 function renderDailyModeCard() {
   // Same white-card + orange-accent treatment the old "Best season" callout
   // used (and that Classic/Ball IQ/1v1 still use below it) — bg-white and
@@ -492,6 +509,7 @@ function renderDailyModeCard() {
       <div class="flex-1 min-w-0">
         <p class="font-black text-sm text-foreground flex flex-wrap items-center gap-x-2 gap-y-1">Daily Challenge ${tick}</p>
         <p class="text-[11px] text-muted-fg mt-0.5 leading-snug">${ch.title}: you went <span style="color:#f97316;font-weight:700">${r.wins}–${r.losses}</span></p>
+        <p class="text-[11px] mt-0.5 leading-snug" style="color:#f97316;font-weight:700">Next challenge in ${timeToNextDaily()}</p>
         ${renderCommunityStatsLine()}
       </div>
       <button data-action="open-daily-stats" class="text-[11px] font-bold px-2 py-1.5 rounded-lg border flex-shrink-0 cursor-pointer" style="border-color:var(--border);background:var(--card);color:var(--muted-fg)" title="Daily Challenge Stats">Stats</button>
@@ -509,7 +527,7 @@ function renderDailyModeCard() {
         <p class="text-[11px] text-muted-fg leading-snug mt-0.5">${ch.desc}${community}</p>
         <p class="text-[10px] text-muted-fg mt-0.5">One attempt per day · board locks after you play</p>
       </div>
-      <span class="text-[11px] font-bold px-2 py-1 rounded-lg border flex-shrink-0" style="border-color:#fdba74;background:var(--card);color:${isDark() ? '#fdba74' : '#c2410c'};pointer-events:none">Play →</span>
+      <span class="text-[11px] font-black px-3 py-1.5 rounded-lg flex-shrink-0 text-white" style="background:#f97316;pointer-events:none">Play →</span>
     </button>
   </div>`;
 }
@@ -1375,9 +1393,9 @@ function renderSlotMachine() {
     : `Round ${S.round + 1}`;
   return `
   <div class="rounded-2xl border border-border bg-card p-4 animate-scale-in card-shadow draft-slot-machine">
-    <div class="flex items-center gap-2 mb-3">
-      <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Draft Board — ${boardLabel}</p>
-      <div class="ml-auto flex gap-1.5">
+    <div class="flex items-center gap-2 mb-3 flex-wrap">
+      <p class="text-xs font-bold uppercase tracking-widest text-muted-fg whitespace-nowrap">Draft Board — ${boardLabel}</p>
+      <div class="ml-auto flex gap-1.5 flex-wrap justify-end">
         ${isDone && skips.team > 0 ? `<button data-action="skip-team" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">Skip Team (${skips.team})</button>` : ''}
         ${isDone && skips.decade > 0 && !eraLocked ? `<button data-action="skip-decade" class="text-[11px] px-2.5 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer">Skip Era (${skips.decade})</button>` : ''}
         ${isDone && skips.team <= 0 && skips.decade <= 0 && !S.adSkipsEarned
@@ -1462,10 +1480,17 @@ function renderDraftCard(p, index) {
   const cardBorder      = unavailable ? 'var(--border)' : isSelected ? 'var(--primary)' : 'var(--border)';
   const cardBg          = unavailable ? 'var(--card3)' : isSelected ? 'var(--card2)' : 'var(--card)';
   const cardOpacity     = unavailable ? 'opacity:0.5;' : '';
+  // The selected state must always say what to do next. Mobile used to read a
+  // bare "✓ Selected" while desktop said "✓ Selected — Tap a Roster Slot": the
+  // narrow viewport — the one where the roster slots sit below the fold — got
+  // the label with no instruction in the exact state where the player is
+  // stuck. Mobile gets its own shorter wording rather than desktop's, which
+  // wraps at 375px; "below" is accurate because the roster always renders
+  // under the board.
   const pickLabel       = isBlindDraft()
     ? (isSelected ? '✓ Selected — Tap a Roster Slot' : 'Draft → Tap Slot')
     : isMobileViewport()
-    ? (isSelected ? '✓ Selected' : 'Draft → Slot')
+    ? (isSelected ? '✓ Tap a Slot Below' : 'Draft → Slot')
     : (isSelected ? '✓ Selected — Tap a Roster Slot' : 'Draft → Tap Slot');
 
   // HoopIQ — name only, no stats or position hints
@@ -3528,6 +3553,46 @@ function wireTeamNameField(inputId, counterId, submitAction, active) {
   });
 }
 
+/**
+ * Two scroll behaviours for the draft workspace, both fixes for the same
+ * root cause: the game shell is viewport-locked (see css/responsive.css), so
+ * the draft panel is the only thing that scrolls and a short phone shows a
+ * board that ends mid-row with nothing to say more exists.
+ *
+ * 1. When a pick lands in the select-then-place state, the instruction
+ *    ("tap a roster slot") names a target that can sit below the fold — at
+ *    375x667 the C slot rendered 35px past the viewport with the panel still
+ *    at scrollTop 0. Bring the roster into view so the thing the player is
+ *    told to tap is actually on screen.
+ * 2. Otherwise, mark the panel when content remains below so the CSS can
+ *    fade its bottom edge — an affordance for a scroll that is only ~42px on
+ *    a 667px viewport and is easy to miss entirely.
+ *
+ * Both are no-ops off the drafting screen and safe when the panel is absent.
+ */
+function updateDraftPanelScroll() {
+  const panel = document.querySelector('.draft-screen__inner');
+  if (!panel) return;
+
+  const markOverflow = () => {
+    const more = panel.scrollHeight - panel.clientHeight - panel.scrollTop > 8;
+    panel.classList.toggle('has-more-below', more);
+  };
+
+  // Re-mark as the player scrolls. render() replaces this node wholesale, so
+  // the listener goes with the old DOM — nothing to clean up.
+  panel.addEventListener('scroll', markOverflow, { passive: true });
+
+  // scrollIntoView on the roster would also scroll the page in browsers that
+  // treat the locked shell as scrollable; set scrollTop directly so only this
+  // panel moves. The roster is the last thing in the panel, so scrolling to
+  // the end is exactly "show the slots".
+  if (S.phase === 'drafting' && S.selectedPlayer && panel.querySelector('.draft-roster')) {
+    panel.scrollTop = panel.scrollHeight;
+  }
+  markOverflow();
+}
+
 // ── Main render dispatcher ────────────────────────────────────────────────────
 export function render() {
   updateCrazyGamesGameplayState();
@@ -3544,6 +3609,7 @@ export function render() {
   else if (S.phase === 'series-result') $app.innerHTML = renderSeriesResult();
   bindEvents();
   syncHashRoute();
+  updateDraftPanelScroll();
 
   // Character counter + Enter-to-submit for each team-name field. The inputs
   // are not inside a <form>, so Enter did nothing and the only way to submit

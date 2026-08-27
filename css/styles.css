@@ -2489,3 +2489,28 @@ button.autopsy-strip:hover {
   line-height: 1;
   flex-shrink: 0;
 }
+
+/* ── Draft panel scroll affordance ───────────────────────────────────────────
+   The game shell is viewport-locked, so .draft-screen__inner is the only
+   thing that scrolls — and on a short phone it holds just ~42px of overflow.
+   The board therefore ends mid-card-row with nothing to signal that more
+   exists, which read as a clipped layout rather than a scroll.
+
+   js/ui/render.js (updateDraftPanelScroll) adds .has-more-below whenever
+   content remains past the bottom edge and removes it once the player has
+   scrolled to the end, so the fade is never shown over a fully-visible board.
+
+   Implemented as a sticky flex item with a negative margin: the pseudo-element
+   is the panel's last flex child, sticks to the bottom of the scrollport, and
+   its -28px top margin means it occupies no layout space and cannot push the
+   roster it sits over. */
+.draft-screen__inner.has-more-below::after {
+  content: '';
+  position: sticky;
+  bottom: 0;
+  flex: 0 0 auto;
+  height: 28px;
+  margin-top: -28px;
+  pointer-events: none;
+  background: linear-gradient(to bottom, transparent, var(--bg));
+}
