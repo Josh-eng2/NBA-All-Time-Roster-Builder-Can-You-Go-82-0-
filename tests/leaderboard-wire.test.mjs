@@ -323,3 +323,11 @@ test('every real drafted roster survives buildGlobalDoc without losing a name', 
   assert.ok(worst.starters.length <= STRING_CAPS.starters);
   assert.equal(worst.starters.split(', ').length, 5);
 });
+
+test('the daily doc packs its starters too, not just the global one', () => {
+  const doc = buildDailyDoc({ date: '2026-03-01', wins: 70, losses: 12, passed: true,
+    starters: LONGEST_FIVE.join(', ') });
+  assert.ok(doc.starters.length <= STRING_CAPS.starters);
+  assert.equal(doc.starters.split(', ').length, 5);
+  assert.ok(doc.starters.endsWith('Abdul-Jabbar'), 'the fifth starter was cut short');
+});

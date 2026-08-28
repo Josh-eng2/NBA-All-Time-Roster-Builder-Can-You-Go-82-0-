@@ -424,6 +424,11 @@ export function logAnalyticsEvent(eventName, params = {}) {
  * to the player. The hard slice stays as a last-resort backstop so this can
  * never be the thing that loses a submission.
  *
+ * CALLERS MUST PASS THE FULL NAMES. Fitting the wire cap is this function's job
+ * and nobody else's: both payload builders in ui/events.js used to `.slice(0,
+ * 100)` before handing the list over, which pre-truncated the fifth name and
+ * left nothing here to repair. If a call site is trimming names, it is wrong.
+ *
  * @param {string[]} names
  * @returns {string}
  */
@@ -586,7 +591,8 @@ export function buildDailyDoc(entry) {
     coachId:     (entry.coachId     ?? '').slice(0, 20),
     coachName:   (entry.coachName   ?? '').slice(0, 30),
     chemScore:    clampWireNumber(entry.chemScore, 0, 100) ?? 0,
-    starters:    (entry.starters    ?? '').slice(0, 100),
+    // Packed, not sliced — same reasoning as buildGlobalDoc above.
+    starters:    packStarterNames(String(entry.starters ?? '').split(', ')),
     timestampMs:  entry.timestampMs ?? 0,
     // Day's specific challenge (era rules, rating caps, win targets, …):
     // score = wins*10 + 200 pass bonus — the board's primary sort key.

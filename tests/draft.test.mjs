@@ -403,3 +403,48 @@ test('a Boos Only run finishes under the pity timer, not just without it', () =>
   assert.ok(worstSpins <= 10,
     `the wheel wasted re-spins on dead boards (worst run took ${worstSpins} spins for 5 picks)`);
 });
+
+test('a pinned spin stays inside its constraint even when nothing there is legal', () => {
+  // spinResult(fixedTeam, fixedDecade) promises a board matching the pin. When
+  // the legality preference was added it began widening to the whole pool the
+  // moment the pinned boards were all illegal — a wrong answer rather than a
+  // degraded one. No caller passes these arguments today, which is exactly why
+  // it would have gone unnoticed until one did.
+  const budget = g.challenge.CHALLENGES.find(c => c.params.maxPopTotal != null);
+  const all    = flattenDb(g.DB);
+
+  let checked = 0;
+  for (let run = 0; run < 25; run++) {
+    g.state.clearDailyRng();
+    g.state.S.mode = 'daily';
+    g.state.S.dailyChallenge = budget;
+    g.state.startGame('all');
+    const S = g.state.S;
+    S.mode = 'daily';
+    S.selectedEra = 'all';
+
+    // Spend most of the budget so most boards hold nothing legal.
+    for (const pos of g.state.POSITIONS.slice(0, 4)) {
+      const p = all
+        .filter(x => x.pos === pos && !S.usedDecades.includes(x.decade) && (x.popularity ?? 50) <= 70)
+        .sort((a, b) => (b.popularity ?? 50) - (a.popularity ?? 50))[0];
+      if (!p) break;
+      S.roster[pos] = p;
+      S.usedPlayerIds.push(p.id);
+      S.draftedPlayerNames.add(p.name);
+      S.usedDecades.push(p.decade);
+    }
+
+    for (const team of ['Lakers', 'Bulls', 'Spurs']) {
+      for (const decade of g.draft.availableDecades()) {
+        if (!g.draft.getAvailablePlayers(team, decade).length) continue;
+        const spin = g.draft.spinResult(team, decade);
+        checked++;
+        assert.ok(spin, 'a pinned spin returned nothing while the pinned board had players');
+        assert.equal(`${spin.team}_${spin.decade}`, `${team}_${decade}`,
+          `pinned to ${team}_${decade} but landed on ${spin.team}_${spin.decade}`);
+      }
+    }
+  }
+  assert.ok(checked > 100, 'the fixture did not actually exercise pinned spins');
+});

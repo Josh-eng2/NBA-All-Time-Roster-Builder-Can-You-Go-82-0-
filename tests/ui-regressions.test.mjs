@@ -187,3 +187,59 @@ test('an inbound deep link is not clobbered by the first menu render', () => {
   assert.deepEqual(hashWrites(), []);
   globalThis.location.hash = '';
 });
+
+// ── Starter names reach the wire intact ──────────────────────────────────────
+// utils/firebase.js packs the five names into the 100-char cap without cutting
+// one in half. That fix was defeated for a while by its own callers: both
+// payload builders here did `.join(', ').slice(0, 100)` first, so the fifth name
+// arrived already truncated and there was nothing left to repair. The unit test
+// on packStarterNames could not see it — it fed the function a full list, which
+// is the one input the real path never produced. This drives the real seam.
+
+const events = await import(new URL('../js/ui/events.js', import.meta.url).href);
+const { buildGlobalDoc, buildDailyDoc } = await import(new URL('../js/utils/firebase.js', import.meta.url).href);
+
+/** The longest roster the draft can legally produce: distinct positions,
+ *  distinct decades, 109 characters joined. */
+const LONGEST_ROSTER = [
+  'Shai Gilgeous-Alexander', 'Sarunas Marciulionis', 'Quentin Richardson',
+  'Giannis Antetokounmpo', 'Kareem Abdul-Jabbar',
+];
+
+function seatLongestRoster() {
+  const all = flattenDb(g.DB);
+  state.startGame('all');
+  state.S.mode  = 'solo';
+  state.S.coach = 'jackson';
+  state.POSITIONS.forEach((pos, i) => {
+    const p = all.find(x => x.name === LONGEST_ROSTER[i]);
+    assert.ok(p, `${LONGEST_ROSTER[i]} is no longer in the database — pick a new long name`);
+    state.S.roster[pos] = p;
+  });
+  state.S.result     = g.sim.simulateSeason(Object.values(state.S.roster).filter(Boolean), 'jackson');
+  state.S.teamName   = 'Long Names FC';
+  state.S.dailyDate  = '2026-03-01';
+  state.S.dailyChallenge = g.challenge.CHALLENGES[0];
+  state.S.dailyResult    = { pass: true, score: 400 };
+}
+
+test('the submit path hands the wire full names, and gets all five back', () => {
+  seatLongestRoster();
+
+  for (const [label, payload, doc] of [
+    ['global', events.buildGlobalScorePayload, buildGlobalDoc],
+    ['daily',  events.buildDailyScorePayload,  buildDailyDoc],
+  ]) {
+    const entry = payload();
+    assert.equal(entry.starters, LONGEST_ROSTER.join(', '),
+      `the ${label} payload trimmed the names before the wire packer saw them — ` +
+      'fitting the cap is buildGlobalDoc/buildDailyDoc\'s job, not the caller\'s');
+
+    const wire  = doc(entry);
+    const names = wire.starters.split(', ');
+    assert.ok(wire.starters.length <= 100, `${label} doc is ${wire.starters.length} chars, over the rule cap`);
+    assert.equal(names.length, 5, `${label} doc lost a starter`);
+    assert.ok(names[4].endsWith('Abdul-Jabbar'),
+      `${label} doc truncated the fifth starter to "${names[4]}"`);
+  }
+});

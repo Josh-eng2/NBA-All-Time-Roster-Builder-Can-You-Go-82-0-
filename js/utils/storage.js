@@ -793,13 +793,58 @@ export function getDailyStreak() {
   const empty = { streak: 0, lastPassDate: null, graceDate: null };
   try {
     const s = JSON.parse(cgGetItem(DAILY_STREAK_KEY) || 'null');
-    return s ? { graceDate: null, ...s } : empty;
+    if (!s || typeof s !== 'object' || Array.isArray(s)) return empty;
+    const n = Number(s.streak);
+    return {
+      streak:       Number.isFinite(n) ? Math.max(0, Math.floor(n)) : 0,
+      lastPassDate: asDay(s.lastPassDate) || null,
+      graceDate:    asDay(s.graceDate)    || null,
+    };
   } catch (e) { return empty; }
 }
 
 /** UTC day before the given 'YYYY-MM-DD'. */
 function _dayBefore(dateStr) {
   return new Date(Date.parse(dateStr + 'T00:00:00Z') - 86400000).toISOString().slice(0, 10);
+}
+
+const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * A stored date, or '' if it is missing, malformed, or not a real calendar day.
+ *
+ * Everything here compares dates as strings, which only holds for that exact
+ * shape: junk like "x" sorts after every real date, and so does a shape-valid
+ * impossibility like "9999-99-99". Either one, left unfiltered, made every
+ * future day look superseded and froze the chain permanently — so the round
+ * trip through Date is part of the check, not decoration.
+ */
+function asDay(v) {
+  if (typeof v !== 'string' || !DAY_RE.test(v)) return '';
+  const d = new Date(`${v}T00:00:00Z`);
+  return Number.isFinite(d.getTime()) && d.toISOString().slice(0, 10) === v ? v : '';
+}
+
+/**
+ * The most recent day any stored record already accounts for — the play lock,
+ * the last pass, or the forgiven miss. A result older than this one has been
+ * superseded and must not rewrite the chain (see markDailyPlayed).
+ */
+function latestRecordedDay(today = getUtcDateString()) {
+  let latest = '';
+  try {
+    const last = JSON.parse(cgGetItem(DAILY_KEY) || 'null');
+    const d = asDay(last?.date);
+    if (d > latest) latest = d;
+  } catch (e) {}
+  const s = getDailyStreak();
+  if (asDay(s.lastPassDate) > latest) latest = asDay(s.lastPassDate);
+  if (asDay(s.graceDate)    > latest) latest = asDay(s.graceDate);
+  // Never let a record dated ahead of today mark today as superseded. A clock
+  // that was running fast and has since been corrected is not tampering, and it
+  // must not be able to freeze the chain for everything that follows.
+  if (latest > today) latest = today;
+  return latest || null;
 }
 
 /**
@@ -811,8 +856,10 @@ function _dayBefore(dateStr) {
  */
 function _chainAlive(s, day) {
   const prev = _dayBefore(day);
-  return s.lastPassDate === day || s.lastPassDate === prev
-      || s.graceDate    === day || s.graceDate    === prev;
+  const pass  = asDay(s.lastPassDate);
+  const grace = asDay(s.graceDate);
+  return (pass  && (pass  === day || pass  === prev))
+      || (grace && (grace === day || grace === prev));
 }
 
 /**
@@ -825,7 +872,7 @@ function _chainAlive(s, day) {
  */
 export function currentDailyStreak(today = getUtcDateString()) {
   const s = getDailyStreak();
-  if (!s.lastPassDate) return 0;
+  if (!s.lastPassDate && !s.graceDate) return 0;
   return _chainAlive(s, today) ? s.streak : 0;
 }
 
@@ -910,11 +957,31 @@ export function getDailyStats() {
  * @returns {number} the streak after this result
  */
 export function markDailyPlayed({ date, wins, losses, chemScore, champion, challengeId = null, passed = false, score = 0 }) {
-  const day = (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) ? date : getUtcDateString();
+  const today = getUtcDateString();
+  let day = (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) ? date : today;
+  // A run cannot belong to a day that has not happened yet. A device whose
+  // clock was running fast would otherwise park the chain in the future, and
+  // every real day afterwards would look older than it — freezing the streak
+  // permanently. Clamping is safe: `date` is only ever the day the run started.
+  if (day > today) day = today;
+
+  // Results can arrive OUT OF ORDER. S.dailyDate is captured when a run starts,
+  // so two tabs open across UTC midnight — one begun on day D, one on D+1 —
+  // hand this function D+1 first and then D. Everything below is therefore
+  // guarded against going backwards in time; without that, submitting the older
+  // run reset a 3-day streak to 1 and rolled the play lock back to D, which also
+  // handed the player a second attempt at D+1's challenge.
+  const supersededBy = latestRecordedDay(today);
+  const stale = !!supersededBy && day < supersededBy;
+
   try {
-    cgSetItem(DAILY_KEY, JSON.stringify({
-      date: day, wins, losses, chemScore, champion, challengeId, passed, score, at: Date.now(),
-    }));
+    // Never roll the play lock backwards — the newer day's lock has to stand.
+    const prev = JSON.parse(cgGetItem(DAILY_KEY) || 'null');
+    if (!prev?.date || day >= prev.date) {
+      cgSetItem(DAILY_KEY, JSON.stringify({
+        date: day, wins, losses, chemScore, champion, challengeId, passed, score, at: Date.now(),
+      }));
+    }
   } catch (e) {}
 
   // Streak, with one forgiven miss per chain.
@@ -930,27 +997,41 @@ export function markDailyPlayed({ date, wins, losses, chemScore, champion, chall
   try {
     const s     = getDailyStreak();
     const alive = _chainAlive(s, day);
-    if (passed) {
-      if (s.lastPassDate !== day) { // idempotent for a same-day double-call
-        s.streak       = alive ? s.streak + 1 : 1;
-        s.lastPassDate = day;
-        // A chain that had to restart starts with its grace unspent again.
-        if (!alive) s.graceDate = null;
-      }
+    if (stale) {
+      // A superseded result. It still counts toward lifetime stats below, but
+      // the chain has already moved past this day and must not be rewound.
+      streakVal = currentDailyStreak(today);
+    } else if (passed && s.lastPassDate === day) {
+      streakVal = s.streak;          // idempotent for a same-day double-call
+    } else if (!passed && s.lastPassDate === day) {
+      // The day is already banked as a pass; a later failure for the SAME day
+      // is a re-simulation, not a miss, and must not burn the grace.
+      streakVal = s.streak;
+    } else if (passed) {
+      s.streak       = alive ? s.streak + 1 : 1;
+      s.lastPassDate = day;
+      // A chain that had to restart starts with its grace unspent again.
+      if (!alive) s.graceDate = null;
+      cgSetItem(DAILY_STREAK_KEY, JSON.stringify(s));
+      streakVal = s.streak;
     } else if (s.graceDate === day) {
-      // Same-day double-call after an already-forgiven miss — nothing to do.
+      streakVal = s.streak;            // already-forgiven miss, replayed
     } else if (alive && !s.graceDate) {
       s.graceDate = day;               // spend the grace, keep the streak
+      cgSetItem(DAILY_STREAK_KEY, JSON.stringify(s));
+      streakVal = s.streak;
     } else {
       s.streak = 0; s.lastPassDate = null; s.graceDate = null;
+      cgSetItem(DAILY_STREAK_KEY, JSON.stringify(s));
+      streakVal = 0;
     }
-    cgSetItem(DAILY_STREAK_KEY, JSON.stringify(s));
-    streakVal = s.streak;
   } catch (e) { streakVal = 0; }
 
   try {
     const stats = getDailyStats();
-    if (stats.lastPlayedDate !== day) {
+    // `>` not `!==`: an out-of-order older result must not roll lastPlayedDate
+    // backwards, which would let the newer day be counted a second time.
+    if (!stats.lastPlayedDate || day > stats.lastPlayedDate) {
       stats.played += 1;
       if (passed) stats.wins += 1;
       const bin = _binKeyForWins(wins);

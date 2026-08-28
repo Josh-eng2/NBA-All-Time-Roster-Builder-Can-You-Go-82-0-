@@ -118,7 +118,26 @@
 //       normalised away); index.html + pageIntegrity.js (the real <title> now
 //       precedes the title guard, so a third-party SDK can no longer get its
 //       own title adopted as the baseline and enforced).
-const CACHE_VERSION = '820-v17';
+//   v18 self-review of the v17 pass — five defects in the fixes themselves.
+//       Changed precached files: firebase.js + events.js (the starter-name
+//       packing added in v17 was defeated by its own callers, which sliced the
+//       joined list to 100 chars before the packer saw it, so the fifth name of
+//       a long roster still arrived cut in half; buildDailyDoc was never packed
+//       at all); storage.js (results can arrive out of order when two tabs
+//       straddle UTC midnight — recording the older run reset a live streak to
+//       1, rolled lastPassDate backwards, and rolled the play lock back, which
+//       handed the player a second attempt at the newer day; plus stored dates
+//       are now validated as real calendar days, since a shape-valid
+//       impossibility like "9999-99-99" sorted after every real date and froze
+//       the chain forever); draft.js (spinResult's new legality preference was
+//       overriding an explicit fixedTeam/fixedDecade pin — a wrong board rather
+//       than a degraded one).
+//
+//       Bumped separately from v17 rather than folded into it: v17 is already
+//       committed, and if it reached anyone's cache before this landed, reusing
+//       the number would ship exactly the mixed build this file exists to
+//       prevent. A redundant log entry is the cheaper mistake.
+const CACHE_VERSION = '820-v18';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 

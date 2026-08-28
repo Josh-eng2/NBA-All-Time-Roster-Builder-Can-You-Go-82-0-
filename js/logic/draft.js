@@ -412,16 +412,23 @@ export function spinResult(fixedTeam = null, fixedDecade = null) {
   const decades = fixedDecade ? [fixedDecade] : decadePool;
   const teams   = fixedTeam   ? [fixedTeam]   : eligibleTeams();
 
+  // Preference order, and the order matters twice over. The CONSTRAINT comes
+  // first: a caller that pinned a team or decade gets a board inside it even if
+  // nothing there is legal, because handing back some other franchise would be
+  // a wrong answer, not a degraded one. Legality is the tiebreak WITHIN each
+  // tier. (Dropping the constraint whenever the constrained pool was illegal
+  // made 1,600 of 1,800 pinned spins return a board the caller never asked for.
+  // No call site passes these arguments today, which is exactly why it would
+  // have gone unnoticed until one did.)
   const near = collectBoards(decades, teams);
   if (near.draftable.length) return pick(near.draftable);
+  if (near.stocked.length)   return pick(near.stocked);
 
-  // Constraint exhausted — fall back to any remaining combo, still preferring
-  // one that can be drafted from.
+  // Constraint exhausted — only now widen to any remaining combo, still
+  // preferring one that can actually be drafted from. When nothing anywhere is
+  // legal, deal a stocked board so the screen has something to show:
+  // renderDraftCard dims every card and the banner explains the run.
   const far = collectBoards(decadePool, eligibleTeams());
   if (far.draftable.length) return pick(far.draftable);
-
-  // Nothing anywhere is legal. Deal a stocked board so the screen has something
-  // to show; renderDraftCard dims every card and the banner explains the run.
-  if (near.stocked.length) return pick(near.stocked);
   return far.stocked.length ? pick(far.stocked) : null;
 }

@@ -1120,7 +1120,7 @@ function doSimulate() {
   }
 }
 
-function buildGlobalScorePayload() {
+export function buildGlobalScorePayload() {
   const coachObj = S.coach ? COACHES.find(c => c.id === S.coach) : null;
   const r        = S.result;
   return {
@@ -1134,7 +1134,9 @@ function buildGlobalScorePayload() {
     chemScore:   Math.round(r.chemScore ?? 0),
     avgPopularity: r.avgPopularity ?? 50,
     fansM:       r.fansM ?? 2,
-    starters:    POSITIONS.map(p => S.roster[p]?.name || '—').join(', ').slice(0, 100),
+    // Full names — buildGlobalDoc/buildDailyDoc pack them to the wire cap.
+    // Slicing here truncated the fifth starter of a long roster mid-name.
+    starters:    POSITIONS.map(p => S.roster[p]?.name || '—').join(', '),
     timestampMs: Date.now(),
   };
 }
@@ -1254,7 +1256,7 @@ async function doSubmitGlobal() {
 
 let _submittingDaily = false;
 
-function buildDailyScorePayload() {
+export function buildDailyScorePayload() {
   const coachObj = S.coach ? COACHES.find(c => c.id === S.coach) : null;
   const r        = S.result;
   return {
@@ -1266,7 +1268,9 @@ function buildDailyScorePayload() {
     coachId:     S.coach       ?? '',
     coachName:   coachObj?.name  ?? '',
     chemScore:   Math.round(r.chemScore ?? 0),
-    starters:    POSITIONS.map(p => S.roster[p]?.name || '—').join(', ').slice(0, 100),
+    // Full names — buildGlobalDoc/buildDailyDoc pack them to the wire cap.
+    // Slicing here truncated the fifth starter of a long roster mid-name.
+    starters:    POSITIONS.map(p => S.roster[p]?.name || '—').join(', '),
     timestampMs: Date.now(),
     // Day's specific challenge — verdict decided at sim time (doSimulate)
     challengeId: S.dailyChallenge?.id     ?? '',
