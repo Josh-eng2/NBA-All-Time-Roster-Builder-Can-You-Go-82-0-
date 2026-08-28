@@ -15,7 +15,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { loadGame, flattenDb, bestFive, mod } from './helpers.mjs';
 
-const { buildGlobalDoc, buildDailyDoc, sdkFromSettled, firestoreDbFor, withFirestoreErrorCode } = await import(mod('js/utils/firebase.js'));
+const { buildGlobalDoc, buildDailyDoc, packStarterNames, sdkFromSettled, firestoreDbFor, withFirestoreErrorCode } = await import(mod('js/utils/firebase.js'));
 
 // Bounds transcribed from the rules block in js/utils/firebase.js. If the
 // deployed rules ever change, change them here in the same commit.
@@ -278,4 +278,48 @@ test('a rejection with no .code passes through unchanged', async () => {
 
 test('a fulfilled promise is unaffected', async () => {
   assert.equal(await withFirestoreErrorCode(Promise.resolve('ok')), 'ok');
+});
+
+// ── Starter names on the wire ────────────────────────────────────────────────
+// The rules cap `starters` at 100 characters and the longest legal five is 109,
+// so a blind slice cut the last name in half ("Kareem Abd"), which resolved to
+// nobody: the leaderboard's team popup showed a mangled fifth starter and
+// recomputed the roster's fans over four players instead of five.
+
+const LONGEST_FIVE = [
+  'Shai Gilgeous-Alexander', 'Sarunas Marciulionis', 'Quentin Richardson',
+  'Giannis Antetokounmpo', 'Kareem Abdul-Jabbar',
+];
+
+test('the longest legal roster fits the wire cap with every name intact', () => {
+  assert.ok(LONGEST_FIVE.join(', ').length > 100, 'this roster is supposed to overflow');
+
+  const packed = packStarterNames(LONGEST_FIVE);
+  assert.ok(packed.length <= 100, `packed to ${packed.length} chars, over the rule cap`);
+
+  const parts = packed.split(', ');
+  assert.equal(parts.length, 5, 'all five starters must survive');
+  for (let i = 0; i < 5; i++) {
+    const surname = LONGEST_FIVE[i].slice(LONGEST_FIVE[i].indexOf(' ') + 1);
+    assert.ok(parts[i].endsWith(surname),
+      `"${parts[i]}" lost or truncated the surname "${surname}"`);
+  }
+});
+
+test('a roster that already fits is written unchanged', () => {
+  const five = ['Stephen Curry', 'Michael Jordan', 'LeBron James', 'Tim Duncan', 'Bill Russell'];
+  assert.equal(packStarterNames(five), five.join(', '));
+});
+
+test('every real drafted roster survives buildGlobalDoc without losing a name', async () => {
+  const g     = await loadGame();
+  const five  = bestFive(flattenDb(g.DB));
+  const doc   = buildGlobalDoc({ wins: 70, losses: 12, starters: five.map(p => p.name).join(', ') });
+  assert.ok(doc.starters.length <= STRING_CAPS.starters);
+  assert.equal(doc.starters.split(', ').length, 5);
+
+  // …and the pathological one too.
+  const worst = buildGlobalDoc({ wins: 70, losses: 12, starters: LONGEST_FIVE.join(', ') });
+  assert.ok(worst.starters.length <= STRING_CAPS.starters);
+  assert.equal(worst.starters.split(', ').length, 5);
 });

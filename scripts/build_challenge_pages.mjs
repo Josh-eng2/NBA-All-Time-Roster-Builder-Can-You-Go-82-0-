@@ -111,7 +111,7 @@ function ruleFacts(ch) {
   }
   if (p.starterPpg != null) facts.push([`Scoring target`, `one starter must average ${p.starterPpg}+ points per game`]);
   if (p.teamBpg != null)    facts.push([`Rim protection`, `your five must combine for ${p.teamBpg}+ blocks per game`]);
-  if (p.minChem != null)    facts.push([`Chemistry target`, `reach Perfect Team Chemistry (${p.minChem}+)`]);
+  if (p.minChem != null)    facts.push([`Chemistry target`, `reach a team chemistry score of ${p.minChem}+`]);
   if (p.minStreak != null)  facts.push([`Streak target`, `a ${p.minStreak}-game win streak at some point in the season`]);
   if (p.minWins != null)    facts.push([`Win floor`, `${p.minWins} of 82 games`]);
   return facts;
@@ -121,19 +121,19 @@ function ruleFacts(ch) {
 const STRATEGY = {
   'nineties-only': 'The 1990s is the deepest era in the game, so the constraint costs you less than it looks. The real trap is positional — the decade is stacked with wings and centers, so lock down a true point guard early rather than assuming one will come around.',
   'y2k-ball': 'The 2000s skew big and defensive. Spacing is the scarce resource: get a genuine shooter in the backcourt before you spend picks on another interior scorer, or the offense stalls in the sim.',
-  'old-school': 'Pre-1990 rosters put up huge rebounding and scoring numbers but almost no blocks or steals by modern bookkeeping. Because the win floor here is the lowest of any constraint (50), you can afford to draft for chemistry over raw stats.',
+  'old-school': 'Pre-1990 rosters put up huge rebounding and scoring numbers but almost no blocks or steals by modern bookkeeping. Because the win floor here is among the gentlest in the catalog, you can afford to draft for chemistry over raw stats.',
   'modern-era': 'The 2010s–2020s pool is shooting-rich and rim-protection-poor. Take the best available big early — by the later rounds you will be choosing between guards.',
   'budget-ball': 'This is the hardest constraint in the catalog, because fans and quality correlate. Spend most of the budget on one genuinely good starter and fill the other four from the cheapest end of the board. Chemistry matters more here than anywhere else: a cheap roster that fits together beats a cheap roster of mismatched parts.',
-  'no-la-boston': 'Losing the Lakers and Celtics removes more all-time talent than any other two franchises, and the win floor is a steep 60. Target the deep non-banned dynasties — the Bulls, Spurs, Warriors and Sixers all carry multiple eras.',
+  'no-la-boston': 'Losing the Lakers and Celtics removes more all-time talent than any other two franchises. Target the deep non-banned dynasties — the Bulls, Spurs, Warriors and Sixers all carry multiple eras.',
   'win-65': 'No draft restriction at all, so this is purely a roster-quality test. Take the highest-rated player available every round and let chemistry break ties.',
-  'win-70': 'Only a handful of real teams have ever won 70. You need elite talent *and* clean chemistry — a five-star roster that clashes will land in the mid-60s. Match your coach to the roster you actually drafted, not the one you planned.',
-  'volume-scorer': 'You need one starter averaging 30+, which means drafting a genuine number-one option early rather than spreading talent evenly. Everything after round one should support that player, not compete with him for shots.',
-  'swat-team': '8+ combined blocks per game is a lot, so you effectively need two rim protectors, not one. Centers and shot-blocking power forwards from the 1990s and 2000s carry the highest block rates in the database.',
+  'win-70': 'The highest win floor on the board. You need elite talent *and* clean chemistry — a five-star roster that clashes falls short of it. Match your coach to the roster you actually drafted, not the one you planned.',
+  'volume-scorer': 'You need a genuine number-one option, which means drafting one early rather than spreading talent evenly. Everything after round one should support that player, not compete with him for shots.',
+  'swat-team': 'Reaching the block target takes two rim protectors, not one. Centers and shot-blocking power forwards from the 1990s and 2000s carry the highest block rates in the database.',
   'chemistry-class': 'The only challenge where roster fit *is* the objective. Spread across eras, pair a rim protector with shooters, include a true playmaker, and pick the coach whose system matches what you drafted.',
-  'wire-to-wire': 'A 20-game streak is about consistency rather than peak talent — avoid a roster with one superstar and four weak links, since the sim punishes thin rosters over long stretches.',
+  'wire-to-wire': 'A long streak is about consistency rather than peak talent — avoid a roster with one superstar and four weak links, since the sim punishes thin rosters over long stretches.',
   'build-around-shaq': 'Shaq gives you dominant interior scoring and rebounding but no spacing, so the other four picks should lean shooting and playmaking. Do not draft a second traditional center.',
   'build-around-lebron': 'LeBron covers playmaking and scoring from the wing, which frees you to draft a true center and shooters rather than another ball-dominant guard.',
-  'build-around-magic': 'Magic locks the point guard slot and handles distribution, so prioritise finishers — a scoring big and a wing who can shoot. The 60-win floor is comfortably reachable if you avoid stacking ball-handlers.',
+  'build-around-magic': 'Magic locks the point guard slot and handles distribution, so prioritise finishers — a scoring big and a wing who can shoot. The win floor is comfortably reachable if you avoid stacking ball-handlers.',
   'build-around-giannis': 'Giannis fills the power forward slot with two-way production but limited outside shooting. Surround him with shooters and a real point guard; a second non-shooting big will crowd the paint in the sim.',
 };
 
@@ -150,23 +150,26 @@ const STRATEGY = {
  * Keyed by id, like STRATEGY, so renaming a challenge cannot silently
  * de-sync the two.
  */
+// Entries are functions of the challenge so a gate retune cannot leave the page
+// copy describing the old rule — "55-Win Season: Win 65 of 82" shipped exactly
+// once, from a hand-restated number here.
 const RULE_SHORT = {
-  'nineties-only':        '1990s Players Only',
-  'y2k-ball':             '2000s Players Only',
-  'old-school':           'Pre-1990 Players Only',
-  'modern-era':           '2010s & 2020s Only',
-  'budget-ball':          'Least-Loved Players Only',
-  'no-la-boston':         'No Lakers, No Celtics',
-  'win-65':               'Win 65 of 82',
-  'win-70':               'Win 70 of 82',
-  'volume-scorer':        'One 30+ PPG Starter',
-  'swat-team':            '8+ Blocks Per Game',
-  'chemistry-class':      'Perfect Chemistry',
-  'wire-to-wire':         '20-Game Win Streak',
-  'build-around-shaq':    'Build Around Shaq',
-  'build-around-lebron':  'Build Around LeBron',
-  'build-around-magic':   'Build Around Magic',
-  'build-around-giannis': 'Build Around Giannis',
+  'nineties-only':        () => '1990s Players Only',
+  'y2k-ball':             () => '2000s Players Only',
+  'old-school':           () => 'Pre-1990 Players Only',
+  'modern-era':           () => '2010s & 2020s Only',
+  'budget-ball':          () => 'Least-Loved Players Only',
+  'no-la-boston':         () => 'No Lakers, No Celtics',
+  'win-65':               ch => `Win ${ch.params.minWins} of 82`,
+  'win-70':               ch => `Win ${ch.params.minWins} of 82`,
+  'volume-scorer':        ch => `One ${ch.params.starterPpg}+ PPG Starter`,
+  'swat-team':            ch => `${ch.params.teamBpg}+ Blocks Per Game`,
+  'chemistry-class':      ch => `${ch.params.minChem}+ Team Chemistry`,
+  'wire-to-wire':         ch => `${ch.params.minStreak}-Game Win Streak`,
+  'build-around-shaq':    () => 'Build Around Shaq',
+  'build-around-lebron':  () => 'Build Around LeBron',
+  'build-around-magic':   () => 'Build Around Magic',
+  'build-around-giannis': () => 'Build Around Giannis',
 };
 
 const TYPE_LABEL = {
@@ -185,8 +188,9 @@ const TYPE_BLURB = {
 function renderPage(ch, slug, dates) {
   const facts = ruleFacts(ch);
   const locked = ch.type === 'locked' ? getLockedPlayer(ch) : null;
-  const rule = RULE_SHORT[ch.id];
-  if (!rule) throw new Error(`no RULE_SHORT entry for challenge "${ch.id}"`);
+  const ruleFn = RULE_SHORT[ch.id];
+  if (!ruleFn) throw new Error(`no RULE_SHORT entry for challenge "${ch.id}"`);
+  const rule = ruleFn(ch);
   const title = assertTitleFits(`${ch.title}: ${rule} — NBA Daily Challenge`, ch.id);
   // Kept under ~158 chars so Google renders it in full. Try the richest
   // closing line first and fall back through shorter ones, rather than

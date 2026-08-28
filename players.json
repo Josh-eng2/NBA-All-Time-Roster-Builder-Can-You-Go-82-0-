@@ -12779,8 +12779,7 @@
       "archetype": "Two-Way Star",
       "traits": [
         "Rim Protector",
-        "Floor Spacer",
-        "Franchise Player"
+        "Floor Spacer"
       ],
       "popularity": 150,
       "rating": 97,
@@ -12974,8 +12973,7 @@
       "archetype": "Sharpshooter",
       "traits": [
         "Floor Spacer",
-        "Volume Shooter",
-        "Stretch Big"
+        "Volume Shooter"
       ],
       "popularity": 55,
       "rating": 80,
@@ -13291,7 +13289,7 @@
       "archetype": "Paint Beast",
       "traits": [
         "Rebounding Machine",
-        "Volume Scorer",
+        "Volume Shooter",
         "Clutch"
       ],
       "popularity": 54,

@@ -34,6 +34,32 @@
 // comparison back. Time-window reads (24h/weekly) instead filter on the
 // `timestamp` field, which Firestore stamps server-side via
 // serverTimestamp() and is authoritative regardless of the client's clock.
+// ── Threat model (accepted, not overlooked) ──────────────────────────────────
+//
+// The leaderboard is world-writable by design. There is no backend, no auth and
+// no App Check here, and the Firebase project id and web API key ship inside the
+// client bundle, so anyone can POST a document straight to the REST endpoint.
+// The rules below validate SHAPE ONLY — they cannot establish that a submitted
+// run was ever played. Concretely, and knowingly:
+//
+//   * a forged 82-0 champion entry is accepted, because it is indistinguishable
+//     from a real one;
+//   * there is no per-caller write cap, so the collection can be filled with
+//     junk documents to run up storage and read cost;
+//   * `timestampMs` is client-reported and intentionally unvalidated (see the
+//     note below) — it carries no trust.
+//
+// This is the cost of a leaderboard on a fully static site, and it is the right
+// trade for a fan game: the local leaderboard and trophy room are the records
+// that matter, and the global board is a bit of shared colour. Anyone tightening
+// this needs Firebase App Check plus anonymous auth (a per-uid write quota), at
+// which point the create rule should also require request.auth != null.
+//
+// What the rules below DO buy: no reads or writes can escape these two
+// collections, nothing can be updated or deleted once written, and every field
+// is type- and range-checked, so a crafted document can never carry a value the
+// UI is not prepared to render.
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {

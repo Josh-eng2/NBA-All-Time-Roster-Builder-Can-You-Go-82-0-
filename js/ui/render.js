@@ -16,8 +16,10 @@ import {
   getUtcDateString, getPlayerSeed,
 } from '../logic/state.js';
 import { calculateChemistry, chemTier, chemTierColors }                             from '../logic/chemistry.js';
-import { rosterFull, availableDecades, getLegendCatalog, getSkips, isPickDraftable } from '../logic/draft.js';
-import { coachSystemProgress, COACH_BOOST_MAX }           from '../logic/simulation.js';
+import { rosterFull, availableDecades, getLegendCatalog, getSkips, isPickDraftable,
+         anyLegalBoardRemains }                          from '../logic/draft.js';
+import { coachSystemProgress, COACH_BOOST_MAX,
+         fansFromPopNorm, popNormFor }                   from '../logic/simulation.js';
 import { getBracketDisplayState }                         from '../logic/playoffs.js';
 import { markReturning, getCollectedLegends, getDailyStatus, FANS_TEAM_MAX, FANS_PLAYER_MAX } from '../utils/storage.js';
 import { cgGameplayStart, cgGameplayStop, cgGetItem }     from '../utils/crazygames.js';
@@ -28,7 +30,7 @@ import { seasonTier, seasonGrade } from '../logic/seasonTier.js';
 import { fetchDailyCommunityStats, isFirebaseConfigured } from '../utils/firebase.js';
 import { bindEvents, buildRematchCode, hasKnownHashRoute } from '../ui/events.js'; // circular — safe (called inside functions only)
 import { installPromptKind }                              from '../utils/install.js';
-import { isDark, ovrColor, fansBarCol }                   from '../ui/theme.js';
+import { isDark, ovrColor, fansBarCol, fansTier }         from '../ui/theme.js';
 
 // Re-exported so the module's public surface is unchanged by the move of
 // these ramps into ui/theme.js (see that file for why they moved).
@@ -114,10 +116,7 @@ function fansTierFromAvg(avg) {
   // field; the results cards call fansBarCol() directly, and the share image
   // in utils/storage.js keeps its own fixed-light copy for its white canvas.)
   if (!avg) return { tier: '', barCol: isDark() ? '#cbd5e1' : '#64748b' };
-  return {
-    tier:   avg >= 85 ? 'Superstar Lineup' : avg >= 70 ? 'Star Power' : avg >= 55 ? 'Solid Roster' : 'Under the Radar',
-    barCol: fansBarCol(avg),
-  };
+  return fansTier(avg);
 }
 
 /** Sum roster fans for UI. Boos Only daily caps the meter at maxPopTotal (300).
@@ -859,16 +858,25 @@ function renderDailyDraftBanner() {
  * Daily-mode dead-end check: the spun board has players, but every one of
  * them is barred (already rostered or blocked by today's rules) and the
  * daily draft has no skips — without an escape the run would soft-lock.
+ *
+ * @returns {'none'|'board'|'run'}
+ *   'board' — this board is dead but the wheel has somewhere legal to go, so
+ *             another spin genuinely helps.
+ *   'run'   — nothing draftable is left anywhere. A re-spin cannot help and
+ *             offering one is the difference between a dead end and a button
+ *             the player presses forever.
  */
 function dailyBoardDeadEnd() {
-  if (S.mode !== 'daily' || !S.dailyChallenge) return false;
-  if (S.spinState !== 'done' || !S.draftBoard?.length) return false;
+  if (S.mode !== 'daily' || !S.dailyChallenge) return 'none';
+  if (S.spinState !== 'done' || !S.draftBoard?.length) return 'none';
   const filled = Object.values(S.roster || {}).filter(Boolean);
-  return !S.draftBoard.some(p =>
+  const playable = S.draftBoard.some(p =>
     !(S.draftedPlayerNames?.has(p.name)) &&
     isPickDraftable(S.dailyChallenge,
       { ...p, team: S.currentSpin?.team, decade: S.currentSpin?.decade }, filled).legal
   );
+  if (playable) return 'none';
+  return anyLegalBoardRemains() ? 'board' : 'run';
 }
 
 function renderModeDraftBanner() {
@@ -894,7 +902,7 @@ function renderModeDraftBanner() {
       : 0;
     // No upper clamp — mirrors simulation.js's unclamped popNorm so the live
     // preview doesn't undersell a roster averaging above 100 popularity.
-    const fansM = Math.pow(Math.max(0, (avg - 35) / 65), 1.5) * 38 + 2;
+    const fansM = fansFromPopNorm(popNormFor(avg));
     // Estimate wins from star power instead of hardcoding 50 — keeps the
     // "live proj" honest while the season hasn't been simulated yet.
     const estWins = starters.length
@@ -1444,11 +1452,23 @@ function renderSlotMachine() {
         SPINNING...
       </button>
     ` : `
-      ${dailyBoardDeadEnd() ? `
+      ${(() => {
+        const dead = dailyBoardDeadEnd();
+        if (dead === 'board') return `
       <button data-action="spin" class="w-full py-3 rounded-xl font-black text-sm uppercase tracking-widest bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer">
         🚫 No legal picks here — spin a new board
-      </button>
-      ` : `
+      </button>`;
+        if (dead === 'run') return `
+      <div class="rounded-xl border px-3 py-3 text-center text-xs font-semibold"
+        style="border-color:color-mix(in srgb, #ef4444 38%, var(--border));background:color-mix(in srgb, #ef4444 12%, var(--card));color:var(--fg)">
+        🚫 Nothing draftable is left under today's rules — this run can't be finished.
+        <span class="block mt-1 font-medium" style="color:var(--muted-fg)">Spinning again won't help. Your attempt is still unspent.</span>
+      </div>
+      <button data-action="daily-to-menu" class="mt-2 w-full py-3 rounded-xl font-black text-sm uppercase tracking-widest bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer">
+        Back to the menu
+      </button>`;
+        return null;
+      })() ?? `
       <p class="text-center text-xs text-muted-fg py-1">${isBlindDraft() ? 'Names only — select a player, then tap a roster slot to place them' : 'Draft places into an open natural slot — or tap a roster slot to choose'}</p>
       `}
     `}

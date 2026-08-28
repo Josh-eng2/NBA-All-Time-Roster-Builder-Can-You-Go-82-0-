@@ -24,13 +24,23 @@
   // document.title, so this has no legitimate case to fight — only ever a
   // hijack attempt.
   //
-  // This script runs before the real <title> element has even been parsed
-  // (it's placed early in <head> deliberately, ahead of the SDK scripts —
-  // see file header), so the baseline can't just be read from
-  // document.title at the top here: it would capture "" and then the lock
-  // would fight the parser itself, permanently blanking the title. Instead
-  // the baseline is captured the moment a non-empty <title> is first seen,
-  // via the same observer that watches for later tampering.
+  // The baseline is whatever non-empty title is in place when this runs, and
+  // it is then enforced forever — so ORDER IN <head> IS PART OF THE DEFENCE.
+  // index.html puts the real <title> immediately above this script and every
+  // third-party SDK immediately below it. Move this script above the <title>
+  // and the guard inverts: an SDK that sets document.title before the parser
+  // reaches the real <title> gets ITS value adopted as the baseline (the
+  // setter below lets any write through while EXPECTED_TITLE is null, since
+  // there is nothing yet to validate against), and from that moment the guard
+  // enforces the hijack and treats the real title as the tamper. That is
+  // exactly the incident in the file header, made permanent.
+  //
+  // The null start is still required rather than reading document.title at the
+  // top: if this ever loads on a page whose <title> comes later, capturing ""
+  // would make the lock fight the parser and blank the title permanently. So
+  // the baseline is captured the moment a non-empty title is first seen, via
+  // the same observer that watches for later tampering — and on index.html
+  // the checkTitle() call below adopts the correct one immediately.
   var EXPECTED_TITLE = null;
 
   function onTamper() {

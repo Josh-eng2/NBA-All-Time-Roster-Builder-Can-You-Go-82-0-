@@ -38,7 +38,7 @@ import { cgGetItem, cgSetItem }                    from '../utils/crazygames.js'
 import { getDailyChallenge }                       from '../logic/challenge.js';
 import { weekKeyUTC }                              from '../logic/dynastyDuel.js';
 import { chemTier, chemTierColors }                from '../logic/chemistry.js';
-import { isDark, ovrColor, fansBarCol }            from '../ui/theme.js';
+import { isDark, ovrColor, fansBarCol, fansTier }  from '../ui/theme.js';
 
 const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 
@@ -372,15 +372,23 @@ const GLOBAL_TABS = [
 
 let _globalLbCache   = [];
 let _playerNameMap   = null;
+let _playerShortMap  = null;
 
-// Gauge denominator. Deliberately NOT the top of the popularity scale — the
-// NAMED overrides in scripts/add_popularity.js run past POP_CEIL (350 today,
-// Jordan/LeBron), so a roster of household names sums past this and reads a
-// full meter. That saturation is intended: the gauge answers "is this a
-// marquee lineup", not "how close to the most famous five in the game".
+// Gauge denominator. Deliberately NOT the arithmetic top of the scale (5 x 350
+// = 1750): the gauge answers "is this a marquee lineup", not "how close to the
+// five most famous players in the game", so the bar should be reachable.
+//
+// It does have to be reachable and no more. At 750 it was neither: measured
+// over 6,000 drafts per strategy, 17.4% of star-chasing rosters and 10.1% of
+// ordinary best-player-available rosters pinned the bar at a full 100%, and the
+// largest roster seen summed 1490 — so the meter stopped reporting anything
+// across the whole upper half of its own range, in the mode built around star
+// power. 1200 sits just past the 99th percentile of star-chasing play (1068):
+// a great roster fills most of the bar, a rare one fills it, and the median
+// star-chasing roster reads 47% instead of a saturated blur.
 // Exported so render.js shares this one definition — the two copies had to
 // agree and nothing enforced it.
-export const FANS_TEAM_MAX = 750;
+export const FANS_TEAM_MAX = 1200;
 
 /** Per-starter share of the team gauge — the denominator for a single
  *  player's fans bar, so one full bar and five full bars mean the same thing.
@@ -395,10 +403,7 @@ export const FANS_PLAYER_MAX = FANS_TEAM_MAX / 5;
 // shared ramp.
 function _fansTierFromAvg(avg) {
   if (!avg) return { tier: 'Unknown', barCol: fansBarCol(0) };
-  return {
-    tier:   avg >= 85 ? 'Superstar Lineup' : avg >= 70 ? 'Star Power' : avg >= 55 ? 'Solid Roster' : 'Under the Radar',
-    barCol: fansBarCol(avg),
-  };
+  return fansTier(avg);
 }
 
 function _chemStyle(score) {
@@ -411,14 +416,22 @@ function _lookupPlayerByName(name) {
   if (!name || name === '—') return null;
   if (!_playerNameMap) {
     _playerNameMap = new Map();
+    _playerShortMap = new Map();
     const { byDecade, decades } = getLegendCatalog();
     for (const decade of decades) {
       for (const p of byDecade[decade] || []) {
         if (!_playerNameMap.has(p.name)) _playerNameMap.set(p.name, p);
+        // Same abbreviation utils/firebase.js packStarterNames() writes when a
+        // roster's full names overflow the 100-char wire cap.
+        const cut = p.name.indexOf(' ');
+        if (cut > 0) {
+          const short = `${p.name[0]}. ${p.name.slice(cut + 1)}`;
+          if (!_playerShortMap.has(short)) _playerShortMap.set(short, p);
+        }
       }
     }
   }
-  return _playerNameMap.get(name) || null;
+  return _playerNameMap.get(name) || _playerShortMap.get(name) || null;
 }
 
 function _parseStarterNames(startersStr) {
@@ -438,10 +451,10 @@ function _resolveStarterLineup(entry) {
 function _teamFansFromEntry(entry, lineup) {
   const players = lineup.map(l => l.player).filter(Boolean);
   // Prefer the resolved lineup over the submitted `avgPopularity`. The stored
-  // field is clamped to 0-100 to satisfy the Firestore rules (see
-  // utils/firebase.js), while player popularity now runs to 350 — so the wire
-  // value would pin every star roster to the top tier. Recomputing from the
-  // entry's own starter names gives the real full-scale average, exactly as
+  // field is clamped to the deployed Firestore rules' range (0-1000, see
+  // utils/firebase.js) and older entries were written under a tighter 0-100
+  // ceiling, so the wire value can understate a star roster. Recomputing from
+  // the entry's own starter names gives the real full-scale average, exactly as
   // `sum` below already does. The stored value stays the fallback for entries
   // whose names no longer resolve.
   let avg = players.length
@@ -772,10 +785,16 @@ function _binKeyForWins(wins) {
   return '0-39';
 }
 
-/** @returns {{ streak: number, lastPassDate: string|null }} consecutive-day challenge passes */
+/** @returns {{ streak: number, lastPassDate: string|null, graceDate: string|null }}
+ *  the daily-pass chain. `graceDate` is the one missed day this chain forgave
+ *  (null while the grace is unspent). Records written before the grace existed
+ *  simply lack the field, which reads as an unspent grace — the right default. */
 export function getDailyStreak() {
-  try { return JSON.parse(cgGetItem(DAILY_STREAK_KEY) || 'null') || { streak: 0, lastPassDate: null }; }
-  catch (e) { return { streak: 0, lastPassDate: null }; }
+  const empty = { streak: 0, lastPassDate: null, graceDate: null };
+  try {
+    const s = JSON.parse(cgGetItem(DAILY_STREAK_KEY) || 'null');
+    return s ? { graceDate: null, ...s } : empty;
+  } catch (e) { return empty; }
 }
 
 /** UTC day before the given 'YYYY-MM-DD'. */
@@ -784,16 +803,30 @@ function _dayBefore(dateStr) {
 }
 
 /**
- * The streak as it stands RIGHT NOW: the stored value only counts if the
- * last pass was today or yesterday. Without this, skipping a day kept
- * showing the old 🔥 count on the mode card until the next play quietly
- * zeroed it — the display and the math disagreed.
+ * Whether a chain that last passed on `lastPassDate` (and possibly spent its
+ * grace on `graceDate`) is still alive going into `day`.
+ *
+ * The chain survives if yesterday was a pass, or was the one day the grace
+ * forgave. See markDailyPlayed for why the grace exists.
+ */
+function _chainAlive(s, day) {
+  const prev = _dayBefore(day);
+  return s.lastPassDate === day || s.lastPassDate === prev
+      || s.graceDate    === day || s.graceDate    === prev;
+}
+
+/**
+ * The streak as it stands RIGHT NOW: the stored value only counts if the chain
+ * is still alive (a pass today or yesterday, or a forgiven miss on one of those
+ * days). Without this, skipping a day kept showing the old 🔥 count on the mode
+ * card until the next play quietly zeroed it — the display and the math
+ * disagreed.
  * @returns {number}
  */
 export function currentDailyStreak(today = getUtcDateString()) {
   const s = getDailyStreak();
   if (!s.lastPassDate) return 0;
-  return (s.lastPassDate === today || s.lastPassDate === _dayBefore(today)) ? s.streak : 0;
+  return _chainAlive(s, today) ? s.streak : 0;
 }
 
 /**
@@ -884,16 +917,32 @@ export function markDailyPlayed({ date, wins, losses, chemScore, champion, chall
     }));
   } catch (e) {}
 
+  // Streak, with one forgiven miss per chain.
+  //
+  // A hard reset on any failure cannot work against a catalog with real
+  // difficulty: the reference pass rate across the sixteen challenges is ~38%,
+  // which puts the expected length of a zero-tolerance streak under one day, so
+  // the 🔥 counter would read 0 or 1 forever and the install prompt built on
+  // reaching a streak would never fire. One grace per chain is the smallest fix
+  // that makes the chain reachable without making it free: miss once and the
+  // streak holds; miss twice in a row — or skip a day entirely — and it is gone.
   let streakVal = 0;
   try {
-    const s = getDailyStreak();
+    const s     = getDailyStreak();
+    const alive = _chainAlive(s, day);
     if (passed) {
       if (s.lastPassDate !== day) { // idempotent for a same-day double-call
-        s.streak       = s.lastPassDate === _dayBefore(day) ? s.streak + 1 : 1;
+        s.streak       = alive ? s.streak + 1 : 1;
         s.lastPassDate = day;
+        // A chain that had to restart starts with its grace unspent again.
+        if (!alive) s.graceDate = null;
       }
+    } else if (s.graceDate === day) {
+      // Same-day double-call after an already-forgiven miss — nothing to do.
+    } else if (alive && !s.graceDate) {
+      s.graceDate = day;               // spend the grace, keep the streak
     } else {
-      s.streak = 0;
+      s.streak = 0; s.lastPassDate = null; s.graceDate = null;
     }
     cgSetItem(DAILY_STREAK_KEY, JSON.stringify(s));
     streakVal = s.streak;

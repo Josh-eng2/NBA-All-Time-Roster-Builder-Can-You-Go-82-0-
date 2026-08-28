@@ -408,6 +408,36 @@ export function logAnalyticsEvent(eventName, params = {}) {
  * names anyway (see _teamFansFromEntry in utils/storage.js), so nothing the
  * player sees depends on the clamped copy.
  */
+/**
+ * Packs the five starter names into the 100 characters the deployed Firestore
+ * rules allow, without ever cutting a name in half.
+ *
+ * A blind `.slice(0, 100)` fits almost every roster — but not all of them. The
+ * longest legal five (distinct positions, distinct decades) is 109 characters:
+ * "Shai Gilgeous-Alexander, Sarunas Marciulionis, Quentin Richardson, Giannis
+ * Antetokounmpo, Kareem Abdul-Jabbar". Truncating that leaves "Kareem Abd",
+ * which resolves to nobody, so the leaderboard's team popup showed a mangled
+ * fifth starter AND recomputed the roster's fan count over four players.
+ *
+ * Abbreviating first names ("K. Abdul-Jabbar") brings the worst case to 89 and
+ * keeps every name identifiable — utils/storage.js resolves the short form back
+ * to the player. The hard slice stays as a last-resort backstop so this can
+ * never be the thing that loses a submission.
+ *
+ * @param {string[]} names
+ * @returns {string}
+ */
+export function packStarterNames(names) {
+  const list = (names ?? []).map(n => String(n ?? '—'));
+  const full = list.join(', ');
+  if (full.length <= 100) return full;
+  const abbreviated = list.map(n => {
+    const cut = n.indexOf(' ');
+    return cut > 0 ? `${n[0]}. ${n.slice(cut + 1)}` : n;
+  }).join(', ');
+  return abbreviated.length <= 100 ? abbreviated : abbreviated.slice(0, 100);
+}
+
 function clampWireNumber(value, min, max) {
   const n = Number(value);
   if (!Number.isFinite(n)) return null;
@@ -430,9 +460,9 @@ export function buildGlobalDoc(entry) {
       ? { avgPopularity: clampWireNumber(entry.avgPopularity, 0, 1000) } : {}),
     ...(clampWireNumber(entry.fansM, 0, 2200) != null
       ? { fansM: clampWireNumber(entry.fansM, 0, 2200) } : {}),
-    // Rules cap starters at 100 chars — truncate here too so a long-named
-    // roster can never fail the whole write.
-    starters:    (entry.starters    ?? '').slice(0, 100),
+    // Rules cap starters at 100 chars. Pack rather than slice, so a long-named
+    // roster neither fails the write nor arrives with a half a name on it.
+    starters:    packStarterNames(String(entry.starters ?? '').split(', ')),
     timestampMs:  entry.timestampMs ?? 0,
   };
 }

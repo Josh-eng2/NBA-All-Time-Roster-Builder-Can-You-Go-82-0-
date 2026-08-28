@@ -321,7 +321,14 @@ export function startGame(era = 'all') {
   const dailyChallenge = S.dailyChallenge ?? null; // daily mode context survives the reset
   const dailyDate      = S.dailyDate      ?? null;
   const dynastyOpponent = S.dynastyOpponent ?? null;
-  const rematch         = S.rematch         ?? null; // shared-board context, same as daily's
+  // Shared-board context, same as daily's — but ONLY for a rematch run. Every
+  // other mode starts without it. It used to survive unconditionally, so
+  // opening a shared link and then picking Classic from the menu carried the
+  // sender's board and target record along on S for the rest of the session.
+  // Every read is mode-gated today, so nothing acted on it — which is exactly
+  // the kind of latent state that turns into a bug the first time a new read
+  // forgets the guard.
+  const rematch         = S.mode === 'rematch' ? (S.rematch ?? null) : null;
   // Skips: daily/dynasty-duel/rematch = 0; classic-like = 1
   const skipBudget = (mode === 'daily' || mode === 'dynasty-duel' || mode === 'rematch') ? 0 : 1;
   S = {

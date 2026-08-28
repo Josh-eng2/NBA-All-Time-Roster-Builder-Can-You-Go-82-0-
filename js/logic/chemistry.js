@@ -431,14 +431,17 @@ export function calculateChemistry(starters, coachId = null) {
   // ── PHASE 3: TRAIT SYNERGIES ──────────────────────────────────────────────────
 
   // Pre-computed trait counts used across synergies and penalties.
-  // Every trait below exists in the live player DB — counts in comments are
-  // from the 937-player audit (see docs/player-data-audit).
+  // Every trait below exists in the live player DB, and every trait in the DB
+  // is read by something here — three inert ones (Franchise Player, Stretch
+  // Big, Volume Scorer) were normalised away in the data. Counts in comments
+  // are from the 937-player audit (see docs/player-data-audit); re-measure
+  // them after any players.json regeneration.
   const sTPointGod        = sT.filter(t => t === 'Point God').length;         // 27
   const sTElitePlaymaker  = sT.filter(t => t === 'Elite Playmaker').length;   // 135
-  const sTRimProtector    = sT.filter(t => t === 'Rim Protector').length;     // 191
+  const sTRimProtector    = sT.filter(t => t === 'Rim Protector').length;     // 192
   const sTFloorSpacer     = sT.filter(t => t === 'Floor Spacer').length;      // 279
   const sTLockdownTrait   = sT.filter(t => t === 'Lockdown Defender').length; // 153
-  const sTVolumeShooter   = sT.filter(t => t === 'Volume Shooter').length;    // 359
+  const sTVolumeShooter   = sT.filter(t => t === 'Volume Shooter').length;    // 360
   const sTClutch          = sT.filter(t => t === 'Clutch').length;            // 240
   const sTGlueGuy         = sT.filter(t => t === 'Glue Guy').length;          // 219
   const sTRebMachine      = sT.filter(t => t === 'Rebounding Machine').length;// 105

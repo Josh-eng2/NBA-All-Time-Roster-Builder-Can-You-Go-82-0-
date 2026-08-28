@@ -36,7 +36,26 @@ export function ovrColor(rating, dark = isDark()) {
 }
 
 /**
- * Fans-meter tier colour for an average popularity.
+ * Fans-meter thresholds, on the average-popularity scale.
+ *
+ * Rescaled when the popularity data ceiling went to 350. The old 85/70/55 cuts
+ * were written for a ~100-point scale and had stopped separating anything: 77%
+ * of star-chasing rosters and 61% of ordinary best-player-available rosters all
+ * landed in "Superstar Lineup", so the meter read the same for a good team and
+ * the best team possible. Measured over 6,000 drafts per strategy, the cuts
+ * below put roughly 9% / 43% / 39% / 8% of star-chasing rosters across the four
+ * tiers, and leave 73% of random rosters under the radar where they belong.
+ */
+const FANS_TIERS = [
+  { min: 170, label: 'Superstar Lineup' },
+  { min: 110, label: 'Star Power' },
+  { min:  70, label: 'Solid Roster' },
+  { min:   0, label: 'Under the Radar' },
+];
+
+/**
+ * Fans-meter tier colour for an average popularity. Cuts track FANS_TIERS so
+ * the colour always changes on the same boundary as the label.
  *
  * Light: slate was #94a3b8 (2.56:1 on white — under the 3:1 floor for a
  * graphic that carries meaning) and amber was #d97706 (3.05:1 as badge text);
@@ -44,7 +63,22 @@ export function ovrColor(rating, dark = isDark()) {
  * `--border`), lifted to #93c5fd.
  */
 export function fansBarCol(avg, dark = isDark()) {
-  if (avg >= 80) return dark ? '#93c5fd' : '#2563eb';
-  if (avg >= 60) return dark ? '#fbbf24' : '#b45309';
+  if (avg >= 170) return dark ? '#93c5fd' : '#2563eb';
+  if (avg >= 110) return dark ? '#fbbf24' : '#b45309';
   return dark ? '#cbd5e1' : '#64748b';
+}
+
+/**
+ * Label + colour for an average popularity. The single source of truth — the
+ * results screen and the leaderboard modals each carried their own copy of the
+ * threshold ladder, which is why they could disagree after a rescale.
+ * @param {number} avg
+ * @returns {{ tier: string, barCol: string }}
+ */
+export function fansTier(avg, dark = isDark()) {
+  const a = Number(avg) || 0;
+  return {
+    tier:   (FANS_TIERS.find(t => a >= t.min) ?? FANS_TIERS[FANS_TIERS.length - 1]).label,
+    barCol: fansBarCol(a, dark),
+  };
 }

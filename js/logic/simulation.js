@@ -38,6 +38,21 @@ const SIM_K      = 1.50;
 const SIM_CENTER = 1.40;
 const WIN_CAP    = 0.99;
 
+/**
+ * Fan count (millions) for a roster's normalised popularity. Exported because
+ * the draft screen projects the same number live — it used to hand-copy this
+ * expression, which is exactly how two formulas drift apart.
+ * @param {number} popNorm  UNCAPPED (avgPop - 35) / 65, never below 0
+ */
+export function fansFromPopNorm(popNorm) {
+  return +(Math.pow(Math.max(0, popNorm), 1.5) * 38 + 2).toFixed(1);
+}
+
+/** Normalised popularity for an average popularity value. */
+export function popNormFor(avgPop) {
+  return Math.max(0, ((avgPop ?? 50) - 35) / 65);
+}
+
 let _baselinesCache = null;
 
 /**
@@ -442,9 +457,23 @@ export function simulateSeason(starters, coach = null, profile = null) {
   const avgPop      = allPlayers.length
     ? allPlayers.reduce((s, p) => s + (p.popularity || 50), 0) / allPlayers.length
     : 50;
-  // No upper clamp: a roster averaging above POP_CEIL keeps pushing popMul
-  // past MUL_MAX instead of capping out at the same boost as exactly 100.
-  const popNorm     = Math.max(0, (avgPop - POP_FLOOR) / (POP_CEIL - POP_FLOOR));
+  // Two normalisations, because the two consumers want different things.
+  //
+  // popNormRaw is uncapped and drives the FANS COUNT, which should keep climbing
+  // with real fame — a roster of five 350-popularity legends really does draw a
+  // bigger crowd than one averaging 100.
+  //
+  // popNorm is clamped to 0..1 and drives the STRENGTH multiplier, which must
+  // not. MUL_MIN..MUL_MAX is the whole envelope popularity is allowed to move a
+  // roster's odds by. The clamp used to be omitted deliberately, back when the
+  // data ceiling sat near POP_CEIL and the overshoot was a rounding concern.
+  // The ceiling has since been raised to 350: popNormRaw reaches 4.85, so the
+  // "±12%" fans-profile envelope was really ±97%, and a max-fame five went 82-0
+  // in 34.5% of Fans First runs against a documented ~1.5%. Fame is a modifier
+  // here, not a second rating — the players' own `overall` already carries how
+  // good they are, and it is clamped the same way (see ratingNorm below).
+  const popNormRaw  = Math.max(0, (avgPop - POP_FLOOR) / (POP_CEIL - POP_FLOOR));
+  const popNorm     = Math.min(1, popNormRaw);
   const popMul      = MUL_MIN + popNorm * (MUL_MAX - MUL_MIN);
 
   // ── Player-Rating modifier ────────────────────────────────────────────────
@@ -465,7 +494,8 @@ export function simulateSeason(starters, coach = null, profile = null) {
   const popEloDelta    = +(baseStrength * (popMul - 1)).toFixed(3);
   const ratingEloDelta = +(baseStrength * popMul * (ratingMul - 1)).toFixed(3);
 
-  const fansM = +(Math.pow(popNorm, 1.5) * 38 + 2).toFixed(1);
+  // Fans count rides the UNCAPPED normalisation — see popNormRaw above.
+  const fansM = fansFromPopNorm(popNormRaw);
 
   const winPct = Math.min(WIN_CAP, 1 / (1 + Math.exp(-SIM_K * (adjustedStrength - SIM_CENTER))));
 

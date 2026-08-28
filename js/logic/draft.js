@@ -289,9 +289,93 @@ export function playerTier(p) {
   return 'starter';
 }
 
+// ── Board reachability ────────────────────────────────────────────────────────
+// A board the wheel can land on is only useful if the drafter may actually take
+// somebody from it. Outside the Daily that is the same question as "does it have
+// players", but a Daily Challenge can bar every name on a stocked board — and a
+// wheel that cannot tell the difference will happily deal those boards forever.
+//
+// That is not hypothetical: the pity timer steers rounds 3-4 onto boards holding
+// a star, and on a nearly-spent Boos Only budget no star is ever legal. The two
+// rules together pinned the wheel to boards whose every player was barred while
+// the affordable ones — all of them on star-free boards — could never come up.
+// The run had legal picks left and no way to be offered one.
+
+/** Available players on a board that the drafter may legally take right now. */
+function legalPicks(team, decade) {
+  const avail = getAvailablePlayers(team, decade);
+  if (!avail.length) return avail;
+  const challenge = S.mode === 'daily' ? S.dailyChallenge : null;
+  if (!challenge) return avail;
+  const filled = ALL_POSITIONS.map(p => S.roster?.[p]).filter(Boolean);
+  return avail.filter(p =>
+    isPickDraftable(challenge, { ...p, team, decade }, filled).legal);
+}
+
+// legalPicks() runs the full pick lookahead per player, and a single spin asks
+// it about every (team, decade) combo in the pool. The answer only changes when
+// something is drafted, so each board is summarised once and memoized on the
+// same inputs draftableCosts() uses — one board scan per pick, not per spin.
+// `bestTier` is the highest tier among the LEGAL picks, which is what the pity
+// timer needs; caching it here is what keeps spinResultAtLeast off the hot path.
+let _legalBoardCache = { key: null, map: null };
+
+function boardCacheKey() {
+  return `${S.gameId}|${S.usedPlayerIds?.length ?? 0}|${S.selectedEra}|${S.usedDecades?.length ?? 0}|${S.mode}|${S.dailyChallenge?.id ?? ''}`;
+}
+
+/** @returns {{ legal: boolean, bestTier: number }} summary for one board. */
+function boardSummary(team, decade) {
+  const key = boardCacheKey();
+  if (_legalBoardCache.key !== key) _legalBoardCache = { key, map: new Map() };
+  const slot = `${team}_${decade}`;
+  let hit = _legalBoardCache.map.get(slot);
+  if (hit === undefined) {
+    const legal = legalPicks(team, decade);
+    let bestTier = -1;
+    for (const p of legal) bestTier = Math.max(bestTier, TIER_RANK[playerTier(p)] ?? 0);
+    hit = { legal: legal.length > 0, bestTier };
+    _legalBoardCache.map.set(slot, hit);
+  }
+  return hit;
+}
+
+/** True when this board still has a pick the drafter is allowed to make. */
+export function boardHasLegalPick(team, decade) {
+  return boardSummary(team, decade).legal;
+}
+
+/**
+ * Splits the candidate (team, decade) combos into the ones that can be drafted
+ * from and the ones that merely have players left.
+ */
+function collectBoards(decades, teams) {
+  const draftable = [];
+  const stocked   = [];
+  for (const d of decades) {
+    for (const t of teams) {
+      if (!getAvailablePlayers(t, d).length) continue;
+      stocked.push({ team: t, decade: d });
+      if (boardHasLegalPick(t, d)) draftable.push({ team: t, decade: d });
+    }
+  }
+  return { draftable, stocked };
+}
+
+/**
+ * True when SOME board in the remaining pool still offers a legal pick. False
+ * means the run genuinely cannot be finished under today's rules — a different
+ * situation from a single dead board, and the draft screen says so rather than
+ * offering a re-spin that can never help.
+ */
+export function anyLegalBoardRemains() {
+  return collectBoards(availableDecades(), eligibleTeams()).draftable.length > 0;
+}
+
 /**
  * Like spinResult, but only lands on (team, decade) combos whose available
- * players include at least one of the given tier or better.
+ * players include at least one of the given tier or better — and only counts a
+ * star the drafter may actually take (see the reachability note above).
  * Falls back to a normal spinResult when no combo qualifies.
  * @param {'star'|'goat'} tier
  */
@@ -306,16 +390,16 @@ export function spinResultAtLeast(tier, fixedTeam = null, fixedDecade = null) {
   const valid = [];
   for (const d of decades) {
     for (const t of teams) {
-      if (getAvailablePlayers(t, d).some(p => TIER_RANK[playerTier(p)] >= wantRank)) {
-        valid.push({ team: t, decade: d });
-      }
+      if (!getAvailablePlayers(t, d).length) continue;
+      if (boardSummary(t, d).bestTier >= wantRank) valid.push({ team: t, decade: d });
     }
   }
   return valid.length ? pick(valid) : spinResult(fixedTeam, fixedDecade);
 }
 
 /**
- * Pick a random (team, decade) combo that has available players.
+ * Pick a random (team, decade) combo the drafter can actually draft from,
+ * preferring boards with a legal pick over boards that merely have players.
  * Supports optional fixedTeam / fixedDecade constraints.
  * @param {string|null} fixedTeam
  * @param {string|null} fixedDecade
@@ -328,20 +412,16 @@ export function spinResult(fixedTeam = null, fixedDecade = null) {
   const decades = fixedDecade ? [fixedDecade] : decadePool;
   const teams   = fixedTeam   ? [fixedTeam]   : eligibleTeams();
 
-  const valid = [];
-  for (const d of decades) {
-    for (const t of teams) {
-      if (getAvailablePlayers(t, d).length > 0) valid.push({ team: t, decade: d });
-    }
-  }
-  if (valid.length) return pick(valid);
+  const near = collectBoards(decades, teams);
+  if (near.draftable.length) return pick(near.draftable);
 
-  // Constraint exhausted — fall back to any remaining combo
-  const fallback = [];
-  for (const d of decadePool) {
-    for (const t of eligibleTeams()) {
-      if (getAvailablePlayers(t, d).length > 0) fallback.push({ team: t, decade: d });
-    }
-  }
-  return fallback.length ? pick(fallback) : null;
+  // Constraint exhausted — fall back to any remaining combo, still preferring
+  // one that can be drafted from.
+  const far = collectBoards(decadePool, eligibleTeams());
+  if (far.draftable.length) return pick(far.draftable);
+
+  // Nothing anywhere is legal. Deal a stocked board so the screen has something
+  // to show; renderDraftCard dims every card and the banner explains the run.
+  if (near.stocked.length) return pick(near.stocked);
+  return far.stocked.length ? pick(far.stocked) : null;
 }

@@ -213,7 +213,7 @@ function referencePick(board, roster, coachId) {
     player.pos === pos ? 1 : (player.secondaryPos || []).includes(pos) ? 0.55 : 0.15;
   const score = player => {
     const ratingNorm = Math.max(0, Math.min(1, ((player.overall ?? 82) - 74) / 25));
-    const popNorm    = Math.max(0, ((player.popularity ?? 50) - 35) / 65);
+    const popNorm    = Math.max(0, Math.min(1, ((player.popularity ?? 50) - 35) / 65));
     const posNeed    = empty.reduce((m, pos) => Math.max(m, fits(player, pos)), 0);
     const slot = ai.bestAiSlot(player, roster);
     let chemDelta = 0;
@@ -267,4 +267,139 @@ test('the AI GM always places into an empty slot, and gives up when full', () =>
     roster[slot] = all[i];
   }
   assert.equal(ai.bestAiSlot(player, roster), null, 'a full roster must yield no slot');
+});
+
+// ── Board reachability ────────────────────────────────────────────────────────
+// A legal pick that exists but can never be dealt is the same as no legal pick.
+// The Daily Challenge is where the two came apart: the pity timer steers rounds
+// 3-4 onto boards holding a star, no star is legal once a Boos Only budget is
+// nearly spent, and the affordable players left were all on star-free boards —
+// so the wheel could not offer any of them and the run could only spin forever.
+
+/** Boards the wheel can still deal, split by whether they can be drafted from. */
+function boardCensus(challenge) {
+  const S = g.state.S;
+  const filled = g.state.POSITIONS.map(p => S.roster[p]).filter(Boolean);
+  let stocked = 0, draftable = 0;
+  for (const d of g.draft.availableDecades()) {
+    for (const t of g.draft.eligibleTeams()) {
+      const avail = g.draft.getAvailablePlayers(t, d);
+      if (!avail.length) continue;
+      stocked++;
+      if (avail.some(p => g.draft.isPickDraftable(
+        challenge, { ...p, team: t, decade: d }, filled).legal)) draftable++;
+    }
+  }
+  return { stocked, draftable };
+}
+
+/** Drafts a budget run the way the game really does: rigged first rounds, pity
+ *  spins after a dry board, and the most expensive legal player every time. */
+function pityBudgetRun(challenge, maxSpins = 60) {
+  g.state.clearDailyRng();
+  g.state.S.mode = 'daily';
+  g.state.S.dailyChallenge = challenge;
+  g.state.startGame('all');
+  const S = g.state.S;
+  S.mode = 'daily';
+  S.selectedEra = 'all';
+  S.teamSkips = 0;
+  S.decadeSkips = 0;
+
+  let spins = 0;
+  let dry   = 0;
+  while (g.state.POSITIONS.some(p => !S.roster[p])) {
+    if (++spins > maxSpins) return { five: null, spins, census: boardCensus(challenge) };
+    const round = g.state.POSITIONS.filter(p => S.roster[p]).length;
+    const spin = round === 0 ? g.draft.spinResultAtLeast('goat')
+               : round <= 2  ? g.draft.spinResultAtLeast('star')
+               : dry >= 1    ? g.draft.spinResultAtLeast('star')
+               : g.draft.spinResult();
+    if (!spin) return { five: null, spins, census: boardCensus(challenge) };
+
+    const board  = g.draft.getAvailablePlayers(spin.team, spin.decade);
+    const filled = g.state.POSITIONS.map(p => S.roster[p]).filter(Boolean);
+    const legal  = board
+      .map(p => ({ ...p, team: spin.team, decade: spin.decade }))
+      .filter(p => g.draft.isPickDraftable(challenge, p, filled).legal)
+      .sort((a, b) => (b.popularity ?? 50) - (a.popularity ?? 50));
+
+    dry = board.some(p => g.draft.playerTier(p) !== 'starter'
+      && g.draft.isPickDraftable(challenge,
+        { ...p, team: spin.team, decade: spin.decade }, filled).legal) ? 0 : dry + 1;
+
+    if (!legal.length) continue;
+    const p = legal[0];
+    S.roster[g.state.POSITIONS.find(x => !S.roster[x])] = p;
+    S.usedPlayerIds.push(p.id);
+    S.draftedPlayerNames.add(p.name);
+    S.usedDecades.push(spin.decade);
+  }
+  return { five: g.state.POSITIONS.map(p => S.roster[p]), spins, census: boardCensus(challenge) };
+}
+
+test('the wheel never deals a dead board while a draftable one exists', () => {
+  const budget = g.challenge.CHALLENGES.find(c => c.params.maxPopTotal != null);
+
+  for (let run = 0; run < 40; run++) {
+    g.state.clearDailyRng();
+    g.state.S.mode = 'daily';
+    g.state.S.dailyChallenge = budget;
+    g.state.startGame('all');
+    const S = g.state.S;
+    S.mode = 'daily';
+    S.selectedEra = 'all';
+
+    // Walk the roster to a nearly-spent budget, the state the lock lived in.
+    for (let round = 0; round < 4; round++) {
+      const spin = g.draft.spinResult();
+      if (!spin) break;
+      const filled = g.state.POSITIONS.map(p => S.roster[p]).filter(Boolean);
+      const legal  = g.draft.getAvailablePlayers(spin.team, spin.decade)
+        .map(p => ({ ...p, team: spin.team, decade: spin.decade }))
+        .filter(p => g.draft.isPickDraftable(budget, p, filled).legal)
+        .sort((a, b) => (b.popularity ?? 50) - (a.popularity ?? 50));
+      if (!legal.length) { round--; continue; }
+      S.roster[g.state.POSITIONS.find(x => !S.roster[x])] = legal[0];
+      S.usedPlayerIds.push(legal[0].id);
+      S.draftedPlayerNames.add(legal[0].name);
+      S.usedDecades.push(spin.decade);
+
+      // From this state, both spin entry points must land somewhere usable
+      // whenever anything usable is left.
+      if (!g.draft.anyLegalBoardRemains()) continue;
+      for (const spinner of [
+        () => g.draft.spinResult(),
+        () => g.draft.spinResultAtLeast('star'),
+        () => g.draft.spinResultAtLeast('goat'),
+      ]) {
+        const landed = spinner();
+        assert.ok(landed, 'a spin returned nothing while a legal board remained');
+        assert.ok(g.draft.boardHasLegalPick(landed.team, landed.decade),
+          `spun onto ${landed.team}_${landed.decade}, which has no legal pick, ` +
+          'while a draftable board was still available');
+      }
+    }
+  }
+});
+
+test('a Boos Only run finishes under the pity timer, not just without it', () => {
+  const budget = g.challenge.CHALLENGES.find(c => c.params.maxPopTotal != null);
+  let worstSpins = 0;
+  for (let i = 0; i < 60; i++) {
+    const { five, spins, census } = pityBudgetRun(budget);
+    assert.ok(five,
+      'a Boos Only run stalled under the pity timer — ' +
+      `${census.draftable} of ${census.stocked} remaining boards were draftable, ` +
+      'so the wheel had somewhere legal to land and did not go there');
+    assert.equal(new Set(five.map(p => p.name)).size, 5, 'a player was drafted twice');
+    const sum = five.reduce((s, p) => s + (p.popularity ?? 50), 0);
+    assert.ok(sum < budget.params.maxPopTotal, `finished roster busts the budget: ${sum}`);
+    worstSpins = Math.max(worstSpins, spins);
+  }
+  // Five rounds, so five spins is the floor. Anything above a couple of wasted
+  // re-spins per run means the wheel is dealing boards it cannot be drafted
+  // from again — the shape of the original bug, short of a full lock.
+  assert.ok(worstSpins <= 10,
+    `the wheel wasted re-spins on dead boards (worst run took ${worstSpins} spins for 5 picks)`);
 });

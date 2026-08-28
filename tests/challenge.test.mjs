@@ -238,3 +238,55 @@ test('a missing season result fails cleanly instead of throwing', () => {
     assert.ok(v.detail);
   }
 });
+
+// ── Gate calibration ─────────────────────────────────────────────────────────
+// The catalog's thresholds are measured against what the draft can actually
+// produce (see the calibration block above CHALLENGES in logic/challenge.js).
+// They drifted far past it once: chemistry wanted 95 against a reference p90 of
+// 82 and passed 0.2% of runs, a 20-game streak against a p90 of 12 passed 1.3%,
+// and the catalog mean was 21% — which, with a streak that reset on any miss,
+// put the expected streak under a day.
+//
+// Re-measuring is far too slow for a unit test, so this pins the envelope
+// instead: the ceiling each gate must stay under to remain reachable. Moving a
+// gate past one of these is the regression, and it should require re-measuring
+// and moving the number here in the same commit.
+const GATE_CEILINGS = {
+  minWins:    60,   // reference p90 is ~61 wins
+  minChem:    82,   // reference p90 chemScore
+  minStreak:  12,   // reference p90 longest win streak
+  teamBpg:     8,   // reference p90 team blocks per game
+  starterPpg: 29.5, // reference p75 top-scorer PPG
+};
+
+test('every challenge gate stays inside the measured reachable envelope', () => {
+  for (const ch of CHALLENGES) {
+    for (const [gate, ceiling] of Object.entries(GATE_CEILINGS)) {
+      const value = ch.params[gate];
+      if (value == null) continue;
+      assert.ok(value <= ceiling,
+        `${ch.id} sets ${gate}=${value}, past the reachable ceiling of ${ceiling} — ` +
+        're-measure the reference distribution before raising it');
+    }
+  }
+});
+
+test('the catalog keeps a spread of difficulty rather than one flat tier', () => {
+  const floors = CHALLENGES.map(c => c.params.minWins);
+  assert.ok(Math.max(...floors) - Math.min(...floors) >= 8,
+    'every challenge demands about the same win total — there is no difficulty ladder');
+  // At least one challenge has to be gentle enough to be a reliable streak day.
+  assert.ok(floors.some(f => f <= 50), 'no challenge is an approachable day');
+});
+
+test('a challenge id never changes, so stored results stay attributable', () => {
+  // ids are the wire key for the daily leaderboard, the local play record and
+  // the lifetime stats. Titles are free to be retuned; ids are not.
+  const ids = CHALLENGES.map(c => c.id).sort();
+  assert.deepEqual(ids, [
+    'budget-ball', 'build-around-giannis', 'build-around-lebron',
+    'build-around-magic', 'build-around-shaq', 'chemistry-class',
+    'modern-era', 'nineties-only', 'no-la-boston', 'old-school',
+    'swat-team', 'volume-scorer', 'win-65', 'win-70', 'wire-to-wire', 'y2k-ball',
+  ]);
+});

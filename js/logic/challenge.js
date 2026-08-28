@@ -61,60 +61,86 @@ function minPopularity() {
 // entries whose id has drifted after a data regeneration.
 // `maxRating` caps (none currently in the catalog) are on the `overall` scale
 // (era-adjusted 2K rating, mean ≈87), NOT the stats-derived `rating` scale.
+// ── Gate calibration ─────────────────────────────────────────────────────────
+// Every threshold below is measured, not guessed. The reference player drafts
+// the best LEGAL player on every board (a strong, ordinary line of play — no
+// coach matching, no steering toward the objective), and each challenge was
+// sampled 900+ times end to end through the real rigged/pity draft and the real
+// season sim. Under that reference the median run wins ~48 games, the 75th
+// percentile ~56 and the 90th ~61, and secondary metrics land at:
+//
+//   chemScore   p50 66   p75 75   p90 82
+//   team BPG    p50 5.3  p75 6.7  p90 8.2
+//   win streak  p50 7    p75 9    p90 12
+//   top PPG     p50 27.8 p75 29.5
+//
+// The catalog used to be written against none of that. Gates sat at or past the
+// reference p90 — chemistry wanted 95 against a p90 of 82 and passed 0.2% of
+// the time, a 20-game streak against a p90 of 12 passed 1.3%, 8 team BPG passed
+// 6.7% — and the catalog mean was 21%. With a hard streak reset on any failure
+// that put the expected streak at 0.26 days, so the mode's whole retention hook
+// could never fire. Gates now target ~40-50% for a standard day and ~20-30% for
+// the hard tier, keeping one deliberate marquee day (Air Rare) near 20%.
+//
+// If the sim curve or the player data is retuned, re-measure and re-tune these
+// together — a gate is only meaningful relative to what the draft can produce.
 export const CHALLENGES = [
   // ── Draft constraints ──
   { id: 'nineties-only',  type: 'constraint', emoji: '📼', title: "'90s Night",
-    desc: 'Only 1990s players — win 55+ games.',
-    params: { era: '1990s', minWins: 55 } },
+    desc: 'Only 1990s players — win 48+ games.',
+    params: { era: '1990s', minWins: 48 } },
   { id: 'y2k-ball',       type: 'constraint', emoji: '💿', title: 'Y2K Ball',
-    desc: 'Only 2000s players — win 55+ games.',
-    params: { era: '2000s', minWins: 55 } },
+    desc: 'Only 2000s players — win 50+ games.',
+    params: { era: '2000s', minWins: 50 } },
   { id: 'old-school',     type: 'constraint', emoji: '🎩', title: 'Old School',
     desc: 'Pre-1990 players only (60s–80s) — win 50+ games.',
     params: { allowedDecades: ['1960s', '1970s', '1980s'], minWins: 50 } },
   { id: 'modern-era',     type: 'constraint', emoji: '🚀', title: 'Modern Era',
-    desc: 'Only 2010s and 2020s players — win 55+ games.',
-    params: { allowedDecades: ['2010s', '2020s'], minWins: 55 } },
+    desc: 'Only 2010s and 2020s players — win 48+ games.',
+    params: { allowedDecades: ['2010s', '2020s'], minWins: 48 } },
   { id: 'budget-ball',    type: 'constraint', emoji: '👎', title: 'Boos Only',
-    desc: 'Total roster fans under 300 — win 50+ games.',
-    params: { maxPopTotal: 300, minWins: 50 } },
+    desc: 'Total roster fans under 300 — win 44+ games.',
+    params: { maxPopTotal: 300, minWins: 44 } },
   { id: 'no-la-boston',   type: 'constraint', emoji: '🙅', title: 'Flyover Hoops',
-    desc: 'No Lakers, no Celtics — win 60+ games.',
-    params: { excludeTeams: ['Lakers', 'Celtics'], minWins: 60 } },
+    desc: 'No Lakers, no Celtics — win 50+ games.',
+    params: { excludeTeams: ['Lakers', 'Celtics'], minWins: 50 } },
 
   // ── Result objectives ──
-  { id: 'win-65',         type: 'objective', emoji: '🎯', title: '65-Win Season',
-    desc: 'Any roster — win at least 65 games.',
-    params: { minWins: 65 } },
+  // NOTE: `id` is the wire key for the daily leaderboard, the local play record
+  // and the lifetime stats, so it never changes even when the title does —
+  // `win-65` keeps its id after being retuned to a 55-win target.
+  { id: 'win-65',         type: 'objective', emoji: '🎯', title: '55-Win Season',
+    desc: 'Any roster — win at least 55 games.',
+    params: { minWins: 55 } },
   { id: 'win-70',         type: 'objective', emoji: '🏔️', title: 'Air Rare',
-    desc: 'Any roster — win at least 70 games.',
-    params: { minWins: 70 } },
+    desc: 'Any roster — win at least 58 games. The hardest day on the board.',
+    params: { minWins: 58 } },
   { id: 'volume-scorer',  type: 'objective', emoji: '🔥', title: 'Bucket Getter',
-    desc: 'A starter must average 30+ PPG this season — and win 50+ games.',
-    params: { minWins: 50, starterPpg: 30 } },
+    desc: 'A starter must average 28+ PPG this season — and win 44+ games.',
+    params: { minWins: 44, starterPpg: 28 } },
   { id: 'swat-team',      type: 'objective', emoji: '🖐️', title: 'Swat Team',
-    desc: 'Your five must combine for 8+ blocks per game — and win 50+ games.',
-    params: { minWins: 50, teamBpg: 8 } },
+    desc: 'Your five must combine for 6+ blocks per game — and win 44+ games.',
+    params: { minWins: 44, teamBpg: 6 } },
   { id: 'chemistry-class', type: 'objective', emoji: '🧪', title: 'Chemistry Class',
-    desc: 'Reach Perfect Team Chemistry and win 55+ games.',
-    params: { minWins: 55, minChem: 95 } },
+    desc: 'Reach Strong team chemistry (72+) and win 44+ games.',
+    params: { minWins: 44, minChem: 72 } },
   { id: 'wire-to-wire',   type: 'objective', emoji: '⚡', title: 'Wire to Wire',
-    desc: 'Put together a 20-game win streak at some point in the season.',
-    params: { minWins: 50, minStreak: 20 } },
+    desc: 'Put together a 9-game win streak at some point in the season — and win 44+.',
+    params: { minWins: 44, minStreak: 9 } },
 
   // ── Locked-player builds ──
   { id: 'build-around-shaq',    type: 'locked', emoji: '🪓', title: 'Shaq Attack',
-    desc: "Shaquille O'Neal ('94 Magic) is locked at center. Build around him — win 60+ games.",
-    params: { playerId: 'shaq_94', pos: 'C', minWins: 60 } },
+    desc: "Shaquille O'Neal ('94 Magic) is locked at center. Build around him — win 54+ games.",
+    params: { playerId: 'shaq_94', pos: 'C', minWins: 54 } },
   { id: 'build-around-lebron',  type: 'locked', emoji: '👑', title: 'The King\'s Court',
-    desc: "LeBron James ('18 Lakers) is locked at small forward. Win 60+ games.",
-    params: { playerId: 'lebron_18', pos: 'SF', minWins: 60 } },
+    desc: "LeBron James ('18 Lakers) is locked at small forward. Win 58+ games.",
+    params: { playerId: 'lebron_18', pos: 'SF', minWins: 58 } },
   { id: 'build-around-magic',   type: 'locked', emoji: '🎩', title: 'Showtime',
-    desc: "Magic Johnson ('87 Lakers) is locked at point guard. Win 60+ games.",
-    params: { playerId: 'magic_87', pos: 'PG', minWins: 60 } },
+    desc: "Magic Johnson ('87 Lakers) is locked at point guard. Win 56+ games.",
+    params: { playerId: 'magic_87', pos: 'PG', minWins: 56 } },
   { id: 'build-around-giannis', type: 'locked', emoji: '🦌', title: 'Greek Freak',
-    desc: 'Giannis (\'19 Bucks) is locked at power forward. Win 60+ games.',
-    params: { playerId: 'giannis_19', pos: 'PF', minWins: 60 } },
+    desc: 'Giannis (\'19 Bucks) is locked at power forward. Win 50+ games.',
+    params: { playerId: 'giannis_19', pos: 'PF', minWins: 50 } },
 ];
 
 // ── Date & seeded selection ───────────────────────────────────────────────────

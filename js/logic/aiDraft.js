@@ -44,9 +44,13 @@ function scoreCandidate(player, roster, coachId, chemBefore) {
   // 74–99 window = the old 60–95 rating window's percentile equivalents on the
   // `overall` (era-adjusted 2K) scale.
   const ratingNorm = Math.max(0, Math.min(1, ((player.overall ?? 82) - 74) / 25));
-  // No upper clamp: a popularity value above 100 keeps scaling the AI's
-  // draft weight instead of capping out at the same pull as exactly 100.
-  const popNorm    = Math.max(0, ((player.popularity ?? 50) - 35) / 65);
+  // Clamped to 0..1 like ratingNorm above, and for the same reason: these are
+  // WEIGHTS, and the coefficients below only mean something if every term shares
+  // a range. Popularity now runs to 350, so an unclamped popNorm reached 4.85 —
+  // the 0.25 popularity term alone was worth 1.21 against a 0.75 ceiling for
+  // rating, positional need and chemistry combined, and it decided every pick.
+  // The AI took Dennis Rodman (290 fans, 84 OVR) over Kareem (120, 99 OVR).
+  const popNorm    = Math.max(0, Math.min(1, ((player.popularity ?? 50) - 35) / 65));
 
   const slots = emptySlots(roster);
   let posNeed = 0;

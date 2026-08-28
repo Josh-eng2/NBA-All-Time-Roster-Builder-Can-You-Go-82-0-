@@ -90,7 +90,35 @@
 //       itself — that also requires removing the rules' clock-sensitive
 //       `timestampMs <= request.time.toMillis() + 60000` check, which is
 //       server-side config outside this repo. Changed: firebase.js only.
-const CACHE_VERSION = '820-v16';
+//   v17 QA pass. Two things this bump has to ship, on top of the usual rule.
+//
+//       First, the DEBT: v16 was never bumped for the four commits that landed
+//       after it, so index.html (network-first) was already being served new
+//       while render.js, events.js, simulation.js and styles.css (cache-first)
+//       stayed old — a mixed build. The commit stranded that way was "Give the
+//       Daily an exit, and make Dynasty Duel winnable", so every returning
+//       player still had an unwinnable Dynasty Duel and a Daily with no exit.
+//       That is the fifth time this file's own rule has been proved; the list
+//       above is now five entries long for a reason.
+//
+//       Second, this pass. Changed precached files: draft.js (the wheel now
+//       only lands on boards the drafter can legally pick from — the pity timer
+//       and a nearly-spent fans budget between them could pin it to boards
+//       where every player was barred, and a Boos Only run soft-locked for
+//       ~11% of players, deterministically, since the Daily board is seeded);
+//       simulation.js (the popularity multiplier is clamped again now the data
+//       ceiling is 350, and the fans formula is exported instead of copied);
+//       aiDraft.js (same clamp — the AI GM was drafting Rodman over Kareem);
+//       challenge.js (every daily gate re-measured against what the draft can
+//       actually produce); storage.js + theme.js + render.js (fans gauge
+//       rescaled, tier ladder de-duplicated, one forgiven miss per streak);
+//       firebase.js (starter names are packed, not sliced, so a long roster
+//       stops losing its fifth player on the wire); state.js (rematch context
+//       no longer survives into other modes); players.js (three inert traits
+//       normalised away); index.html + pageIntegrity.js (the real <title> now
+//       precedes the title guard, so a third-party SDK can no longer get its
+//       own title adopted as the baseline and enforced).
+const CACHE_VERSION = '820-v17';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 
