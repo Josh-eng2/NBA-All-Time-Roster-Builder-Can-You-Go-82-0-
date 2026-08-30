@@ -5,7 +5,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  installDom, makeEl, registerEl, unregisterEl, hashWrites, resetHashWrites,
+  installDom, makeEl, registerEl, unregisterEl, hashWrites, resetHashWrites, setViewport,
 } from './dom-stub.mjs';
 
 const app = installDom();
@@ -241,5 +241,105 @@ test('the submit path hands the wire full names, and gets all five back', () => 
     assert.equal(names.length, 5, `${label} doc lost a starter`);
     assert.ok(names[4].endsWith('Abdul-Jabbar'),
       `${label} doc truncated the fifth starter to "${names[4]}"`);
+  }
+});
+
+// ── The Overall read-out reaches the phone ───────────────────────────────────
+// The roster slot's OVR badge and the third live gauge were both desktop-only,
+// so the phone could not see the one number the sim weights most directly.
+// Both now render at every width; the arrangement is CSS's job, not JS's.
+
+function seatRoster(n, mode = 'solo') {
+  state.startGame('all');
+  state.S.mode  = mode;
+  state.S.coach = 'jackson';
+  state.S.phase = 'drafting';
+  state.S.spinState = 'idle';
+  state.POSITIONS.slice(0, n).forEach((pos, i) => {
+    state.S.roster[pos] = five[i];
+    state.S.usedPlayerIds.push(five[i].id);
+    state.S.draftedPlayerNames.add(five[i].name);
+  });
+}
+
+test('the roster slot shows OVR on mobile, not just desktop', () => {
+  for (const vp of ['mobile', 'desktop']) {
+    setViewport(vp);
+    seatRoster(3);
+    app.innerHTML = '';
+    render();
+    const html = app.innerHTML;
+    assert.ok(html.includes('draft-roster-slot__ovr'), `${vp}: no OVR badge on the roster slot`);
+    assert.ok(html.includes('draft-roster-slot__ovr-wrap'),
+      `${vp}: the badge is missing its wrapper — css/desktop.css dissolves it with ` +
+      'display:contents, and css/styles.css lays it out inline below that breakpoint');
+  }
+  setViewport('mobile');
+});
+
+test('the Overall gauge renders at every width', () => {
+  for (const vp of ['mobile', 'desktop']) {
+    setViewport(vp);
+    seatRoster(3);
+    app.innerHTML = '';
+    render();
+    const html = app.innerHTML;
+    const labels = [...html.matchAll(/draft-stat-gauge__label">([^<]+)</g)].map(m => m[1]);
+    assert.deepEqual(labels, ['Fans', 'Chemistry', 'Overall'], `${vp}: wrong gauge row`);
+    assert.ok(html.includes('draft-stat-gauges--trio'),
+      `${vp}: the three-up row is missing its modifier — three 96px arcs overflow a 320px phone ` +
+      'without the viewport-scaled sizing that class carries');
+  }
+  setViewport('mobile');
+});
+
+test('the trio modifier is derived from what actually rendered', () => {
+  // The class and the arc count must not be able to disagree.
+  setViewport('mobile');
+  seatRoster(3);
+  app.innerHTML = '';
+  render();
+  const html   = app.innerHTML;
+  const arcs   = (html.match(/draft-stat-gauge__label"/g) || []).length;
+  const isTrio = html.includes('draft-stat-gauges--trio');
+  assert.equal(isTrio, arcs === 3, `class says trio=${isTrio} but ${arcs} gauges rendered`);
+});
+
+test('Ball IQ still shows no rating anywhere on the draft screen', () => {
+  // The mode's whole premise is drafting on name recognition. The Overall gauge
+  // is the MEAN of `overall`, so with one player drafted it reads that player's
+  // exact rating — it has to lock like the Chemistry gauge beside it.
+  for (const vp of ['mobile', 'desktop']) {
+    setViewport(vp);
+    seatRoster(1, 'blind');
+    app.innerHTML = '';
+    render();
+    const html = app.innerHTML;
+    assert.ok(!html.includes('draft-roster-slot__ovr'),
+      `${vp}: Ball IQ leaked the rating through the roster slot`);
+    assert.ok(!/draft-stat-gauge__value">\s*\d/.test(html),
+      `${vp}: Ball IQ leaked a number through a gauge value`);
+    assert.equal((html.match(/Unlocks after you simulate/g) || []).length, 2,
+      `${vp}: expected both Chemistry and Overall locked in Ball IQ`);
+  }
+  setViewport('mobile');
+});
+
+test('every OVR tier tint clears 4.5:1 on its own card', async () => {
+  const theme = await import(new URL('../js/ui/theme.js', import.meta.url).href);
+  const chan  = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255);
+  const lin   = c => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+  const lum   = h => { const [r, gg, b] = chan(h).map(lin); return 0.2126 * r + 0.7152 * gg + 0.0722 * b; };
+  const ratio = (a, b) => (Math.max(lum(a), lum(b)) + 0.05) / (Math.min(lum(a), lum(b)) + 0.05);
+
+  // One rating per tier: GOAT, star, solid starter, role player.
+  for (const [dark, bg] of [[false, '#ffffff'], [true, '#1e293b']]) {
+    for (const rating of [99, 94, 88, 80]) {
+      const c = theme.ovrColor(rating, dark);
+      const r = ratio(c, bg);
+      assert.ok(r >= 4.5,
+        `${dark ? 'dark' : 'light'} OVR ${rating} paints ${c} at ${r.toFixed(2)}:1 on ${bg} — ` +
+        'this ramp is used at 9-13px, which needs 4.5:1');
+    }
   }
 });

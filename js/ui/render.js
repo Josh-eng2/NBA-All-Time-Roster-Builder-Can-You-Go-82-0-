@@ -1058,7 +1058,7 @@ function renderDrafting() {
         ${renderCoachChip()}
         ${!full ? renderSlotMachine() : ''}
         ${shouldShowDraftBoard(full) ? renderDraftBoard() : ''}
-        ${renderStatGauges()}
+        ${renderStatGauges({ withOverall: true })}
         ${renderRoster()}
       </div>
     </main>
@@ -1307,12 +1307,14 @@ function renderStatGauge({ id, icon, pct, value, suffix, label, color, sub = '',
   </div>`;
 }
 
-/** Live meters for the drafting screen.
+/** Live meters for the drafting screen: Fans, Chemistry and Overall.
  *
- *  Mobile/tablet keep the shipped two-gauge pair (Fans + Chemistry). Desktop
- *  adds the third gauge the redesign calls for — Overall — which is why the
- *  `withOverall` flag exists rather than the caller always getting three.
- *  All three read real roster state; none of them fabricate a value. */
+ *  Every width gets all three. Overall used to be desktop-only, which left the
+ *  phone unable to see the one number the sim weights most directly. Three arcs
+ *  do not fit a 320px phone at the shipped 96px size, so the trio carries its
+ *  own modifier class and css/styles.css scales the arc with the viewport below
+ *  1024px. All three read real roster state; none of them fabricate a value,
+ *  and in Ball IQ the two that would leak a rating render locked instead. */
 function renderStatGauges({ withOverall = false, trio = false, showSub = false } = {}) {
   // `sub` is a desktop-only affordance — the shipped mobile gauge is a bare
   // value + label and must stay that way.
@@ -1388,17 +1390,32 @@ function renderStatGauges({ withOverall = false, trio = false, showSub = false }
 
   let ovrGauge = '';
   if (withOverall) {
-    const { ovr, count, pct } = calcTeamOverall(roster);
-    ovrGauge = renderStatGauge({
-      id: 'ovr', icon: '🏀', pct,
-      value: ovr == null ? '—' : String(Math.round(ovr)), suffix: '',
-      label: 'Overall',
-      color: ovr == null ? 'var(--muted-fg)' : ovrColor(ovr),
-      sub: sub(ovr == null ? 'No roster' : `${ovrTierLabel(ovr)} · ${count}/${POSITIONS.length}`),
-    });
+    if (isBlindDraft()) {
+      // Ball IQ, same reasoning as the Chemistry gauge above and more directly:
+      // this gauge is the MEAN of `overall`, so with one player drafted it
+      // reads that player's exact rating. A mode whose whole premise is
+      // drafting on name recognition cannot show a live ratings read-out.
+      ovrGauge = renderStatGauge({
+        id: 'ovr', icon: '🏀', label: 'Overall', locked: true,
+        lockedNote: 'Unlocks after you simulate',
+      });
+    } else {
+      const { ovr, count, pct } = calcTeamOverall(roster);
+      ovrGauge = renderStatGauge({
+        id: 'ovr', icon: '🏀', pct,
+        value: ovr == null ? '—' : String(Math.round(ovr)), suffix: '',
+        label: 'Overall',
+        color: ovr == null ? 'var(--muted-fg)' : ovrColor(ovr),
+        sub: sub(ovr == null ? 'No roster' : `${ovrTierLabel(ovr)} · ${count}/${POSITIONS.length}`),
+      });
+    }
   }
 
-  return `<div class="draft-stat-gauges${trio ? ' dk-gauge-trio' : ''}">${fansGauge}${chemGauge}${ovrGauge}</div>`;
+  // Derived from what actually rendered rather than from `withOverall`, so the
+  // class and the arc count cannot drift apart.
+  const gauges  = [fansGauge, chemGauge, ovrGauge].filter(Boolean);
+  const isTrio  = gauges.length === 3 ? ' draft-stat-gauges--trio' : '';
+  return `<div class="draft-stat-gauges${isTrio}${trio ? ' dk-gauge-trio' : ''}">${gauges.join('')}</div>`;
 }
 
 function renderSlotMachine() {
@@ -1633,11 +1650,19 @@ function renderRosterSlot(pos, canPlace) {
       ? ''
       : `<span class="text-[10px] text-muted-fg leading-none">${fmtPG(p.ppg)}pt</span>`;
 
-    // Desktop roster cards lead with OVR (the reference's treatment) instead
-    // of PPG. Emitted only at desktop widths so the mobile card is untouched.
-    const ovrLine = isDesktopLayout() && !isBlindDraft() && p.overall != null
-      ? `<span class="cond draft-roster-slot__ovr" style="color:${ovrColor(p.overall)}">${Math.round(p.overall)}</span>
-         <span class="draft-roster-slot__ovr-label">OVR</span>`
+    // Roster cards lead with OVR (the reference's treatment) instead of PPG, at
+    // every width. One markup shape; CSS decides the arrangement — stacked on
+    // desktop where the card is 118px tall, inline on phones and tablets where
+    // it has to live in the space the PPG line used to occupy (a stacked
+    // number + caption adds ~15px to a card whose whole content box is ~32px).
+    // No width branch here on purpose: this used to be desktop-only via
+    // isDesktopLayout(), which meant the mobile treatment depended on a JS
+    // re-render when the breakpoint flipped.
+    const ovrLine = !isBlindDraft() && p.overall != null
+      ? `<span class="draft-roster-slot__ovr-wrap">
+           <span class="cond draft-roster-slot__ovr" style="color:${ovrColor(p.overall)}">${Math.round(p.overall)}</span>
+           <span class="draft-roster-slot__ovr-label">OVR</span>
+         </span>`
       : ppgLine;
 
     return `

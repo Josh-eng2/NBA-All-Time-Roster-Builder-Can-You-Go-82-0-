@@ -960,6 +960,15 @@
     font-size: 13px !important; font-weight: 700; line-height: 1.1;
     max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
+  /* The badge is inline on phones and tablets (css/styles.css) because the card
+     there has one line to spare. Desktop's card is tall enough to stack the
+     number over its caption, which is the reference treatment — `display:
+     contents` drops the wrapper out of the box tree so both spans go back to
+     being direct children of the slot's column flex, exactly as before the
+     wrapper existed. */
+  .draft-workspace .draft-roster-slot__ovr-wrap {
+    display: contents;
+  }
   .draft-workspace .draft-roster-slot__ovr {
     font-family: 'Barlow Condensed', 'Fira Sans', sans-serif;
     font-size: var(--dk-d-roster-ovr, 20px); font-weight: 800; line-height: 1;

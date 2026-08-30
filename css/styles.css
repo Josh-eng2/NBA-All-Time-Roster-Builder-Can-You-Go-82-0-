@@ -431,6 +431,41 @@ button.draft-roster-slot {
   -webkit-appearance: none;
 }
 
+/* ── Roster slot OVR badge — drafting screen, every width ──────────────────
+   The filled roster card leads with the player's overall rating instead of
+   their PPG. css/desktop.css restyles this at >=1024px, where the card is tall
+   enough to stack the number over its caption; the rules here are the phone
+   and tablet baseline, where it has to fit the single line the PPG used to
+   occupy. Hence the wrapper: inline here, `display: contents` on desktop so
+   the two spans go back to being direct children of the card's column flex.
+
+   The number's colour is set inline from ui/theme.js ovrColor(), so it stays
+   theme-aware and tier-coded; nothing here may set `color` on it. */
+.draft-roster-slot__ovr-wrap {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.1875rem;
+  line-height: 1;
+  max-width: 100%;
+}
+
+.draft-roster-slot__ovr {
+  font-size: 0.8125rem;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.draft-roster-slot__ovr-label {
+  font-size: 0.5rem;
+  font-weight: 700;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-fg);
+}
+
 .header-pill--interactive {
   cursor: pointer;
   transition: border-color 0.15s, color 0.15s, background 0.15s;
@@ -1800,6 +1835,20 @@ button.autopsy-strip:hover {
     font-size: 0.5rem !important;
   }
 
+  /* Same compaction the slot's other type gets in this band. */
+  .draft-roster-slot__ovr {
+    font-size: 0.6875rem;
+  }
+
+  .draft-roster-slot__ovr-label {
+    font-size: 0.4375rem;
+    letter-spacing: 0.04em;
+  }
+
+  .draft-roster-slot__ovr-wrap {
+    gap: 0.125rem;
+  }
+
   .draft-roster-slot .text-\[11px\] {
     font-size: 0.5625rem !important;
   }
@@ -1909,6 +1958,47 @@ button.autopsy-strip:hover {
   text-align: center;
   line-height: 1.3;
   margin: 4px 10px 0;
+}
+
+/* Three-up row (Fans + Chemistry + Overall) below the desktop breakpoint.
+   The shipped 96px arc was sized for two: three of them plus the gaps come to
+   306px, which overflows a 320px phone once the draft screen's own padding is
+   taken off. `flex: 1` cannot rescue it either — the arc-wrap is a fixed
+   width, so min-content stops the items shrinking.
+
+   So the arc scales with the viewport instead of stepping at a breakpoint.
+   27vw keeps the three across at 320px (277px total) and reaches the shipped
+   96px by 356px, so anything from a small phone up is already at full size.
+   --gauge-h and --gauge-badge track the same ratios the base block uses
+   (96:82:36), which matters because the icon is centred off --gauge-h.
+
+   Capped at 1023px: css/desktop.css owns the gauge above that, and this
+   selector would otherwise outrank its `.draft-stat-gauge` by specificity. */
+@media (max-width: 1023px) {
+  .draft-stat-gauges--trio {
+    gap: 0.375rem;
+  }
+
+  .draft-stat-gauges--trio .draft-stat-gauge {
+    --gauge-w: clamp(70px, 27vw, 96px);
+    --gauge-h: clamp(60px, 23vw, 82px);
+    --gauge-badge: clamp(27px, 10vw, 36px);
+    /* The arc-wrap is a fixed width, so without this the items refuse to
+       compress and the row grows past a parent that clips it. The clamp above
+       means this never actually bites on a real device — it is the safety
+       margin, not the mechanism. */
+    min-width: 0;
+  }
+
+  /* The value is the reason the gauge exists; it shrinks last and least. */
+  .draft-stat-gauges--trio .draft-stat-gauge__value {
+    font-size: clamp(16px, 5.2vw, 21px);
+  }
+
+  .draft-stat-gauges--trio .draft-stat-gauge__label {
+    font-size: clamp(8px, 2.5vw, 10px);
+    letter-spacing: 0.1em;
+  }
 }
 
 /* ── Drafting screen — desktop ──────────────────────────────────────────

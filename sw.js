@@ -137,7 +137,21 @@
 //       committed, and if it reached anyone's cache before this landed, reusing
 //       the number would ship exactly the mixed build this file exists to
 //       prevent. A redundant log entry is the cheaper mistake.
-const CACHE_VERSION = '820-v18';
+//   v19 the Overall read-out reaches the phone. Changed precached files:
+//       render.js (the roster slot's OVR badge and the third live gauge were
+//       both desktop-only, so a phone could not see the number the sim weights
+//       most directly — both now render at every width, and the Overall gauge
+//       locks in Ball IQ because it is the MEAN of `overall` and with one
+//       player drafted it reads that player's exact rating); styles.css (the
+//       phone/tablet baseline for the badge, and viewport-scaled sizing for
+//       the three-up gauge row — three 96px arcs overflow a 320px screen);
+//       desktop.css (the badge wrapper dissolves with display:contents so the
+//       desktop stack is unchanged); theme.js (the light GOAT tint moved
+//       #d97706 -> #b45309: that ramp is painted at 9-13px in six places and
+//       #d97706 measures 3.19:1 on the white card, which clears the 3:1
+//       large-text floor the 20px desktop slot relied on but fails the 4.5:1
+//       small-text floor every other call site needs).
+const CACHE_VERSION = '820-v19';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 

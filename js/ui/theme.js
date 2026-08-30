@@ -24,12 +24,21 @@ export function isDark() {
  * (era-adjusted 2K) scale the sim averages.
  *
  * The dark ramp lifts each tint until it clears 4.5:1 on `--card` (#1e293b):
- * the light gold (#d97706) measured 2.9:1 and the light blue (#2563eb) 2.6:1
- * on that surface.
+ * the light gold measured 2.9:1 and the light blue (#2563eb) 2.6:1 on that
+ * surface.
+ *
+ * The light GOAT tint is #b45309, not the #d97706 it used to be. This ramp is
+ * painted almost everywhere at 9–13px — leaderboard OVR badges, roster slots,
+ * the Team Report's starter rows — and #d97706 measures 3.19:1 on the white
+ * card. That clears the 3:1 large-text floor, which is all the desktop roster
+ * slot needed at 20px bold, but every other call site is small text and needs
+ * 4.5:1. #b45309 measures 5.02:1, and is the same amber the chemistry tiers
+ * and the fans meter already use in light mode, so the tint is now consistent
+ * across all three ramps rather than one shade lighter in this one.
  */
 export function ovrColor(rating, dark = isDark()) {
   const r = rating ?? 0;
-  if (r >= 97) return dark ? '#fbbf24' : '#d97706'; // gold  — GOAT tier
+  if (r >= 97) return dark ? '#fbbf24' : '#b45309'; // gold  — GOAT tier
   if (r >= 92) return dark ? '#93c5fd' : '#2563eb'; // blue  — star
   if (r >= 85) return dark ? '#5eead4' : '#0f766e'; // teal  — solid starter
   return dark ? '#cbd5e1' : '#64748b';              // slate — role player
