@@ -1050,7 +1050,7 @@ function renderDrafting() {
         ${renderCoachChip()}
         ${!full ? renderSlotMachine() : ''}
         ${shouldShowDraftBoard(full) ? renderDraftBoard() : ''}
-        ${renderStatGauges()}
+        ${renderStatGauges({ withOverall: true })}
         ${renderRoster()}
       </div>
     </main>
@@ -1301,9 +1301,8 @@ function renderStatGauge({ id, icon, pct, value, suffix, label, color, sub = '',
 
 /** Live meters for the drafting screen.
  *
- *  Mobile/tablet keep the shipped two-gauge pair (Fans + Chemistry). Desktop
- *  adds the third gauge the redesign calls for — Overall — which is why the
- *  `withOverall` flag exists rather than the caller always getting three.
+ *  Both draft layouts show all three (Fans + Chemistry + Overall); the
+ *  `withOverall` flag stays so a caller can still ask for just the pair.
  *  All three read real roster state; none of them fabricate a value. */
 function renderStatGauges({ withOverall = false, trio = false, showSub = false } = {}) {
   // `sub` is a desktop-only affordance — the shipped mobile gauge is a bare

@@ -90,7 +90,11 @@
 //       itself — that also requires removing the rules' clock-sensitive
 //       `timestampMs <= request.time.toMillis() + 60000` check, which is
 //       server-side config outside this repo. Changed: firebase.js only.
-const CACHE_VERSION = '820-v16';
+//   v17 mobile drafting screen: the Overall gauge joins Fans and Chemistry,
+//       and the Restart bar is dropped. Changed: render.js, styles.css —
+//       both precached, so without this bump a returning player keeps the
+//       old pair of gauges and the old Restart bar.
+const CACHE_VERSION = '820-v17';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 
