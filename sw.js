@@ -90,7 +90,16 @@
 //       itself — that also requires removing the rules' clock-sensitive
 //       `timestampMs <= request.time.toMillis() + 60000` check, which is
 //       server-side config outside this repo. Changed: firebase.js only.
-const CACHE_VERSION = '820-v16';
+//   v17 one UI at every width. css/desktop.css is now css/broadcast.css —
+//       the same "midnight broadcast" design at every width, with a desktop
+//       layout tier and a small-screen tier inside it — so the precache list
+//       below names a file the old caches do not have. render.js emits one
+//       draft DOM instead of branching on a 1024px media query, and
+//       styles.css/responsive.css dropped the phone and tablet draft layouts
+//       that DOM no longer has. Without the bump a returning player gets the
+//       new index.html (network-first) asking for broadcast.css while the
+//       cache still holds only desktop.css: no design system at all.
+const CACHE_VERSION = '820-v17';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 
@@ -102,7 +111,7 @@ const PRECACHE_URLS = [
   './logo-badge.svg',
   './css/tailwind.css',
   './css/styles.css',
-  './css/desktop.css',
+  './css/broadcast.css',
   './css/responsive.css',
   './icons/icon-192.png',
   './icons/icon-512.png',
