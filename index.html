@@ -248,13 +248,13 @@
   <script>
     try {
       var savedTheme = localStorage.getItem('nba820_theme');
-      // The design IS the dark "midnight broadcast" environment, so the game
-      // opens in it. This used to be gated to >=1024px, back when the phone
-      // ran a separate light design; it now runs the same one, and opening
-      // the same product in two different palettes depending on the device
-      // was the last piece of that split. An explicit choice still wins —
-      // saved 'light' stays light, on any screen.
-      if (savedTheme !== 'light') {
+      // The desktop redesign IS the dark "midnight broadcast" environment, so
+      // desktop opens in it by default. An explicit choice always wins (saved
+      // 'light' stays light), and mobile's default is untouched — it still
+      // opens light unless the player picked dark.
+      var deskDefaultDark = !savedTheme
+        && window.matchMedia && window.matchMedia('(min-width: 1024px)').matches;
+      if (savedTheme === 'dark' || deskDefaultDark) {
         document.documentElement.setAttribute('data-theme', 'dark');
       }
     } catch(e){}
@@ -262,14 +262,13 @@
 
   <!-- Custom CSS (animations, scrollbar, card classes) -->
   <link rel="stylesheet" href="css/styles.css" />
-  <!-- The "midnight broadcast" design system. Loaded after styles.css so it
-       layers over it; it is the one look at every width, with a desktop
-       layout tier and a small-screen tier inside. See the file header. -->
-  <link rel="stylesheet" href="css/broadcast.css" />
+  <!-- Desktop redesign. Loaded last so it layers over styles.css; every rule
+       inside is wrapped in @media (min-width:1024px), so mobile is untouched. -->
+  <link rel="stylesheet" href="css/desktop.css" />
   <!-- Game-wide responsive system. Loaded last: it owns the shell contract
        (viewport-locked screens, one scrolling panel, fluid space/type ramps)
        that every screen inherits, and must be able to layer over both
-       styles.css and broadcast.css. See the file header for the model. -->
+       styles.css and desktop.css. See the file header for the model. -->
   <link rel="stylesheet" href="css/responsive.css" />
 
   <!-- Confetti is lazy-loaded by js/ui/render.js (withConfetti) only when a

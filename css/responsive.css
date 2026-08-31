@@ -1,7 +1,7 @@
 /* ============================================================
    css/responsive.css — the game-wide responsive system
    ------------------------------------------------------------
-   Loaded last, after tailwind.css / styles.css / broadcast.css, so it can
+   Loaded last, after tailwind.css / styles.css / desktop.css, so it can
    set the shell contract without every screen having to opt in.
 
    WHY THIS FILE EXISTS
@@ -385,7 +385,7 @@ html[data-page="game"] [role="button"] {
    <button>s made Restart 34px next to 23px pills between 640px and 1023px —
    one control taller than the rest of the row, which reads as misaligned.
    Height here belongs to the header's own rules (css/styles.css sizes the
-   pills, css/broadcast.css gives them a uniform 38px from 1024px up) so that
+   pills, css/desktop.css gives them a uniform 38px from 1024px up) so that
    every pill matches whatever its neighbours are, regardless of tag.
 
    It also keeps them inside `.app-header__actions`, which is an
@@ -481,17 +481,17 @@ html[data-page="game"] svg {
    (never content) until it fits.
 
    Two screens are deliberately absent: the draft screen and the results
-   screen own their own systems in css/broadcast.css — one design across
-   every width, pinned to a viewport from 1024px up and scrolling inside
-   <main> below it.
+   screen already own bespoke one-viewport systems (css/styles.css for
+   <=639px, css/desktop.css for >=1024px). §7 only fills the tablet gap
+   between them.
    ============================================================ */
 
 /* ── Height-driven chrome shedding, at every width ────────
    The cold-open welcome banner is one-time onboarding worth ~5rem. Both the
-   phone sizing (<=639px, css/styles.css) and the pinned desktop workspace
-   (>=1024px at <=900px tall, css/broadcast.css) already drop it — but
-   neither covers 640–1023px, so a landscape tablet or a short window spent
-   a quarter of its viewport on it.
+   phone layout (<=639px, css/styles.css) and the desktop workspace
+   (>=1024px at <=900px tall, css/desktop.css) already drop it when height is
+   scarce — but neither covers 640–1023px, so a landscape tablet or a short
+   window spent a quarter of its viewport on it.
 
    Height is the thing that actually decides this, not width, so the rule
    belongs here and applies everywhere. A tall tablet (768x1024) keeps the
@@ -501,18 +501,85 @@ html[data-page="game"] svg {
 }
 
 /* ── Drafting, tablet (640–1023px) ────────────────────────
-   Deliberately empty now. This band used to bridge two different draft
-   designs — the phone's 100dvh one-screen layout below 640 and the desktop
-   workspace above 1024 — by re-deriving a third, and it did that by pinning
-   `.draft-screen__main` to `overflow: hidden`.
+   Below 640 the mobile one-screen layout owns this; from 1024 the desktop
+   workspace does. In between, the screen was free to grow past the fold.
+   Same approach as both neighbours: fixed chrome, board scrolls. */
+@media (min-width: 640px) and (max-width: 1023px) {
+  html[data-page="game"] .draft-screen__main {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  html[data-page="game"] .draft-screen__inner {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    gap: var(--stack-gap) !important;
+  }
+  html[data-page="game"] .draft-board-wrap {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  html[data-page="game"] .draft-board-scroll {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 8rem;
+    max-height: none;
+  }
+  html[data-page="game"] .draft-slot-machine,
+  html[data-page="game"] .draft-roster,
+  html[data-page="game"] .draft-stat-gauges,
+  html[data-page="game"] .draft-round-bar { flex: 0 0 auto; }
 
-   There is one draft design at every width now (css/broadcast.css), and it
-   scrolls inside <main> below 1024px, so pinning that panel here would
-   trap the bottom of the workspace off-screen. The small-screen tier at the
-   foot of css/broadcast.css covers 0–1023px in one ramp; a tablet is a wide
-   phone, not a narrow desktop. Nothing to add here — if a size needs
-   adjusting, adjust it in that ramp.
-   ============================================================ */
+  /* The team/era spinner is the biggest fixed block on the screen. Both
+     neighbouring layouts scale it with height (phone via fixed compaction,
+     desktop via vh clamps); this band was still using the uncompacted
+     default, which on a landscape tablet pushed the player cards under the
+     fold. Same vh-clamp approach, so 640→1023 interpolates between them
+     instead of stepping. */
+  html[data-page="game"] .draft-slot-machine {
+    padding: clamp(8px, 1.8vh, 16px) !important;
+  }
+  html[data-page="game"] .draft-slot-machine__grid {
+    margin-bottom: clamp(6px, 1.5vh, 16px) !important;
+  }
+  html[data-page="game"] .draft-slot-machine__cell {
+    min-height: clamp(46px, 13vh, 88px) !important;
+    padding: clamp(6px, 1.6vh, 16px) 12px !important;
+  }
+  html[data-page="game"] .draft-slot-machine__cell .text-xl {
+    font-size: clamp(17px, 3.6vh, 24px) !important;
+  }
+  html[data-page="game"] .draft-slot-machine [data-action="spin"],
+  html[data-page="game"] .draft-slot-machine button[disabled] {
+    padding-top: clamp(5px, 1.2vh, 12px) !important;
+    padding-bottom: clamp(5px, 1.2vh, 12px) !important;
+  }
+  html[data-page="game"] .draft-roster-slot {
+    min-height: clamp(52px, 12vh, 96px);
+  }
+
+  /* Short landscape. The round bar's secondary line is the one genuinely
+     redundant item here — it repeats the phase already named in the bar
+     itself — so it is the only thing dropped. Everything else compacts.
+
+     Note for anyone tempted to go further: pairing the round bar and coach
+     chip into a two-column grid row saves ~40px, but turning
+     `.draft-screen__inner` into a grid breaks the flex contract the board
+     column depends on (`.draft-board-wrap { flex: 1 1 auto }`) and the
+     gauges end up overlapping the cards. At 390px tall the screen cannot
+     show spinner + cards + roster at once regardless; the board scrolls
+     inside its own panel, which is the right answer for a viewport this
+     short. */
+  @media (max-height: 480px) {
+    html[data-page="game"] .draft-round-bar__meta { display: none; }
+  }
+}
 
 /* ── Playoff bracket ──────────────────────────────────────
    The bracket is the one genuinely wide element in the game: four columns
