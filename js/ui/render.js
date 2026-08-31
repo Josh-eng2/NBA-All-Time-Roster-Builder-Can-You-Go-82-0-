@@ -62,12 +62,22 @@ function isMobileViewport() {
   return typeof window !== 'undefined' && window.matchMedia('(max-width: 639px)').matches;
 }
 
-// One DOM at every width. The "midnight broadcast" redesign started as a
-// desktop-only skin with its own markup, which meant two arrangements of the
-// draft screen to keep in step — and the phone was left on the older, sparser
-// one. Every screen now emits the same structure, and css/broadcast.css
-// reflows it: two columns on desktop, one stacked column on a phone. Nothing
-// here branches on viewport, so nothing can drift between the two again.
+// The desktop redesign swaps in a different DOM for a few screens (the draft
+// workspace's two columns, the results rail). Everything else is handled by
+// css/desktop.css at the same breakpoint — keep the two in step.
+const DESKTOP_MQ = '(min-width: 1024px)';
+function isDesktopLayout() {
+  return typeof window !== 'undefined' && window.matchMedia(DESKTOP_MQ).matches;
+}
+
+// Dragging the window across the breakpoint has to re-render, since nothing
+// else triggers one and the desktop screens emit different markup.
+if (typeof window !== 'undefined' && window.matchMedia) {
+  const mq = window.matchMedia(DESKTOP_MQ);
+  const onFlip = () => render();
+  if (mq.addEventListener) mq.addEventListener('change', onFlip);
+  else if (mq.addListener) mq.addListener(onFlip); // Safari < 14
+}
 
 
 // ── Team Overall ──────────────────────────────────────────────────────────────
@@ -611,11 +621,10 @@ function renderModeSelect() {
   </div>`;
 }
 
-/** Intro band above the mode grid — the screen's title and the one number a
- *  returning player opens the app to check. It duplicates no control, so it
- *  reads the same on a phone; only its type scale changes (see
- *  css/broadcast.css). Legend counts come from the real collection, not the
- *  reference's sample numbers. */
+/** Desktop-only intro band above the mode grid. Hidden below 1024px (see
+ *  css/desktop.css) — it is presentation the narrow layout has no room for,
+ *  not a duplicate of any control. Legend counts come from the real
+ *  collection, not the reference's sample numbers. */
 function renderHomeIntro() {
   let collected = 0, total = 0;
   try {
@@ -624,7 +633,7 @@ function renderHomeIntro() {
   } catch (e) { /* collection unavailable — fall through to the stat-less band */ }
 
   return `
-  <div class="home-intro">
+  <div class="home-intro" style="display:none">
     <div>
       <h1 class="home-intro__title">Build a team that goes <em>82-0</em></h1>
       <p class="home-intro__sub">Draft five all-time greats. Chase the perfect season.</p>
@@ -779,7 +788,7 @@ function renderCoachChip() {
 
   // The picker is in normal flow on mobile (it pushes the column down, which
   // is fine there). On desktop the chip lives inside the fixed-height stepper
-  // strip, so css/broadcast.css floats this same node under the chip instead of
+  // strip, so css/desktop.css floats this same node under the chip instead of
   // letting it reflow the one-viewport draft layout — hence the hook class.
   const picker = !locked && S.coachPickerOpen ? `
     <div class="rounded-xl border border-border bg-white card-shadow overflow-hidden animate-scale-in draft-coach-chip__picker">
@@ -988,39 +997,61 @@ function renderDrafting() {
   if (isDualDraft()) return renderDrafting1v1();
   const full = rosterFull();
 
+  // A cold-open welcome or mode banner costs the column ~6rem it can't spare
+  // on a one-viewport mobile layout. Flagging it here lets the CSS trade the
+  // draft cards' trait chips for that height, so the "Draft" button still
+  // clears the fold — on the first-run screen above all.
   const banners = renderColdOpenBanner() + renderModeDraftBanner();
 
-  // The draft workspace, at every width. Left is what you act in (spin,
-  // board, roster); right is the live read-out you judge against — the three
-  // gauges and the chemistry synergies. css/broadcast.css puts the two side
-  // by side on desktop and stacks them into one scrolling column on a phone,
-  // so the phone gets the same information the desktop has always had (the
-  // Overall gauge and the synergy panel were missing from it entirely).
+  // ── Desktop: two-column draft workspace ────────────────────────────────
+  // Left is the workspace you act in (spin, board, roster); right is the
+  // live read-out you judge against. Same render helpers as mobile — only
+  // the arrangement differs.
+  if (isDesktopLayout()) {
+    return `
+    <div class="min-h-screen main-gradient draft-screen">
+      ${renderHeader(true)}
+      <main class="flex flex-col items-center draft-screen__main">
+        <!-- Before the first spin the left column holds only the spinner and
+             the empty roster — no board — so nothing in it wants the leftover
+             height and the whole workspace ends up floating in the middle of
+             the screen. Flagging that state lets css/desktop.css hand the
+             space to the spinner instead, which is the only thing you can
+             act on at that moment. -->
+        <div class="draft-workspace${shouldShowDraftBoard(full) ? '' : ' draft-workspace--no-board'}">
+          ${banners}
+          ${renderDraftStepper(full)}
+          <div class="draft-workspace__cols">
+            <div class="draft-workspace__left">
+              ${full ? renderSimulateCard() : ''}
+              ${!full ? renderSlotMachine() : ''}
+              ${shouldShowDraftBoard(full) ? renderDraftBoard() : ''}
+              ${renderRoster()}
+              ${full ? renderCoachChip() : ''}
+            </div>
+            <div class="draft-workspace__right">
+              ${renderTeamStatusRail()}
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>`;
+  }
+
+  // ── Mobile / tablet: the shipped single-column "Arena" layout ──────────
   return `
   <div class="min-h-screen main-gradient draft-screen">
     ${renderHeader(true)}
-    <main class="flex flex-col items-center draft-screen__main">
-      <!-- Before the first spin the left column holds only the spinner and
-           the empty roster — no board — so nothing in it wants the leftover
-           height and the whole workspace ends up floating in the middle of
-           the screen. Flagging that state lets css/broadcast.css hand the
-           space to the spinner instead, which is the only thing you can
-           act on at that moment. -->
-      <div class="draft-workspace${shouldShowDraftBoard(full) ? '' : ' draft-workspace--no-board'}">
+    <main class="flex flex-col items-center px-4 pt-2 pb-8 draft-screen__main">
+      <div class="w-full max-w-2xl flex flex-col gap-2 draft-screen__inner${banners ? ' draft-screen__inner--banner' : ''}">
         ${banners}
-        ${renderDraftStepper(full)}
-        <div class="draft-workspace__cols">
-          <div class="draft-workspace__left">
-            ${full ? renderSimulateCard() : ''}
-            ${!full ? renderSlotMachine() : ''}
-            ${shouldShowDraftBoard(full) ? renderDraftBoard() : ''}
-            ${renderRoster()}
-            ${full ? renderCoachChip() : ''}
-          </div>
-          <div class="draft-workspace__right">
-            ${renderTeamStatusRail()}
-          </div>
-        </div>
+        ${full ? renderSimulateCard() : ''}
+        ${renderRoundBar()}
+        ${renderCoachChip()}
+        ${!full ? renderSlotMachine() : ''}
+        ${shouldShowDraftBoard(full) ? renderDraftBoard() : ''}
+        ${renderStatGauges()}
+        ${renderRoster()}
       </div>
     </main>
   </div>`;
@@ -1172,15 +1203,39 @@ function renderDrafting1v1() {
   </div>`;
 }
 
-// Draft phases — stakes escalate as slots run out. `max` is the last round
-// index in the phase; the stepper prints `label` once, at the round the phase
-// begins. (The per-phase colour and hint went with the round bar the stepper
-// replaced — the stepper reads its accent from the palette instead.)
+// Draft phases — stakes escalate as slots run out
 const DRAFT_PHASES = [
-  { max: 1, label: 'Foundation'  },
-  { max: 3, label: 'The Squeeze' },
-  { max: 4, label: 'Final Piece' },
+  { max: 1, label: 'Foundation',  color: '#2563eb', hint: 'Build around greatness' },
+  { max: 3, label: 'The Squeeze', color: '#d97706', hint: 'Fits get harder — weigh every tradeoff' },
+  { max: 4, label: 'Final Piece', color: '#dc2626', hint: 'One slot left — complete your identity' },
 ];
+
+function renderRoundBar() {
+  const filled         = ALL_POSITIONS.filter(p => S.roster[p]).length;
+  const displayRound   = Math.min(S.round + 1, TOTAL_ROUNDS);
+  const phase          = DRAFT_PHASES.find(ph => S.round <= ph.max) || DRAFT_PHASES[2];
+
+  return `
+  <div class="flex flex-col gap-1.5 py-1 draft-round-bar">
+    <div class="flex items-center justify-between">
+      <div>
+        <p class="text-sm font-bold text-foreground">Round ${displayRound} <span class="text-muted-fg font-normal">of ${TOTAL_ROUNDS}</span>
+          <span class="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full ml-1 align-middle"
+            style="background:${phase.color}15;color:${phase.color};border:1px solid ${phase.color}30">${phase.label}</span>
+        </p>
+        <p class="text-xs text-muted-fg mt-0.5 draft-round-bar__meta">${filled}/${ALL_POSITIONS.length} starters &nbsp;·&nbsp; <span style="color:${phase.color}">${phase.hint}</span></p>
+      </div>
+      <div class="flex gap-1.5 items-center">
+        ${Array.from({ length: TOTAL_ROUNDS }, (_, i) => {
+          const done   = i < S.round;
+          const active = i === S.round;
+          const color  = done || active ? 'var(--primary)' : 'var(--border)';
+          return `<div class="rounded-full transition-all" style="width:${active ? 9 : 7}px;height:${active ? 9 : 7}px;background:${color};border:${active ? '2px solid #2563eb' : 'none'}"></div>`;
+        }).join('')}
+      </div>
+    </div>
+  </div>`;
+}
 
 // ── Live stat gauges (Fans + Chemistry) — drafting screen, every width ───────
 // 2K-style radial arcs (design handoff: "Arena — dark broadcast"). These are
@@ -1558,10 +1613,9 @@ function renderRosterSlot(pos, canPlace) {
       ? ''
       : `<span class="text-[10px] text-muted-fg leading-none">${fmtPG(p.ppg)}pt</span>`;
 
-    // Roster cards lead with OVR (the reference's treatment) rather than
-    // PPG: the board card beside it already carries the full stat line, and
-    // OVR is the number the roster strip is read for.
-    const ovrLine = !isBlindDraft() && p.overall != null
+    // Desktop roster cards lead with OVR (the reference's treatment) instead
+    // of PPG. Emitted only at desktop widths so the mobile card is untouched.
+    const ovrLine = isDesktopLayout() && !isBlindDraft() && p.overall != null
       ? `<span class="cond draft-roster-slot__ovr" style="color:${ovrColor(p.overall)}">${Math.round(p.overall)}</span>
          <span class="draft-roster-slot__ovr-label">OVR</span>`
       : ppgLine;
@@ -3532,7 +3586,7 @@ function wireTeamNameField(inputId, counterId, submitAction, active) {
  * Both are no-ops off the drafting screen and safe when the panel is absent.
  */
 function updateDraftPanelScroll() {
-  const panel = document.querySelector('.draft-screen__main');
+  const panel = document.querySelector('.draft-screen__inner');
   if (!panel) return;
 
   const markOverflow = () => {
@@ -3545,16 +3599,11 @@ function updateDraftPanelScroll() {
   panel.addEventListener('scroll', markOverflow, { passive: true });
 
   // scrollIntoView on the roster would also scroll the page in browsers that
-  // treat the locked shell as scrollable; adjust scrollTop directly so only
-  // this panel moves. Scroll by exactly how far the roster overshoots the
-  // panel's bottom edge rather than to the end — the Team Status and synergy
-  // panels sit below the roster in the stacked column, so scrolling to the
-  // end would carry the slots back off the top of the screen.
-  const roster = panel.querySelector('.draft-roster');
-  if (S.phase === 'drafting' && S.selectedPlayer && roster) {
-    const overshoot = roster.getBoundingClientRect().bottom
-                    - panel.getBoundingClientRect().bottom;
-    if (overshoot > 0) panel.scrollTop += overshoot + 12;
+  // treat the locked shell as scrollable; set scrollTop directly so only this
+  // panel moves. The roster is the last thing in the panel, so scrolling to
+  // the end is exactly "show the slots".
+  if (S.phase === 'drafting' && S.selectedPlayer && panel.querySelector('.draft-roster')) {
+    panel.scrollTop = panel.scrollHeight;
   }
   markOverflow();
 }
