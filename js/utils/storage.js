@@ -4,6 +4,7 @@
  * Keys:
  *   nba820_lb       — leaderboard, up to 20 entries, sorted desc by wins
  *   nba820_trophies — trophy room,  up to 12 entries (championships only)
+ *   nba820_progress — Levels + XP (js/logic/progression.js owns this one)
  *
  * Exports:
  *   saveLeaderboard()             — persists current result to leaderboard

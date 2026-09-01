@@ -94,7 +94,13 @@
 //       and the Restart bar is dropped. Changed: render.js, styles.css —
 //       both precached, so without this bump a returning player keeps the
 //       old pair of gauges and the old Restart bar.
-const CACHE_VERSION = '820-v17';
+//   v18 Levels + XP progression. New precached module:
+//       js/logic/progression.js. Changed: events.js (awards XP once per
+//       season and once per title), render.js (the results-screen XP card),
+//       storage.js (key registry comment). Without the bump a returning
+//       player's cached shell has no progression.js to import and the app
+//       fails to boot.
+const CACHE_VERSION = '820-v18';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 
@@ -129,6 +135,7 @@ const PRECACHE_URLS = [
   './js/logic/chemistry.js',
   './js/logic/simulation.js',
   './js/logic/seasonTier.js',
+  './js/logic/progression.js',
   './js/logic/challenge.js',
   './js/logic/modes.js',
   './js/logic/playoffs.js',

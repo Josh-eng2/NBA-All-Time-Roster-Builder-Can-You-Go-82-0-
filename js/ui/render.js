@@ -25,6 +25,7 @@ import { gdRewardedAvailable }                            from '../utils/gamedis
 import { getDailyChallenge, checkRosterConstraint } from '../logic/challenge.js';
 import { isDualDraft, isBlindDraft, seriesLabels, MORE_MODES, fansFirstScore } from '../logic/modes.js';
 import { seasonTier, seasonGrade } from '../logic/seasonTier.js';
+import { levelProgress, titleForLevel } from '../logic/progression.js';
 import { fetchDailyCommunityStats, isFirebaseConfigured } from '../utils/firebase.js';
 import { bindEvents, buildRematchCode, hasKnownHashRoute } from '../ui/events.js'; // circular — safe (called inside functions only)
 import { installPromptKind }                              from '../utils/install.js';
@@ -2045,6 +2046,57 @@ function renderStartingFiveRow(posLabel, p) {
     </div>`;
 }
 
+/** XP + level card for the results screen. Reads the breakdown `doSimulate()`
+ *  already stored on the run — it never computes or awards anything itself, so
+ *  re-rendering the results screen cannot grant XP twice. Renders nothing at
+ *  all for a run that predates the system (a result object with no `xp`). */
+function renderXpCard() {
+  const xp = S.result?.xp;
+  if (!xp) return '';
+  const a    = xp.award;
+  const prog = levelProgress(a.xpAfter);
+  const title = titleForLevel(prog.level);
+
+  const row = (label, value) => value
+    ? `<div class="flex items-center justify-between gap-2">
+         <span class="text-xs text-muted-fg">${label}</span>
+         <span class="text-xs font-bold text-foreground">+${value}</span>
+       </div>`
+    : '';
+
+  const rewards = a.newRewards.length
+    ? `<p class="text-xs font-bold mt-1" style="color:var(--acc)">Unlocked: ${a.newRewards.map(r => esc(r.label)).join(' · ')}</p>`
+    : '';
+
+  return `
+  <div class="w-full rounded-2xl border card-shadow px-4 py-3 dk-res-xp"
+    style="border-color:var(--border);background:var(--card)">
+    <div class="flex items-center justify-between gap-2 mb-2">
+      <p class="text-xs font-bold uppercase tracking-widest text-muted-fg">Experience</p>
+      <p class="text-sm font-black" style="color:var(--acc)">+${a.gain.toLocaleString()} XP</p>
+    </div>
+
+    ${row('Players drafted', xp.players)}
+    ${row('Draft completed', xp.complete)}
+    ${row('Team rating', xp.ovrBand)}
+    ${row('Star players', xp.stars)}
+    ${row('Team chemistry', xp.chem)}
+    ${row(`Season wins (${S.result.wins})`, xp.winXp)}
+    ${row('Perfect season', xp.perfect)}
+    ${row('Daily Challenge', xp.daily)}
+
+    <div class="flex items-center justify-between gap-2 mt-2">
+      <span class="text-sm font-black text-foreground">Level ${prog.level}${title ? ` · ${esc(title)}` : ''}</span>
+      <span class="text-xs text-muted-fg">${prog.into.toLocaleString()} / ${prog.need.toLocaleString()}</span>
+    </div>
+    <div class="h-2 rounded-full overflow-hidden mt-1" style="background:var(--surface-track)">
+      <div class="h-full rounded-full" style="width:${prog.pct}%;background:var(--acc)"></div>
+    </div>
+    ${a.leveledUp ? `<p class="text-xs font-black mt-2" style="color:var(--acc)">⬆ Level up! ${a.levelBefore} → ${a.levelAfter}</p>` : ''}
+    ${rewards}
+  </div>`;
+}
+
 function renderStartingFiveCard() {
   return `
     <div class="rounded-2xl border border-border bg-white p-4 card-shadow">
@@ -2229,6 +2281,7 @@ function renderResults() {
             <span class="text-indigo-400 flex-shrink-0">›</span>
           </button>`;
         })() : ''}
+        ${renderXpCard()}
         ${renderDailyResultBanner()}
         ${renderRematchResultBanner()}
         ${renderInstallPromptCard()}
@@ -2931,6 +2984,20 @@ function renderPlayoffs() {
   </div>`;
 }
 
+/** One line on the championship screen for the title's own XP award. The
+ *  season results screen was rendered before the title existed, so this is the
+ *  only place that bonus can be reported. Reads what onPlayoffChampion()
+ *  already stored; renders nothing if no award was made. */
+function renderTitleXpLine() {
+  const a = S.playoffs?.xpTitleAward;
+  if (!a) return '';
+  const prog = levelProgress(a.xpAfter);
+  return `
+  <p class="text-sm font-black w-full text-center" style="color:var(--acc)">
+    +${a.gain.toLocaleString()} XP — Championship${a.leveledUp ? ` · Level ${a.levelAfter}!` : ` · Level ${prog.level}`}
+  </p>`;
+}
+
 function renderChampionship() {
   const po = S.playoffs;
   const r  = S.result;
@@ -2959,6 +3026,7 @@ function renderChampionship() {
           ${roundSummary}
           <p class="text-sm text-muted-fg mt-2">Regular Season: ${r.wins}–${r.losses} · Seed #${po.playerSeed}</p>
         </div>
+        ${renderTitleXpLine()}
         ${renderGlobalSubmitCard(true)}
         <div class="flex flex-col gap-3 w-full">
           <button data-action="share" class="py-3 rounded-xl font-bold text-sm bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer card-shadow">Share Championship 🏆</button>
