@@ -100,7 +100,12 @@
 //       storage.js (key registry comment). Without the bump a returning
 //       player's cached shell has no progression.js to import and the app
 //       fails to boot.
-const CACHE_VERSION = '820-v18';
+//   v19 level rewards extended to 100. js/logic/progression.js changed (the
+//       REWARDS table only — 30 new titles, leaderboard badges and Trophy
+//       Room items at every fifth level from 15 to 100). It is precached, so
+//       without the bump a returning player keeps the ten-reward table and
+//       stops unlocking anything past level 10.
+const CACHE_VERSION = '820-v19';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 

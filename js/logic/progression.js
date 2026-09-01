@@ -84,6 +84,53 @@ const REWARDS = [
   { level:  9, id: 'accent-2',         kind: 'cosmetic', label: 'Draft board accent colour II' },
   { level: 10, id: 'title-hof-gm',     kind: 'title',    label: 'Hall of Fame GM' },
   { level: 10, id: 'frame-gold',       kind: 'cosmetic', label: 'Gold Trophy Room frame' },
+
+  // ── Levels 15-100 ────────────────────────────────────────────────────────
+  // A milestone every five levels. Three kinds only — `trophy` (Trophy Room
+  // décor), `badge` (leaderboard marks) and `title` — which is finer-grained
+  // than the `cosmetic` tag the ten entries above use; those predate the split
+  // and are deliberately left as they are, so anything listing Trophy Room
+  // items should read `trophy` OR `cosmetic`.
+  //
+  // MUST stay sorted by level: titleForLevel() takes the LAST title at or
+  // below the player's level, so an out-of-order row would hand back a junior
+  // title to a senior player.
+  //
+  // Front-office ladder (15-50) -> mythic (60-90) -> the goal itself (100).
+  { level:  15, id: 'title-front-office',      kind: 'title',  label: 'Front Office Fixture' },
+  { level:  20, id: 'title-team-president',    kind: 'title',  label: 'Team President' },
+  { level:  20, id: 'trophy-rafter-spotlights',kind: 'trophy', label: 'Rafter Spotlights' },
+  { level:  25, id: 'badge-bronze-star',       kind: 'badge',  label: 'Bronze Star' },
+  { level:  25, id: 'trophy-hardwood-inlay',   kind: 'trophy', label: 'Hardwood Floor Inlay' },
+  { level:  30, id: 'title-franchise-architect',kind:'title',  label: 'Franchise Architect' },
+  { level:  35, id: 'trophy-jersey-rack',      kind: 'trophy', label: 'Retired Jersey Rack' },
+  { level:  40, id: 'title-dynasty-builder',   kind: 'title',  label: 'Dynasty Builder' },
+  { level:  40, id: 'badge-silver-star',       kind: 'badge',  label: 'Silver Star' },
+  { level:  45, id: 'trophy-glass-case',       kind: 'trophy', label: 'Glass Trophy Case' },
+  // Halfway — the first three-part milestone.
+  { level:  50, id: 'title-exec-decade',       kind: 'title',  label: 'Executive of the Decade' },
+  { level:  50, id: 'badge-gold-star',         kind: 'badge',  label: 'Gold Star' },
+  { level:  50, id: 'trophy-confetti',         kind: 'trophy', label: 'Championship Confetti' },
+  { level:  55, id: 'trophy-plinth-bronze',    kind: 'trophy', label: 'Bronze Statue Plinth' },
+  { level:  60, id: 'title-kingmaker',         kind: 'title',  label: 'Kingmaker' },
+  { level:  65, id: 'badge-platinum-star',     kind: 'badge',  label: 'Platinum Star' },
+  { level:  70, id: 'trophy-booth-backdrop',   kind: 'trophy', label: 'Broadcast Booth Backdrop' },
+  // Three quarters — the second three-part milestone.
+  { level:  75, id: 'title-ring-collector',    kind: 'title',  label: 'Ring Collector' },
+  { level:  75, id: 'badge-diamond-star',      kind: 'badge',  label: 'Diamond Star' },
+  { level:  75, id: 'trophy-rafters-legends',  kind: 'trophy', label: 'Rafters of Legends' },
+  { level:  80, id: 'trophy-marble-floor',     kind: 'trophy', label: 'Marble Hall Floor' },
+  { level:  85, id: 'badge-obsidian-crest',    kind: 'badge',  label: 'Obsidian Crest' },
+  { level:  90, id: 'title-immortal-exec',     kind: 'title',  label: 'Immortal Executive' },
+  { level:  90, id: 'trophy-eternal-flame',    kind: 'trophy', label: 'Eternal Flame Pedestal' },
+  { level:  95, id: 'badge-emerald-crown',     kind: 'badge',  label: 'Emerald Crown' },
+  { level:  95, id: 'trophy-legends-wing',     kind: 'trophy', label: 'Hall of Legends Wing' },
+  // Level 100. The Trophy Room ships with twelve pedestals; the Banner of
+  // Perfection is a thirteenth no season can ever raise.
+  { level: 100, id: 'title-perfect-gm',        kind: 'title',  label: 'The Perfect GM' },
+  { level: 100, id: 'badge-perfect-crown',     kind: 'badge',  label: 'The 82-0 Crown' },
+  { level: 100, id: 'trophy-monument',         kind: 'trophy', label: 'The 82-0 Monument' },
+  { level: 100, id: 'trophy-banner-perfection',kind: 'trophy', label: 'Banner of Perfection' },
 ];
 
 // ── Level maths ───────────────────────────────────────────────────────────────
