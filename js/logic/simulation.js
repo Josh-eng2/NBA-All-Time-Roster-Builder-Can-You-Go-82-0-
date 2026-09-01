@@ -34,9 +34,9 @@ import { getModeConfig }       from '../logic/modes.js';
 //   random builds       — median 1.41 → ~17 wins; p90 1.78 → ~40 wins
 // Daily-challenge win gates under this curve (star-chasing builds):
 //   55+ ≈ 83 % · 60+ ≈ 76 % · 65+ ≈ 66 % · 70+ ≈ 54 % pass rates pre-constraint.
-const SIM_K      = 1.50;
+const SIM_K      = 1.40;
 const SIM_CENTER = 1.40;
-const WIN_CAP    = 0.99;
+const WIN_CAP    = 1.00;
 
 let _baselinesCache = null;
 
