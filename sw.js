@@ -105,7 +105,11 @@
 //       Room items at every fifth level from 15 to 100). It is precached, so
 //       without the bump a returning player keeps the ten-reward table and
 //       stops unlocking anything past level 10.
-const CACHE_VERSION = '820-v19';
+//   v20 header logo replaced with the approved 82-0-logo.png. Changed:
+//       render.js (the one <img src>) and the precache entry below. Both are
+//       precached, so without the bump a returning player keeps the old
+//       roundel and 404s on a logo their cached shell has never seen.
+const CACHE_VERSION = '820-v20';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 
@@ -114,7 +118,7 @@ const PRECACHE_URLS = [
   './index.html',
   './manifest.webmanifest',
   './favicon.svg',
-  './logo-badge.svg',
+  './82-0-logo.png',
   './css/tailwind.css',
   './css/styles.css',
   './css/desktop.css',
