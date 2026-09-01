@@ -146,3 +146,81 @@ test('a corrupt or absent saved entry reads as a fresh level 1 player', () => {
   store.set('nba820_progress', JSON.stringify({ xp: 3400, level: 1, rewards: [] }));
   assert.equal(getProgression().level, 5);
 });
+
+// ── Levels 15-100 reward content ─────────────────────────────────────────────
+// These guard the expanded ladder. The rules they pin are the ones that break
+// silently: table ordering (titleForLevel reads the LAST match), id collisions
+// (a duplicate would be granted once and then never again), and the promise
+// that nothing was added at or below level 10.
+
+test('the levels 1-10 rewards are untouched by the expansion', () => {
+  assert.equal(rewardsUpTo(10).length, 10);
+  assert.equal(titleForLevel(10), 'Hall of Fame GM');
+  // Level 11-14 is a deliberate gap: the next milestone is 15.
+  assert.equal(rewardsUpTo(14).length, 10);
+  assert.equal(titleForLevel(14), 'Hall of Fame GM');
+});
+
+test('reward ids are unique and the table is sorted by level', () => {
+  const all = rewardsUpTo(1000);
+  const ids = all.map(r => r.id);
+  assert.equal(new Set(ids).size, ids.length, 'duplicate reward id');
+  // titleForLevel() takes the last title at or below a level, so an
+  // out-of-order row would hand a senior player a junior title.
+  all.forEach((r, i) => {
+    if (i > 0) assert.ok(all[i - 1].level <= r.level, `row ${i} breaks level order`);
+  });
+});
+
+test('every reward is a title, a leaderboard badge or a Trophy Room item', () => {
+  // `cosmetic` is the legacy tag on the ten original rewards; everything added
+  // for 15-100 uses the finer-grained kinds.
+  const allowed = new Set(['title', 'badge', 'trophy', 'cosmetic']);
+  rewardsUpTo(1000).forEach(r => assert.ok(allowed.has(r.kind), `bad kind: ${r.kind}`));
+  rewardsUpTo(1000)
+    .filter(r => r.level > 10)
+    .forEach(r => assert.notEqual(r.kind, 'cosmetic', `${r.id} should use a specific kind`));
+});
+
+test('milestones run every five levels from 15 to 100', () => {
+  const levels = [...new Set(rewardsUpTo(1000).filter(r => r.level > 10).map(r => r.level))];
+  assert.deepEqual(levels, [15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100]);
+});
+
+test('the title ladder climbs and never regresses', () => {
+  assert.equal(titleForLevel(15),  'Front Office Fixture');
+  assert.equal(titleForLevel(20),  'Team President');
+  assert.equal(titleForLevel(30),  'Franchise Architect');
+  assert.equal(titleForLevel(40),  'Dynasty Builder');
+  assert.equal(titleForLevel(50),  'Executive of the Decade');
+  assert.equal(titleForLevel(60),  'Kingmaker');
+  assert.equal(titleForLevel(75),  'Ring Collector');
+  assert.equal(titleForLevel(90),  'Immortal Executive');
+  assert.equal(titleForLevel(100), 'The Perfect GM');
+  // A title is held until the next one is earned, and 100 is the end of the
+  // ladder — a player past it keeps the final title rather than losing it.
+  assert.equal(titleForLevel(99),  'Immortal Executive');
+  assert.equal(titleForLevel(150), 'The Perfect GM');
+});
+
+test('the milestone sets at 50, 75 and 100 pay all three reward types', () => {
+  const at = lvl => rewardsUpTo(lvl).filter(r => r.level === lvl);
+  const kindsAt = lvl => new Set(at(lvl).map(r => r.kind));
+  assert.deepEqual([...kindsAt(50)].sort(), ['badge', 'title', 'trophy']);
+  assert.deepEqual([...kindsAt(75)].sort(), ['badge', 'title', 'trophy']);
+  // Level 100 is the largest set in the game: four rewards.
+  assert.equal(at(100).length, 4);
+  assert.deepEqual([...kindsAt(100)].sort(), ['badge', 'title', 'trophy']);
+  assert.equal(at(100).filter(r => r.kind === 'trophy').length, 2);
+});
+
+test('reaching level 100 in one jump collects every reward exactly once', () => {
+  store.clear();
+  const all = rewardsUpTo(100);
+  const jump = addXp(xpToReachLevel(100));
+  assert.equal(jump.levelAfter, 100);
+  assert.equal(jump.newRewards.length, all.length);
+  assert.equal(new Set(getProgression().rewards).size, all.length);
+  // Nothing is ever handed out a second time.
+  assert.equal(addXp(50000).newRewards.length, 0);
+});
