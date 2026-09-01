@@ -44,6 +44,7 @@ import {
 } from '../logic/rematch.js';
 import { showInstallPrompt, dismissInstallPrompt } from '../utils/install.js';
 import { seasonTier } from '../logic/seasonTier.js';
+import { computeRunXp, addXp, CHAMPION_BONUS_XP } from '../logic/progression.js';
 import {
   render, $app, fmtDecadeShort, showToast,
   computeAutopsy, withConfetti, showTeamReportModal, closeTeamReportModal,
@@ -971,6 +972,21 @@ function doSimulate() {
   // Meta-progression: every started legend joins the permanent collection.
   S.result.newLegends = recordLegends(starters).length;
 
+  // Levels + XP. Awarded here, once, because this is the one place a season
+  // result comes into existence — `S.result` is a fresh object every sim, so
+  // `S.result.xp` being unset is itself the guard: a re-render of the results
+  // screen reads the stored breakdown and cannot re-award it.
+  if (!S.result.xp) {
+    const breakdown = computeRunXp({
+      starters,
+      avgRating: S.result.avgRating,
+      chemScore: S.result.chemScore,
+      wins:      S.result.wins,
+      isDaily:   S.mode === 'daily',
+    });
+    S.result.xp = { ...breakdown, award: addXp(breakdown.total) };
+  }
+
   if (S.mode === 'fans') {
     S.result.fansScore = fansFirstScore(S.result.avgPopularity, S.result.fansM, S.result.wins);
     S.result.fansPassed = fansFirstPassed(S.result.avgPopularity, S.result.wins);
@@ -1508,6 +1524,15 @@ function computeRoundResults(bracket) {
 
 function onPlayoffChampion() {
   saveToTrophyRoom();
+  // The championship XP cannot ride along with the run's other XP: the season
+  // results screen is rendered long before the title is decided. It gets its
+  // own award point and its own guard — this function has two call sites (the
+  // round-by-round path and the sim-everything path), so the flag is what
+  // keeps a title worth 250 XP exactly once.
+  if (S.playoffs && !S.playoffs.xpTitleAwarded) {
+    S.playoffs.xpTitleAwarded = true;
+    S.playoffs.xpTitleAward   = addXp(CHAMPION_BONUS_XP);
+  }
   // The results screen lets a player submit their global score before
   // advancing to the playoffs, which locks in champion:false (playoffs
   // hadn't happened yet) and — since globalScoreSubmitted is now true —
