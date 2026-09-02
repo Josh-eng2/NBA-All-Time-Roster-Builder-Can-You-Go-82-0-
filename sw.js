@@ -109,7 +109,16 @@
 //       render.js (the one <img src>) and the precache entry below. Both are
 //       precached, so without the bump a returning player keeps the old
 //       roundel and 404s on a logo their cached shell has never seen.
-const CACHE_VERSION = '820-v20';
+//   v21 accounts foundation. New precached module: js/utils/auth.js (Firebase
+//       Auth, email + password). Changed: js/utils/firebase.js, which now
+//       exports SDK_BASE and getFirebaseApp() so auth.js attaches to the same
+//       app and the same pinned SDK version instead of creating a second one.
+//       Nothing imports auth.js yet, so there is no user-visible change. The
+//       bump is still required: firebase.js is precached and changed, so
+//       without it a returning player keeps the old copy and never receives
+//       auth.js at all — leaving the cached shell a version behind on the
+//       pair for whichever later change first imports them.
+const CACHE_VERSION = '820-v21';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 
@@ -154,6 +163,7 @@ const PRECACHE_URLS = [
   './js/utils/storage.js',
   './js/utils/viewport.js',
   './js/utils/firebase.js',
+  './js/utils/auth.js',
   './js/utils/crazygames.js',
   './js/utils/gamedistribution.js',
   './js/utils/referral.js',
