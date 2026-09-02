@@ -150,7 +150,13 @@ let initializeApp, getApps, getFirestore, initializeFirestore, collection, addDo
     query, orderBy, limit, where, serverTimestamp, Timestamp,
     getAnalytics, logEvent;
 
-const SDK_BASE = 'https://www.gstatic.com/firebasejs/10.12.4';
+// Exported so js/utils/auth.js loads `firebase-auth.js` from this exact same
+// pinned version. It must not keep a second copy of this URL: the browser
+// caches ES modules by URL, so two different bases would load two separate
+// `firebase-app.js` instances, each with its own app registry — and getApps()
+// in the auth module would then miss the app initialised here and create a
+// second one.
+export const SDK_BASE = 'https://www.gstatic.com/firebasejs/10.12.4';
 
 /**
  * Assembles the SDK from three settled dynamic imports.
@@ -316,6 +322,23 @@ export function firestoreDbFor(app, { initializeFirestore, getFirestore } = {}) 
     } catch (_) { /* already initialized elsewhere with different settings — fall through */ }
   }
   return getFirestore ? getFirestore(app) : null;
+}
+
+/**
+ * The initialised Firebase app singleton, or null when the SDK could not be
+ * loaded (blocked CDN, offline) or there are no credentials.
+ *
+ * Exported for js/utils/auth.js, which must attach Firebase Auth to the SAME
+ * app this module already created rather than calling initializeApp() a
+ * second time. Mirrors getDb() below: await the memoized init, then hand back
+ * the singleton. Adds no work of its own — ensureInit() has already been
+ * kicked off at module load.
+ *
+ * @returns {Promise<object|null>}
+ */
+export async function getFirebaseApp() {
+  await ensureInit();
+  return _app;
 }
 
 async function getDb() {
