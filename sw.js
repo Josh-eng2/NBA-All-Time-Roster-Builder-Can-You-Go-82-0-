@@ -127,7 +127,15 @@
 //       nothing about this is visible yet — but every one of those files is
 //       precached and they import each other, so a returning player served a
 //       mixed set would fail to boot on a missing export.
-const CACHE_VERSION = '820-v22';
+//   v23 privacy and FAQ copy corrected for optional accounts. Changed:
+//       privacy.html (not precached) plus index.html and README.md, which
+//       both told players there is no sign-up. index.html IS precached, and
+//       HTML is served network-first, so an online visitor already gets the
+//       new copy — but an offline/installed one would keep serving the old
+//       FAQ answer from the precache. That answer is a claim about what data
+//       the game collects, so a stale copy is exactly the one that must not
+//       be left in place.
+const CACHE_VERSION = '820-v23';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 
