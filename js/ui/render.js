@@ -30,6 +30,7 @@ import { fetchDailyCommunityStats, isFirebaseConfigured } from '../utils/firebas
 import { bindEvents, buildRematchCode, hasKnownHashRoute } from '../ui/events.js'; // circular — safe (called inside functions only)
 import { installPromptKind }                              from '../utils/install.js';
 import { isDark, ovrColor, fansBarCol }                   from '../ui/theme.js';
+import { accountsEnabled, currentUserSync }               from '../utils/auth.js';
 
 // Re-exported so the module's public surface is unchanged by the move of
 // these ramps into ui/theme.js (see that file for why they moved).
@@ -227,6 +228,40 @@ export function showToast(msg, duration = 2500, kind = null) {
   setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 350); }, duration);
 }
 
+/**
+ * The account control, and the only chrome the account system adds.
+ *
+ * Renders nothing at all unless accounts are switched on AND this is the
+ * first-party site — inside a portal embed there is deliberately no account
+ * UI, so a player there sees exactly the header they see today.
+ *
+ * Three states, not two. `undefined` means the session is still restoring, and
+ * it paints a neutral placeholder: flashing "Sign in" at somebody who is
+ * already signed in is the classic visible bug in this pattern, and it lasts
+ * just long enough to be noticed.
+ *
+ * @param {string} cls  the pill classes for whichever header is asking
+ * @param {{ signedInOnly?: boolean }} [opts]  the in-game header passes true:
+ *   during a draft a signed-in player still gets their account, but nobody is
+ *   ever invited to sign in mid-run. Never interrupt the thing they came for.
+ */
+function accountPillHtml(cls, { signedInOnly = false } = {}) {
+  if (!accountsEnabled()) return '';
+  const user = currentUserSync();
+  if (user === undefined) {
+    return signedInOnly ? ''
+      : `<span class="${cls} account-pill account-pill--pending" aria-hidden="true">·</span>`;
+  }
+  if (!user) {
+    return signedInOnly ? ''
+      : `<button data-action="open-auth" type="button" class="${cls} account-pill"
+          title="Sign in" aria-label="Sign in">Sign in</button>`;
+  }
+  const initial = (user.email || '?').trim().charAt(0).toUpperCase();
+  return `<button data-action="open-account" type="button" class="${cls} account-pill account-pill--in"
+    title="${esc(user.email || 'Your account')}" aria-label="Your account">${esc(initial)}</button>`;
+}
+
 // ── Shared chrome ─────────────────────────────────────────────────────────────
 function getActiveEra() {
   if (isDualDraft()) return S.p1Era || S.p2Era || S.selectedEra || 'all';
@@ -329,6 +364,7 @@ function renderHeader(showRestart = false) {
           <button data-action="open-leaderboard" type="button" class="header-pill header-pill--icon" title="Personal Best" aria-label="Personal Best">🏅</button>
           <button data-action="open-global-leaderboard" type="button" class="header-pill header-pill--icon" title="Global Leaderboard" aria-label="Global Leaderboard">🌍</button>
           <button data-action="toggle-theme" type="button" class="header-pill header-pill--icon" title="Toggle Dark Mode" aria-label="Toggle Dark Mode">${themeIcon()}</button>
+          ${accountPillHtml('header-pill header-pill--icon', { signedInOnly: true })}
           ${restartBtn}
         </div>
       </div>
@@ -564,6 +600,7 @@ function renderModeSelect() {
           <button data-action="open-leaderboard" class="text-[11px] px-2 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Personal Best" aria-label="Personal Best">🏅</button>
           <button data-action="open-global-leaderboard" class="text-[11px] px-2 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Global Leaderboard" aria-label="Global Leaderboard">🌍</button>
           <button data-action="toggle-theme" class="theme-toggle" title="Toggle Dark Mode" aria-label="Toggle Dark Mode">${themeIcon()}</button>
+          ${accountPillHtml('text-[11px] px-2 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer')}
         </div>
       </div>
     </header>

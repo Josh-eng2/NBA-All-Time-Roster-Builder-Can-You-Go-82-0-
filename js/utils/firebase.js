@@ -148,6 +148,7 @@
 // and analytics unavailable" instead of "game never boots".
 let initializeApp, getApps, getFirestore, initializeFirestore, collection, addDoc, getDocs,
     query, orderBy, limit, where, serverTimestamp, Timestamp,
+    doc, getDoc, setDoc, deleteDoc,
     getAnalytics, logEvent;
 
 // Exported so js/utils/auth.js loads `firebase-auth.js` from this exact same
@@ -253,7 +254,8 @@ function ensureInit() {
         try {
           ({ initializeApp, getApps } = sdk.app);
           ({ getFirestore, initializeFirestore, collection, addDoc, getDocs,
-             query, orderBy, limit, where, serverTimestamp, Timestamp } = sdk.firestore);
+             query, orderBy, limit, where, serverTimestamp, Timestamp,
+             doc, getDoc, setDoc, deleteDoc } = sdk.firestore);
           // `?? {}`: analytics is optional, so sdk.analytics is null whenever
           // that module was blocked. Destructuring null throws, and the throw
           // would land in the catch below and null out _app — reintroducing
@@ -339,6 +341,81 @@ export function firestoreDbFor(app, { initializeFirestore, getFirestore } = {}) 
 export async function getFirebaseApp() {
   await ensureInit();
   return _app;
+}
+
+// ── Per-player cloud save (users/{uid}) ───────────────────────────────────────
+// The only Firestore access in this project that is not the public
+// leaderboard. Kept here rather than in cloudSave.js so this module stays the
+// single place that touches the Firestore SDK, exactly as it already is for
+// the leaderboard collections.
+//
+// Reads and writes are guarded by the users/{uid} rule in firestore.rules:
+// owner-only, with the document's shape and every array bounded. Both
+// functions below return a structured result rather than throwing, so a
+// rules rejection, an offline client or a blocked CDN can never interrupt a
+// run — the cloud is a mirror, and local storage stays authoritative.
+
+/**
+ * Reads one player's cloud save.
+ * @param {string} uid
+ * @returns {Promise<{ok: true, exists: boolean, data: object|null}|{ok: false, code: string}>}
+ */
+export async function fetchUserSave(uid) {
+  if (!uid) return { ok: false, code: 'no-uid' };
+  const db = await getDb();
+  if (!db) return { ok: false, code: 'unavailable' };
+  try {
+    const snap = await getDoc(doc(db, 'users', uid));
+    return { ok: true, exists: snap.exists(), data: snap.exists() ? snap.data() : null };
+  } catch (err) {
+    return { ok: false, code: err?.code || 'read-failed' };
+  }
+}
+
+/**
+ * Writes one player's cloud save.
+ *
+ * `updatedAt` is stamped server-side and is the authoritative write time.
+ * `createdAt` is only sent when the document is being created, and the write
+ * uses merge so an existing createdAt is never overwritten by a later save.
+ *
+ * @param {string} uid
+ * @param {object} payload  schemaVersion / deviceUpdatedAt / save, and
+ *                          displayName where the account has one
+ * @param {{ isNew?: boolean }} [opts]
+ * @returns {Promise<{ok: true}|{ok: false, code: string}>}
+ */
+export async function writeUserSave(uid, payload, { isNew = false } = {}) {
+  if (!uid || !payload) return { ok: false, code: 'no-uid' };
+  const db = await getDb();
+  if (!db) return { ok: false, code: 'unavailable' };
+  try {
+    const body = { ...payload, updatedAt: serverTimestamp() };
+    if (isNew) body.createdAt = serverTimestamp();
+    await setDoc(doc(db, 'users', uid), body, { merge: true });
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, code: err?.code || 'write-failed' };
+  }
+}
+
+/**
+ * Deletes one player's cloud save. Local progress is deliberately untouched —
+ * deleting an account removes what is stored in the cloud, not what is on the
+ * device the player is sitting at.
+ * @param {string} uid
+ * @returns {Promise<{ok: true}|{ok: false, code: string}>}
+ */
+export async function deleteUserSave(uid) {
+  if (!uid) return { ok: false, code: 'no-uid' };
+  const db = await getDb();
+  if (!db) return { ok: false, code: 'unavailable' };
+  try {
+    await deleteDoc(doc(db, 'users', uid));
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, code: err?.code || 'delete-failed' };
+  }
 }
 
 async function getDb() {

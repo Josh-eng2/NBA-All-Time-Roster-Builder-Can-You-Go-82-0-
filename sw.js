@@ -118,7 +118,16 @@
 //       without it a returning player keeps the old copy and never receives
 //       auth.js at all — leaving the cached shell a version behind on the
 //       pair for whichever later change first imports them.
-const CACHE_VERSION = '820-v21';
+//   v22 accounts UI, shipped behind an off switch. New precached modules:
+//       js/utils/cloudSave.js and js/ui/authModal.js. Changed: auth.js (the
+//       ACCOUNTS_ENABLED flag, the not-framed gate, persistence choice and
+//       account deletion), firebase.js (users/{uid} read/write), render.js
+//       (one account pill per header), events.js (the action cases and the
+//       auth subscription) and styles.css. ACCOUNTS_ENABLED is false, so
+//       nothing about this is visible yet — but every one of those files is
+//       precached and they import each other, so a returning player served a
+//       mixed set would fail to boot on a missing export.
+const CACHE_VERSION = '820-v22';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 
@@ -145,6 +154,7 @@ const PRECACHE_URLS = [
   './js/ui/events.js',
   './js/ui/render.js',
   './js/ui/shareCard.js',
+  './js/ui/authModal.js',
   './js/ui/theme.js',
   './js/logic/state.js',
   './js/logic/draft.js',
@@ -164,6 +174,7 @@ const PRECACHE_URLS = [
   './js/utils/viewport.js',
   './js/utils/firebase.js',
   './js/utils/auth.js',
+  './js/utils/cloudSave.js',
   './js/utils/crazygames.js',
   './js/utils/gamedistribution.js',
   './js/utils/referral.js',
