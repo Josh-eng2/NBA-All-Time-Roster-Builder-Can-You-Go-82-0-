@@ -34,9 +34,108 @@
 // comparison back. Time-window reads (24h/weekly) instead filter on the
 // `timestamp` field, which Firestore stamps server-side via
 // serverTimestamp() and is authoritative regardless of the client's clock.
+//
+// users/{uid}: the per-player cloud save behind the optional account system.
+// The block existed here unused for a long time as a bare owner-only
+// read/write; it now also validates the document's shape and bounds every
+// string and array, per the accounts plan. Two deliberate restraints, both
+// following the avgPopularity lesson above rather than repeating it:
+//
+//   * It bounds SIZE and STRUCTURE, never values. A user document is
+//     readable and writable only by its owner, so the worst a bad write can
+//     do is corrupt that one player's own save — while a rule tighter than
+//     what the game legitimately produces would reject real saves from
+//     everyone, silently and with the same generic PERMISSION_DENIED.
+//   * Every numeric check is `is number`, never `is int`. Whether the
+//     Firestore Web SDK sends a plain JS number as an integer or a double is
+//     not a thing to bet a player's progress on.
+//
+// The array caps (leaderboard 20, trophies 12, mode boards 20) mirror the
+// writers in js/utils/storage.js and the merge in js/utils/cloudSave.js, so
+// those three MUST be changed together — a cap raised in the game but not
+// here rejects the first save that exceeds it. legends is bounded at 2000
+// against a 937-player database: headroom for the data to grow, deliberately
+// loose for the same reason avgPopularity is.
+//
+// uid on leaderboard/dailyLeaderboard: optional, and when present must equal
+// the writer's own auth uid. Anonymous submissions omit it entirely and are
+// completely unaffected — they remain the overwhelming majority and must
+// keep working byte-for-byte. Note this only ever TIGHTENS: neither rule used
+// hasOnly(), so before this clause a forged `uid` would have been accepted
+// without any check at all.
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // A signed-in player may stamp their own uid onto a public leaderboard
+    // document; nobody may stamp anyone else's. Anonymous submissions omit
+    // the field entirely and are unaffected — which is the whole point, as
+    // they are still the overwhelming majority. Before this clause a `uid`
+    // field would have been accepted unvalidated, so this only tightens.
+    function optionalOwnUid() {
+      return !('uid' in request.resource.data)
+             || (request.resource.data.uid is string
+                 && request.auth != null
+                 && request.resource.data.uid == request.auth.uid);
+    }
+
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    // Caps mirror the writers in js/utils/storage.js and the merge in
+    // js/utils/cloudSave.js: leaderboard 20, trophies 12, each mode board
+    // 20. A merged save can never exceed them, so a document that does was
+    // not written by this game.
+    //
+    // legends has no cap in the game — it grows by one per player id ever
+    // drafted — so 2000 is generous headroom over the 937 players the
+    // shipped database currently holds. Same approach as the
+    // avgPopularity/fansM bounds above, and for the same reason: leave room
+    // for the data to grow rather than re-cut the rule every time it does.
+    // Accessed with map.get(key, default) rather than dot or bracket notation:
+    // two of these keys contain a hyphen, so m.gm-ai would parse as
+    // subtraction, and get() is the documented Map accessor. The `in` guard
+    // still runs first so an absent board is simply absent, not an empty one.
+    function modeBoardsValid(m) {
+      return m.keys().hasOnly(['defense', 'fans', 'gm-ai', 'dynasty-duel'])
+             && (!('defense'      in m) || (m.get('defense', [])      is list && m.get('defense', []).size()      <= 20))
+             && (!('fans'         in m) || (m.get('fans', [])         is list && m.get('fans', []).size()         <= 20))
+             && (!('gm-ai'        in m) || (m.get('gm-ai', [])        is list && m.get('gm-ai', []).size()        <= 20))
+             && (!('dynasty-duel' in m) || (m.get('dynasty-duel', []) is list && m.get('dynasty-duel', []).size() <= 20));
+    }
+
+    function saveValid(s) {
+      return s.keys().hasOnly(['progress', 'legends', 'leaderboard', 'trophies',
+                               'modeBoards', 'daily', 'dynastyDuel', 'bests'])
+             && (!('progress'    in s) || s.progress is map)
+             && (!('legends'     in s) || (s.legends     is list && s.legends.size()     <= 2000))
+             && (!('leaderboard' in s) || (s.leaderboard is list && s.leaderboard.size() <= 20))
+             && (!('trophies'    in s) || (s.trophies    is list && s.trophies.size()    <= 12))
+             && (!('modeBoards'  in s) || (s.modeBoards  is map  && modeBoardsValid(s.modeBoards)))
+             && (!('daily'       in s) || s.daily       is map)
+             && (!('dynastyDuel' in s) || s.dynastyDuel is map)
+             && (!('bests'       in s) || s.bests       is map);
+    }
+
+    // Every numeric field is checked with `is number`, never `is int`: the
+    // Firestore Web SDK's choice between an integer and a double for a
+    // plain JS number is not something this rule should be betting a
+    // player's save on.
+    function userDocValid(d) {
+      return d.keys().hasOnly(['displayName', 'schemaVersion', 'createdAt',
+                               'updatedAt', 'deviceUpdatedAt', 'save'])
+             && (!('displayName' in d) || (d.displayName is string
+                                           && d.displayName.size() >= 3
+                                           && d.displayName.size() <= 24))
+             && (!('schemaVersion'   in d) || (d.schemaVersion is number
+                                               && d.schemaVersion >= 1
+                                               && d.schemaVersion <= 1000))
+             && (!('deviceUpdatedAt' in d) || d.deviceUpdatedAt is number)
+             && (!('createdAt'       in d) || d.createdAt is timestamp)
+             && (!('updatedAt'       in d) || d.updatedAt is timestamp)
+             && (!('save'            in d) || (d.save is map && saveValid(d.save)));
+    }
+
     match /leaderboard/{docId} {
       allow read: if true;
       allow create: if request.resource.data.wins is number
@@ -67,7 +166,8 @@ service cloud.firestore {
                             && request.resource.data.fansM >= 0
                             && request.resource.data.fansM <= 2200))
                     && request.resource.data.champion is bool
-                    && request.resource.data.timestampMs is number;
+                    && request.resource.data.timestampMs is number
+                    && optionalOwnUid();
       allow update, delete: if false;
     }
 
@@ -99,14 +199,38 @@ service cloud.firestore {
                     && request.resource.data.passed is bool
                     && request.resource.data.score is number
                     && request.resource.data.score >= 0
-                    && request.resource.data.score <= 2000;
+                    && request.resource.data.score <= 2000
+                    && optionalOwnUid();
       allow update, delete: if false;
     }
 
-    // Not used by any code currently in this repo. Left as-is — flagged in
-    // review, not something the leaderboard work above touches.
+    // ── Per-player cloud save ────────────────────────────────────────────
+    // One document per authenticated user, mirroring the nba820_* local
+    // keys (see js/utils/cloudSave.js for the snapshot shape it writes).
+    //
+    // The threat model here is much weaker than the two public collections
+    // above: a document is readable and writable ONLY by the account that
+    // owns it, so nobody can forge someone else's save. What is left to
+    // defend against is a client bug and the use of a user document as
+    // free unbounded storage — so these rules bound structure and size,
+    // and deliberately do NOT police values.
+    //
+    // That restraint is the lesson this file already records at the top:
+    // rules tighter than what the game legitimately produces reject real
+    // writes and fail with the same generic PERMISSION_DENIED as a dozen
+    // unrelated causes. A save whose xp is "wrong" costs one player their
+    // own numbers; a rule that rejects valid saves costs every player
+    // their progress silently.
+
     match /users/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+      // Not publicly readable. If a public profile is ever wanted it belongs
+      // in a separate document holding only the fields meant to be public,
+      // never by loosening this one.
+      allow read:          if isOwner(uid);
+      allow create, update: if isOwner(uid) && userDocValid(request.resource.data);
+      // Account deletion has to actually erase the data, so the owner — and
+      // only the owner — may delete their own document.
+      allow delete:        if isOwner(uid);
     }
   }
 }
