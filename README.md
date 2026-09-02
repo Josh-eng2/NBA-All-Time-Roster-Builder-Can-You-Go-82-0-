@@ -8,7 +8,7 @@ that deals you a franchise and an era on every spin — draft legends from every
 build team chemistry, pick your coach, then run the **82-game season simulator** with one
 question on the line: **can you go 82-0?**
 
-No sign-up, no download, no build step.
+No sign-up required, no download, no build step.
 
 ## How to play
 
@@ -43,7 +43,7 @@ Every spin randomly generates a franchise and a decade (like '80s Celtics or 200
 and you draft one player from that combination. Repeat until all five starting spots are filled.
 
 **Is it free?**
-Yes — completely free, no download, no sign-up. It runs in your browser on any device.
+Yes — completely free, no download, and no sign-up required. It runs in your browser on any device. You can optionally create an account to carry your progress between devices.
 
 ## Run it locally
 

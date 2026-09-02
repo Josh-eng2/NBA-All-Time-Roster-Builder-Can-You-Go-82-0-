@@ -32,12 +32,14 @@
 <body>
   <a class="back" href="index.html">&larr; Back to the game</a>
   <h1>Privacy Policy &amp; Terms of Use</h1>
-  <p class="updated">Last updated: July 12, 2026</p>
+  <p class="updated">Last updated: September 2, 2026</p>
 
   <p>
-    <strong>Can You Go 82-0?</strong> is a free, fan-made basketball simulator. It doesn't require
-    an account, a sign-up, or any payment. This page explains what little data the game does
-    handle, and the basic terms for using it.
+    <strong>Can You Go 82-0?</strong> is a free, fan-made basketball simulator. There's no payment,
+    and no account is needed to play — every mode and every feature works without one. You can
+    optionally create an account on <strong>canyougo820.com</strong> to carry your progress between
+    devices. This page explains what data the game handles either way, and the basic terms for
+    using it.
   </p>
 
   <h2>Information we collect</h2>
@@ -56,18 +58,41 @@
       deleted by us on request, since they're anonymous by design.
     </li>
     <li>
-      <strong>Locally saved progress</strong> — your personal best record, Trophy Room, and
-      collected Legends are saved either in your browser (localStorage) or, if you're playing
-      through CrazyGames, via CrazyGames' own Data Module tied to your CrazyGames account if you
-      have one. This data stays on your device or with CrazyGames — it isn't sent to us.
+      <strong>Locally saved progress</strong> — your personal best record, Trophy Room, collected
+      Legends, level and XP, streaks and daily statistics are saved either in your browser
+      (localStorage) or, if you're playing through CrazyGames, via CrazyGames' own Data Module tied
+      to your CrazyGames account if you have one. If you are not signed in to an 82-0 account, this
+      data stays on your device or with CrazyGames and is never sent to us.
+    </li>
+    <li>
+      <strong>Account details, if you create one</strong> — your email address and a password.
+      The password is hashed and stored by Google Firebase Authentication; we never see it, and it
+      is never stored anywhere in this game. We send a verification email to the address you give,
+      and use it to sign you in and to send a reset link if you ask for one. It is not used for
+      marketing and is not shared or sold.
+    </li>
+    <li>
+      <strong>Cloud-saved progress, if you're signed in</strong> — while you're signed in, the same
+      progress listed above (record, Trophy Room, Legends, level and XP, streaks, daily statistics
+      and your chosen GM name) is also copied to a private document in Google Firestore so it can
+      follow you to your other devices. Only your account can read or write it. Your device stays
+      the primary copy — the cloud one is a mirror, and the game keeps working normally if it is
+      unreachable. Your theme choice and other device settings are deliberately not synced.
     </li>
   </ul>
+
+  <p>
+    Accounts are available on <strong>canyougo820.com</strong> only. If you're playing through
+    CrazyGames, GameDistribution or any other portal, no account option is shown and nothing above
+    about accounts applies to that session.
+  </p>
 
   <h2>Third-party services</h2>
   <ul>
     <li>
-      <strong>Google Firebase</strong> (Analytics &amp; the Firestore database behind the Global
-      Leaderboard) — see
+      <strong>Google Firebase</strong> — Analytics, the Firestore database behind the Global
+      Leaderboard and cloud saves, and Firebase Authentication for accounts. Google processes and
+      stores this data on our behalf; see
       <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Google's Privacy Policy</a>.
     </li>
     <li>
@@ -82,10 +107,42 @@
     </li>
   </ul>
 
-  <h2>No accounts, no payments</h2>
+  <h2>Accounts are optional</h2>
   <p>
-    The game never asks for an email address, a password, or payment information, and has no
-    login of its own.
+    The game never asks for payment information, and you never have to make an account. Playing
+    signed out is the full game: every mode, every screen, the Trophy Room, the Daily Challenge and
+    the Global Leaderboard all work exactly the same. An account only adds the ability to carry
+    your progress to another device.
+  </p>
+  <p>
+    Signing out does not remove anything. Your progress stays on the device you were playing on.
+  </p>
+
+  <h2>How long we keep it, and how to delete it</h2>
+  <ul>
+    <li>
+      <strong>Your account and cloud save</strong> are kept until you delete them. Open the account
+      menu and choose <strong>Delete my account</strong>: that permanently removes your cloud save
+      and your login. The progress stored on your device is deliberately left alone, so deleting an
+      account never costs you your Trophy Room.
+    </li>
+    <li>
+      <strong>Locally saved progress</strong> stays until you clear your browser's site data for
+      this game, or clear it through CrazyGames if that's where you're playing.
+    </li>
+    <li>
+      <strong>Global Leaderboard entries</strong> are public and permanent. They're anonymous by
+      design and can't be edited or removed on request — so don't type anything into the team name
+      field you wouldn't want public.
+    </li>
+    <li>
+      <strong>Analytics events</strong> are retained by Google Firebase Analytics under Google's own
+      retention settings and aren't tied to your name or identity.
+    </li>
+  </ul>
+  <p>
+    If you'd like your account data removed and can't do it yourself for any reason, email the
+    address at the bottom of this page and we'll handle it.
   </p>
 
   <h2>Terms of use</h2>
