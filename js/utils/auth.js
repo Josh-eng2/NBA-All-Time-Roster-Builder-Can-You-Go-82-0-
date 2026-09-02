@@ -55,11 +55,52 @@
 
 import { getFirebaseApp, SDK_BASE } from './firebase.js';
 
+// ── Feature gate ──────────────────────────────────────────────────────────────
+
+/**
+ * THE off switch. One constant, defaulting to off, so the whole account
+ * surface can ship, be reviewed and be deployed while production stays
+ * exactly as it is. Flipping this to true is the entire switch-on step.
+ */
+export const ACCOUNTS_ENABLED = false;
+
+/**
+ * Accounts are a FIRST-PARTY-DOMAIN feature and must never appear inside a
+ * portal embed. Three separate reasons, any one of which would be enough:
+ *
+ *   Policy    — portals restrict games from collecting player emails inside
+ *               the embed, and CrazyGames already gives these players
+ *               account-linked saves through its own Data Module.
+ *   Technical — third-party storage partitioning makes auth state persisted
+ *               in a cross-site iframe unreliable or discarded outright.
+ *   Product   — a player already signed in to CrazyGames should not be asked
+ *               to make a second account for progress the portal already
+ *               keeps.
+ *
+ * The check is the same one index.html already uses to decide whether to load
+ * the GameDistribution SDK, and it is synchronous so render() can call it.
+ * A cross-origin parent makes window.top itself throw, which is conclusive:
+ * we are framed.
+ */
+export function isFramed() {
+  try { return window.self !== window.top; } catch (_) { return true; }
+}
+
+/**
+ * Whether the account UI may be shown at all here. Synchronous and cheap —
+ * this decides whether a header pill is even rendered, so it must never wait
+ * on the network.
+ */
+export function accountsEnabled() {
+  return ACCOUNTS_ENABLED && !isFramed();
+}
+
 // ── SDK loading ───────────────────────────────────────────────────────────────
 
 let getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
     firebaseSignOut, sendEmailVerification, sendPasswordResetEmail,
-    onAuthStateChanged;
+    onAuthStateChanged, deleteUser,
+    setPersistence, browserLocalPersistence, browserSessionPersistence;
 
 // Same retry policy as firebase.js loadSdk(): a failed load is retried rather
 // than remembered forever, so a CDN blip around the moment of the first call
@@ -94,6 +135,10 @@ function ensureAuth() {
         sendEmailVerification,
         sendPasswordResetEmail,
         onAuthStateChanged,
+        deleteUser,
+        setPersistence,
+        browserLocalPersistence,
+        browserSessionPersistence,
       } = mod);
       _auth = getAuth(app);
       return _auth;
@@ -106,6 +151,18 @@ function ensureAuth() {
 }
 
 // ── Result helpers ────────────────────────────────────────────────────────────
+
+// Last resolved auth state, kept so render() can ask synchronously — it paints
+// a whole screen in one pass and cannot await anything. `undefined` means "not
+// resolved yet", which is deliberately distinct from `null` ("signed out"):
+// the header must show a neutral placeholder during session restoration rather
+// than flash a Sign in button at somebody who is already signed in.
+let _lastUser;
+
+/** The resolved auth state, or undefined while the session is still restoring. */
+export function currentUserSync() {
+  return _lastUser;
+}
 
 /** The plain, SDK-free shape every caller sees. */
 function userSnapshot(user) {
@@ -174,9 +231,10 @@ export function onAuthChanged(cb) {
   let stopped  = false;
   ensureAuth().then(auth => {
     if (stopped) return;
-    if (!auth) { try { cb(null); } catch (_) {} return; }
+    if (!auth) { _lastUser = null; try { cb(null); } catch (_) {} return; }
     unsub = onAuthStateChanged(auth, user => {
-      try { cb(userSnapshot(user)); } catch (_) { /* a subscriber must not break auth */ }
+      _lastUser = userSnapshot(user);
+      try { cb(_lastUser); } catch (_) { /* a subscriber must not break auth */ }
     });
   });
   return () => {
@@ -216,13 +274,28 @@ export async function signUp(email, password) {
 
 /**
  * Email + password sign-in.
+ *
+ * `remember` defaults to true, which is the right default for a game: a
+ * player should not have to sign in again to see their trophy room. Passing
+ * false scopes the session to the tab, which is the correct behaviour on a
+ * shared or public computer.
+ *
+ * A failure to APPLY the persistence choice is not a failure to sign in — the
+ * SDK's default (persistent local) still applies, so the sign-in proceeds
+ * rather than stranding the player over a preference.
+ *
  * @param {string} email
  * @param {string} password
+ * @param {{ remember?: boolean }} [opts]
  * @returns {Promise<{ok: true, user: object}|{ok: false, code: string, message: string}>}
  */
-export async function signIn(email, password) {
+export async function signIn(email, password, { remember = true } = {}) {
   const auth = await ensureAuth();
   if (!auth) return fail(null, UNAVAILABLE);
+  try {
+    const mode = remember ? browserLocalPersistence : browserSessionPersistence;
+    if (setPersistence && mode) await setPersistence(auth, mode);
+  } catch (_) { /* keep the SDK default rather than block the sign-in */ }
   try {
     const cred = await signInWithEmailAndPassword(auth, email, password);
     return { ok: true, user: userSnapshot(cred.user) };
@@ -283,5 +356,31 @@ export async function sendPasswordReset(email) {
     return { ok: true };
   } catch (err) {
     return fail(err, 'auth/reset-send-failed');
+  }
+}
+
+/**
+ * Deletes the signed-in account.
+ *
+ * Only the auth account — the caller is responsible for the cloud save, and
+ * NOTHING here touches local progress. Deleting an account removes what is
+ * stored in the cloud, not what is on the device the player is sitting at.
+ *
+ * Firebase requires a recent sign-in for this, and returns
+ * 'auth/requires-recent-login' when the session is too old. That is a normal
+ * outcome to be shown to the player, not an error to swallow.
+ *
+ * @returns {Promise<{ok: true}|{ok: false, code: string, message: string}>}
+ */
+export async function deleteAccount() {
+  const auth = await ensureAuth();
+  if (!auth) return fail(null, UNAVAILABLE);
+  const user = auth.currentUser;
+  if (!user) return fail(null, 'auth/no-current-user');
+  try {
+    await deleteUser(user);
+    return { ok: true };
+  } catch (err) {
+    return fail(err, 'auth/delete-failed');
   }
 }

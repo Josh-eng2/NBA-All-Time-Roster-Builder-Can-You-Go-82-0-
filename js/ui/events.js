@@ -43,6 +43,9 @@ import {
   buildRematchUrl, buildDailyUrl, buildPlainUrl,
 } from '../logic/rematch.js';
 import { showInstallPrompt, dismissInstallPrompt } from '../utils/install.js';
+import { accountsEnabled, onAuthChanged } from '../utils/auth.js';
+import { showAuthModal } from './authModal.js';
+import { requestSync, flushUpload } from '../utils/cloudSave.js';
 import { seasonTier } from '../logic/seasonTier.js';
 import { computeRunXp, addXp, CHAMPION_BONUS_XP } from '../logic/progression.js';
 import {
@@ -70,6 +73,51 @@ export function bindEvents() {
   _bound = true;
   $app.addEventListener('click', handleClick);
   window.addEventListener('hashchange', handleHashRoute);
+  initAccounts();
+}
+
+// ── Accounts ──────────────────────────────────────────────────────────────────
+// Entirely inert unless accounts are switched on and this is the first-party
+// site. Attached from bindEvents() rather than at module load so it inherits
+// the same attach-once guard the click listener already has.
+
+let _authUid = null;
+
+/**
+ * Phases where a re-render is safe. A draft holds live, unsaved input — a
+ * half-typed team name has already needed its own regression test — so an auth
+ * change arriving mid-run updates the cached state and waits. The header
+ * catches up at the next natural render, which costs nothing, and the run is
+ * never disturbed.
+ */
+const AUTH_RERENDER_PHASES = ['mode-select', 'more-modes', 'results', 'trophy-room', 'legends'];
+
+function initAccounts() {
+  if (!accountsEnabled()) return;
+
+  onAuthChanged(user => {
+    _authUid = user?.uid || null;
+    if (AUTH_RERENDER_PHASES.includes(S.phase)) render();
+  });
+
+  // The debounce would otherwise lose the last write when a phone is put down
+  // mid-session. pagehide is the reliable one on iOS, where unload often never
+  // fires at all.
+  window.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') flushUpload();
+  });
+  window.addEventListener('pagehide', flushUpload);
+}
+
+/**
+ * Mirrors local progress to the account after something meaningful changed.
+ * Debounced, so a run saved, XP added and a trophy earned within a second of
+ * each other become one write. Silent and non-blocking by design: local
+ * storage is what the game plays from, and a failed sync leaves it untouched.
+ */
+function syncProgress() {
+  if (!_authUid) return;
+  requestSync(_authUid);
 }
 
 const HASH_ROUTE_MAP = {
@@ -409,6 +457,8 @@ function dispatch(action) {
   if (action === 'submit-global')          { doSubmitGlobal();                   return; }
   if (action === 'toggle-theme')           { toggleTheme();                      return; }
   if (action === 'open-team-report')       { showTeamReportModal();              return; }
+  if (action === 'open-auth')              { showAuthModal('signin');            return; }
+  if (action === 'open-account')           { showAuthModal('account');           return; }
 
   render(); // fallback — re-render for unhandled actions
 }
@@ -986,6 +1036,9 @@ function doSimulate() {
     });
     S.result.xp = { ...breakdown, award: addXp(breakdown.total) };
   }
+  // One debounced write covers everything this block just persisted: XP,
+  // legends, personal bests, the last-run tip and the Daily lock below.
+  syncProgress();
 
   if (S.mode === 'fans') {
     S.result.fansScore = fansFirstScore(S.result.avgPopularity, S.result.fansM, S.result.wins);
@@ -1172,6 +1225,7 @@ async function doSaveRun() {
   S.teamName  = raw.slice(0, 30);
   S.runSaved  = true;
   saveLeaderboard();
+  syncProgress();
   if (S.mode === 'defense' && S.result) {
     saveModeLeaderboard('defense', {
       teamName: S.teamName,
@@ -1524,6 +1578,7 @@ function computeRoundResults(bracket) {
 
 function onPlayoffChampion() {
   saveToTrophyRoom();
+  syncProgress();
   // The championship XP cannot ride along with the run's other XP: the season
   // results screen is rendered long before the title is decided. It gets its
   // own award point and its own guard — this function has two call sites (the

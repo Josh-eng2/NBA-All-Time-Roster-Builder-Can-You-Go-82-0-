@@ -52,7 +52,8 @@
  *   cancelUpload()      — drop a pending upload
  */
 
-import { cgGetItem, cgSetItem } from './crazygames.js';
+import { cgGetItem, cgSetItem }                      from './crazygames.js';
+import { fetchUserSave, writeUserSave, deleteUserSave } from './firebase.js';
 
 /** Bumped only when the snapshot shape changes in a way a reader must know. */
 export const SCHEMA_VERSION = 1;
@@ -588,4 +589,101 @@ export function flushUpload() {
 export function cancelUpload() {
   if (_timer !== null) { clearTimeout(_timer); _timer = null; }
   _pending = null;
+}
+
+// ── Sync ──────────────────────────────────────────────────────────────────────
+// Everything below is the transport. It never throws and never blocks: a
+// failed sync leaves local storage exactly as it was, which is the state the
+// game plays from anyway.
+
+/** Strips the wire fields the rules do not accept back out of a fetched doc. */
+function remoteToSnapshot(data) {
+  const d = obj(data);
+  if (!d) return null;
+  return {
+    schemaVersion:   num(d.schemaVersion, SCHEMA_VERSION),
+    // The server's own updatedAt is authoritative for conflict reasoning, but
+    // the merge's recency tie-break wants the client clock the save was
+    // written with — that is what deviceUpdatedAt is for.
+    deviceUpdatedAt: num(d.deviceUpdatedAt),
+    save:            obj(d.save) || emptySave().save,
+  };
+}
+
+/** The document body to write, with only the fields users/{uid} allows. */
+function snapshotToRemote(snapshot, displayName) {
+  const body = {
+    schemaVersion:   SCHEMA_VERSION,
+    deviceUpdatedAt: num(snapshot.deviceUpdatedAt, Date.now()),
+    save:            snapshot.save,
+  };
+  if (typeof displayName === 'string' && displayName.length >= 3) {
+    body.displayName = displayName.slice(0, 24);
+  }
+  return body;
+}
+
+/**
+ * The first-sign-in sequence, and the one run on every boot with a live
+ * session. In order, deliberately:
+ *
+ *   1. Read the complete local save BEFORE any network call.
+ *   2. Fetch the remote. Absent means a brand-new account — the local save
+ *      becomes the document as-is and nothing is at risk.
+ *   3. Merge additively.
+ *   4. Write local FIRST, then upload. If the network dies after step 3 the
+ *      player still ends up better off than before, never worse.
+ *
+ * An incomplete local read aborts the upload but still applies the merge
+ * locally: a save missing a section must never be pushed, because merging
+ * into it on another device would propagate the loss instead of healing it.
+ *
+ * @param {string} uid
+ * @param {string} [displayName]
+ * @returns {Promise<{ok: boolean, code?: string, merged?: object, uploaded?: boolean}>}
+ */
+export async function syncOnSignIn(uid, displayName) {
+  if (!uid) return { ok: false, code: 'no-uid' };
+  const { snapshot: local, complete } = readLocalSave();
+
+  const res = await fetchUserSave(uid);
+  if (!res.ok) return { ok: false, code: res.code };
+
+  const remote = res.exists ? remoteToSnapshot(res.data) : null;
+  const merged = mergeSaves(local, remote);
+
+  writeLocalSave(merged);
+
+  if (!complete) return { ok: true, merged, uploaded: false, code: 'local-incomplete' };
+
+  const put = await writeUserSave(uid, snapshotToRemote(merged, displayName), { isNew: !res.exists });
+  return { ok: true, merged, uploaded: put.ok, code: put.ok ? undefined : put.code };
+}
+
+/**
+ * Uploads the current local save. Used by the debounced scheduler after a run
+ * is saved, XP is added or a Daily is played.
+ * @param {string} uid
+ * @param {string} [displayName]
+ */
+export async function pushLocalSave(uid, displayName) {
+  if (!uid) return { ok: false, code: 'no-uid' };
+  const { snapshot, complete } = readLocalSave();
+  if (!complete) return { ok: false, code: 'local-incomplete' };
+  return writeUserSave(uid, snapshotToRemote(snapshot, displayName));
+}
+
+/** Schedules a debounced upload of the current local save. */
+export function requestSync(uid, displayName) {
+  if (!uid) return;
+  scheduleUpload(() => pushLocalSave(uid, displayName));
+}
+
+/**
+ * Removes the cloud save. Local progress is deliberately left alone — the
+ * person deleting their account is still the person at this device.
+ */
+export async function deleteCloudSave(uid) {
+  cancelUpload();
+  return deleteUserSave(uid);
 }

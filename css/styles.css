@@ -2522,3 +2522,226 @@ button.autopsy-strip:hover {
   pointer-events: none;
   background: linear-gradient(to bottom, transparent, var(--bg));
 }
+
+/* ── Account modal ────────────────────────────────────────────────────────────
+   Mounted outside #app on document.body, like the leaderboard modals. Built
+   entirely from the existing custom properties — no new tokens, and no
+   existing selector touched, so nothing about the rest of the UI moves.
+
+   Sized against --app-h rather than the viewport: the game shell locks
+   html/body to 100dvh with overflow hidden, so a modal measured in vh escapes
+   its own container on a phone with the keyboard open. The card scrolls
+   internally; the page behind it never does. */
+
+#auth-modal-root {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+  padding-top: max(16px, env(safe-area-inset-top));
+}
+.auth-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+}
+.auth-modal {
+  position: relative;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 18px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  max-width: 380px;
+  max-height: calc(var(--app-h, 100dvh) - 32px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: 'Fira Sans', sans-serif;
+}
+.auth-modal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 20px 12px;
+  border-bottom: 1px solid var(--border-light);
+}
+.auth-modal__title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+}
+.auth-modal__x {
+  border: none;
+  background: none;
+  color: var(--muted-fg);
+  font-size: 24px;
+  line-height: 1;
+  padding: 0 4px;
+  cursor: pointer;
+  border-radius: 8px;
+}
+.auth-modal__x:hover { color: var(--fg); }
+.auth-modal__body {
+  padding: 16px 20px 4px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.auth-modal__lead {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted-fg);
+}
+.auth-modal__fine {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--muted-fg);
+}
+.auth-modal__foot {
+  margin: 0;
+  padding: 12px 20px 16px;
+  font-size: 11px;
+  color: var(--muted);
+  text-align: center;
+}
+.auth-modal__banner {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--surface-red);
+  border: 1px solid var(--border);
+  color: var(--fg);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+.auth-modal__links {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.auth-field { display: flex; flex-direction: column; gap: 5px; }
+.auth-field__label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted-fg);
+}
+.auth-field__input {
+  /* 16px minimum, or iOS zooms the locked viewport on focus and does not
+     fully restore it. */
+  font-size: 16px;
+  font-family: inherit;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border);
+  background: var(--input-bg);
+  color: var(--fg);
+  width: 100%;
+}
+.auth-field__input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+.auth-field__input--bad { border-color: #dc2626; }
+.auth-field__err {
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: #dc2626;
+  min-height: 1em;
+}
+
+.auth-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--muted-fg);
+  cursor: pointer;
+}
+.auth-check input { width: 16px; height: 16px; accent-color: var(--acc); cursor: pointer; }
+
+.auth-btn {
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  padding: 11px 16px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  /* 44px minimum touch target. */
+  min-height: 44px;
+}
+.auth-btn:disabled { opacity: 0.6; cursor: default; }
+.auth-btn--primary { background: var(--acc); color: #fff; }
+.auth-btn--danger  { background: #dc2626; color: #fff; }
+.auth-btn--ghost {
+  background: transparent;
+  border: 1.5px solid var(--border);
+  color: var(--fg);
+  font-size: 13px;
+  min-height: 38px;
+  padding: 8px 14px;
+  width: auto;
+}
+
+.auth-link {
+  background: none;
+  border: none;
+  padding: 6px 2px;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--primary);
+  cursor: pointer;
+  text-align: left;
+}
+.auth-link:hover { text-decoration: underline; }
+.auth-link--danger { color: #dc2626; }
+
+.auth-note {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--surface-amber);
+  border: 1px solid var(--amber-border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+.auth-note--ok { background: var(--surface-green); border-color: var(--border); }
+.auth-note__title {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--amber-text);
+}
+.auth-note__body {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--muted-fg);
+}
+
+/* The header control. Inherits whichever header's pill classes it was given,
+   so it sits in the existing row rather than introducing a second style. */
+.account-pill--in {
+  font-weight: 800;
+  min-width: 26px;
+  text-align: center;
+}
+.account-pill--pending { opacity: 0.35; }
