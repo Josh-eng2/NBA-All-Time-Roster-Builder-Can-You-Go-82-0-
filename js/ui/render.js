@@ -253,8 +253,12 @@ function accountPillHtml(cls, { signedInOnly = false } = {}) {
       : `<span class="${cls} account-pill account-pill--pending" aria-hidden="true">·</span>`;
   }
   if (!user) {
+    // --text marks the one account state that carries WORDS rather than a
+    // glyph. The desktop header sizes every icon button in this tray to a
+    // 34px square, which squeezes "Sign in" onto two lines; this class is
+    // what exempts it from that rule.
     return signedInOnly ? ''
-      : `<button data-action="open-auth" type="button" class="${cls} account-pill"
+      : `<button data-action="open-auth" type="button" class="${cls} account-pill account-pill--text"
           title="Sign in" aria-label="Sign in">Sign in</button>`;
   }
   const initial = (user.email || '?').trim().charAt(0).toUpperCase();

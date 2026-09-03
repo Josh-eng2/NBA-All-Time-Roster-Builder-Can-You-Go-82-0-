@@ -295,7 +295,7 @@
   }
 
   .app-header__actions .header-pill--icon,
-  .mode-header__actions > button[data-action^="open-"],
+  .mode-header__actions > button[data-action^="open-"]:not(.account-pill--text),
   .mode-header__actions .theme-toggle {
     width: 34px;
     height: 32px;
@@ -308,8 +308,27 @@
     transition: background 0.15s ease, border-color 0.15s ease;
   }
   .app-header__actions .header-pill--icon:hover,
-  .mode-header__actions > button[data-action^="open-"]:hover,
+  .mode-header__actions > button[data-action^="open-"]:not(.account-pill--text):hover,
   .mode-header__actions .theme-toggle:hover {
+    background: var(--dk-inset) !important;
+    border-color: var(--dk-blue) !important;
+  }
+
+  /* The account pill is the one button in this tray carrying words instead
+     of a glyph, so it is exempt from the fixed 34px square above. It keeps
+     the tray's height, radius, border and colours so the group still reads
+     as one unit — only the width is allowed to follow its label. */
+  .mode-header__actions > button.account-pill--text {
+    height: 32px;
+    padding: 0 12px !important;
+    border-radius: 9px !important;
+    border: 1px solid var(--dk-line) !important;
+    background: var(--dk-panel-2) !important;
+    font-size: 12px;
+    color: var(--dk-body) !important;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+  .mode-header__actions > button.account-pill--text:hover {
     background: var(--dk-inset) !important;
     border-color: var(--dk-blue) !important;
   }

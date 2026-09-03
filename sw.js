@@ -152,7 +152,14 @@
 //       render.js now points at logo-crest.png. The header was loading the
 //       full 1.7 MB master (82-0-logo.png) to draw it 52 px tall, and that
 //       master was precached, so every visitor paid for it on first load.
-const CACHE_VERSION = '820-v25';
+//   v26 the Sign in pill no longer wraps onto two lines. The desktop header
+//       sizes every button in its tray to a 34px square via a
+//       [data-action^="open-"] selector, which the account button matched —
+//       correct for the single-glyph icons, but it squeezed "Sign in" into a
+//       box narrower than the words. Changed: render.js, desktop.css and
+//       styles.css, all three precached, so without the bump a returning
+//       player keeps the cached CSS and still sees the broken pill.
+const CACHE_VERSION = '820-v26';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 
