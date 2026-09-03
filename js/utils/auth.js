@@ -58,11 +58,18 @@ import { getFirebaseApp, SDK_BASE } from './firebase.js';
 // ── Feature gate ──────────────────────────────────────────────────────────────
 
 /**
- * THE off switch. One constant, defaulting to off, so the whole account
- * surface can ship, be reviewed and be deployed while production stays
- * exactly as it is. Flipping this to true is the entire switch-on step.
+ * THE off switch, now on.
+ *
+ * The whole account surface shipped behind this constant so it could be
+ * written, reviewed and deployed while production stayed exactly as it was.
+ * Setting it back to false is the complete rollback: it removes the pill, the
+ * modal and all cloud traffic in one line, and touches no player data — local
+ * saves are untouched either way, because they are what the game plays from.
+ *
+ * Rolling back also needs a CACHE_VERSION bump in sw.js, or returning players
+ * keep the cached module with the old value.
  */
-export const ACCOUNTS_ENABLED = false;
+export const ACCOUNTS_ENABLED = true;
 
 /**
  * Accounts are a FIRST-PARTY-DOMAIN feature and must never appear inside a

@@ -135,7 +135,13 @@
 //       FAQ answer from the precache. That answer is a claim about what data
 //       the game collects, so a stale copy is exactly the one that must not
 //       be left in place.
-const CACHE_VERSION = '820-v23';
+//   v24 accounts switched on. js/utils/auth.js changed: ACCOUNTS_ENABLED is
+//       now true, which is the whole of the change — the modules it gates
+//       have shipped since v22. auth.js is precached, so without this bump a
+//       returning player keeps the cached copy holding the old `false` and
+//       never sees accounts at all, while a new visitor does. The same bump
+//       is required to roll back.
+const CACHE_VERSION = '820-v24';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 
