@@ -71,7 +71,12 @@ Tailwind is compiled ahead of time into the committed `css/tailwind.css`; re-run
 global leaderboard/analytics and degrades gracefully if unavailable.
 
 Generated assets have regeneration scripts: `scripts/build_favicon.sh` (favicon.ico from
-`favicon.svg`) and `scripts/build_og_image.sh` (og-image.png from `og-image.svg`).
+`logo-crest.png`) and `scripts/build_og_image.sh` (og-image.png from `og-image.html`).
+
+The brand mark is `82-0-logo.png`; `logo-crest.png` is that artwork cropped to the crest and
+squared, and is what the game, the favicon and the share card actually render. Both sources
+are raster, which is why neither derives from an SVG any more: Chromium refuses to decode an
+SVG that wraps a raster `<image>`, so an SVG wrapper rasterizes to a blank icon.
 
 Static content pages are generated from the player database, so they can never drift from
 what the game deals: `daily/<slug>.html` (one per Daily Challenge), `teams/<slug>.html` and

@@ -66,7 +66,7 @@ function roundRect(ctx, x, y, w, h, r) {
 }
 
 // Manual per-character advance — ctx.letterSpacing isn't supported on older
-// Safari, and this project's other share/branding assets (og-image.svg) all
+// Safari, and this project's other share/branding assets (og-image.html) all
 // use tracked-out uppercase headers, so the card needs to match that look.
 function fillTextTracked(ctx, text, x, y, spacing, align = 'left') {
   const chars  = [...text];

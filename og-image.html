@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<!-- Source for the 1200x630 og-image.png referenced by the og:image /
+     twitter:image meta tags. Rasterize with scripts/build_og_image.sh.
+
+     This is HTML rather than the SVG it replaces because the crest is raster
+     artwork: Chromium refuses to decode an SVG that wraps a raster <image>,
+     so an all-SVG card could only ever have shown the retired roundel. The
+     background, rules and every piece of type are still the same inline SVG
+     they always were - only the crest moved out into an <img> layered over
+     it, so the card's typography and metrics are unchanged. -->
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  * { margin: 0; padding: 0; }
+  /* The dark ground is painted on the page itself as well as in the SVG:
+     headless Chromium reports a viewport a little shorter than the window it
+     is given, and without this the unpainted strip screenshots as white. */
+  html, body { width: 1200px; height: 630px; background: #0a1120; overflow: hidden; }
+  body { position: relative; }
+  /* #card stays in flow so it establishes the 630px height; only the crest
+     is layered over it. */
+  #card { display: block; }
+  #crest { position: absolute; }
+  /* Where the old roundel sat: translate(950,315) with r=175 and a 12px ring,
+     so a 362px box centred on (950,315). */
+  #crest { left: 769px; top: 134px; width: 362px; height: 362px; }
+</style>
+</head>
+<body>
+<svg id="card" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <radialGradient id="bg" cx="65%" cy="50%" r="80%">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0a1120"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Subtle grid lines for depth -->
+  <line x1="0" y1="628" x2="1200" y2="628" stroke="#f97316" stroke-width="3" opacity="0.6"/>
+  <line x1="0" y1="2" x2="1200" y2="2" stroke="#f97316" stroke-width="2" opacity="0.15"/>
+
+  <!-- Left accent bar -->
+  <rect x="100" y="178" width="72" height="5" fill="#f97316" rx="2.5"/>
+
+  <!-- "CAN YOU GO" label -->
+  <text x="100" y="163"
+    font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif"
+    font-size="30" font-weight="900" fill="#f97316"
+    letter-spacing="10">CAN YOU GO</text>
+
+  <!-- "82-0" hero text -->
+  <text x="80" y="415"
+    font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif"
+    font-size="248" font-weight="900" fill="#ffffff"
+    letter-spacing="-12">82-0</text>
+
+  <!-- Subtitle -->
+  <text x="104" y="476"
+    font-family="'Helvetica Neue', Arial, sans-serif"
+    font-size="21" font-weight="400" fill="#64748b"
+    letter-spacing="7">THE ALL-TIME NBA ROSTER BUILDER</text>
+
+  <!-- Domain -->
+  <text x="104" y="522"
+    font-family="'Helvetica Neue', Arial, sans-serif"
+    font-size="15" font-weight="400" fill="#334155"
+    letter-spacing="3">canyougo820.com</text>
+
+  <!-- Orange dot accent beside subtitle -->
+  <circle cx="91" cy="470" r="5" fill="#f97316"/>
+</svg>
+
+<!-- The approved crest, in place of the roundel this card used to draw -->
+<img id="crest" src="logo-crest.png" alt="">
+</body>
+</html>

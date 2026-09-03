@@ -141,7 +141,18 @@
 //       returning player keeps the cached copy holding the old `false` and
 //       never sees accounts at all, while a new visitor does. The same bump
 //       is required to roll back.
-const CACHE_VERSION = '820-v24';
+//   v25 the approved crest reaches the icons too. v20 put it in the menu
+//       header but left every icon on the old roundel, so the favicon Google
+//       Search shows, the installed-app icon and the share card still carried
+//       the retired mark. Changed: favicon.ico, icons/icon-{192,512}.png and
+//       icons/apple-touch-icon.png (all precached), og-image.png, and
+//       render.js. favicon.svg is deleted: the crest is raster artwork and
+//       Chromium will not decode an SVG that wraps a raster <image>, so that
+//       file could only ever have served the retired mark or a blank icon.
+//       render.js now points at logo-crest.png. The header was loading the
+//       full 1.7 MB master (82-0-logo.png) to draw it 52 px tall, and that
+//       master was precached, so every visitor paid for it on first load.
+const CACHE_VERSION = '820-v25';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 
@@ -149,8 +160,8 @@ const PRECACHE_URLS = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './favicon.svg',
-  './82-0-logo.png',
+  './favicon.ico',
+  './logo-crest.png',
   './css/tailwind.css',
   './css/styles.css',
   './css/desktop.css',

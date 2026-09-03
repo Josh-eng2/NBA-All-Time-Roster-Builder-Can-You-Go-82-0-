@@ -594,7 +594,7 @@ function renderModeSelect() {
   <div class="flex flex-col min-h-screen main-gradient">
     <header class="sticky top-0 z-50 w-full bg-white border-b border-border mode-header" style="box-shadow:0 1px 3px var(--header-shadow)">
       <div class="mx-auto flex h-14 max-w-2xl items-center justify-between px-4 mode-header__inner">
-        <img src="82-0-logo.png" alt="82-0" class="mode-header__logo" style="height:52px;width:auto;margin-top:2px"/>
+        <img src="logo-crest.png" alt="Can You Go 82-0?" class="mode-header__logo" style="height:52px;width:auto;margin-top:2px"/>
         <div class="flex items-center gap-1.5 justify-end mode-header__actions">
           <button data-action="open-daily-stats" class="text-[11px] px-2 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Daily Challenge Stats" aria-label="Daily Challenge Stats">📊</button>
           <button data-action="open-leaderboard" class="text-[11px] px-2 py-1 rounded-full border border-border bg-card2 text-muted-fg hover:border-primary hover:text-primary transition-all cursor-pointer" title="Personal Best" aria-label="Personal Best">🏅</button>
