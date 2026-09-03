@@ -2745,3 +2745,16 @@ button.autopsy-strip:hover {
   text-align: center;
 }
 .account-pill--pending { opacity: 0.35; }
+
+/* The signed-out state is the only account control with a text label, and it
+   sits in a row otherwise made of single-glyph buttons. Below the desktop
+   breakpoint it keeps the row's rounded-full shape and just gives the words
+   room: without the nowrap, "Sign in" breaks across two lines in the narrow
+   box the surrounding buttons are sized for. */
+.account-pill--text {
+  white-space: nowrap;
+  font-weight: 700;
+  line-height: 1.25;
+  padding-left: 10px;
+  padding-right: 10px;
+}
