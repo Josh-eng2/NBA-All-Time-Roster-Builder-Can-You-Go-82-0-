@@ -140,12 +140,17 @@
   <meta name="description" content="Free 82-0 NBA team generator &amp; all-time roster builder. Spin the wheel, draft legends from every era, pick your coach, and simulate 82 games — can you go 82-0?" />
   <link rel="canonical" href="https://canyougo820.com/" />
   <!-- ICO first: Google Search's favicon fetcher (and other crawlers/older
-       browsers) don't reliably rasterize SVG-only favicons and were falling
-       back to a generic icon instead of our logo. favicon.ico is also
-       reachable at the conventional /favicon.ico root path as a fallback
-       even without this tag. Regenerate via scripts/build_favicon.sh. -->
+       browsers) don't reliably rasterize SVG favicons and were falling back
+       to a generic icon instead of our logo. favicon.ico is also reachable at
+       the conventional /favicon.ico root path as a fallback even without this
+       tag. Regenerate via scripts/build_favicon.sh.
+
+       No SVG favicon: the 82-0 crest is raster artwork, and Chromium refuses
+       to decode an SVG that wraps a raster <image> (it renders as a blank
+       icon), so a PNG is the honest format for it. icon-192.png doubles as
+       the high-DPI tab icon and the PWA icon. -->
   <link rel="icon" href="favicon.ico" sizes="48x48" />
-  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192" />
   <!-- Progressive Web App — installable from Chrome/Edge/Safari "Add to Home Screen" -->
   <link rel="manifest" href="manifest.webmanifest" />
   <meta name="theme-color" content="#0d1526" />
@@ -173,7 +178,7 @@
   <meta property="og:title"       content="Can You Go 82-0? NBA Team Generator &amp; Roster Builder" />
   <meta property="og:description" content="Draft an all-time NBA roster from legends across every era, pick your coach, and run the season simulator — can you go a perfect 82-0?" />
   <!-- PNG, not SVG — Facebook/Twitter/most crawlers won't render SVG previews.
-       Regenerated from og-image.svg (see scripts/build_og_image.sh). -->
+       Regenerated from og-image.html (see scripts/build_og_image.sh). -->
   <meta property="og:image"       content="https://canyougo820.com/og-image.png" />
   <meta property="og:image:width"  content="1200" />
   <meta property="og:image:height" content="630" />

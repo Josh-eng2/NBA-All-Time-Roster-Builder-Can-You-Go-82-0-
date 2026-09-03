@@ -215,7 +215,7 @@ function renderPage(ch, slug, dates) {
   <meta name="description" content="${esc(metaDesc)}" />
   <link rel="canonical" href="${url}" />
   <link rel="icon" href="../favicon.ico" sizes="48x48" />
-  <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="../icons/icon-192.png" type="image/png" sizes="192x192" />
   <!-- max-image-preview:none — same Google-search-thumbnail-suppression
        policy as index.html (see the comment there for the Discover
        tradeoff). og:image / twitter:image below are untouched — social

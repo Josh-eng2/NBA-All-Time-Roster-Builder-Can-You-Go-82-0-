@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
-# Rasterizes favicon.svg into favicon.ico (16/32/48px, PNG-in-ICO) so search
-# engines and crawlers that don't support SVG favicons — Google Search's
-# favicon fetcher included — have a supported fallback at the conventional
-# /favicon.ico location. Re-run after editing favicon.svg.
+# Rasterizes logo-crest.png into favicon.ico (16/32/48px, PNG-in-ICO) — the
+# icon Google Search's favicon fetcher and every browser tab actually use.
+# Re-run after changing logo-crest.png.
+#
+# The source is the approved crest raster (logo-crest.png), not an SVG: the
+# brand mark is raster artwork, and Chromium refuses to decode an SVG that
+# embeds a raster <image>, so an SVG wrapper rasterizes to a blank icon here.
 # Requires a Chromium/Chrome binary; pass its path as $1 or have `chromium`
 # on PATH.
 set -euo pipefail
@@ -18,7 +21,7 @@ cat > "$TMPDIR/render.html" <<HTML
 <!DOCTYPE html><html><head><style>
 html,body{margin:0;padding:0;background:transparent}
 img{display:block;width:100vw;height:100vh}
-</style></head><body><img src="$(pwd)/favicon.svg"></body></html>
+</style></head><body><img src="$(pwd)/logo-crest.png"></body></html>
 HTML
 
 for SIZE in "${SIZES[@]}"; do
