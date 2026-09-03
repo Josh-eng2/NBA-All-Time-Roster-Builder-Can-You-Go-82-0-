@@ -135,7 +135,13 @@
 //       FAQ answer from the precache. That answer is a claim about what data
 //       the game collects, so a stale copy is exactly the one that must not
 //       be left in place.
-//   v24 the approved crest reaches the icons too. v20 put it in the menu
+//   v24 accounts switched on. js/utils/auth.js changed: ACCOUNTS_ENABLED is
+//       now true, which is the whole of the change — the modules it gates
+//       have shipped since v22. auth.js is precached, so without this bump a
+//       returning player keeps the cached copy holding the old `false` and
+//       never sees accounts at all, while a new visitor does. The same bump
+//       is required to roll back.
+//   v25 the approved crest reaches the icons too. v20 put it in the menu
 //       header but left every icon on the old roundel, so the favicon Google
 //       Search shows, the installed-app icon and the share card still carried
 //       the retired mark. Changed: favicon.ico, icons/icon-{192,512}.png and
@@ -146,7 +152,7 @@
 //       render.js now points at logo-crest.png. The header was loading the
 //       full 1.7 MB master (82-0-logo.png) to draw it 52 px tall, and that
 //       master was precached, so every visitor paid for it on first load.
-const CACHE_VERSION = '820-v24';
+const CACHE_VERSION = '820-v25';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 
