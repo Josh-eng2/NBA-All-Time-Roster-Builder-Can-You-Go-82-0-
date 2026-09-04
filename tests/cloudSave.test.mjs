@@ -210,6 +210,57 @@ test('daily streak follows the later pass date, not the larger number', () => {
   assert.equal(mergeSaves(sameA, sameB).save.daily.streak.streak, 6);
 });
 
+test('a Daily failed after the last pass keeps the streak broken', () => {
+  // storage.js markDailyPlayed() zeroes the streak on a failure but leaves
+  // lastPassDate on the day that DID pass, so both sides share an anchor and
+  // disagree only on the count — which is exactly the case "same anchor, take
+  // the longer count" would resolve the wrong way. The lock record for the
+  // later, failed day is what settles it.
+  const failed = snap({ daily: {
+    last:   { date: '2026-09-03', wins: 20, passed: false, score: 200, at: 2000 },
+    streak: { streak: 0, lastPassDate: '2026-09-02' },
+    stats:  null,
+  } });
+  const stale = snap({ daily: {
+    last:   { date: '2026-09-02', wins: 70, passed: true, score: 900, at: 1000 },
+    streak: { streak: 7, lastPassDate: '2026-09-02' },
+    stats:  null,
+  } });
+
+  assert.equal(mergeSaves(failed, stale).save.daily.streak.streak, 0,
+    'a cloud merge must not hand back a streak the player has already broken');
+  assert.equal(mergeSaves(stale, failed).save.daily.streak.streak, 0,
+    'and must not depend on merge order');
+  assert.equal(mergeSaves(failed, stale).save.daily.streak.lastPassDate, '2026-09-02',
+    'the anchor day itself still stands — only the count was broken');
+
+  // A pass on a day AFTER the last recorded failure is a live chain again.
+  const passedLater = snap({ daily: {
+    last:   { date: '2026-09-04', wins: 70, passed: true, score: 900, at: 3000 },
+    streak: { streak: 1, lastPassDate: '2026-09-04' },
+    stats:  null,
+  } });
+  assert.equal(mergeSaves(passedLater, failed).save.daily.streak.streak, 1);
+
+  // A failure on or before the anchor day says nothing about the chain: the
+  // same-day case is the double-play one mergeDailyLast already arbitrates.
+  const sameDay = snap({ daily: {
+    last:   { date: '2026-09-02', wins: 20, passed: false, score: 200, at: 500 },
+    streak: { streak: 7, lastPassDate: '2026-09-02' },
+    stats:  null,
+  } });
+  assert.equal(mergeSaves(sameDay, stale).save.daily.streak.streak, 7);
+
+  // A lock record from before the challenge system has no `passed` field at
+  // all — it must not be read as a failure.
+  const preChallenge = snap({ daily: {
+    last:   { date: '2026-09-03', wins: 20, at: 2000 },
+    streak: { streak: 7, lastPassDate: '2026-09-02' },
+    stats:  null,
+  } });
+  assert.equal(mergeSaves(preChallenge, stale).save.daily.streak.streak, 7);
+});
+
 test("today's Daily lock cannot be dodged by switching devices", () => {
   const played = { date: '2026-09-02', wins: 55, passed: false, score: 550, at: 1000 };
   const none   = snap({ daily: { last: null, streak: null, stats: null } });

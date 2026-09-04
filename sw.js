@@ -159,7 +159,22 @@
 //       box narrower than the words. Changed: render.js, desktop.css and
 //       styles.css, all three precached, so without the bump a returning
 //       player keeps the cached CSS and still sees the broken pill.
-const CACHE_VERSION = '820-v26';
+//   v27 cloud-save and ad-SDK correctness pass. Changed precached files:
+//       js/utils/cloudSave.js (a routine upload now merges the fetched remote
+//       before writing, so a stale or storage-blocked device can no longer
+//       push an account backwards, and a merged Daily streak is broken by a
+//       later failed attempt instead of being restored), js/ui/events.js (a
+//       session restored at boot now pulls the account's save down — nothing
+//       did before — and Dynasty Duel / dual-draft results now schedule their
+//       own sync), js/ui/authModal.js (account deletion stops instead of
+//       orphaning the cloud save when that delete fails), js/logic/simulation.js
+//       and js/ui/render.js (a curated popularity of 0 is no longer read as
+//       50), and index.html (the GameDistribution SDK is no longer injected
+//       inside the CrazyGames iframe, where it would be a second ad system).
+//       Every one of those is precached: without the bump a returning player
+//       keeps the old copies, and the cloud-save fixes are exactly the ones
+//       that must not wait for a cache to expire.
+const CACHE_VERSION = '820-v27';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 
@@ -269,8 +284,14 @@ self.addEventListener('fetch', event => {
 async function networkFirst(request) {
   try {
     const fresh = await fetch(request);
-    const cache = await caches.open(RUNTIME);
-    cache.put(request, fresh.clone());
+    // Only a successful page is worth keeping. A 404 or a 502 from a blip
+    // mid-deploy would otherwise be cached as this navigation's offline copy
+    // and served back later in place of the game — cacheFirst() below has
+    // always made the same check.
+    if (fresh && fresh.ok) {
+      const cache = await caches.open(RUNTIME);
+      cache.put(request, fresh.clone());
+    }
     return fresh;
   } catch (_) {
     const cached = await caches.match(request);

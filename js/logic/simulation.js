@@ -439,8 +439,13 @@ export function simulateSeason(starters, coach = null, profile = null) {
   const MUL_MIN     = simProfile === 'fans' ? 0.90 : 0.97;
   const MUL_MAX     = simProfile === 'fans' ? 1.12 : 1.04;
   const allPlayers  = starters;
+  // `?? 50` and never `|| 50`: 0 is a curated popularity in the NAMED table
+  // (scripts/add_popularity.js), not a missing one, and `||` silently promoted
+  // it to the 50 used for a player who has no value at all — so the sim scored
+  // a roster differently from the popularity gauge and Fans First card, which
+  // have always read the same players with `??`.
   const avgPop      = allPlayers.length
-    ? allPlayers.reduce((s, p) => s + (p.popularity || 50), 0) / allPlayers.length
+    ? allPlayers.reduce((s, p) => s + (p.popularity ?? 50), 0) / allPlayers.length
     : 50;
   // No upper clamp: a roster averaging above POP_CEIL keeps pushing popMul
   // past MUL_MAX instead of capping out at the same boost as exactly 100.
