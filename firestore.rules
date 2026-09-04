@@ -57,6 +57,24 @@
 // against a 937-player database: headroom for the data to grow, deliberately
 // loose for the same reason avgPopularity is.
 //
+// dailyLeaderboard score: asserted EQUAL to wins * 10 + (passed ? 200 : 0),
+// not merely bounded. This is the one place in either public collection where
+// a submitted number can be checked against the rest of its own document
+// instead of taken on trust, and `score` is the board's primary sort key — a
+// bare range let anything inside it top the day outright. The formula is
+// dailyScore() in js/logic/challenge.js, mirrored by buildDailyDoc() in
+// js/utils/firebase.js (which recomputes rather than forwards `score`, so no
+// legitimate submission can miss this) and re-checked on read by
+// fetchDailyLeaderboard() for documents written before the rule. It is also
+// the rule the setup-instructions comment at the top of js/utils/firebase.js
+// has always documented — this file had drifted to `score >= 0 && <= 2000`,
+// which is the looser of the two and was NOT what that comment described.
+//
+// This does not make the boards forgery-proof, and cannot: anyone holding the
+// public web config can write a document, so every rule here bounds what a
+// forgery may CLAIM rather than proving a run happened. Doing better needs a
+// server to sign results, which this project deliberately does not have.
+//
 // uid on leaderboard/dailyLeaderboard: optional, and when present must equal
 // the writer's own auth uid. Anonymous submissions omit it entirely and are
 // completely unaffected — they remain the overwhelming majority and must
@@ -198,8 +216,9 @@ service cloud.firestore {
                     && request.resource.data.challengeId.size() <= 40
                     && request.resource.data.passed is bool
                     && request.resource.data.score is number
-                    && request.resource.data.score >= 0
-                    && request.resource.data.score <= 2000
+                    && request.resource.data.score ==
+                         request.resource.data.wins * 10
+                         + (request.resource.data.passed ? 200 : 0)
                     && optionalOwnUid();
       allow update, delete: if false;
     }

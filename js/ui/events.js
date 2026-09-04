@@ -45,7 +45,7 @@ import {
 import { showInstallPrompt, dismissInstallPrompt } from '../utils/install.js';
 import { accountsEnabled, onAuthChanged } from '../utils/auth.js';
 import { showAuthModal } from './authModal.js';
-import { requestSync, flushUpload } from '../utils/cloudSave.js';
+import { requestSync, flushUpload, syncOnSignIn } from '../utils/cloudSave.js';
 import { seasonTier } from '../logic/seasonTier.js';
 import { computeRunXp, addXp, CHAMPION_BONUS_XP } from '../logic/progression.js';
 import {
@@ -82,6 +82,7 @@ export function bindEvents() {
 // the same attach-once guard the click listener already has.
 
 let _authUid = null;
+let _syncedUid = null;
 
 /**
  * Phases where a re-render is safe. A draft holds live, unsaved input — a
@@ -97,6 +98,22 @@ function initAccounts() {
 
   onAuthChanged(user => {
     _authUid = user?.uid || null;
+    // A session restored at boot never goes through the auth modal, so nothing
+    // else pulls the account's save down: without this, a returning signed-in
+    // player plays on whatever this device happens to hold and the next upload
+    // is the only thing the account ever hears about. Once per uid — a merge
+    // that HAS run through the modal is the same additive, order-independent
+    // operation, so a repeat would be harmless, just needless traffic.
+    if (_authUid && _syncedUid !== _authUid) {
+      _syncedUid = _authUid;
+      // Silent by design: the modal announces a merge the player asked for,
+      // a boot-time one is housekeeping. Local progress is untouched if it
+      // fails, which is what the game plays from.
+      Promise.resolve(syncOnSignIn(_authUid)).then(res => {
+        if (res?.ok && AUTH_RERENDER_PHASES.includes(S.phase)) render();
+      }).catch(() => {});
+    }
+    if (!_authUid) _syncedUid = null;
     if (AUTH_RERENDER_PHASES.includes(S.phase)) render();
   });
 
@@ -889,6 +906,10 @@ function placePlayer(pos) {
           date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
         });
       }
+      // This branch never reaches doSimulate(), which is where every other
+      // mode's sync is scheduled — the legends just recorded and the GM vs AI
+      // board would otherwise only reach the account on some later run.
+      syncProgress();
       render(); return true;
     }
 
@@ -1011,6 +1032,10 @@ function doSimulate() {
       date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
     });
     logAnalyticsEvent('dynasty_duel_series', { opponent: opponent.name, won, score });
+    // Same reason as the dual-draft branch: this returns above the shared
+    // syncProgress() below, so the legends, the weekly lock/streak and the
+    // duel board it just wrote need their own scheduled upload.
+    syncProgress();
     S.phase = 'series-preview';
     render();
     return;

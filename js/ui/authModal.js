@@ -374,8 +374,20 @@ async function doDelete() {
   const user = await getCurrentUser();
   setBusy(true, 'Deleting…');
   // Cloud save first: once the auth account is gone the rules no longer let
-  // anyone — including us — touch the document it owned.
-  if (user?.uid) await deleteCloudSave(user.uid);
+  // anyone — including us — touch the document it owned. So a failure here
+  // has to STOP the deletion: carrying on would erase the only credential
+  // that can ever reach that document again and leave the player's saved
+  // progress — and the display name on it — stranded in the database with
+  // nobody able to read or remove it. The account is untouched, so the player
+  // can simply try again.
+  if (user?.uid) {
+    const wiped = await deleteCloudSave(user.uid);
+    if (!wiped?.ok) {
+      setBusy(false);
+      banner('Could not delete your cloud save, so your account was left alone. Check your connection and try again.');
+      return;
+    }
+  }
   const res = await deleteAccount();
   setBusy(false);
   if (!res.ok) { banner(humanError(res.code)); return; }

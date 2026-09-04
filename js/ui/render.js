@@ -932,7 +932,7 @@ function renderModeDraftBanner() {
   if (S.mode === 'fans') {
     const starters = Object.values(S.roster || {}).filter(Boolean);
     const avg = starters.length
-      ? starters.reduce((s, p) => s + (p.popularity || 50), 0) / starters.length
+      ? starters.reduce((s, p) => s + (p.popularity ?? 50), 0) / starters.length
       : 0;
     // No upper clamp — mirrors simulation.js's unclamped popNorm so the live
     // preview doesn't undersell a roster averaging above 100 popularity.

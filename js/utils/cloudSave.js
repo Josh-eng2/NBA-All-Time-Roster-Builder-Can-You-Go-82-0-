@@ -21,7 +21,8 @@
  *   legends            union      a drafted player id is collected forever
  *   lb/trophies/modes  concat, de-dup, re-sort, re-cap
  *   daily stats        per-counter max
- *   daily streak       the record with the later lastPassDate
+ *   daily streak       the record with the later lastPassDate, broken to 0
+ *                      when the merged lock shows a failure after that date
  *   daily lock         later date; same date, the first attempt stands
  *   dynasty duel       later weekKey; same week, the first attempt stands
  *   bests              max
@@ -427,6 +428,34 @@ function mergeDuelStreak(a, b) {
   return wx > wy ? x : y;
 }
 
+/**
+ * Zeroes a merged streak that a later failed Daily has already broken.
+ *
+ * A failed attempt zeroes the streak locally but leaves `lastPassDate` on the
+ * last day that DID pass (storage.js markDailyPlayed), so the failing device
+ * and a device still holding the pre-failure record agree on the anchor date
+ * while disagreeing about the count — and mergeDailyStreak's "the longer count
+ * is the one that actually happened" then hands the broken chain straight
+ * back. The day's own lock record supplies the ordering the anchor cannot: a
+ * FAILED attempt on a day later than the last pass ends the chain there,
+ * whatever count either side is carrying.
+ *
+ * Only a strictly later failure counts. Two devices that both played the same
+ * day and disagree about it is the double-play case mergeDailyLast already
+ * arbitrates ("the first attempt stands"), and a lock record predating the
+ * challenge system has no `passed` field to judge at all — both are left
+ * exactly as they were rather than guessed at.
+ */
+function breakStreakOnLaterFail(streak, last) {
+  const s = obj(streak);
+  const l = obj(last);
+  if (!s || !l || !('passed' in l) || l.passed) return s;
+  const failDate = typeof l.date === 'string' ? l.date : null;
+  const passDate = typeof s.lastPassDate === 'string' ? s.lastPassDate : null;
+  if (!failDate || !passDate || failDate <= passDate) return s;
+  return { ...s, streak: 0 };
+}
+
 /** Daily lifetime stats: every counter only ever rises. */
 function mergeDailyStats(a, b) {
   const x = obj(a);
@@ -514,9 +543,10 @@ export function mergeSaves(a, b) {
 
   const da = obj(sa.daily) || {};
   const db = obj(sb.daily) || {};
+  const dailyLast = mergeDailyLast(da.last, db.last);
   out.save.daily = {
-    last:   mergeDailyLast(da.last, db.last),
-    streak: mergeDailyStreak(da.streak, db.streak),
+    last:   dailyLast,
+    streak: breakStreakOnLaterFail(mergeDailyStreak(da.streak, db.streak), dailyLast),
     stats:  mergeDailyStats(da.stats, db.stats),
   };
 
@@ -663,6 +693,22 @@ export async function syncOnSignIn(uid, displayName) {
 /**
  * Uploads the current local save. Used by the debounced scheduler after a run
  * is saved, XP is added or a Daily is played.
+ *
+ * Read-merge-write, exactly like syncOnSignIn() — never a blind overwrite.
+ * The write is a document-level setDoc(merge: true), so whatever this uploads
+ * REPLACES the remote's arrays and counters, and the local snapshot is not
+ * automatically the newer one: readLocalSave() reports blocked storage as
+ * empty-and-complete (see its comment), and a device that has been idle since
+ * another one played is stale by definition. Either would push the account
+ * backwards. Merging the fetched remote in first makes that impossible — the
+ * merge is additive, so the upload can only ever be a superset of what is
+ * already there.
+ *
+ * A failed fetch aborts rather than falling back to a blind push: if the
+ * remote cannot be read it cannot be safely replaced, and the next save
+ * retries. Local storage is untouched either way, which is what the game
+ * plays from.
+ *
  * @param {string} uid
  * @param {string} [displayName]
  */
@@ -670,7 +716,12 @@ export async function pushLocalSave(uid, displayName) {
   if (!uid) return { ok: false, code: 'no-uid' };
   const { snapshot, complete } = readLocalSave();
   if (!complete) return { ok: false, code: 'local-incomplete' };
-  return writeUserSave(uid, snapshotToRemote(snapshot, displayName));
+
+  const res = await fetchUserSave(uid);
+  if (!res.ok) return { ok: false, code: res.code };
+
+  const merged = res.exists ? mergeSaves(snapshot, remoteToSnapshot(res.data)) : snapshot;
+  return writeUserSave(uid, snapshotToRemote(merged, displayName), { isNew: !res.exists });
 }
 
 /** Schedules a debounced upload of the current local save. */
