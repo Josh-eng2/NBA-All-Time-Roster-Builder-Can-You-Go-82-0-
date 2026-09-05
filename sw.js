@@ -213,7 +213,15 @@
 //       cache roll, because a cached bundle can only read keys it already
 //       knows about. Without the bump a returning player keeps a main.js that
 //       never fetches and a simulation.js pinned to the shipped constants.
-const CACHE_VERSION = '820-v30';
+//   v31 analytics roster params. Changed precached file: js/ui/events.js
+//       (season_simulated and championship_won now carry chemScore,
+//       avgPopularity and fansM, the same trio buildGlobalScorePayload()
+//       already sends to the leaderboard). Analytics-only, so nothing a
+//       returning player can SEE is wrong without the bump — but the old copy
+//       keeps sending the old payload, and an event stream that is silently
+//       half-instrumented for however long a cache survives is worse to
+//       analyse later than one that simply starts on a known date.
+const CACHE_VERSION = '820-v31';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 
