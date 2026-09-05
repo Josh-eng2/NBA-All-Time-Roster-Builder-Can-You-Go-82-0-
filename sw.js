@@ -194,7 +194,14 @@
 //       Trophy Room. js/vendor/confetti.browser.js is deliberately NOT
 //       precached: it stays lazily loaded, and the runtime cache picks it up
 //       the first time a celebration fires.
-const CACHE_VERSION = '820-v28';
+//   v29 analytics roster params. Changed precached file: js/ui/events.js
+//       (season_simulated and championship_won now carry chemScore,
+//       avgPopularity and fansM). Analytics-only, so nothing a returning
+//       player can see is wrong without the bump — but the old copy keeps
+//       sending the old four-field payload, and an event stream that is
+//       silently half-instrumented for however long a cache survives is
+//       worse to analyse later than one that simply starts on a known date.
+const CACHE_VERSION = '820-v29';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 
