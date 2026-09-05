@@ -74,6 +74,10 @@ degrades gracefully if unavailable. Firebase App Check (reCAPTCHA v3) attests th
 leaderboard writes come from the real site rather than a script holding the public
 config — the site key and the Console steps are in the header comment of
 `js/utils/firebase.js`, and `firestore.rules` explains what it does and does not prove.
+Firebase Remote Config (`js/utils/remoteConfig.js`) carries a handful of values —
+the accounts kill switch and the sim curve — over the network at runtime, so they can
+be changed without a deploy or a service-worker cache roll; the shipped `DEFAULTS` in
+that file are what every client uses when it is unreachable.
 
 Generated assets have regeneration scripts: `scripts/build_favicon.sh` (favicon.ico from
 `logo-crest.png`) and `scripts/build_og_image.sh` (og-image.png from `og-image.html`).

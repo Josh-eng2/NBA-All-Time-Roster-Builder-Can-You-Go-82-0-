@@ -13,6 +13,7 @@ import { S, startGame } from './logic/state.js';
 import { logAnalyticsEvent }          from './utils/firebase.js';
 import { captureReferral }            from './utils/referral.js';
 import { initInstallPrompt }          from './utils/install.js';
+import { initRemoteConfig }           from './utils/remoteConfig.js';
 import { isReturningPlayer }          from './utils/storage.js';
 import { cgLoadingStart, cgLoadingStop, initCrazyGamesData } from './utils/crazygames.js';
 import { initViewport }                from './utils/viewport.js';
@@ -45,6 +46,11 @@ async function init() {
   // — miss it and there is no way to ask for an install later.
   captureReferral();
   initInstallPrompt();
+  // Deliberately NOT awaited. Every consumer reads through configValue(),
+  // which answers synchronously with the shipped default until this lands, so
+  // a slow or blocked fetch costs nothing but the published values — while an
+  // await here would put a network round trip in front of the first paint.
+  initRemoteConfig();
   cgLoadingStart();
   // Must resolve before anything below reads/writes saved progress (Legends,
   // Trophy Room, personal bests) — decides whether those go through the

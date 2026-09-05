@@ -203,7 +203,17 @@
 //       is rejected server-side. Installed PWAs are exactly the clients that
 //       would sit on that old copy, so the cache must roll BEFORE enforcement
 //       is enabled — ship this, let it propagate, then flip the toggle.
-const CACHE_VERSION = '820-v29';
+//   v30 Remote Config. New precached module: js/utils/remoteConfig.js, plus
+//       changed js/main.js (kicks the fetch off, unawaited), js/utils/auth.js
+//       (accountsEnabled() now ANDs in the accounts_enabled key) and
+//       js/logic/simulation.js (the sim curve reads sim_k/sim_center/win_cap
+//       at simulate time). This bump is the LAST one those four values will
+//       need: that is the point of the change — from here a value moves by
+//       publishing in the Console, and only a NEW key costs a deploy and a
+//       cache roll, because a cached bundle can only read keys it already
+//       knows about. Without the bump a returning player keeps a main.js that
+//       never fetches and a simulation.js pinned to the shipped constants.
+const CACHE_VERSION = '820-v30';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 
@@ -249,6 +259,7 @@ const PRECACHE_URLS = [
   './js/utils/storage.js',
   './js/utils/viewport.js',
   './js/utils/firebase.js',
+  './js/utils/remoteConfig.js',
   './js/utils/auth.js',
   './js/utils/cloudSave.js',
   './js/utils/crazygames.js',

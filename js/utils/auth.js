@@ -55,6 +55,7 @@
  */
 
 import { getFirebaseApp, SDK_BASE } from './firebase.js';
+import { configValue } from './remoteConfig.js';
 
 // ── Feature gate ──────────────────────────────────────────────────────────────
 
@@ -68,7 +69,13 @@ import { getFirebaseApp, SDK_BASE } from './firebase.js';
  * saves are untouched either way, because they are what the game plays from.
  *
  * Rolling back also needs a CACHE_VERSION bump in sw.js, or returning players
- * keep the cached module with the old value.
+ * keep the cached module with the old value — WHICH IS WHY the Remote Config
+ * key `accounts_enabled` exists (see js/utils/remoteConfig.js) and is ANDed
+ * with this constant in accountsEnabled() below. Publishing that key false
+ * turns the account surface off for every client on its next load without a
+ * deploy or a cache roll, which is what you want in the case that actually
+ * calls for a rollback: something is wrong right now. This constant stays the
+ * committed, reviewable source of truth — a permanent change belongs here.
  */
 export const ACCOUNTS_ENABLED = true;
 
@@ -100,7 +107,12 @@ export function isFramed() {
  * on the network.
  */
 export function accountsEnabled() {
-  return ACCOUNTS_ENABLED && !isFramed();
+  // `!== false` rather than a truthiness test: configValue() returns the
+  // shipped default for an unknown or unfetched key, and the one value that
+  // must switch accounts off is an explicit published false — never a
+  // reachability problem, which is a reason to keep working, not to hide the
+  // account system from a player who may already be signed in.
+  return ACCOUNTS_ENABLED && configValue('accounts_enabled') !== false && !isFramed();
 }
 
 // ── SDK loading ───────────────────────────────────────────────────────────────
