@@ -23,7 +23,7 @@ What is covered:
 | `draft.test.mjs` | player-database integrity, cross-era duplicate prevention, spin pools, skip budgets and skip re-roll pools, the AI GM's pick policy, Legends catalog |
 | `challenge.test.mjs` | Daily Challenge determinism, no back-to-back repeats, every challenge is completable (including a star-chasing fans-budget run, which used to strand), pick legality vs roster check |
 | `rematch.test.mjs` | share-code round trip (a wire format), rejection of malformed codes |
-| `leaderboard-wire.test.mjs` | submitted documents stay inside the deployed Firestore rule ranges — an out-of-range field loses the whole submission |
+| `leaderboard-wire.test.mjs` | submitted documents stay inside the deployed Firestore rule ranges — an out-of-range field loses the whole submission; the optional SDK modules (analytics, performance) can each be blocked without taking the leaderboard down; `measure()` stays invisible when the Performance SDK never loads |
 | `state.test.mjs` | config tables, run resets, snake draft order, daily PRNG seeding, mode config, era normalization, tier/grade agreement |
 | `render.test.mjs` | every screen renders — each phase, both themes, phone and desktop layouts, every roster fill level — with no crash, `NaN` or `undefined` reaching the DOM |
 | `ui-regressions.test.mjs` | UI defects that have shipped: Ball IQ rules surviving a rematch, the share card's tier palette covering the tier set, a half-typed team name surviving a re-render, the URL hash tracking the screen |

@@ -15,7 +15,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { loadGame, flattenDb, bestFive, mod } from './helpers.mjs';
 
-const { buildGlobalDoc, buildDailyDoc, sdkFromSettled, firestoreDbFor, withFirestoreErrorCode } = await import(mod('js/utils/firebase.js'));
+const { buildGlobalDoc, buildDailyDoc, sdkFromSettled, firestoreDbFor, withFirestoreErrorCode, measure } = await import(mod('js/utils/firebase.js'));
 
 // Bounds transcribed from the rules block in js/utils/firebase.js. If the
 // deployed rules ever change, change them here in the same commit.
@@ -172,26 +172,73 @@ const dead = () => ({ status: 'rejected', reason: new Error('ERR_BLOCKED_BY_CLIE
 const APP = { initializeApp() {}, getApps: () => [] };
 const FS  = { getFirestore() {} };
 const AN  = { getAnalytics() {}, logEvent() {} };
+const PF  = { getPerformance() {}, trace() {} };
 
 test('a blocked analytics module still leaves a usable Firestore SDK', () => {
-  const sdk = sdkFromSettled([ok(APP), ok(FS), dead()]);
+  const sdk = sdkFromSettled([ok(APP), ok(FS), dead(), ok(PF)]);
   assert.ok(sdk, 'an ad blocker on firebase-analytics.js must not disable the leaderboard');
   assert.equal(sdk.app, APP);
   assert.equal(sdk.firestore, FS);
   assert.equal(sdk.analytics, null, 'analytics must be reported absent, not faked');
 });
 
+// firebase-performance.js sits on the same blocklists as firebase-analytics.js,
+// so it gets the same optional treatment — it must be able to fail on its own,
+// and it must not drag the leaderboard down with it.
+test('a blocked performance module still leaves a usable Firestore SDK', () => {
+  const sdk = sdkFromSettled([ok(APP), ok(FS), ok(AN), dead()]);
+  assert.ok(sdk, 'an ad blocker on firebase-performance.js must not disable the leaderboard');
+  assert.equal(sdk.firestore, FS);
+  assert.equal(sdk.analytics, AN, 'analytics must survive performance being blocked');
+  assert.equal(sdk.performance, null, 'performance must be reported absent, not faked');
+});
+
+test('both telemetry modules blocked still leaves a usable Firestore SDK', () => {
+  const sdk = sdkFromSettled([ok(APP), ok(FS), dead(), dead()]);
+  assert.ok(sdk, 'the leaderboard needs neither analytics nor performance');
+  assert.equal(sdk.analytics, null);
+  assert.equal(sdk.performance, null);
+});
+
+// An older settle list — before firebase-performance.js was added — has only
+// three entries. Absent must read the same as blocked, never as undefined:
+// measure() guards on `_perf` being falsy, but ensureInit() destructures
+// `sdk.performance ?? {}`, and a missing key must take that same null path.
+test('a missing performance entry reads as absent, not undefined', () => {
+  const sdk = sdkFromSettled([ok(APP), ok(FS), ok(AN)]);
+  assert.ok(sdk);
+  assert.equal(sdk.performance, null);
+});
+
 test('the SDK is unusable only when a module the leaderboard needs is missing', () => {
-  assert.equal(sdkFromSettled([dead(), ok(FS), ok(AN)]), null, 'no firebase-app means no app');
-  assert.equal(sdkFromSettled([ok(APP), dead(), ok(AN)]), null, 'no firestore means no leaderboard');
-  assert.equal(sdkFromSettled([dead(), dead(), dead()]), null, 'everything offline');
+  assert.equal(sdkFromSettled([dead(), ok(FS), ok(AN), ok(PF)]), null, 'no firebase-app means no app');
+  assert.equal(sdkFromSettled([ok(APP), dead(), ok(AN), ok(PF)]), null, 'no firestore means no leaderboard');
+  assert.equal(sdkFromSettled([dead(), dead(), dead(), dead()]), null, 'everything offline');
   assert.equal(sdkFromSettled([]), null, 'a malformed settle list is not a usable SDK');
   assert.equal(sdkFromSettled(), null, 'no arguments is not a usable SDK');
 });
 
-test('all three modules loading gives the full SDK', () => {
-  const sdk = sdkFromSettled([ok(APP), ok(FS), ok(AN)]);
-  assert.deepEqual(sdk, { app: APP, firestore: FS, analytics: AN });
+test('all four modules loading gives the full SDK', () => {
+  const sdk = sdkFromSettled([ok(APP), ok(FS), ok(AN), ok(PF)]);
+  assert.deepEqual(sdk, { app: APP, firestore: FS, analytics: AN, performance: PF });
+});
+
+// ── measure() ────────────────────────────────────────────────────────────────
+// The trace wrapper sits directly in front of simulateSeason() and
+// buildDraftBoard(), so its contract is that it is invisible: under Node the
+// Performance SDK can never load (every https import is rejected by the
+// loader), which is exactly the shape of a browser with an ad blocker.
+
+test('measure() runs the work and returns its value with no SDK present', () => {
+  let ran = 0;
+  const out = measure('simulate_season', () => { ran++; return { wins: 82 }; }, { mode: 'gm-ai' });
+  assert.equal(ran, 1, 'the measured work must run exactly once');
+  assert.deepEqual(out, { wins: 82 }, 'the return value must pass straight through');
+});
+
+test('measure() propagates a throw from the measured work', () => {
+  assert.throws(() => measure('spin_resolve', () => { throw new Error('boom'); }),
+                /boom/, 'the finally block must not swallow the real exception');
 });
 
 // ── Firestore transport: auto-detect long polling ────────────────────────────
