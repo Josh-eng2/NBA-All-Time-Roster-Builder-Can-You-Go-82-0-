@@ -45,7 +45,7 @@ import {
 import { showInstallPrompt, dismissInstallPrompt } from '../utils/install.js';
 import { accountsEnabled, onAuthChanged } from '../utils/auth.js';
 import { showAuthModal } from './authModal.js';
-import { requestSync, flushUpload, syncOnSignIn } from '../utils/cloudSave.js';
+import { requestSync, flushUpload, cancelUpload, syncOnSignIn } from '../utils/cloudSave.js';
 import { seasonTier } from '../logic/seasonTier.js';
 import { computeRunXp, addXp, CHAMPION_BONUS_XP } from '../logic/progression.js';
 import {
@@ -110,10 +110,21 @@ function initAccounts() {
       // a boot-time one is housekeeping. Local progress is untouched if it
       // fails, which is what the game plays from.
       Promise.resolve(syncOnSignIn(_authUid)).then(res => {
+        // A hand-off is the exception to "silent": this device was signed in
+        // to a different account, so its Trophy Room and level just changed
+        // under the player. Saying nothing would read as lost progress.
+        if (res?.handedOff) {
+          showToast('Loaded your account — this device was last used by a different account', 4200);
+        }
         if (res?.ok && AUTH_RERENDER_PHASES.includes(S.phase)) render();
       }).catch(() => {});
     }
-    if (!_authUid) _syncedUid = null;
+    if (!_authUid) {
+      _syncedUid = null;
+      // A queued upload belongs to the session that scheduled it. Letting it
+      // fire after sign-out spends a round trip the rules will reject anyway.
+      cancelUpload();
+    }
     if (AUTH_RERENDER_PHASES.includes(S.phase)) render();
   });
 

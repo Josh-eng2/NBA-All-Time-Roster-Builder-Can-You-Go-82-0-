@@ -174,7 +174,27 @@
 //       Every one of those is precached: without the bump a returning player
 //       keeps the old copies, and the cloud-save fixes are exactly the ones
 //       that must not wait for a cache to expire.
-const CACHE_VERSION = '820-v27';
+//   v28 code-review pass. Changed precached files: js/utils/cloudSave.js (the
+//       merge de-duplicated entries by JSON.stringify, an identity that does
+//       not survive a Firestore round trip — every sync was duplicating
+//       leaderboard rows and trophies until the caps evicted real runs; plus
+//       device ownership, so a shared laptop stops merging one player's
+//       progress into the next player's account), js/ui/authModal.js (the
+//       modal re-wired its root on every repaint, doubling its listeners each
+//       view switch and firing account deletion twice), js/ui/render.js and
+//       js/utils/storage.js (cloud-synced values now escaped/coerced before
+//       reaching innerHTML; confetti loads from the new js/vendor/ instead of
+//       a CDN with no integrity check), js/ui/events.js, js/logic/progression.js,
+//       js/logic/simulation.js, js/logic/draft.js, js/logic/challenge.js,
+//       js/logic/era.js, js/utils/pageIntegrity.js and index.html (title moved
+//       ahead of the SDK scripts so the title lock cannot be armed on a
+//       hijacked value; CSP; cheaper GD ad-overlay observer). The cloud-save
+//       fixes are the ones that must not wait for a cache to expire — a
+//       returning player on the old copy keeps duplicating their own
+//       Trophy Room. js/vendor/confetti.browser.js is deliberately NOT
+//       precached: it stays lazily loaded, and the runtime cache picks it up
+//       the first time a celebration fires.
+const CACHE_VERSION = '820-v28';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 
@@ -228,12 +248,23 @@ const PRECACHE_URLS = [
   './js/utils/install.js',
 ];
 
+// Each URL is added on its own, and a failure is logged rather than thrown.
+//
+// cache.addAll() is all-or-nothing: one 404 — a file renamed without updating
+// the list above, a CDN hiccup mid-deploy — rejected the whole install, so
+// skipWaiting() never ran, the new worker never activated, and every returning
+// visitor stayed on the OLD cache-first bundle indefinitely. That failure is
+// both silent and sticky, which is the worst combination for the mechanism
+// whose entire job is shipping updates. A shell that is one asset short is
+// still worth activating; the missing asset just falls through to the network.
 self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(PRECACHE)
-      .then(cache => cache.addAll(PRECACHE_URLS))
-      .then(() => self.skipWaiting())
-  );
+  event.waitUntil((async () => {
+    const cache = await caches.open(PRECACHE);
+    const results = await Promise.allSettled(PRECACHE_URLS.map(url => cache.add(url)));
+    const failed = PRECACHE_URLS.filter((_, i) => results[i].status === 'rejected');
+    if (failed.length) console.warn('[sw] precache incomplete, activating anyway:', failed);
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener('activate', event => {

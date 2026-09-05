@@ -7,10 +7,43 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <!-- Page-integrity guard (title lock + ad-iframe sandboxing) — loaded
-       before any third-party SDK so protection is active from the first
-       line those SDKs execute. See file header for the incident this
-       defends against. -->
+
+  <!-- Content-Security-Policy, deliberately narrow.
+       Only the directives that are worth having AND actually work in a <meta>
+       tag are here — this site is on GitHub Pages, so there are no response
+       headers to set, and `frame-ancestors` / `report-uri` / `sandbox` are
+       ignored when delivered this way.
+
+       What is NOT here, and why: `script-src`. The app renders inline
+       `onclick=` handlers and inline `style=` attributes throughout (see the
+       modal markup in js/utils/storage.js), and the CrazyGames /
+       GameDistribution SDKs inject scripts and frames from hosts that cannot
+       be listed ahead of time. A script-src that needed 'unsafe-inline' would
+       buy nothing while reading as protection, so it is left for the separate
+       piece of work that removes the inline handlers. The three below cost
+       nothing and each close a real leg of the ad-creative hijack this page
+       has already survived once (see js/utils/pageIntegrity.js):
+         base-uri    — a creative cannot repoint every relative URL on the page
+         object-src  — no <object>/<embed> plugin content, from anyone
+         form-action — nothing on this page may post anywhere but here -->
+  <meta http-equiv="Content-Security-Policy"
+        content="base-uri 'self'; object-src 'none'; form-action 'self'" />
+
+  <!-- The real <title> is parsed BEFORE the page-integrity guard below, and
+       before any third-party SDK. That ordering is the whole point: the guard
+       locks the first title it sees, so with the SDK scripts running first a
+       hostile one could set document.title and have the lock defend the
+       hijacked value instead of this one. Title kept under ~60 chars so Google
+       doesn't truncate it, and leads with the brand ("canyougo82-0") followed
+       immediately by "NBA Team Generator" — the phrase real Search Console
+       queries actually use ("82 0 team generator", "82-0 nba team generator").
+       The substring "82-0? NBA Team Generator" covers those near-verbatim. -->
+  <title>Can You Go 82-0? NBA Team Generator &amp; Roster Builder</title>
+
+  <!-- Page-integrity guard (title lock + ad-iframe sandboxing) — loaded after
+       the title it protects, and before any third-party SDK so protection is
+       active from the first line those SDKs execute. See file header for the
+       incident this defends against. -->
   <script src="js/utils/pageIntegrity.js"></script>
   <!-- CrazyGames HTML5 v2 SDK — loaded first so window.CrazyGames exists
        before js/main.js calls into js/utils/crazygames.js. No-ops (via
@@ -102,6 +135,7 @@
     // GD injects a full-viewport overlay with pointer-events:auto even when
     // visibility:hidden — neutralize on insert and whenever it goes hidden.
     (function () {
+      var watched = null;   // the ad element we already have a dedicated observer on
       function neutralizeGdAd() {
         var adEl = document.getElementById('gdsdk__advertisement');
         if (!adEl) return;
@@ -113,19 +147,39 @@
           adEl.style.pointerEvents = 'none';
         }
       }
-      function watch(root) {
+      // Attribute changes are watched on the ad element ITSELF, once it
+      // exists. Watching them across the whole document instead meant every
+      // render() and every 90ms frame of the draft spin animation ran this
+      // callback — and getComputedStyle() in it forces a style recalculation
+      // each time. The document-wide observer below is now childList-only,
+      // which is all that is needed to notice the element being inserted.
+      function adopt() {
+        var adEl = document.getElementById('gdsdk__advertisement');
+        if (!adEl || adEl === watched) return;
+        watched = adEl;
         try {
-          new MutationObserver(function () { neutralizeGdAd(); })
-            .observe(root || document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class', 'aria-hidden'] });
+          new MutationObserver(neutralizeGdAd).observe(adEl, {
+            attributes: true, attributeFilter: ['style', 'class', 'aria-hidden']
+          });
         } catch (e) {}
         neutralizeGdAd();
+      }
+      function watch(root) {
+        try {
+          new MutationObserver(adopt)
+            .observe(root || document.documentElement, { childList: true, subtree: true });
+        } catch (e) {}
+        adopt();
       }
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function () { watch(document.body); });
       } else {
         watch(document.body || document.documentElement);
       }
-      setInterval(neutralizeGdAd, 2000);
+      // Belt and braces for a state change no mutation reports (and for a
+      // browser where the observer never fires). Cheap: one getElementById
+      // and an early return whenever there is no overlay.
+      setInterval(function () { adopt(); neutralizeGdAd(); }, 2000);
     })();
     // GD's SDK strips href from in-page <a> tags (Privacy / Daily archive in
     // #about). Stash the originals and restore whenever they disappear.
@@ -162,12 +216,9 @@
     })();
     }
   </script>
-  <!-- Title is kept under ~60 chars so Google doesn't truncate it, and leads
-       with the brand ("canyougo82-0") followed immediately by "NBA Team
-       Generator" — the phrase real Search Console queries actually use
-       ("82 0 team generator", "82-0 nba team generator"). The substring
-       "82-0? NBA Team Generator" covers those near-verbatim. -->
-  <title>Can You Go 82-0? NBA Team Generator &amp; Roster Builder</title>
+  <!-- <title> is deliberately NOT here — it is parsed at the top of <head>,
+       ahead of the page-integrity guard and the SDK scripts. See the comment
+       beside it for why that ordering matters. -->
   <meta name="description" content="Free 82-0 NBA team generator &amp; all-time roster builder. Spin the wheel, draft legends from every era, pick your coach, and simulate 82 games — can you go 82-0?" />
   <link rel="canonical" href="https://canyougo820.com/" />
   <!-- ICO first: Google Search's favicon fetcher (and other crawlers/older

@@ -1,10 +1,11 @@
 /**
  * js/utils/auth.js — Firebase Authentication (email + password)
  *
- * The ONLY module in this project that touches the Firebase Auth SDK. Nothing
- * imports it yet: this is the foundation module, shipped ahead of the UI that
- * will use it, so it has zero user-visible surface and no effect on a player
- * who never signs in.
+ * The ONLY module in this project that touches the Firebase Auth SDK. Consumed
+ * by js/ui/authModal.js (the account modal) and js/ui/events.js (the session
+ * subscription and the accountsEnabled() gate on the header pill). A player
+ * who never signs in is unaffected by all of it: nothing here runs at module
+ * load, and every export degrades to a structured failure.
  *
  * Design rules this module holds to:
  *

@@ -211,6 +211,13 @@ function renderPage(ch, slug, dates) {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <!-- Same narrow Content-Security-Policy as index.html: the directives that
+       are worth having AND actually work in a <meta> tag. base-uri stops an
+       injected <base> repointing every relative URL, object-src blocks plugin
+       content, form-action pins where anything on the page may post. No
+       script-src — see the fuller note in index.html. -->
+  <meta http-equiv="Content-Security-Policy"
+        content="base-uri 'self'; object-src 'none'; form-action 'self'" />
   <title>${esc(title)}</title>
   <meta name="description" content="${esc(metaDesc)}" />
   <link rel="canonical" href="${url}" />

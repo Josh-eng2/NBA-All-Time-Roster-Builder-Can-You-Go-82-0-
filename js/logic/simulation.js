@@ -22,18 +22,33 @@ import { getModeConfig }       from '../logic/modes.js';
 // SIM_K:      steepness — lower = more gradual spread between good/bad teams
 // SIM_CENTER: adjustedStrength that maps to exactly 50 % win rate
 //             (raise to make 82-0 rarer, lower to make it easier)
-// WIN_CAP:    per-game win probability ceiling — 0.99 means even a maxed
-//             roster can lose any given night, so 82-0 is never guaranteed
+// WIN_CAP:    per-game win probability ceiling. At 1.00 it never binds and is
+//             inert — the sigmoid is asymptotic, so winPct is below 1 for any
+//             finite strength and 82-0 can never be guaranteed anyway. Kept as
+//             the one knob that could force a hard ceiling if that changes.
 //
-// Retuned (K 5→3.5, CENTER 1.62→1.8, CAP 1.0→0.99) after the previous curve
-// made perfection routine: a star-chasing roster hit 80-win medians and went
-// 82-0 in roughly a quarter of runs. Empirical anchors from 400-sample sweeps
-// against the live DB under THESE constants (strengths are post-multiplier):
-//   star-chasing builds — median 2.36 → ~72 wins; p90 2.75 → ~79 wins;
-//   P(82-0) ≈ 1.5 % across those builds (the chase stays real but rare)
-//   random builds       — median 1.41 → ~17 wins; p90 1.78 → ~40 wins
-// Daily-challenge win gates under this curve (star-chasing builds):
-//   55+ ≈ 83 % · 60+ ≈ 76 % · 65+ ≈ 66 % · 70+ ≈ 54 % pass rates pre-constraint.
+// ANCHORS BELOW ARE MEASURED, AND THEY DESCRIBE THE CONSTANTS ON THE NEXT
+// THREE LINES. An earlier version of this block documented K 3.5 / CENTER 1.8 /
+// CAP 0.99 and quoted win rates for that curve, long after the constants had
+// moved — which mis-stated every daily-challenge win gate that was calibrated
+// against it. If these three numbers change again, re-measure and rewrite this
+// block in the same commit.
+//
+// Method, so a re-measure is reproducible: 4000 seeded seasons per row against
+// the live DB, coach Jackson, one player per slot; "star-chasing" draws each
+// slot uniformly from that position's top 15 % by `overall`, "random" from the
+// whole pool. Strengths are post-multiplier (adjustedStrength).
+//
+//   star-chasing — median strength 1.94 → 56 wins; p90 2.33 → 66 wins
+//   random       — median strength 1.23 → 36 wins; p90 1.64 → 49 wins
+//
+// Daily-challenge win gates, star-chasing, before the day's own constraint:
+//   55+ ≈ 56 % · 60+ ≈ 34 % · 65+ ≈ 14 % · 70+ ≈ 3 % pass rates.
+//
+// The chase itself: a strength-optimised five (~3.2, ≈92.7 % per game) posts a
+// 76-win median and goes 82-0 in roughly 0.2 % of seasons — about 1 run in 450,
+// and only for a roster drafted about as well as this database allows. Rare,
+// and reachable, which is the point of the name.
 const SIM_K      = 1.40;
 const SIM_CENTER = 1.40;
 const WIN_CAP    = 1.00;

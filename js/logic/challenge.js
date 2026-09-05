@@ -28,7 +28,7 @@
  */
 
 import { DB }                  from '../data/players.js';
-import { decadeFromBucketKey } from './era.js';
+import { decadeFromBucketKey, teamFromBucketKey } from './era.js';
 
 // Cheapest total the remaining roster slots could conceivably be filled for,
 // when the caller can't see the live draft pool. Derived from the live DB
@@ -227,7 +227,7 @@ export function getLockedPlayer(challenge) {
   if (!id || !DB) return null;
   for (const [key, players] of Object.entries(DB)) {
     const p = players.find(x => x.id === id);
-    if (p) return { ...p, team: key.split('_')[0], decade: decadeFromBucketKey(key) };
+    if (p) return { ...p, team: teamFromBucketKey(key), decade: decadeFromBucketKey(key) };
   }
   return null;
 }

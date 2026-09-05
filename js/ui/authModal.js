@@ -74,10 +74,20 @@ function passwordError(v) {
   return null;
 }
 
+/**
+ * Counted by CHARACTER, not by UTF-16 code unit.
+ *
+ * The users/{uid} Firestore rule bounds displayName with size(), which counts
+ * characters. A two-emoji GM name is `.length` 4 and size() 2, so a bare
+ * `.length` check accepted a name the rule then rejected — and because the
+ * rule validates the whole document, that lost the entire first cloud save
+ * to a generic permission-denied. cloudSave.js slices the same way.
+ */
 function nameError(v) {
   if (!v) return 'Choose a GM name';
-  if (v.length < MIN_NAME) return `Use at least ${MIN_NAME} characters`;
-  if (v.length > MAX_NAME) return `Use at most ${MAX_NAME} characters`;
+  const chars = [...v].length;
+  if (chars < MIN_NAME) return `Use at least ${MIN_NAME} characters`;
+  if (chars > MAX_NAME) return `Use at most ${MAX_NAME} characters`;
   return null;
 }
 
@@ -235,7 +245,9 @@ function paint(view, user) {
   if (!el) return;
   _view = view;
   el.innerHTML = shellHtml(view, user);
-  wire(el);
+  // Only the FIELD listeners are re-bound here. The delegated action listeners
+  // live on the root, which paint() does not replace — see wireActions().
+  wireFields(el);
   el.querySelector('.auth-field__input, .auth-btn')?.focus();
 }
 
@@ -282,11 +294,17 @@ async function mergeAfterAuth(user, displayName) {
   if (!user?.uid) return;
   try {
     const res = await syncOnSignIn(user.uid, displayName);
-    if (res?.ok && res.merged) {
-      const lv = res.merged.save?.legends?.length || 0;
-      const tr = res.merged.save?.trophies?.length || 0;
-      showToast(`Progress merged · ${lv} legends · ${tr} trophies`, 3200);
+    if (!res?.ok || !res.merged) return;
+    // A hand-off is not a merge and must not be reported as one: this device
+    // was signed in to a different account, so nothing that was on it has
+    // been added to this one (see cloudSave.js "Device ownership").
+    if (res.handedOff) {
+      showToast('Loaded your account — this device was last used by a different account', 4200);
+      return;
     }
+    const lv = res.merged.save?.legends?.length || 0;
+    const tr = res.merged.save?.trophies?.length || 0;
+    showToast(`Progress merged · ${lv} legends · ${tr} trophies`, 3200);
   } catch (_) { /* the cloud is a mirror; local is what the game plays from */ }
 }
 
@@ -371,8 +389,15 @@ async function doDelete() {
     fieldErr('auth-confirm', 'Type DELETE to confirm');
     return;
   }
-  const user = await getCurrentUser();
+  // Armed BEFORE the first await, not after it. The click dispatcher's `_busy`
+  // check is the only thing standing between one tap and two concurrent
+  // deletions, and it is read in the same task as the tap — so setting the
+  // flag after `await getCurrentUser()` left the guard down for exactly as
+  // long as that await took. On the one irreversible action in the product,
+  // the loser of that race reported "Something went wrong" over a deletion
+  // that had in fact succeeded.
   setBusy(true, 'Deleting…');
+  const user = await getCurrentUser();
   // Cloud save first: once the auth account is gone the rules no longer let
   // anyone — including us — touch the document it owned. So a failure here
   // has to STOP the deletion: carrying on would erase the only credential
@@ -400,7 +425,18 @@ async function repaint(view) {
   paint(view, view === 'account' || view === 'delete' ? await getCurrentUser() : null);
 }
 
-function wire(el) {
+/**
+ * The delegated action listeners. Attached ONCE, to the root element, by
+ * showAuthModal().
+ *
+ * They must not be re-attached on every paint. The root outlives every
+ * repaint (paint() only replaces its children), so wiring it again per view
+ * switch left the previous listeners in place and DOUBLED the count each
+ * time: 1 → 2 → 4 → 8. Toggling between "Sign in" and "Create an account" a
+ * dozen times had every click rebuild the modal thousands of times over, and
+ * two live listeners were enough to start account deletion twice at once.
+ */
+function wireActions(el) {
   el.addEventListener('click', ev => {
     const btn = ev.target.closest('[data-auth]');
     if (!btn || _busy) return;
@@ -427,7 +463,14 @@ function wire(el) {
     ev.preventDefault();
     el.querySelector('.auth-btn--primary, .auth-btn--danger')?.click();
   });
+}
 
+/**
+ * Per-field validation. These listeners DO belong in paint(): they attach to
+ * the inputs, which paint() replaces wholesale, so the old ones are collected
+ * with the old DOM and there is nothing to clean up.
+ */
+function wireFields(el) {
   // Validate on blur, never per keystroke — telling someone their email is
   // invalid while they are still typing it is noise, not help.
   el.querySelectorAll('.auth-field__input').forEach(input => {
@@ -453,6 +496,10 @@ export async function showAuthModal(view = 'signin') {
   el.id = ROOT_ID;
   document.body.appendChild(el);
   _root = el;
+
+  // Once, on the root, for the life of the modal. Every later view switch
+  // repaints the root's children but must not re-run this.
+  wireActions(el);
 
   const onKey = e => { if (e.key === 'Escape' && !_busy) closeAuthModal(); };
   document.addEventListener('keydown', onKey);

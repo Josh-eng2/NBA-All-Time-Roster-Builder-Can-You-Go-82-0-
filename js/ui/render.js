@@ -179,17 +179,26 @@ export function fmtPlayerLine(p) {
 }
 
 // ── Confetti (lazy) ───────────────────────────────────────────────────────────
-// canvas-confetti is only needed on celebration screens, so it's injected on
-// first use instead of shipping in the page-load payload. Degrades silently
-// if the CDN is unreachable — same behavior as the old `typeof confetti`
-// guards this replaces.
+// canvas-confetti is only needed on celebration screens, so it is injected on
+// first use instead of shipping in the page-load payload. Degrades silently if
+// it cannot be fetched — same behavior as the `typeof confetti` guards this
+// replaced.
+//
+// SAME-ORIGIN, from js/vendor/, not from a CDN. It used to be pulled from
+// cdn.jsdelivr.net with no Subresource Integrity, which put a third party in a
+// position to execute arbitrary script on the origin that holds the Firebase
+// auth session, every nba820_* key and the cloud-save write path. Vendoring is
+// the same call this project already made for Tailwind, and it beats adding a
+// hash: nothing third-party runs here at all, and the celebration now survives
+// offline because sw.js caches it on first use. See js/vendor/README.md.
+const CONFETTI_SRC = './js/vendor/confetti.browser.js';
 let _confettiLoading = null;
 export function withConfetti(fire) {
   if (typeof confetti !== 'undefined') { fire(); return; }
   if (!_confettiLoading) {
     _confettiLoading = new Promise(resolve => {
       const s = document.createElement('script');
-      s.src = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js';
+      s.src = CONFETTI_SRC;
       s.onload  = resolve;
       s.onerror = resolve; // resolve either way; the typeof check below decides
       document.head.appendChild(s);
@@ -593,7 +602,10 @@ function renderModeSelect() {
   // it deliberately — is a returning player from now on. Idempotent.
   markReturning();
   let trophies = [];
-  try { trophies = JSON.parse(cgGetItem('nba820_trophies') || '[]'); } catch (e) {}
+  try {
+    const stored = JSON.parse(cgGetItem('nba820_trophies') || '[]');
+    if (Array.isArray(stored)) trophies = stored;
+  } catch (e) {}
   return `
   <div class="flex flex-col min-h-screen main-gradient">
     <header class="sticky top-0 z-50 w-full bg-white border-b border-border mode-header" style="box-shadow:0 1px 3px var(--header-shadow)">
@@ -3119,9 +3131,38 @@ function renderEliminated() {
 }
 
 // ── Trophy Room ───────────────────────────────────────────────────────────────
+
+/**
+ * A stored trophy, made safe to interpolate.
+ *
+ * nba820_trophies is no longer purely local: utils/cloudSave.js writes it from
+ * the merge of this device's save and the `users/{uid}` document, and that
+ * document's Firestore rule deliberately bounds SIZE and STRUCTURE but never
+ * values ("a rule tighter than what the game legitimately produces rejects
+ * real saves"). So every string here is data that crossed the network under a
+ * rule that does not police what is in it, and every number can arrive as
+ * something that is not a number. Escape the strings and coerce the numbers —
+ * the same treatment utils/storage.js already gives every remote leaderboard
+ * row before it reaches innerHTML.
+ */
+function safeTrophy(t) {
+  const o = (t && typeof t === 'object') ? t : {};
+  return {
+    wins:        Number(o.wins)      || 0,
+    losses:      Number(o.losses)    || 0,
+    chemScore:   Number(o.chemScore) || 0,
+    coachName:   esc(o.coachName   ?? ''),
+    coachSystem: esc(o.coachSystem ?? ''),
+    starters:    esc(o.starters    ?? ''),
+    bench:       o.bench ? esc(o.bench) : '',
+    date:        esc(o.date ?? ''),
+  };
+}
+
 function renderTrophyRoom() {
-  let trophies = [];
-  try { trophies = JSON.parse(cgGetItem('nba820_trophies') || '[]'); } catch (e) {}
+  let stored = [];
+  try { stored = JSON.parse(cgGetItem('nba820_trophies') || '[]'); } catch (e) {}
+  const trophies = (Array.isArray(stored) ? stored : []).map(safeTrophy);
 
   // Twelve pedestals — the empty ones are the hook.
   const PEDESTALS = 12;

@@ -141,3 +141,35 @@ test('the GM name the modal accepts is a name the rules accept', () => {
   assert.ok(modalMax <= ruleMax,
     `the modal accepts names up to ${modalMax} characters; the rules reject anything over ${ruleMax}`);
 });
+
+test('a GM name is counted in characters on both sides of the wire', () => {
+  // Firestore's size() counts CHARACTERS; JS .length counts UTF-16 code units.
+  // A two-emoji name is length 4 and size 2, so a `.length` check accepted a
+  // name the rule then refused — and the rule refuses the WHOLE document, so
+  // the player's first cloud save vanished behind a generic permission-denied.
+  const emoji = '🏀🏀';                      // 2 characters, 4 code units
+  assert.equal(emoji.length, 4, 'the fixture no longer models the mismatch');
+  assert.equal([...emoji].length, 2);
+
+  const [ruleMin] = numericRange('d.displayName.size\\(\\)');
+  assert.ok([...emoji].length < ruleMin, 'the fixture is no longer below the rule floor');
+
+  // The modal must reject it rather than let it reach a rule that will.
+  assert.ok(/\[\.\.\.v\]\.length/.test(AUTH_MODAL),
+    'authModal.js nameError() no longer counts by character — a .length check ' +
+    'accepts names the users/{uid} rule rejects, losing the whole save');
+});
+
+test('no account identifier may reach a world-readable leaderboard', () => {
+  // privacy.html: "Global Leaderboard entries aren't linked to any account".
+  // Both public collections allow read: if true, so the rule has to enforce
+  // that promise rather than rely on the client never sending the field.
+  const publicBlocks = RULES.split(/match \/(?=leaderboard|dailyLeaderboard)/).slice(1);
+  assert.equal(publicBlocks.length, 2, 'the two public collections are no longer both present');
+  for (const block of publicBlocks) {
+    assert.ok(/noUid\(\)/.test(block),
+      'a world-readable leaderboard rule no longer forbids a uid field');
+  }
+  assert.ok(/function noUid\(\)\s*\{\s*return !\('uid' in request\.resource\.data\);/.test(RULES),
+    'noUid() no longer rejects the field outright');
+});

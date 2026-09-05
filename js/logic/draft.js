@@ -5,6 +5,7 @@ import { S, ALL_POSITIONS, TEAMS, DECADES, pick } from '../logic/state.js';
 import { DB }                                     from '../data/players.js';
 import { isDualDraft, getModeConfig }             from '../logic/modes.js';
 import { checkPickLegal }                         from '../logic/challenge.js';
+import { decadeFromBucketKey }                    from '../logic/era.js';
 
 /** True once all slots are filled for the active context. */
 export function rosterFull() {
@@ -95,7 +96,7 @@ export function getLegendCatalog() {
   const idToDecade = {};
   const seen       = new Set();
   for (const [key, players] of Object.entries(DB || {})) {
-    const decade = key.split('_')[1];
+    const decade = decadeFromBucketKey(key);
     (byDecade[decade] ||= []);
     for (const p of players) {
       if (seen.has(p.id)) continue; // collapse the handful of shared ids

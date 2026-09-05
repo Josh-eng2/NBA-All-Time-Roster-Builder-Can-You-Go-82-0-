@@ -67,8 +67,10 @@ node --test 'tests/*.test.mjs'
 ```
 
 Tailwind is compiled ahead of time into the committed `css/tailwind.css`; re-run
-`scripts/build_tailwind.sh` after changing Tailwind classes. Firebase powers an optional
-global leaderboard/analytics and degrades gracefully if unavailable.
+`scripts/build_tailwind.sh` after changing Tailwind classes. `canvas-confetti` is
+committed under `js/vendor/` and loaded same-origin rather than from a CDN — see
+`js/vendor/README.md`. Firebase powers an optional global leaderboard/analytics and
+degrades gracefully if unavailable.
 
 Generated assets have regeneration scripts: `scripts/build_favicon.sh` (favicon.ico from
 `logo-crest.png`) and `scripts/build_og_image.sh` (og-image.png from `og-image.html`).

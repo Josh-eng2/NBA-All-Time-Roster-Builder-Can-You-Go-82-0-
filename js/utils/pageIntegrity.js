@@ -24,13 +24,22 @@
   // document.title, so this has no legitimate case to fight — only ever a
   // hijack attempt.
   //
-  // This script runs before the real <title> element has even been parsed
-  // (it's placed early in <head> deliberately, ahead of the SDK scripts —
-  // see file header), so the baseline can't just be read from
-  // document.title at the top here: it would capture "" and then the lock
-  // would fight the parser itself, permanently blanking the title. Instead
-  // the baseline is captured the moment a non-empty <title> is first seen,
-  // via the same observer that watches for later tampering.
+  // THE BASELINE IS CAPTURED SYNCHRONOUSLY, RIGHT HERE, whenever a <title>
+  // has already been parsed. index.html puts <title> above this script for
+  // exactly that reason, and any page adding this guard should do the same.
+  //
+  // Why it matters: the fallback below adopts the first non-empty title it
+  // ever OBSERVES. This script is loaded ahead of the CrazyGames and
+  // GameDistribution SDK tags so the lock is armed before they run — but with
+  // <title> parsed after them, one of those synchronous scripts could set
+  // document.title first (which creates a <title> element of its own, ahead
+  // of the real one in the document) and the guard would then spend the rest
+  // of the session defending the hijacked value against the real page. Arming
+  // a lock before the value it protects exists is what made that possible.
+  //
+  // The observer path is kept as a fallback for a page that cannot put its
+  // title first: reading document.title at the top there would capture "" and
+  // the lock would fight the parser itself, permanently blanking the title.
   var EXPECTED_TITLE = null;
 
   function onTamper() {
@@ -41,6 +50,9 @@
     var el = document.querySelector('head > title');
     return el ? el.textContent : '';
   }
+
+  // Synchronous capture, before any other script on the page has run.
+  try { EXPECTED_TITLE = currentTitleText() || null; } catch (e) {}
 
   function checkTitle() {
     var now = currentTitleText();

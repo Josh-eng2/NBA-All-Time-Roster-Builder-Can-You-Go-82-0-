@@ -3,6 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <!-- Same narrow Content-Security-Policy as index.html: the directives that
+       are worth having AND actually work in a <meta> tag. base-uri stops an
+       injected <base> repointing every relative URL, object-src blocks plugin
+       content, form-action pins where anything on the page may post. No
+       script-src — see the fuller note in index.html. -->
+  <meta http-equiv="Content-Security-Policy"
+        content="base-uri 'self'; object-src 'none'; form-action 'self'" />
   <title>Daily NBA Draft Challenge Archive — Can You Go 82-0?</title>
   <meta name="description" content="Every day the 82-0 NBA team generator deals the whole world the same draft board and one special rule. Browse recent daily challenges and every rule type." />
   <link rel="canonical" href="https://canyougo820.com/daily.html" />

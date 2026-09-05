@@ -42,15 +42,29 @@ export function makeEl(tag = 'div') {
       const list = listeners.get(type);
       if (list) listeners.set(type, list.filter(f => f !== fn));
     },
-    /** Test-only: invokes the handlers registered for `type`. */
+    /** Test-only: invokes the handlers registered for `type`.
+     *  Iterates a COPY, the way the DOM spec dispatches: a handler that adds
+     *  another listener must not have it run for the event in flight. */
     __fire(type, event = {}) {
-      for (const fn of listeners.get(type) ?? []) fn({ type, target: el, ...event });
+      for (const fn of [...(listeners.get(type) ?? [])]) fn({ type, target: el, ...event });
     },
+    /** Test-only: how many handlers are registered for `type`. Guards against
+     *  a re-render re-wiring a node it does not replace. */
+    __listenerCount(type) { return (listeners.get(type) ?? []).length; },
     /** Test-only: drops every registered handler (a re-render replaces the node). */
     __resetListeners() { listeners.clear(); },
     appendChild(child) { this.children.push(child); child.parentNode = this; return child; },
     insertBefore(child) { this.children.push(child); child.parentNode = this; return child; },
-    remove() { this.parentNode = null; },
+    // Detaches from the parent's child list too, not just the back-reference.
+    // Leaving it in place made a removed node still findable through
+    // document.body.children, so a test could not tell a closed modal from a
+    // reopened one.
+    remove() {
+      const kids = this.parentNode?.children;
+      const at = kids ? kids.indexOf(this) : -1;
+      if (at >= 0) kids.splice(at, 1);
+      this.parentNode = null;
+    },
     querySelector: () => null,
     querySelectorAll: () => [],
     contains: () => false,

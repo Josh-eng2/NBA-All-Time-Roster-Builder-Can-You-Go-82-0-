@@ -47,7 +47,21 @@ export function eraAdjustedLine(player) {
   return line;
 }
 
+// ── DB bucket keys ────────────────────────────────────────────────────────────
+// A key is "Team_1960s". The two accessors below are the ONLY place that shape
+// is decoded. It used to be pulled apart four different ways across the
+// codebase — split('_')[0], split('_')[1], lastIndexOf('_') and this regex —
+// which agreed only because no team name happens to contain an underscore, an
+// invariant nothing enforces at the point where it would matter.
+
 /** Extracts the '1960s'-style decade suffix from a "Team_1960s" DB bucket key. */
 export function decadeFromBucketKey(key) {
-  return key.match(/_(\d{4}s)$/)?.[1] ?? null;
+  return String(key ?? '').match(/_(\d{4}s)$/)?.[1] ?? null;
+}
+
+/** Extracts the franchise from a "Team_1960s" DB bucket key. */
+export function teamFromBucketKey(key) {
+  const k = String(key ?? '');
+  const cut = k.lastIndexOf('_');
+  return cut > 0 ? k.slice(0, cut) : k;
 }

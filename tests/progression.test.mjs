@@ -224,3 +224,33 @@ test('reaching level 100 in one jump collects every reward exactly once', () => 
   // Nothing is ever handed out a second time.
   assert.equal(addXp(50000).newRewards.length, 0);
 });
+
+test('levelForXp is exact against its own curve, and O(1) on a corrupt total', () => {
+  // levelForXp used to walk the curve one level per iteration. xp round-trips
+  // through localStorage and through a users/{uid} document whose rule bounds
+  // shape but deliberately not values, so a corrupt total could spin for tens
+  // of millions of iterations — on a render path. It is a closed form now, and
+  // must still agree with the definition it replaced everywhere that matters.
+  const byDefinition = xp => { let l = 1; while (xp >= xpToReachLevel(l + 1)) l++; return l; };
+
+  for (let xp = 0; xp <= 30000; xp++) {
+    assert.equal(levelForXp(xp), byDefinition(xp), `disagreed at xp ${xp}`);
+  }
+  for (let xp = 30000; xp <= 2_000_000; xp += 1013) {
+    assert.equal(levelForXp(xp), byDefinition(xp), `disagreed at xp ${xp}`);
+  }
+  // Both sides of every threshold, where a rounding slip would land.
+  for (let level = 1; level <= 200; level++) {
+    const at = xpToReachLevel(level);
+    assert.equal(levelForXp(at), level, `level ${level} not reached at its own threshold`);
+    if (at > 0) assert.equal(levelForXp(at - 1), level - 1, `level ${level} granted one XP early`);
+  }
+
+  // Garbage in, a sane level out — and immediately.
+  const started = Date.now();
+  for (const junk of [1e18, Infinity, -Infinity, NaN, Number.MAX_VALUE, '9e99']) {
+    const lvl = levelForXp(junk);
+    assert.ok(Number.isInteger(lvl) && lvl >= 1, `levelForXp(${junk}) returned ${lvl}`);
+  }
+  assert.ok(Date.now() - started < 250, 'levelForXp still walks the curve for an absurd total');
+});

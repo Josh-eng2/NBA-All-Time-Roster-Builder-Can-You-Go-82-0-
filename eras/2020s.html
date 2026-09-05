@@ -3,6 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <!-- Same narrow Content-Security-Policy as index.html: the directives that
+       are worth having AND actually work in a <meta> tag. base-uri stops an
+       injected <base> repointing every relative URL, object-src blocks plugin
+       content, form-action pins where anything on the page may post. No
+       script-src — see the fuller note in index.html. -->
+  <meta http-equiv="Content-Security-Policy"
+        content="base-uri 'self'; object-src 'none'; form-action 'self'" />
   <title>Best 2020s NBA Players &amp; the All-Time 2020s Team</title>
   <meta name="description" content="Nikola Jokic, Shai Gilgeous-Alexander — the best 2020s NBA players, rated — all 143 across 30 franchises, plus the all-time 2020s starting five." />
   <link rel="canonical" href="https://canyougo820.com/eras/2020s.html" />

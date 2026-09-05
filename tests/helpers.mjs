@@ -18,6 +18,7 @@
  */
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { teamFromBucketKey, decadeFromBucketKey } from '../js/logic/era.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -63,13 +64,16 @@ export function loadGame() {
 }
 
 /** Every DB entry flattened, with `team` and `decade` attached the way
- *  events.js placePlayer() attaches them to a drafted pick. */
+ *  events.js placePlayer() attaches them to a drafted pick.
+ *
+ *  Bucket keys are decoded with the game's own accessors rather than a fifth
+ *  hand-rolled split, so a test can never disagree with the app about what
+ *  "Team_1960s" means. */
 export function flattenDb(DB) {
   const out = [];
   for (const [key, players] of Object.entries(DB)) {
-    const cut    = key.lastIndexOf('_');
-    const team   = key.slice(0, cut);
-    const decade = key.slice(cut + 1);
+    const team   = teamFromBucketKey(key);
+    const decade = decadeFromBucketKey(key);
     for (const p of players) out.push({ ...p, team, decade });
   }
   return out;

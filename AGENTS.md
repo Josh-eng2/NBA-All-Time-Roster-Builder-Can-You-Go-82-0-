@@ -62,14 +62,17 @@ keep running the old build.
 The player database is committed pre-generated at `js/data/players.js` (inlined from `players.json`). Only regenerate it if you intentionally change player data:
 
 ```bash
-scripts/update_players.sh   # runs scripts/add_popularity.js then scripts/inline_players.js (Node built-ins only)
+scripts/update_players.sh   # runs add_popularity.js -> add_rating.js -> inline_players.js (Node built-ins only)
 ```
+
+Sanity-check the result with `node scripts/validate_players.js` (read-only:
+structural checks on `players.json`, exits non-zero and prints every violation).
 
 Note: these scripts **mutate committed files** (`players.json`, `js/data/players.js`) — only run them when you mean to.
 
 ### External services (all optional, degrade gracefully)
 - **Google Fonts** — loaded at runtime; falls back to system fonts if blocked. (Tailwind is no longer a runtime CDN — it's the committed static build `css/tailwind.css`, so the UI styles correctly offline.)
-- **jsDelivr confetti** — lazy-loaded by `withConfetti()` in `js/ui/render.js` only when a celebration fires; silently skipped if unreachable.
+- **Confetti** — no longer third-party. `canvas-confetti` is committed at `js/vendor/confetti.browser.js` and lazy-loaded same-origin by `withConfetti()` in `js/ui/render.js` only when a celebration fires; silently skipped if it cannot be fetched. See `js/vendor/README.md` before changing or updating it.
 - **Firebase Firestore/Analytics** (`js/utils/firebase.js`) — powers the *optional* global leaderboard and analytics. Every call is guarded by `isFirebaseConfigured()` and wrapped in try/catch; if unreachable it silently no-ops. The local leaderboard and trophy room use `localStorage` and always work.
 
 ### Git workflow

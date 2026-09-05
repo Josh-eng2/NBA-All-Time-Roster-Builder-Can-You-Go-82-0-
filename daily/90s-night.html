@@ -3,6 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <!-- Same narrow Content-Security-Policy as index.html: the directives that
+       are worth having AND actually work in a <meta> tag. base-uri stops an
+       injected <base> repointing every relative URL, object-src blocks plugin
+       content, form-action pins where anything on the page may post. No
+       script-src — see the fuller note in index.html. -->
+  <meta http-equiv="Content-Security-Policy"
+        content="base-uri 'self'; object-src 'none'; form-action 'self'" />
   <title>&#39;90s Night: 1990s Players Only — NBA Daily Challenge</title>
   <meta name="description" content="Only 1990s players — win 55+ games. Full rules, the roster that clears it, and how to beat &#39;90s Night in the 82-0 NBA daily challenge." />
   <link rel="canonical" href="https://canyougo820.com/daily/90s-night.html" />
@@ -107,6 +114,7 @@
       <h2>When &#39;90s Night has run</h2>
       <p>Every player in the world got this challenge on these dates:</p>
       <ul class="cp-dates">
+        <li>September 5, 2026</li>
         <li>August 26, 2026</li>
         <li>August 10, 2026</li>
       </ul>
