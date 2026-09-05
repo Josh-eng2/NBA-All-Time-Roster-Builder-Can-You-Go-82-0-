@@ -194,7 +194,16 @@
 //       Trophy Room. js/vendor/confetti.browser.js is deliberately NOT
 //       precached: it stays lazily loaded, and the runtime cache picks it up
 //       the first time a celebration fires.
-const CACHE_VERSION = '820-v28';
+//   v29 App Check (reCAPTCHA v3). Changed precached file: js/utils/firebase.js,
+//       which now also loads firebase-app-check.js and attaches App Check to
+//       the app before the first Firestore call. The bump is what makes this
+//       enforceable at all: once Cloud Firestore enforcement is switched on
+//       in the Console, a client still serving the cached v28 firebase.js
+//       sends no App Check token and every one of its reads and submissions
+//       is rejected server-side. Installed PWAs are exactly the clients that
+//       would sit on that old copy, so the cache must roll BEFORE enforcement
+//       is enabled — ship this, let it propagate, then flip the toggle.
+const CACHE_VERSION = '820-v29';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 

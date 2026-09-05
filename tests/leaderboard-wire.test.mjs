@@ -172,26 +172,39 @@ const dead = () => ({ status: 'rejected', reason: new Error('ERR_BLOCKED_BY_CLIE
 const APP = { initializeApp() {}, getApps: () => [] };
 const FS  = { getFirestore() {} };
 const AN  = { getAnalytics() {}, logEvent() {} };
+const AC  = { initializeAppCheck() {}, ReCaptchaV3Provider: class {} };
 
 test('a blocked analytics module still leaves a usable Firestore SDK', () => {
-  const sdk = sdkFromSettled([ok(APP), ok(FS), dead()]);
+  const sdk = sdkFromSettled([ok(APP), ok(FS), dead(), ok(AC)]);
   assert.ok(sdk, 'an ad blocker on firebase-analytics.js must not disable the leaderboard');
   assert.equal(sdk.app, APP);
   assert.equal(sdk.firestore, FS);
   assert.equal(sdk.analytics, null, 'analytics must be reported absent, not faked');
 });
 
+// App Check is optional for the same reason analytics is, from the other
+// direction: a client that cannot attest should still boot and play. Whether
+// its writes are then accepted is the Console's enforcement toggle to decide,
+// not this module's — so a missing firebase-app-check.js degrades to
+// "requests go out unattested", never to "the game does not start".
+test('a blocked App Check module still leaves a usable Firestore SDK', () => {
+  const sdk = sdkFromSettled([ok(APP), ok(FS), ok(AN), dead()]);
+  assert.ok(sdk, 'a blocked firebase-app-check.js must not disable the leaderboard');
+  assert.equal(sdk.appCheck, null, 'App Check must be reported absent, not faked');
+  assert.equal(sdk.firestore, FS);
+});
+
 test('the SDK is unusable only when a module the leaderboard needs is missing', () => {
-  assert.equal(sdkFromSettled([dead(), ok(FS), ok(AN)]), null, 'no firebase-app means no app');
-  assert.equal(sdkFromSettled([ok(APP), dead(), ok(AN)]), null, 'no firestore means no leaderboard');
-  assert.equal(sdkFromSettled([dead(), dead(), dead()]), null, 'everything offline');
+  assert.equal(sdkFromSettled([dead(), ok(FS), ok(AN), ok(AC)]), null, 'no firebase-app means no app');
+  assert.equal(sdkFromSettled([ok(APP), dead(), ok(AN), ok(AC)]), null, 'no firestore means no leaderboard');
+  assert.equal(sdkFromSettled([dead(), dead(), dead(), dead()]), null, 'everything offline');
   assert.equal(sdkFromSettled([]), null, 'a malformed settle list is not a usable SDK');
   assert.equal(sdkFromSettled(), null, 'no arguments is not a usable SDK');
 });
 
-test('all three modules loading gives the full SDK', () => {
-  const sdk = sdkFromSettled([ok(APP), ok(FS), ok(AN)]);
-  assert.deepEqual(sdk, { app: APP, firestore: FS, analytics: AN });
+test('every module loading gives the full SDK', () => {
+  const sdk = sdkFromSettled([ok(APP), ok(FS), ok(AN), ok(AC)]);
+  assert.deepEqual(sdk, { app: APP, firestore: FS, analytics: AN, appCheck: AC });
 });
 
 // ── Firestore transport: auto-detect long polling ────────────────────────────

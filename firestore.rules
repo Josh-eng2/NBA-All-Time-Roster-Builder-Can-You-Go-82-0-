@@ -75,6 +75,19 @@
 // forgery may CLAIM rather than proving a run happened. Doing better needs a
 // server to sign results, which this project deliberately does not have.
 //
+// App Check narrows that gap from the other side, and is configured OUTSIDE
+// this file — in Firebase Console → App Check, plus APP_CHECK_SITE_KEY in
+// js/utils/firebase.js (setup steps are in that file's header comment). With
+// the reCAPTCHA v3 provider registered and Cloud Firestore enforcement ON,
+// Firestore rejects any request that does not carry a valid App Check token
+// BEFORE these rules are ever evaluated — so a document POSTed by a script
+// that merely read the public config never reaches the checks below. It still
+// proves only that the request came from a page served by a registered
+// domain, not that a season was actually played (a real browser can be
+// driven), so nothing here may be relaxed on account of it: enforcement is a
+// Console toggle that can be switched off, or fail open for a client whose
+// attestation is blocked, and these rules stay the last line either way.
+//
 // uid on leaderboard/dailyLeaderboard: FORBIDDEN outright. Both collections
 // are world-readable, and privacy.html tells players in as many words that
 // "Global Leaderboard entries aren't linked to any account" — so an auth uid
