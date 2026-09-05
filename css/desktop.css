@@ -394,6 +394,12 @@
   }
   .home-intro__title em { font-style: normal; color: var(--dk-orange); }
   .home-intro__sub { margin: 6px 0 0; font-size: 14px; color: var(--dk-dim); }
+  .home-intro__stats {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
   .home-intro__stat {
     display: flex;
     align-items: center;

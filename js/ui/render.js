@@ -25,7 +25,7 @@ import { gdRewardedAvailable }                            from '../utils/gamedis
 import { getDailyChallenge, checkRosterConstraint } from '../logic/challenge.js';
 import { isDualDraft, isBlindDraft, seriesLabels, MORE_MODES, fansFirstScore } from '../logic/modes.js';
 import { seasonTier, seasonGrade } from '../logic/seasonTier.js';
-import { levelProgress, titleForLevel } from '../logic/progression.js';
+import { levelProgress, titleForLevel, getProgression } from '../logic/progression.js';
 import { fetchDailyCommunityStats, isFirebaseConfigured } from '../utils/firebase.js';
 import { bindEvents, buildRematchCode, hasKnownHashRoute } from '../ui/events.js'; // circular — safe (called inside functions only)
 import { installPromptKind }                              from '../utils/install.js';
@@ -686,17 +686,29 @@ function renderHomeIntro() {
     total     = getLegendCatalog().total ?? 0;
   } catch (e) { /* collection unavailable — fall through to the stat-less band */ }
 
+  let level = null;
+  try {
+    level = getProgression().level ?? null;
+  } catch (e) { /* progression unavailable — fall through to the stat-less band */ }
+
   return `
   <div class="home-intro" style="display:none">
     <div>
       <h1 class="home-intro__title">Build a team that goes <em>82-0</em></h1>
       <p class="home-intro__sub">Draft five all-time greats. Chase the perfect season.</p>
     </div>
-    ${total ? `
-    <div class="home-intro__stat">
-      <span class="home-intro__stat-label">Legends collected</span>
-      <span class="home-intro__stat-value cond">${collected}<small>/${total}</small></span>
-    </div>` : ''}
+    <div class="home-intro__stats">
+      ${level ? `
+      <div class="home-intro__stat">
+        <span class="home-intro__stat-label">GM Level</span>
+        <span class="home-intro__stat-value cond">${level}</span>
+      </div>` : ''}
+      ${total ? `
+      <div class="home-intro__stat">
+        <span class="home-intro__stat-label">Legends collected</span>
+        <span class="home-intro__stat-value cond">${collected}<small>/${total}</small></span>
+      </div>` : ''}
+    </div>
   </div>`;
 }
 
