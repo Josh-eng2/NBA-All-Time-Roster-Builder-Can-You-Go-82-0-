@@ -17,6 +17,7 @@ import { calculateChemistry, chemScoreFromBonus } from '../logic/chemistry.js';
 import { TEAMS, pickCosmetic, S } from '../logic/state.js';
 import { eraAdjustedStat, eraAdjustedLine, decadeFromBucketKey } from '../logic/era.js';
 import { getModeConfig }       from '../logic/modes.js';
+import { configValue }        from '../utils/remoteConfig.js';
 
 // ── Sigmoid tuning knobs ──────────────────────────────────────────────────────
 // SIM_K:      steepness — lower = more gradual spread between good/bad teams
@@ -49,9 +50,25 @@ import { getModeConfig }       from '../logic/modes.js';
 // 76-win median and goes 82-0 in roughly 0.2 % of seasons — about 1 run in 450,
 // and only for a roster drafted about as well as this database allows. Rare,
 // and reachable, which is the point of the name.
+//
+// These three are the shipped DEFAULTS, and are also tunable at runtime
+// through Remote Config (keys sim_k / sim_center / win_cap — see DEFAULTS in
+// js/utils/remoteConfig.js, which bounds each of them). Remote Config exists
+// so a curve can be nudged after watching real seasons without a deploy and a
+// service-worker cache roll; the numbers here remain what this build was
+// calibrated and measured against, and are what every client uses until a
+// published value lands. If a published value is ever made permanent, it
+// belongs HERE, in a commit that also re-measures the anchors above.
 const SIM_K      = 1.40;
 const SIM_CENTER = 1.40;
 const WIN_CAP    = 1.00;
+
+// Read at simulate time rather than module load: Remote Config resolves a
+// moment after boot, and a constant captured at import would pin the whole
+// session to the default even after a published value had landed.
+const simK      = () => configValue('sim_k')      ?? SIM_K;
+const simCenter = () => configValue('sim_center') ?? SIM_CENTER;
+const winCap    = () => configValue('win_cap')    ?? WIN_CAP;
 
 let _baselinesCache = null;
 
@@ -487,7 +504,7 @@ export function simulateSeason(starters, coach = null, profile = null) {
 
   const fansM = +(Math.pow(popNorm, 1.5) * 38 + 2).toFixed(1);
 
-  const winPct = Math.min(WIN_CAP, 1 / (1 + Math.exp(-SIM_K * (adjustedStrength - SIM_CENTER))));
+  const winPct = Math.min(winCap(), 1 / (1 + Math.exp(-simK() * (adjustedStrength - simCenter()))));
 
   let wins = 0;
   const games = [];
