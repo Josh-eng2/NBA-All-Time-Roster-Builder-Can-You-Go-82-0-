@@ -70,7 +70,10 @@ Tailwind is compiled ahead of time into the committed `css/tailwind.css`; re-run
 `scripts/build_tailwind.sh` after changing Tailwind classes. `canvas-confetti` is
 committed under `js/vendor/` and loaded same-origin rather than from a CDN — see
 `js/vendor/README.md`. Firebase powers an optional global leaderboard/analytics and
-degrades gracefully if unavailable.
+degrades gracefully if unavailable. Firebase App Check (reCAPTCHA v3) attests that
+leaderboard writes come from the real site rather than a script holding the public
+config — the site key and the Console steps are in the header comment of
+`js/utils/firebase.js`, and `firestore.rules` explains what it does and does not prove.
 
 Generated assets have regeneration scripts: `scripts/build_favicon.sh` (favicon.ico from
 `logo-crest.png`) and `scripts/build_og_image.sh` (og-image.png from `og-image.html`).

@@ -136,6 +136,33 @@
  *    Copy the firebaseConfig object and paste the values into FIREBASE_CONFIG below.
  * 5. Deploy your site — scores will start flowing in automatically.
  *
+ * 6. App Check (reCAPTCHA v3). Optional to run the game, and the thing that
+ *    decides whether a submission had to come from the real site:
+ *
+ *      a. Firebase Console → Build → App Check → Apps → register the web app
+ *         with the reCAPTCHA v3 provider. Firebase creates the key pair; copy
+ *         the SITE key into APP_CHECK_SITE_KEY below (public, safe to commit)
+ *         and leave the secret key in the Console (never in this repo).
+ *      b. reCAPTCHA admin console (google.com/recaptcha/admin) → that key →
+ *         Domains: add canyougo820.com, www.canyougo820.com and
+ *         josh-eng2.github.io. A domain that is not listed cannot attest, and
+ *         the failure is a generic PERMISSION_DENIED like every other.
+ *      c. Deploy, then leave App Check → APIs → Cloud Firestore UNENFORCED
+ *         for a week and watch the verified/unverified split on that page.
+ *         Enforce only once the verified share has plateaued: enforcement is
+ *         retroactive to every live client, including installed PWAs still
+ *         serving an older cached bundle from the service worker.
+ *      d. Enforce Cloud Firestore (and Authentication, if the account system
+ *         is on). From then on an unattested request is rejected server-side
+ *         — which is exactly the curl-a-fake-82-0 case, and also, if the site
+ *         key or its domain list is ever wrong, every real player. (b) and
+ *         (c) are what keep those two apart.
+ *
+ *    What this does NOT do: make a run unforgeable. Someone can still drive a
+ *    real browser. It removes the trivial attack — reading the public config
+ *    out of this file and POSTing a fabricated document — which is as close
+ *    to a result-signing server as a project with no backend gets.
+ *
  * Exports:
  *   isFirebaseConfigured()      — true only when real credentials are present
  *   submitGlobalScore(entry)    — writes one document to 'leaderboard'
@@ -155,7 +182,8 @@
 let initializeApp, getApps, getFirestore, initializeFirestore, collection, addDoc, getDocs,
     query, orderBy, limit, where, serverTimestamp, Timestamp,
     doc, getDoc, setDoc, deleteDoc,
-    getAnalytics, logEvent;
+    getAnalytics, logEvent,
+    initializeAppCheck, ReCaptchaV3Provider;
 
 // Exported so js/utils/auth.js loads `firebase-auth.js` from this exact same
 // pinned version. It must not keep a second copy of this URL: the browser
@@ -181,16 +209,26 @@ export const SDK_BASE = 'https://www.gstatic.com/firebasejs/10.12.4';
  * there, so the interesting case — analytics down, Firestore up — never
  * arises on its own).
  *
- * @param {PromiseSettledResult<any>[]} settled  [app, firestore, analytics]
- * @returns {{ app: object, firestore: object, analytics: object|null }|null}
+ * App Check is optional here for the same reason, from the other direction:
+ * `firebase-app-check.js` itself is rarely blocked, but the reCAPTCHA v3
+ * script it loads sits on some privacy blocklists, and a client that cannot
+ * attest is still a client that should boot, render, and play. Whether an
+ * un-attested client may WRITE is a server-side decision (the App Check
+ * enforcement toggle in the Firebase Console), not one this module gets to
+ * make — so it degrades to "submitted without a token" and lets Firestore
+ * answer, exactly as it already degrades to "submitted without analytics".
+ *
+ * @param {PromiseSettledResult<any>[]} settled  [app, firestore, analytics, appCheck]
+ * @returns {{ app: object, firestore: object, analytics: object|null, appCheck: object|null }|null}
  *   null only when a REQUIRED module is missing.
  */
-export function sdkFromSettled([app, firestore, analytics] = []) {
+export function sdkFromSettled([app, firestore, analytics, appCheck] = []) {
   if (app?.status !== 'fulfilled' || firestore?.status !== 'fulfilled') return null;
   return {
     app:       app.value,
     firestore: firestore.value,
     analytics: analytics?.status === 'fulfilled' ? analytics.value : null,
+    appCheck:  appCheck?.status === 'fulfilled' ? appCheck.value : null,
   };
 }
 
@@ -211,6 +249,7 @@ function loadSdk() {
       import(`${SDK_BASE}/firebase-app.js`),
       import(`${SDK_BASE}/firebase-firestore.js`),
       import(`${SDK_BASE}/firebase-analytics.js`),
+      import(`${SDK_BASE}/firebase-app-check.js`),
     ]).then(settled => {
       const sdk = sdkFromSettled(settled);
       if (!sdk) { _sdkPromise = null; _sdkRetryAt = Date.now() + SDK_RETRY_COOLDOWN_MS; }
@@ -231,6 +270,54 @@ const FIREBASE_CONFIG = {
   measurementId:     'G-NWPZD758GE',
 };
 
+// ── App Check (reCAPTCHA v3) ──────────────────────────────────────────────────
+// The reCAPTCHA v3 SITE key registered for this project in
+// Firebase Console → App Check → Apps → Web (see the App Check section of the
+// SETUP INSTRUCTIONS at the top of this file). Public by design and safe to
+// commit — it is the half of the pair that runs in the browser; the SECRET
+// key lives only in the Firebase Console and must never appear in this repo.
+//
+// What this buys, precisely: Firestore can tell a request that came from a
+// page served by our registered domains from one a script made after reading
+// the public config out of this file. firestore.rules can only ever bound
+// what a submission CLAIMS; App Check is the only thing in a project with no
+// backend that speaks to where the submission CAME FROM. It does not make a
+// run unforgeable — a determined person can still drive a real browser — but
+// it ends curl-ing a fabricated 82-0 straight into the collection.
+const APP_CHECK_SITE_KEY = 'YOUR_RECAPTCHA_V3_SITE_KEY';
+
+// Hosts where App Check runs against a DEBUG token instead of reCAPTCHA:
+// reCAPTCHA only attests domains registered with the site key, and a local
+// dev server is not (and must not be) one of them. On these hosts the SDK
+// prints a debug token to the console, which you register once under
+// App Check → Apps → ⋮ → Manage debug tokens to make `python3 -m http.server`
+// work against the live project. Every other host attests for real.
+const APP_CHECK_DEBUG_HOSTS = ['localhost', '127.0.0.1', '[::1]', ''];
+
+/**
+ * Decides how (and whether) App Check should be initialised for a host.
+ *
+ * Pure and exported so the two decisions that matter have unit tests: that an
+ * unconfigured site key initialises nothing at all (the repo ships with the
+ * placeholder, and calling initializeAppCheck with it would fail every
+ * request on a project where enforcement is on), and that the debug path is
+ * confined to local hosts — a debug token honoured on canyougo820.com would
+ * hand any visitor the exact bypass this whole mechanism exists to close.
+ *
+ * @param {string} siteKey
+ * @param {string} [hostname]  location.hostname
+ * @returns {{ siteKey: string, debug: boolean }|null}  null = do not initialise
+ */
+export function appCheckSetupFor(siteKey, hostname = '') {
+  if (!siteKey || siteKey === 'YOUR_RECAPTCHA_V3_SITE_KEY') return null;
+  return { siteKey, debug: APP_CHECK_DEBUG_HOSTS.includes(hostname) };
+}
+
+/** True once the reCAPTCHA v3 site key above has been filled in. */
+export function isAppCheckConfigured() {
+  return appCheckSetupFor(APP_CHECK_SITE_KEY) !== null;
+}
+
 // ── Configuration check ───────────────────────────────────────────────────────
 
 /** Returns true only when FIREBASE_CONFIG has been filled in with real values. */
@@ -244,11 +331,43 @@ export function isFirebaseConfigured() {
 let _db        = null;
 let _analytics = null;
 let _app       = null;
+let _appCheck  = null;
 
 // Initialize the Firebase app and Analytics eagerly at module load (kicked
 // off below, not awaited) so that session tracking and page-view events fire
 // as soon as the SDK resolves. Memoized — safe to call from every exported
 // function without re-triggering the dynamic import.
+/**
+ * Attaches App Check to the app, if it can be attached at all.
+ *
+ * Wrapped in try/catch and deliberately silent, like every other third-party
+ * touch in this module. The failure modes are all real and none of them may
+ * take the game down: the module was blocked before it loaded, reCAPTCHA's
+ * own script is blocked, the host page already initialised App Check on this
+ * app (initializeAppCheck throws on a second call), or the site key is not
+ * registered for the domain the game is being served from. In every one of
+ * them the app keeps running and requests simply go out unattested — which
+ * Firestore accepts while App Check enforcement is in monitoring mode, and
+ * rejects once it is switched on. That is the intended shape: the console
+ * toggle decides how strict the project is, not this file.
+ *
+ * @param {object} app
+ */
+function setUpAppCheck(app) {
+  const setup = appCheckSetupFor(APP_CHECK_SITE_KEY, globalThis.location?.hostname ?? '');
+  if (!setup || !initializeAppCheck || !ReCaptchaV3Provider) return;
+  try {
+    // Must be set BEFORE initializeAppCheck() — the SDK reads it during init.
+    if (setup.debug) globalThis.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+    _appCheck = initializeAppCheck(app, {
+      provider: new ReCaptchaV3Provider(setup.siteKey),
+      // Keeps a fresh token in hand so a submission at the end of a long
+      // season isn't the thing that discovers the token expired an hour ago.
+      isTokenAutoRefreshEnabled: true,
+    });
+  } catch (_) { _appCheck = null; }
+}
+
 let _initPromise = null;
 function ensureInit() {
   if (!_initPromise) {
@@ -268,8 +387,13 @@ function ensureInit() {
           // the exact "analytics takes Firestore down with it" bug one layer
           // lower down.
           ({ getAnalytics, logEvent } = sdk.analytics ?? {});
+          // Same `?? {}` reasoning as analytics: App Check is optional here.
+          ({ initializeAppCheck, ReCaptchaV3Provider } = sdk.appCheck ?? {});
           const existing = getApps();
           _app = existing.length ? existing[0] : initializeApp(FIREBASE_CONFIG);
+          // Before any Firestore call, so the very first read/write already
+          // carries a token rather than racing attestation.
+          setUpAppCheck(_app);
           if (getAnalytics) {
             try { _analytics = getAnalytics(_app); } catch (_) { /* blocked by adblocker */ }
           }
