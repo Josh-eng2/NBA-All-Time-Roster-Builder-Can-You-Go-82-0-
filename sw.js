@@ -194,7 +194,18 @@
 //       Trophy Room. js/vendor/confetti.browser.js is deliberately NOT
 //       precached: it stays lazily loaded, and the runtime cache picks it up
 //       the first time a celebration fires.
-const CACHE_VERSION = '820-v28';
+//   v29 Firebase Performance Monitoring. Changed precached files:
+//       js/utils/firebase.js (loads firebase-performance.js as a FOURTH
+//       optional module alongside analytics — same blocklist exposure, so it
+//       joins the same Promise.allSettled and the same "absent, not faked"
+//       handling rather than becoming a second required import; plus the new
+//       measure() trace wrapper) and js/ui/events.js (traces around
+//       simulateSeason, the spin resolve and buildDraftBoard). events.js now
+//       imports measure() from firebase.js, so the two must ship together:
+//       a returning player served the new events.js against the old cached
+//       firebase.js fails to boot on a missing export, which is exactly what
+//       this bump exists to prevent.
+const CACHE_VERSION = '820-v29';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 

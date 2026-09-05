@@ -143,6 +143,7 @@
  *   submitDailyScore(entry)     — writes one document to 'dailyLeaderboard'
  *   fetchDailyLeaderboard(date) — reads top entries for a 'YYYY-MM-DD' day
  *   fetchDailyCommunityStats(date) — { attempts, passed, pct } for the day's board
+ *   measure(name, fn, attrs)    — times fn() as a Firebase Performance trace
  */
 
 // The SDK is loaded via dynamic import (below), not a static one. main.js and
@@ -155,7 +156,8 @@
 let initializeApp, getApps, getFirestore, initializeFirestore, collection, addDoc, getDocs,
     query, orderBy, limit, where, serverTimestamp, Timestamp,
     doc, getDoc, setDoc, deleteDoc,
-    getAnalytics, logEvent;
+    getAnalytics, logEvent,
+    getPerformance, trace;
 
 // Exported so js/utils/auth.js loads `firebase-auth.js` from this exact same
 // pinned version. It must not keep a second copy of this URL: the browser
@@ -166,13 +168,14 @@ let initializeApp, getApps, getFirestore, initializeFirestore, collection, addDo
 export const SDK_BASE = 'https://www.gstatic.com/firebasejs/10.12.4';
 
 /**
- * Assembles the SDK from three settled dynamic imports.
+ * Assembles the SDK from four settled dynamic imports.
  *
- * Analytics is OPTIONAL and Firestore is not. `firebase-analytics.js` is on
- * essentially every ad/tracker blocklist (uBlock Origin, Brave Shields,
- * Firefox ETP, Pi-hole, NextDNS), while `firebase-firestore.js` is on almost
- * none — so loading all three with Promise.all meant one blocked analytics
- * module rejected the lot, left the Firebase app uninitialised, and made every
+ * Analytics and Performance are OPTIONAL and Firestore is not.
+ * `firebase-analytics.js` and `firebase-performance.js` are on essentially
+ * every ad/tracker blocklist (uBlock Origin, Brave Shields, Firefox ETP,
+ * Pi-hole, NextDNS), while `firebase-firestore.js` is on almost none — so
+ * loading them all with Promise.all meant one blocked telemetry module
+ * rejected the lot, left the Firebase app uninitialised, and made every
  * leaderboard read AND every score submission fail with "Firebase unavailable"
  * for a player whose Firestore access was working perfectly.
  *
@@ -181,16 +184,18 @@ export const SDK_BASE = 'https://www.gstatic.com/firebasejs/10.12.4';
  * there, so the interesting case — analytics down, Firestore up — never
  * arises on its own).
  *
- * @param {PromiseSettledResult<any>[]} settled  [app, firestore, analytics]
- * @returns {{ app: object, firestore: object, analytics: object|null }|null}
+ * @param {PromiseSettledResult<any>[]} settled  [app, firestore, analytics, performance]
+ * @returns {{ app: object, firestore: object, analytics: object|null,
+ *             performance: object|null }|null}
  *   null only when a REQUIRED module is missing.
  */
-export function sdkFromSettled([app, firestore, analytics] = []) {
+export function sdkFromSettled([app, firestore, analytics, performance] = []) {
   if (app?.status !== 'fulfilled' || firestore?.status !== 'fulfilled') return null;
   return {
-    app:       app.value,
-    firestore: firestore.value,
-    analytics: analytics?.status === 'fulfilled' ? analytics.value : null,
+    app:         app.value,
+    firestore:   firestore.value,
+    analytics:   analytics?.status   === 'fulfilled' ? analytics.value   : null,
+    performance: performance?.status === 'fulfilled' ? performance.value : null,
   };
 }
 
@@ -211,6 +216,7 @@ function loadSdk() {
       import(`${SDK_BASE}/firebase-app.js`),
       import(`${SDK_BASE}/firebase-firestore.js`),
       import(`${SDK_BASE}/firebase-analytics.js`),
+      import(`${SDK_BASE}/firebase-performance.js`),
     ]).then(settled => {
       const sdk = sdkFromSettled(settled);
       if (!sdk) { _sdkPromise = null; _sdkRetryAt = Date.now() + SDK_RETRY_COOLDOWN_MS; }
@@ -243,6 +249,7 @@ export function isFirebaseConfigured() {
 
 let _db        = null;
 let _analytics = null;
+let _perf      = null;
 let _app       = null;
 
 // Initialize the Firebase app and Analytics eagerly at module load (kicked
@@ -268,10 +275,20 @@ function ensureInit() {
           // the exact "analytics takes Firestore down with it" bug one layer
           // lower down.
           ({ getAnalytics, logEvent } = sdk.analytics ?? {});
+          // Same `?? {}` reasoning for Performance: firebase-performance.js is
+          // on the same blocklists as analytics, so sdk.performance is null
+          // whenever it was blocked.
+          ({ getPerformance, trace } = sdk.performance ?? {});
           const existing = getApps();
           _app = existing.length ? existing[0] : initializeApp(FIREBASE_CONFIG);
           if (getAnalytics) {
             try { _analytics = getAnalytics(_app); } catch (_) { /* blocked by adblocker */ }
+          }
+          // Constructing this is all the auto-instrumentation needs: page-load
+          // timing (TTFB, FCP, DOM load) and every fetch/XHR start reporting
+          // themselves from here on. Custom traces go through measure() below.
+          if (getPerformance) {
+            try { _perf = getPerformance(_app); } catch (_) { /* blocked by adblocker */ }
           }
         } catch (_) { _app = null; }
       }
@@ -460,6 +477,49 @@ export function logAnalyticsEvent(eventName, params = {}) {
       if (_analytics) logEvent(_analytics, eventName, { ...params, ...referralParam() });
     } catch (_) { /* silently ignore */ }
   }).catch(() => {});
+}
+
+// ── Performance traces ────────────────────────────────────────────────────────
+
+/**
+ * Times `fn()` as a named Firebase Performance custom trace.
+ *
+ * Deliberately SYNCHRONOUS, unlike logAnalyticsEvent(): the calls worth
+ * measuring here (simulateSeason, buildDraftBoard) are sync CPU burns on the
+ * main thread, and awaiting ensureInit() first would both push the work into a
+ * microtask and change when it runs relative to the render that follows it.
+ * The trade-off is that `_perf` may not exist yet — the SDK arrives via a
+ * dynamic import, so a trace fired in the first few hundred ms of page life
+ * silently no-ops. Every measured call site is behind a user interaction, so
+ * that window is not reachable in practice.
+ *
+ * `fn()` runs and its value is returned whether or not the trace could be
+ * started: an ad blocker on firebase-performance.js must cost timing data, not
+ * the season simulation itself. Hence the try/finally and the swallowed
+ * throws — a stop() failure must not mask an exception from fn().
+ *
+ * @param {string} name  trace name; Firebase allows <=100 chars of [A-Za-z0-9_]
+ * @param {Function} fn  synchronous work to measure
+ * @param {object} [attrs]  low-cardinality string dimensions to slice by in the
+ *   console, e.g. { mode: 'gm-ai' }. Firebase caps this at 5 per trace and
+ *   aggregates across users, so never put a player, team or user id in here.
+ * @returns {*} whatever fn() returns
+ */
+export function measure(name, fn, attrs = {}) {
+  let t = null;
+  try {
+    if (_perf && trace) { t = trace(_perf, name); t.start(); }
+  } catch (_) { t = null; }
+  try {
+    return fn();
+  } finally {
+    try {
+      if (t) {
+        for (const [k, v] of Object.entries(attrs)) t.putAttribute(k, String(v));
+        t.stop();
+      }
+    } catch (_) { /* a broken trace must never break the game */ }
+  }
 }
 
 // ── Public API ────────────────────────────────────────────────────────────────
