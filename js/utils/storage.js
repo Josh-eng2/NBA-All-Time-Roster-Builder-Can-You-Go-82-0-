@@ -379,9 +379,9 @@ export function closeLeaderboardModal() {
 // ── Global leaderboard modal ──────────────────────────────────────────────────
 
 const GLOBAL_TABS = [
-  { id: 'alltime', label: 'All-Time' },
   { id: '24h',     label: '24 Hours' },
   { id: 'weekly',  label: 'This Week' },
+  { id: 'alltime', label: 'All-Time' },
 ];
 
 let _globalLbCache   = [];
