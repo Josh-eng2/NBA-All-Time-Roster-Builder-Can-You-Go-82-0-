@@ -3,6 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <!-- Same narrow Content-Security-Policy as index.html: the directives that
+       are worth having AND actually work in a <meta> tag. base-uri stops an
+       injected <base> repointing every relative URL, object-src blocks plugin
+       content, form-action pins where anything on the page may post. No
+       script-src — see the fuller note in index.html. -->
+  <meta http-equiv="Content-Security-Policy"
+        content="base-uri 'self'; object-src 'none'; form-action 'self'" />
   <title>Miami Heat All-Time Starting 5 — Full Roster by Era</title>
   <meta name="description" content="Gary Payton, Dwyane Wade, LeBron James — see the all-time Miami Heat starting five, plus all 28 Heat legends rated and split by decade." />
   <link rel="canonical" href="https://canyougo820.com/teams/heat.html" />

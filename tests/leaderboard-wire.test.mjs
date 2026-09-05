@@ -279,3 +279,22 @@ test('a rejection with no .code passes through unchanged', async () => {
 test('a fulfilled promise is unaffected', async () => {
   assert.equal(await withFirestoreErrorCode(Promise.resolve('ok')), 'ok');
 });
+
+test('no wire document carries an account identifier', () => {
+  // Both public collections are world-readable, and privacy.html promises
+  // their entries are not linked to any account. The rules now forbid a `uid`
+  // field outright (see cloudsave-rules.test.mjs), which means a builder that
+  // started forwarding one would lose every submission — and would break the
+  // promise on the way. Neither builder may pass a caller's `uid` through.
+  const entry = {
+    uid: 'uid-should-never-ship', teamName: 'T', wins: 70, losses: 12,
+    champion: false, coachId: 'jackson', coachName: 'Phil Jackson', era: 'all',
+    chemScore: 80, avgPopularity: 180, fansM: 200, starters: 'A, B, C, D, E',
+    timestampMs: 1, date: '2026-09-01', challengeId: 'win-65', passed: true,
+  };
+  for (const [name, doc] of [['buildGlobalDoc', buildGlobalDoc(entry)], ['buildDailyDoc', buildDailyDoc(entry)]]) {
+    assert.ok(!('uid' in doc), `${name} forwarded a uid onto a public leaderboard`);
+    assert.ok(!JSON.stringify(doc).includes('uid-should-never-ship'),
+      `${name} leaked an account identifier into the wire shape`);
+  }
+});

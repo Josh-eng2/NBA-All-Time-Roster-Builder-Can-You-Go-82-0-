@@ -43,6 +43,9 @@ import { isDark, ovrColor, fansBarCol }            from '../ui/theme.js';
 
 const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 
+/** A plain object, or null for anything else — parsed storage is not trusted. */
+const obj = v => (v && typeof v === 'object' && !Array.isArray(v) ? v : null);
+
 // Compact, wrapping row of the 5 stored stat leaders for a leaderboard entry.
 // Returns '' for entries saved before per-player stats existed.
 function leadersLineHtml(leaders) {
@@ -283,19 +286,29 @@ export function saveToTrophyRoom() {
 
 function renderLeaderboardModal() {
   let lb = [];
-  try { lb = JSON.parse(cgGetItem('nba820_lb') || '[]'); } catch (e) {}
+  try {
+    const stored = JSON.parse(cgGetItem('nba820_lb') || '[]');
+    if (Array.isArray(stored)) lb = stored;
+  } catch (e) {}
   const top5 = lb.slice(0, 5);
 
   const rows = top5.length === 0
     ? `<p style="font-size:14px;color:var(--muted-fg);text-align:center;padding:24px 0">No runs yet — simulate a season to get on the board!</p>`
     : top5.map((e, i) => {
-        const isPerfect = e.wins === 82;
+        // nba820_lb is written back from the cloud-save merge (cloudSave.js),
+        // and the users/{uid} rule bounds that array's size without policing
+        // what is inside it — so treat every field as untrusted here, exactly
+        // as the global board below already does.
+        const wins      = Number(e?.wins)   || 0;
+        const losses    = Number(e?.losses) || 0;
+        const date      = esc(e?.date ?? '');
+        const isPerfect = wins === 82;
         const rowBg     = isPerfect
           ? 'background:var(--surface-amber);border-color:var(--amber-border)'
           : 'background:var(--card3);border-color:var(--border)';
         const medals    = ['🥇','🥈','🥉','4️⃣','5️⃣'];
         const winsColor = isPerfect ? 'var(--amber-strong)' : 'var(--fg)';
-        const name      = esc(e.teamName || 'Untitled Team');
+        const name      = esc(e?.teamName || 'Untitled Team');
         return `
         <div style="border-radius:12px;border:1.5px solid;padding:12px;display:flex;align-items:center;gap:12px;${rowBg}">
           <span style="font-size:20px;width:28px;text-align:center;flex-shrink:0">${medals[i]}</span>
@@ -305,11 +318,11 @@ function renderLeaderboardModal() {
               ${isPerfect ? '<span style="font-size:10px;font-weight:900;padding:2px 8px;border-radius:999px;background:var(--amber-badge-bg);color:var(--amber-text);border:1px solid var(--amber-border)">🏆 PERFECT</span>' : ''}
             </div>
             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-              <span style="font-weight:900;font-size:16px;color:${winsColor}">${e.wins}–${e.losses}</span>
-              <span style="font-size:11px;color:var(--muted-fg)">${e.date}</span>
+              <span style="font-weight:900;font-size:16px;color:${winsColor}">${wins}–${losses}</span>
+              <span style="font-size:11px;color:var(--muted-fg)">${date}</span>
             </div>
-            <p style="font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:3px 0 0">${esc(e.starters || '')}</p>
-            ${leadersLineHtml(e.leaders)}
+            <p style="font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:3px 0 0">${esc(e?.starters || '')}</p>
+            ${leadersLineHtml(e?.leaders)}
           </div>
         </div>`;
       }).join('');
@@ -819,7 +832,13 @@ export function getDailyStats() {
       distribution: _emptyDailyDist(),
     };
   } else {
-    const dist = { ..._emptyDailyDist(), ...(stats.distribution || {}) };
+    // Coerced, not spread through as-is: nba820_dailyStats is written back
+    // from the cloud-save merge, whose Firestore rule bounds the document's
+    // shape but never its values — and these counts are interpolated straight
+    // into the Statistics modal's innerHTML.
+    const storedDist = obj(stats.distribution) || {};
+    const dist = _emptyDailyDist();
+    for (const key of Object.keys(dist)) dist[key] = Math.max(0, Number(storedDist[key]) || 0);
     const currentStreak = liveStreak;
     const storedMax = Number(stats.maxStreak);
     const maxStreak = Math.max(

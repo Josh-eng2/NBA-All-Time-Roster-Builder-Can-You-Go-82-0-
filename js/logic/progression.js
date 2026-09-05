@@ -148,12 +148,34 @@ export function xpToReachLevel(level) {
   return LEVEL_BASE_STEP * n + LEVEL_STEP_GROWTH * (n * (n - 1)) / 2;
 }
 
-/** The level a given lifetime XP total corresponds to. */
+/**
+ * The level a given lifetime XP total corresponds to.
+ *
+ * Closed form, not a loop. `while (xp >= xpToReachLevel(level + 1)) level++`
+ * walks one level per iteration up an uncapped quadratic curve, so a corrupt
+ * or hand-edited xp — this value round-trips through localStorage and through
+ * a `users/{uid}` document whose rule deliberately bounds shape but not values
+ * — could spin for tens of millions of iterations and hang the tab. Every
+ * caller of this is on a render path.
+ *
+ * xpToReachLevel(n + 1) = A·n² + B·n with A = GROWTH/2 and B = BASE − GROWTH/2,
+ * so the level is found by solving that quadratic for n and adding one. The
+ * two bounded corrections below absorb floating-point error at a boundary,
+ * which is at most one level either way.
+ */
 export function levelForXp(totalXp) {
-  const xp = Math.max(0, Number(totalXp) || 0);
-  let level = 1;
-  while (xp >= xpToReachLevel(level + 1)) level++;
-  return level;
+  // Clamped so an absurd value cannot make the discriminant overflow to
+  // Infinity and take the corrections with it.
+  const xp = Math.min(Math.max(0, Number(totalXp) || 0), Number.MAX_SAFE_INTEGER);
+  const A  = LEVEL_STEP_GROWTH / 2;
+  const B  = LEVEL_BASE_STEP - LEVEL_STEP_GROWTH / 2;
+
+  let n = Math.floor((Math.sqrt(B * B + 4 * A * xp) - B) / (2 * A));
+  if (!Number.isFinite(n) || n < 0) n = 0;
+
+  for (let i = 0; i < 2 && n > 0 && xpToReachLevel(n + 1) > xp; i++) n--;
+  for (let i = 0; i < 2 && xpToReachLevel(n + 2) <= xp; i++) n++;
+  return n + 1;
 }
 
 /** Level plus progress through it, for the XP bar. */

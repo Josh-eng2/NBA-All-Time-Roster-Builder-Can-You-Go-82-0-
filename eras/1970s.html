@@ -3,6 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <!-- Same narrow Content-Security-Policy as index.html: the directives that
+       are worth having AND actually work in a <meta> tag. base-uri stops an
+       injected <base> repointing every relative URL, object-src blocks plugin
+       content, form-action pins where anything on the page may post. No
+       script-src — see the fuller note in index.html. -->
+  <meta http-equiv="Content-Security-Policy"
+        content="base-uri 'self'; object-src 'none'; form-action 'self'" />
   <title>Best 1970s NBA Players &amp; the All-Time 70s Team</title>
   <meta name="description" content="Kareem Abdul-Jabbar, Jerry West, John Havlicek — the best 1970s NBA players, rated — all 105 across 22 franchises, plus the all-time 70s starting five." />
   <link rel="canonical" href="https://canyougo820.com/eras/1970s.html" />

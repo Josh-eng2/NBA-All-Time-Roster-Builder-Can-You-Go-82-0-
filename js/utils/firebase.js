@@ -42,7 +42,8 @@
  *                                  && request.resource.data.fansM >= 0
  *                                  && request.resource.data.fansM <= 2200))
  *                          && request.resource.data.champion is bool
- *                          && request.resource.data.timestampMs is number;
+ *                          && request.resource.data.timestampMs is number
+ *                          && !('uid' in request.resource.data);
  *            allow update, delete: if false;
  *          }
  *        }
@@ -52,6 +53,11 @@
  *    can be written by anyone holding the public web config, and the modal
  *    renders them for every visitor. The client also numeric-coerces on read
  *    (storage.js) as defense in depth.
+ *
+ *    The `uid` exclusion is not incidental: this collection is world-readable
+ *    and privacy.html promises its entries are not linked to any account, so
+ *    an auth uid must not be able to reach one. Nothing here writes the field
+ *    — buildGlobalDoc()/buildDailyDoc() below enumerate every key they send.
  *
  *    avgPopularity/fansM bounds (0-1000 / 0-2200) are generous headroom
  *    above the ~350 / ~410 theoretical maximums the current player data and

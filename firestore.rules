@@ -75,25 +75,27 @@
 // forgery may CLAIM rather than proving a run happened. Doing better needs a
 // server to sign results, which this project deliberately does not have.
 //
-// uid on leaderboard/dailyLeaderboard: optional, and when present must equal
-// the writer's own auth uid. Anonymous submissions omit it entirely and are
-// completely unaffected — they remain the overwhelming majority and must
-// keep working byte-for-byte. Note this only ever TIGHTENS: neither rule used
-// hasOnly(), so before this clause a forged `uid` would have been accepted
-// without any check at all.
+// uid on leaderboard/dailyLeaderboard: FORBIDDEN outright. Both collections
+// are world-readable, and privacy.html tells players in as many words that
+// "Global Leaderboard entries aren't linked to any account" — so an auth uid
+// must not be able to land on one, not even the writer's own. Nothing in the
+// game has ever sent the field (buildGlobalDoc/buildDailyDoc in
+// js/utils/firebase.js enumerate every key they write), so this costs no
+// legitimate submission; it stops a future change from quietly publishing a
+// stable per-player identifier on a public document and contradicting that
+// promise. An earlier version of this file allowed `uid` when it equalled
+// request.auth.uid, which was a tightening at the time — neither rule used
+// hasOnly(), so before it a forged uid was accepted unchecked — but "the
+// writer's own uid" is exactly the value the privacy claim rules out.
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // A signed-in player may stamp their own uid onto a public leaderboard
-    // document; nobody may stamp anyone else's. Anonymous submissions omit
-    // the field entirely and are unaffected — which is the whole point, as
-    // they are still the overwhelming majority. Before this clause a `uid`
-    // field would have been accepted unvalidated, so this only tightens.
-    function optionalOwnUid() {
-      return !('uid' in request.resource.data)
-             || (request.resource.data.uid is string
-                 && request.auth != null
-                 && request.resource.data.uid == request.auth.uid);
+    // No account identifier of any kind on a world-readable board. See the
+    // note at the top of this file: privacy.html promises these entries are
+    // not linked to an account, and the game never writes the field, so the
+    // rule and the promise can simply agree.
+    function noUid() {
+      return !('uid' in request.resource.data);
     }
 
     function isOwner(uid) {
@@ -185,7 +187,7 @@ service cloud.firestore {
                             && request.resource.data.fansM <= 2200))
                     && request.resource.data.champion is bool
                     && request.resource.data.timestampMs is number
-                    && optionalOwnUid();
+                    && noUid();
       allow update, delete: if false;
     }
 
@@ -219,7 +221,7 @@ service cloud.firestore {
                     && request.resource.data.score ==
                          request.resource.data.wins * 10
                          + (request.resource.data.passed ? 200 : 0)
-                    && optionalOwnUid();
+                    && noUid();
       allow update, delete: if false;
     }
 

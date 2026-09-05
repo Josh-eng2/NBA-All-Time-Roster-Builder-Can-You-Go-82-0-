@@ -1,8 +1,9 @@
 /**
  * js/utils/cloudSave.js — local save snapshot + additive merge
  *
- * Nothing imports this module yet. It is the second foundation piece, shipped
- * ahead of the UI and the Firestore wiring that will use it.
+ * Imported by js/ui/authModal.js (sign-in / sign-up / account deletion) and
+ * js/ui/events.js (the boot-time session restore and the debounced upload
+ * after a run, XP award or Daily).
  *
  * WHAT THIS IS FOR
  * ────────────────
@@ -28,13 +29,18 @@
  *   bests              max
  *   lastRun / coach    from whichever save was written more recently
  *
- * TWO RULES THIS MODULE EXISTS TO ENFORCE
- * ───────────────────────────────────────
+ * THREE RULES THIS MODULE EXISTS TO ENFORCE
+ * ─────────────────────────────────────────
  *   1. Local is authoritative during play. Nothing here is on the path of a
  *      draft, a simulation or a save. The cloud is a mirror.
  *   2. Never write a partial save. readLocalSave() reports whether every
  *      section parsed; a caller must not upload a save that did not. A
  *      partial upload merged on another device would propagate the loss.
+ *   3. One device's progress belongs to one account. The first account to
+ *      sign in claims whatever unclaimed progress it finds; a different
+ *      account signing in later gets a hand-off, not a merge. See "Device
+ *      ownership" below — without it a shared laptop quietly moved player A's
+ *      trophies into player B's account, irreversibly.
  *
  * mergeSaves() is PURE and SYNCHRONOUS — no network, no DOM, no clock, no
  * storage — so the whole merge table can be unit-tested under Node. That is
@@ -48,12 +54,15 @@
  *   readLocalSave()     — the nba820_* keys as one snapshot
  *   writeLocalSave(s)   — a snapshot back into the nba820_* keys
  *   mergeSaves(a, b)    — pure, additive, order-independent merge
+ *   canonicalJson(v)    — key-order-independent JSON; the merge's identity
+ *   applyRemoteToDevice(uid, remote)
+ *                       — settle this device's storage + ownership, no network
  *   scheduleUpload(fn)  — debounce a snapshot upload
  *   flushUpload()       — run a pending upload now (page hide / unload)
  *   cancelUpload()      — drop a pending upload
  */
 
-import { cgGetItem, cgSetItem }                      from './crazygames.js';
+import { cgGetItem, cgSetItem, cgRemoveItem }        from './crazygames.js';
 import { fetchUserSave, writeUserSave, deleteUserSave } from './firebase.js';
 
 /** Bumped only when the snapshot shape changes in a way a reader must know. */
@@ -61,10 +70,12 @@ export const SCHEMA_VERSION = 1;
 
 // ── Storage keys ──────────────────────────────────────────────────────────────
 // Deliberately NOT synced, and absent from every structure below: nba820_theme,
-// nba820_returning, nba820_install and nba820_ref. Those are device
-// properties, not player properties — syncing the theme would fight a player
-// who runs light on a phone and dark on a laptop, and syncing the returning
-// flag would replay or suppress the cold open on the wrong device.
+// nba820_returning, nba820_install, nba820_ref, nba820_owner and
+// nba820_handoff. Those are device properties, not player properties — syncing
+// the theme would fight a player who runs light on a phone and dark on a
+// laptop, and syncing the returning flag would replay or suppress the cold open
+// on the wrong device. The last two describe WHICH ACCOUNT this device's save
+// belongs to, which is meaningless anywhere else by definition.
 
 const K = {
   progress:   'nba820_progress',
@@ -89,6 +100,14 @@ const MODE_KEYS = {
   'gm-ai':        'nba820_lb_gmai',
   'dynasty-duel': 'nba820_lb_dynasty',
 };
+
+/**
+ * The account whose progress the keys above currently hold, and a one-slot
+ * parking space for the previous owner's save. Device-local, never synced.
+ * See the "Device ownership" section further down for what they are for.
+ */
+const OWNER_KEY   = 'nba820_owner';
+const HANDOFF_KEY = 'nba820_handoff';
 
 // Caps mirror the writers in utils/storage.js exactly. A merge that produced a
 // longer list than the game itself writes would hand the render layer more
@@ -122,13 +141,67 @@ function laterDate(a, b) {
 }
 
 /**
- * Concatenate two lists, drop exact duplicates, sort, and cap.
+ * A key-ORDER-independent JSON encoding. This is the merge's identity, and it
+ * is the whole reason the de-duplication below works.
  *
- * Identity is the entry's own JSON. That is deliberately strict: it can only
- * ever collapse entries that are byte-identical — the same run synced twice —
- * and can never fuse two genuinely different runs that happen to share a
- * score. Losing a real run to an over-eager identity heuristic would be the
- * exact failure this module exists to prevent.
+ * The obvious `JSON.stringify(entry)` was wrong here, and wrong in exactly the
+ * one direction that matters: it is key-order sensitive, and the two sides of
+ * this merge do not agree on key order. The local side preserves the insertion
+ * order of the object literal in utils/storage.js (localStorage round-trips it
+ * verbatim); the remote side is rebuilt by the Firestore SDK from a protobuf
+ * map, whose fields come back sorted. So one run, uploaded and fetched back,
+ * hashed to two different ids and survived as two entries — and because the
+ * merged list is then sorted and capped (20 leaderboard rows, 12 trophies),
+ * the accumulating copies eventually evicted real runs from the very rooms
+ * this module exists to protect.
+ *
+ * Sorting keys at every level makes the identity a function of the entry's
+ * CONTENT alone. Values are still compared exactly — no rounding, no coercion
+ * — so this stays every bit as strict as the original about never fusing two
+ * genuinely different runs that happen to look similar.
+ *
+ * Arrays keep their order on purpose: [a, b] and [b, a] are different rosters.
+ *
+ * Mirrors JSON.stringify's treatment of values with no JSON form (undefined,
+ * functions, symbols are dropped from objects, become null in arrays) so the
+ * two agree on everything except the ordering this exists to fix.
+ *
+ * @param {*} value
+ * @param {Set} [seen]  cycle guard; a cyclic entry throws and cannot be ours
+ * @returns {string|undefined} undefined when the value itself has no JSON form
+ */
+export function canonicalJson(value, seen = new Set()) {
+  if (value === null) return 'null';
+  const t = typeof value;
+  if (t === 'number')  return Number.isFinite(value) ? JSON.stringify(value) : 'null';
+  if (t === 'string' || t === 'boolean') return JSON.stringify(value);
+  if (t !== 'object')  return undefined;   // undefined, function, symbol, bigint
+  if (seen.has(value)) throw new TypeError('cyclic value');
+  seen.add(value);
+  try {
+    if (Array.isArray(value)) {
+      return `[${value.map(v => canonicalJson(v, seen) ?? 'null').join(',')}]`;
+    }
+    const parts = [];
+    for (const key of Object.keys(value).sort()) {
+      const encoded = canonicalJson(value[key], seen);
+      if (encoded !== undefined) parts.push(`${JSON.stringify(key)}:${encoded}`);
+    }
+    return `{${parts.join(',')}}`;
+  } finally {
+    seen.delete(value);
+  }
+}
+
+/**
+ * Concatenate two lists, drop duplicates, sort, and cap.
+ *
+ * Identity is the entry's canonical JSON (see above): it collapses entries
+ * that are identical in CONTENT — the same run synced twice, whichever side
+ * of the network it came back from — and can never fuse two genuinely
+ * different runs that happen to share a score. Losing a real run to an
+ * over-eager identity heuristic would be the exact failure this module exists
+ * to prevent, so nothing here is fuzzy.
  */
 function mergeList(a, b, cmp, cap) {
   const out  = [];
@@ -136,8 +209,8 @@ function mergeList(a, b, cmp, cap) {
   for (const entry of [...arr(a), ...arr(b)]) {
     if (entry === null || entry === undefined) continue;
     let id;
-    try { id = JSON.stringify(entry); } catch (_) { continue; } // cyclic — cannot be ours
-    if (seen.has(id)) continue;
+    try { id = canonicalJson(entry); } catch (_) { continue; } // cyclic — cannot be ours
+    if (id === undefined || seen.has(id)) continue;
     seen.add(id);
     out.push(entry);
   }
@@ -599,10 +672,23 @@ export function scheduleUpload(uploadFn) {
 }
 
 /**
- * Runs a pending upload immediately — for `visibilitychange` / `pagehide`,
- * where waiting out the debounce would lose the write. Safe to call with
- * nothing pending. Never throws: a failed upload must not surface as an error
- * during a page transition.
+ * Runs a pending upload immediately, rather than waiting out the debounce.
+ *
+ * WHAT THIS CAN AND CANNOT DO. `visibilitychange` → hidden is the one that
+ * actually works: the page is backgrounded but still alive, so the uploader's
+ * read-merge-write round trip has time to finish. On `pagehide` the document
+ * may be torn down mid-flight and the write is simply lost — pushLocalSave()
+ * fetches the remote before it writes (a blind push is what this module
+ * exists to forbid), and neither half of that can be handed to sendBeacon,
+ * which is fire-and-forget and cannot carry the Firestore SDK's auth. So the
+ * pagehide call is opportunistic, not a guarantee.
+ *
+ * Nothing is lost when it misses: local storage is what the game plays from,
+ * and the next boot's syncOnSignIn() merges and uploads. The cost of a missed
+ * flush is that the account lags by one session, not that progress is gone.
+ *
+ * Safe to call with nothing pending. Never throws — a failed upload must not
+ * surface as an error during a page transition.
  */
 export function flushUpload() {
   if (_timer !== null) { clearTimeout(_timer); _timer = null; }
@@ -619,6 +705,124 @@ export function flushUpload() {
 export function cancelUpload() {
   if (_timer !== null) { clearTimeout(_timer); _timer = null; }
   _pending = null;
+}
+
+// ── Device ownership ─────────────────────────────────────────────────────────
+//
+// THE PROBLEM. Two individually-correct rules compose into a wrong one:
+//
+//   * signOut() is a session operation only and deliberately leaves every
+//     nba820_* key where it is — the trophies belong to the device and to the
+//     person still sitting in front of it.
+//   * syncOnSignIn() merges whatever is in those keys into the account that
+//     just signed in, additively.
+//
+// On a shared laptop that means player B, signing in after player A signed
+// out, silently absorbs A's XP, legends, trophies and boards into B's account
+// — and because every merge rule here is a max or a union, there is no
+// operation that can ever undo it.
+//
+// THE RULE THIS FIXES IT WITH. A device's unclaimed local progress belongs to
+// the FIRST account that signs in on it — that is the whole point of the
+// feature and is the overwhelmingly common case (months of signed-out play,
+// then an account). From then on the device is owned by that account. A
+// DIFFERENT account signing in is a hand-off, not a merge: it adopts its own
+// cloud save and does not claim what it finds here.
+//
+// A hand-off never destroys anything. The departing state is parked under
+// HANDOFF_KEY first, so a player who hands their device over by accident has
+// not lost their run — it is one key away, recoverable by hand, rather than
+// merged into a stranger's account where nothing can separate it again.
+
+/** The account this device's save belongs to, or null while unclaimed. */
+function readOwner() {
+  try {
+    const raw = cgGetItem(OWNER_KEY);
+    return (typeof raw === 'string' && raw) ? raw : null;
+  } catch (_) { return null; }
+}
+
+function writeOwner(uid) {
+  try { cgSetItem(OWNER_KEY, uid); } catch (_) { /* best effort, same as every write here */ }
+}
+
+/**
+ * Forgets who owns this device, so the next sign-in claims it and merges as a
+ * first sign-in would. Called when the owning account is deleted: the player
+ * is still sitting here, their local progress is deliberately untouched, and
+ * the account they make next must be able to pick it up.
+ */
+function clearOwner() {
+  try { cgRemoveItem(OWNER_KEY); } catch (_) {}
+}
+
+/** True when a snapshot carries no progress at all. */
+function isEmptySnapshot(snapshot) {
+  try {
+    return canonicalJson(obj(snapshot)?.save ?? null) === canonicalJson(emptySave().save);
+  } catch (_) { return false; }
+}
+
+/**
+ * Parks the outgoing owner's save before a hand-off clears the keys.
+ *
+ * A sign-up fires syncOnSignIn() twice — once from the modal, once from the
+ * auth subscription — so two hand-offs can race, and the loser would be
+ * parking the save the winner has already cleared. Never let an empty stash
+ * replace a real one.
+ */
+function stashHandoff(previousOwner, snapshot) {
+  try {
+    if (isEmptySnapshot(snapshot) && cgGetItem(HANDOFF_KEY)) return;
+    cgSetItem(HANDOFF_KEY, JSON.stringify({ uid: previousOwner, at: Date.now(), snapshot }));
+  } catch (_) { /* a full quota must not block the hand-off itself */ }
+}
+
+/** Empties every synced key. Only ever called after stashHandoff() succeeds. */
+function clearLocalSave() {
+  for (const key of [...Object.values(K), ...Object.values(MODE_KEYS)]) {
+    try { cgRemoveItem(key); } catch (_) {}
+  }
+}
+
+/**
+ * Settles what this device's storage should hold now that `uid` is signed in,
+ * given that account's fetched save — and records the ownership that decision
+ * establishes.
+ *
+ * Split out of syncOnSignIn() for the same reason mergeSaves() is: this is the
+ * half where a mistake destroys or leaks a player's progress, and keeping the
+ * network on the other side of the seam means the whole decision table can be
+ * exercised under Node with nothing but a storage stub.
+ *
+ * @param {string} uid
+ * @param {object|null} remote  the account's save, or null for a new account
+ * @returns {{ merged: object, handedOff: boolean, complete: boolean }}
+ *   `complete` is readLocalSave()'s verdict on the device, forwarded so the
+ *   caller can decide whether the result is safe to upload.
+ */
+export function applyRemoteToDevice(uid, remote) {
+  const owner = readOwner();
+  const { snapshot: local, complete } = readLocalSave();
+
+  // Hand-off: this device's save belongs to someone else's account. Park it,
+  // clear it, and adopt this account's own save — never merge, and never
+  // upload, because everything here is the other player's.
+  if (owner && owner !== uid) {
+    stashHandoff(owner, local);
+    clearLocalSave();
+    const adopted = mergeSaves(emptySave(), remote);
+    writeLocalSave(adopted);
+    writeOwner(uid);
+    return { merged: adopted, handedOff: true, complete };
+  }
+
+  const merged = mergeSaves(local, remote);
+  writeLocalSave(merged);
+  // The device is this account's from here on: whatever unclaimed progress was
+  // sitting on it has just become part of their save.
+  writeOwner(uid);
+  return { merged, handedOff: false, complete };
 }
 
 // ── Sync ──────────────────────────────────────────────────────────────────────
@@ -647,8 +851,15 @@ function snapshotToRemote(snapshot, displayName) {
     deviceUpdatedAt: num(snapshot.deviceUpdatedAt, Date.now()),
     save:            snapshot.save,
   };
-  if (typeof displayName === 'string' && displayName.length >= 3) {
-    body.displayName = displayName.slice(0, 24);
+  // Counted and sliced by CHARACTER, not by UTF-16 code unit. The users/{uid}
+  // rule bounds this with size(), which counts characters, so a two-emoji GM
+  // name is .length 4 here and size() 2 there — accepted by a `.length >= 3`
+  // check and then rejected by the rule, losing the WHOLE document to a
+  // generic permission-denied. Slicing by character also means a 24-limit can
+  // never cut a surrogate pair in half.
+  if (typeof displayName === 'string') {
+    const chars = [...displayName];
+    if (chars.length >= 3) body.displayName = chars.slice(0, 24).join('');
   }
   return body;
 }
@@ -668,21 +879,28 @@ function snapshotToRemote(snapshot, displayName) {
  * locally: a save missing a section must never be pushed, because merging
  * into it on another device would propagate the loss instead of healing it.
  *
+ * A DIFFERENT account than the one this device belongs to takes the hand-off
+ * path instead of any of the above — see "Device ownership". It adopts its own
+ * cloud save and uploads nothing, so a shared device cannot leak one player's
+ * progress into another player's account.
+ *
  * @param {string} uid
  * @param {string} [displayName]
- * @returns {Promise<{ok: boolean, code?: string, merged?: object, uploaded?: boolean}>}
+ * @returns {Promise<{ok: boolean, code?: string, merged?: object,
+ *                    uploaded?: boolean, handedOff?: boolean}>}
  */
 export async function syncOnSignIn(uid, displayName) {
   if (!uid) return { ok: false, code: 'no-uid' };
-  const { snapshot: local, complete } = readLocalSave();
 
   const res = await fetchUserSave(uid);
   if (!res.ok) return { ok: false, code: res.code };
 
   const remote = res.exists ? remoteToSnapshot(res.data) : null;
-  const merged = mergeSaves(local, remote);
+  const { merged, handedOff, complete } = applyRemoteToDevice(uid, remote);
 
-  writeLocalSave(merged);
+  // A hand-off adopted the account's own save and claimed nothing from this
+  // device, so there is nothing new to send back.
+  if (handedOff) return { ok: true, merged, uploaded: false, handedOff: true };
 
   if (!complete) return { ok: true, merged, uploaded: false, code: 'local-incomplete' };
 
@@ -714,6 +932,13 @@ export async function syncOnSignIn(uid, displayName) {
  */
 export async function pushLocalSave(uid, displayName) {
   if (!uid) return { ok: false, code: 'no-uid' };
+  // Belt and braces on the hand-off rule: syncOnSignIn() normally settles
+  // ownership before any gameplay upload can fire, but a run finishing inside
+  // that window would otherwise push the previous owner's save into this
+  // account. Refusing costs one upload; the next one goes through.
+  const owner = readOwner();
+  if (owner && owner !== uid) return { ok: false, code: 'device-owned-elsewhere' };
+
   const { snapshot, complete } = readLocalSave();
   if (!complete) return { ok: false, code: 'local-incomplete' };
 
@@ -733,8 +958,14 @@ export function requestSync(uid, displayName) {
 /**
  * Removes the cloud save. Local progress is deliberately left alone — the
  * person deleting their account is still the person at this device.
+ *
+ * Ownership is released with it. The account that owned this device is about
+ * to stop existing, so leaving its uid stamped here would make the player's
+ * NEXT account read as a hand-off and quietly park the progress they were
+ * explicitly promised they could keep.
  */
 export async function deleteCloudSave(uid) {
   cancelUpload();
+  clearOwner();
   return deleteUserSave(uid);
 }
