@@ -1081,9 +1081,18 @@ function doSimulate() {
     S.result.fansPassed = fansFirstPassed(S.result.avgPopularity, S.result.wins);
   }
 
+  // chemScore/avgPopularity/fansM are the same trio buildGlobalScorePayload()
+  // sends to the leaderboard, under the same names on purpose: they are the
+  // only numbers describing HOW a roster was built rather than how it did, and
+  // carrying them here means the analytics stream can answer the roster-shape
+  // questions (does chemistry win games, does star power) without joining
+  // against a board that only holds the runs a player chose to submit.
   logAnalyticsEvent('season_simulated', {
     wins: S.result.wins, losses: S.result.losses,
     coach: S.coach ?? 'none', era: S.selectedEra ?? 'all', mode: S.mode ?? 'solo',
+    chemScore:     S.result.chemScore     ?? 0,
+    avgPopularity: S.result.avgPopularity ?? 0,
+    fansM:         S.result.fansM         ?? 0,
   });
 
   // First-visit hook payoff delivered — from here on they're a veteran.
@@ -1639,6 +1648,11 @@ function onPlayoffChampion() {
     wins:  S.result?.wins ?? 0,
     coach: S.coach ?? 'none',
     era:   S.selectedEra ?? 'all',
+    // Same trio as season_simulated above — a title is the one outcome worth
+    // asking "what did the winning rosters look like?" about.
+    chemScore:     S.result?.chemScore     ?? 0,
+    avgPopularity: S.result?.avgPopularity ?? 0,
+    fansM:         S.result?.fansM         ?? 0,
   });
 }
 
