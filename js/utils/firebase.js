@@ -284,7 +284,7 @@ const FIREBASE_CONFIG = {
 // backend that speaks to where the submission CAME FROM. It does not make a
 // run unforgeable — a determined person can still drive a real browser — but
 // it ends curl-ing a fabricated 82-0 straight into the collection.
-const APP_CHECK_SITE_KEY = 'YOUR_RECAPTCHA_V3_SITE_KEY';
+const APP_CHECK_SITE_KEY = '6Ler4qstAAAAAOkvpVCRarf4Ca11qRagatEMXNik';
 
 // Hosts where App Check runs against a DEBUG token instead of reCAPTCHA:
 // reCAPTCHA only attests domains registered with the site key, and a local
