@@ -1484,9 +1484,10 @@ function buildResultCardData() {
 
   // Link priority: a replayable board beats everything, because it's the only
   // link that makes "can you beat it?" answerable. The Daily needs no code —
-  // every player already draws that day's board — so it deep-links to #/daily.
+  // every player already draws that day's board — so it links to that
+  // challenge's own page, which is the one share here that previews properly.
   const rematchCode = buildRematchCode();
-  const shareUrl = S.mode === 'daily' ? buildDailyUrl()
+  const shareUrl = S.mode === 'daily' ? buildDailyUrl(S.dailyChallenge?.slug)
     : rematchCode                     ? buildRematchUrl(rematchCode)
     : buildPlainUrl();
 
@@ -1522,6 +1523,11 @@ function doShare(variant = 'feed') {
  * signal the API gives — it does not report which target the user chose, or
  * whether they ultimately sent the message — so `share_completed` means "the
  * sheet closed without cancelling", not "a friend received this".
+ *
+ * The download fallback logs `share_downloaded` instead. It is a weaker signal
+ * again — a file on disk, no sheet, no recipient — and it only happens on
+ * browsers without navigator.share, so folding it into `share_completed` both
+ * inflated that number and skewed it by platform.
  */
 async function shareResultCard(data, variant = 'feed') {
   const caption = buildShareCaption(data);
@@ -1550,7 +1556,12 @@ async function shareResultCard(data, variant = 'feed') {
       }
     }
     downloadBlob(blob, name);
-    logAnalyticsEvent('share_completed', { ...base, method: 'download' });
+    // NOT share_completed: no share sheet ever opened and nothing left the
+    // device — the card is just a file in the player's downloads now. Counting
+    // it as a completed share inflated the headline number, and did it only on
+    // the browsers that lack navigator.share, so mobile and desktop share rates
+    // were not comparable.
+    logAnalyticsEvent('share_downloaded', { ...base, method: 'download' });
     if (navigator.clipboard) {
       navigator.clipboard.writeText(caption)
         .then(()  => showToast('🖼️ Card downloaded + link copied!'))

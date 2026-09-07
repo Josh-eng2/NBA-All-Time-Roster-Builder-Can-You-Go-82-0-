@@ -105,3 +105,33 @@ test('share links point at the public origin and carry their route', () => {
   assert.ok(buildDailyUrl().endsWith('#/daily'));
   assert.ok(buildPlainUrl().startsWith(ORIGIN));
 });
+
+/**
+ * A shared daily link points at the challenge's generated page rather than at
+ * the game, because the hash payload of every other share is invisible to link
+ * unfurlers and previews as the bare site card. These pin the two halves of
+ * that: the page URL has to match the file the generator actually writes, and a
+ * slug that can't be trusted must never reach the path.
+ */
+test('a daily share links to the challenge page, with attribution', () => {
+  const url = buildDailyUrl('boos-only');
+  assert.equal(url, `${ORIGIN}/daily/boos-only.html?ref=daily`);
+  // ?ref= lives in the query, not the hash: the daily page is a real document
+  // request, and a hash never reaches the page's own script or the server.
+  assert.equal(new URL(url).searchParams.get('ref'), 'daily');
+});
+
+test('an unusable slug falls back to the direct link instead of a broken path', () => {
+  const direct = `${ORIGIN}/?ref=daily#/daily`;
+  // Missing (an older save, or a catalog entry that lost its slug) — the player
+  // still lands in the right mode, only the rich preview is lost.
+  assert.equal(buildDailyUrl(), direct);
+  assert.equal(buildDailyUrl(undefined), direct);
+  assert.equal(buildDailyUrl(''), direct);
+  // Anything that could escape the daily/ directory or smuggle a second
+  // parameter never reaches the path.
+  for (const bad of ['../../evil', 'a/b', 'Boos-Only', 'boos only', 'x?ref=share',
+                     'x#/daily', 'x&via=evil.com', '-lead', 'trail-', 'a--b']) {
+    assert.equal(buildDailyUrl(bad), direct, `slug "${bad}" must not reach the URL`);
+  }
+});

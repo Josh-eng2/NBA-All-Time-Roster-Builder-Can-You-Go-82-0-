@@ -89,6 +89,33 @@
     ]
   }
   </script>
+  <script>
+    /* This page is the landing spot for shared daily links, and the game reads
+       its ?ref= from the URL it is opened with (js/utils/referral.js) — so
+       without this the hop through this page would relabel every shared arrival
+       as organic. Copies an inbound ref onto the Play link; the static href
+       above already carries ref=dailypage for search traffic and stands on its own
+       with JS off. Whitelisted, because the value lands in an href. */
+    (function () {
+      try {
+        var ref = new URLSearchParams(location.search).get('ref');
+        if (!/^(daily|share|rematch|story)$/.test(ref || '')) return;
+        var a = document.getElementById('cp-play');
+        if (!a) return;
+        /* Relay who sent the reader here. Without it the game sees this page as
+           its referrer and buckets every daily share as 'internal' — the one
+           path where the channel is worth knowing. Hostname only, shape-checked
+           here and again in referral.js, which owns the hostname -> channel map
+           so there is only ever one copy of it. */
+        var via = '';
+        try {
+          var h = document.referrer ? new URL(document.referrer).hostname : '';
+          if (/^[a-z0-9.-]{1,60}$/i.test(h)) via = '&via=' + encodeURIComponent(h);
+        } catch (e2) { /* no readable referrer — ref alone still lands */ }
+        a.href = '../?ref=' + ref + via + '#/daily';
+      } catch (e) { /* the static href is already correct */ }
+    })();
+  </script>
 </head>
 <body>
 
@@ -99,7 +126,7 @@
       <h1>👑 The King&#39;s Court</h1>
       <p class="cp-type"><b>Locked-legend build</b> — one superstar is pre-drafted for you; build the other four around him.</p>
       <p><strong>LeBron James (&#39;18 Lakers) is locked at small forward. Win 60+ games.</strong></p>
-      <p><a class="seo-cta" href="../">▶ Play today's challenge</a></p>
+      <p><a class="seo-cta" id="cp-play" href="../?ref=dailypage#/daily">▶ Play today's challenge</a></p>
 
       <h2>What the rule means</h2>
       <dl class="cp-facts">

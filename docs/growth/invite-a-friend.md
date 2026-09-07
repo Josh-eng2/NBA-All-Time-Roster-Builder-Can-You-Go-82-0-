@@ -38,6 +38,13 @@ around it.
 These are bugs and misconfigurations found while reading the code, not
 speculation. All are small.
 
+> **Status: all four fixed.** `slug` is now a field on every challenge (one
+> value shared by the generator and the share link), `buildDailyUrl()` points at
+> the generated page, the page's CTA deep-links into `#/daily` and forwards
+> attribution, the download branch logs `share_downloaded`, and
+> `referral.js` buckets the referrer into a `channel` that `firebase.js` stamps
+> onto every event. Section 5's funnel is measurable as of this change.
+
 ### 2.1 Challenge links unfurl as the generic homepage
 
 `buildDailyUrl()` (`js/logic/rematch.js:121`) returns

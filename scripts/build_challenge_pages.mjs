@@ -35,7 +35,7 @@
 import { readFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import {
-  ROOT, ORIGIN, TODAY, esc, slugify, writeIfChanged, lastmodFor,
+  ROOT, ORIGIN, TODAY, esc, writeIfChanged, lastmodFor,
   notifyIndexNow, loadPlayerDb, breadcrumbLd, assertTitleFits,
 } from './lib/seo-utils.mjs';
 import { buildTeamPages } from './build_team_pages.mjs';
@@ -274,6 +274,33 @@ ${JSON.stringify({
   ])],
 }, null, 2).split('\n').map(l => '  ' + l).join('\n')}
   </script>
+  <script>
+    /* This page is the landing spot for shared daily links, and the game reads
+       its ?ref= from the URL it is opened with (js/utils/referral.js) — so
+       without this the hop through this page would relabel every shared arrival
+       as organic. Copies an inbound ref onto the Play link; the static href
+       above already carries ref=dailypage for search traffic and stands on its own
+       with JS off. Whitelisted, because the value lands in an href. */
+    (function () {
+      try {
+        var ref = new URLSearchParams(location.search).get('ref');
+        if (!/^(daily|share|rematch|story)$/.test(ref || '')) return;
+        var a = document.getElementById('cp-play');
+        if (!a) return;
+        /* Relay who sent the reader here. Without it the game sees this page as
+           its referrer and buckets every daily share as 'internal' — the one
+           path where the channel is worth knowing. Hostname only, shape-checked
+           here and again in referral.js, which owns the hostname -> channel map
+           so there is only ever one copy of it. */
+        var via = '';
+        try {
+          var h = document.referrer ? new URL(document.referrer).hostname : '';
+          if (/^[a-z0-9.-]{1,60}$/i.test(h)) via = '&via=' + encodeURIComponent(h);
+        } catch (e2) { /* no readable referrer — ref alone still lands */ }
+        a.href = '../?ref=' + ref + via + '#/daily';
+      } catch (e) { /* the static href is already correct */ }
+    })();
+  </script>
 </head>
 <body>
 
@@ -284,7 +311,7 @@ ${JSON.stringify({
       <h1>${ch.emoji} ${esc(ch.title)}</h1>
       <p class="cp-type"><b>${TYPE_LABEL[ch.type]}</b> — ${TYPE_BLURB[ch.type]}.</p>
       <p><strong>${esc(ch.desc)}</strong></p>
-      <p><a class="seo-cta" href="../">▶ Play today's challenge</a></p>
+      <p><a class="seo-cta" id="cp-play" href="../?ref=dailypage#/daily">▶ Play today's challenge</a></p>
 
       <h2>What the rule means</h2>
       <dl class="cp-facts">
@@ -339,16 +366,24 @@ for (const d of dates) {
 
 mkdirSync(OUT_DIR, { recursive: true });
 
+// Slugs come from the catalog, not from slugify(ch.title). They are public URLs
+// — indexed, and carried by every shared daily link (buildDailyUrl) — so they
+// have to survive a title reword. Deriving them meant any copy edit silently
+// renamed a page. Validated here instead: the generator is the last place that
+// can catch a slug that isn't URL-safe before it becomes a filename.
 const slugs = new Map();
 for (const ch of CHALLENGES) {
-  const slug = slugify(ch.title);
+  const slug = ch.slug;
+  if (!slug || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
+    throw new Error(`challenge "${ch.id}" needs a lowercase, hyphenated \`slug\` — got ${JSON.stringify(slug)}`);
+  }
   if (slugs.has(slug)) throw new Error(`slug collision: "${slug}" from ${ch.id} and ${slugs.get(slug)}`);
   slugs.set(slug, ch.id);
 }
 
 const written = [];
 for (const ch of CHALLENGES) {
-  const slug = slugify(ch.title);
+  const slug = ch.slug;
   if (!STRATEGY[ch.id]) throw new Error(`no strategy copy for challenge "${ch.id}" — add one before shipping a thin page`);
   const rel = `daily/${slug}.html`;
   const changed = writeIfChanged(join(OUT_DIR, `${slug}.html`), renderPage(ch, slug, byChallenge.get(ch.id)));
@@ -368,7 +403,7 @@ const GROUPS = [
 
 const indexHtml = GROUPS.map(([type, heading]) => {
   const cards = CHALLENGES.filter(c => c.type === type).map(c => {
-    const slug = slugify(c.title);
+    const slug = c.slug;
     return `      <div class="challenge-card"><span class="emoji">${c.emoji}</span><div>` +
       `<p class="title"><a href="daily/${slug}.html">${esc(c.title)}</a></p>` +
       `<p class="desc">${esc(c.desc)}</p></div></div>`;
