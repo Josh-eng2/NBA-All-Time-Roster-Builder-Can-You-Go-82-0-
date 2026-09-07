@@ -117,9 +117,28 @@ export function buildRematchUrl(code) {
   return `${ORIGIN}/?ref=rematch#/rematch?c=${encodeURIComponent(code)}`;
 }
 
-/** Daily link — the day's board is shared by construction, so no code. */
-export function buildDailyUrl() {
-  return `${ORIGIN}/?ref=daily#/daily`;
+/**
+ * Daily link — the day's board is shared by construction, so no code.
+ *
+ * Points at the challenge's own generated page (daily/<slug>.html) rather than
+ * straight into the game, because that is the only version of this link that
+ * previews as anything. A rematch link carries its payload in the hash, which
+ * is never sent to a server and is invisible to every unfurler, so the whole
+ * class of link renders in a group chat as the same generic site card. The
+ * daily pages are the one case with a way out: they are real URLs, already
+ * generated, already carrying per-challenge og:title and og:description. In a
+ * group chat the preview IS the invite, so it is worth the extra hop — and the
+ * page's Play button deep-links into #/daily and forwards this ?ref=, so the
+ * hop costs neither the mode nor the attribution.
+ *
+ * @param {string} [slug] the day's challenge slug; omitted (or unknown) falls
+ *   back to the direct hash link, which still lands the player in the right
+ *   place and only loses the rich preview.
+ */
+export function buildDailyUrl(slug) {
+  return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug || '')
+    ? `${ORIGIN}/daily/${slug}.html?ref=daily`
+    : `${ORIGIN}/?ref=daily#/daily`;
 }
 
 /** Plain link, for results that carry no replayable board. */

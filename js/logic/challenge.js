@@ -19,7 +19,7 @@
  *
  * Exports:
  *   todayUTC()                          → 'YYYY-MM-DD' (supports ?dailydate= dev override)
- *   getDailyChallenge(dateStr?)         → catalog entry for the day
+ *   getDailyChallenge(dateStr?)         → catalog entry for the day (carries `slug`)
  *   checkPickLegal(ch, player, filled, opts) → { legal, reason } at draft time
  *   checkRosterConstraint(ch, starters) → { pass, detail } live/final roster check
  *   evaluateObjective(ch, S)            → { pass, pending, detail } post-sim
@@ -59,60 +59,86 @@ function minPopularity() {
 // restricts which decades count as available (multi-decade windows).
 // Locked `playerId`s must exist in players.json — getDailyChallenge skips
 // entries whose id has drifted after a data regeneration.
+//
+// `slug` is the challenge's page under daily/ AND the path a shared daily
+// result links to (buildDailyUrl in logic/rematch.js), so it is a URL now.
+// It is stored rather than derived from the title for two reasons: the build
+// script used to compute it with slugify(), which lives in a build-time module
+// the game never loads, so the game had no way to name the page it was linking
+// to; and a derived slug silently moves the page — breaking every indexed URL
+// and every link already shared — the moment someone rewords a title. Titles
+// are copy and may change freely; these must not. Renaming one is a redirect,
+// not an edit.
 // `maxRating` caps (none currently in the catalog) are on the `overall` scale
 // (era-adjusted 2K rating, mean ≈87), NOT the stats-derived `rating` scale.
 export const CHALLENGES = [
   // ── Draft constraints ──
   { id: 'nineties-only',  type: 'constraint', emoji: '📼', title: "'90s Night",
+    slug: '90s-night',
     desc: 'Only 1990s players — win 55+ games.',
     params: { era: '1990s', minWins: 55 } },
   { id: 'y2k-ball',       type: 'constraint', emoji: '💿', title: 'Y2K Ball',
+    slug: 'y2k-ball',
     desc: 'Only 2000s players — win 55+ games.',
     params: { era: '2000s', minWins: 55 } },
   { id: 'old-school',     type: 'constraint', emoji: '🎩', title: 'Old School',
+    slug: 'old-school',
     desc: 'Pre-1990 players only (60s–80s) — win 50+ games.',
     params: { allowedDecades: ['1960s', '1970s', '1980s'], minWins: 50 } },
   { id: 'modern-era',     type: 'constraint', emoji: '🚀', title: 'Modern Era',
+    slug: 'modern-era',
     desc: 'Only 2010s and 2020s players — win 55+ games.',
     params: { allowedDecades: ['2010s', '2020s'], minWins: 55 } },
   { id: 'budget-ball',    type: 'constraint', emoji: '👎', title: 'Boos Only',
+    slug: 'boos-only',
     desc: 'Total roster fans under 300 — win 50+ games.',
     params: { maxPopTotal: 300, minWins: 50 } },
   { id: 'no-la-boston',   type: 'constraint', emoji: '🙅', title: 'Flyover Hoops',
+    slug: 'flyover-hoops',
     desc: 'No Lakers, no Celtics — win 60+ games.',
     params: { excludeTeams: ['Lakers', 'Celtics'], minWins: 60 } },
 
   // ── Result objectives ──
   { id: 'win-65',         type: 'objective', emoji: '🎯', title: '65-Win Season',
+    slug: '65-win-season',
     desc: 'Any roster — win at least 65 games.',
     params: { minWins: 65 } },
   { id: 'win-70',         type: 'objective', emoji: '🏔️', title: 'Air Rare',
+    slug: 'air-rare',
     desc: 'Any roster — win at least 70 games.',
     params: { minWins: 70 } },
   { id: 'volume-scorer',  type: 'objective', emoji: '🔥', title: 'Bucket Getter',
+    slug: 'bucket-getter',
     desc: 'A starter must average 30+ PPG this season — and win 50+ games.',
     params: { minWins: 50, starterPpg: 30 } },
   { id: 'swat-team',      type: 'objective', emoji: '🖐️', title: 'Swat Team',
+    slug: 'swat-team',
     desc: 'Your five must combine for 8+ blocks per game — and win 50+ games.',
     params: { minWins: 50, teamBpg: 8 } },
   { id: 'chemistry-class', type: 'objective', emoji: '🧪', title: 'Chemistry Class',
+    slug: 'chemistry-class',
     desc: 'Reach Perfect Team Chemistry and win 55+ games.',
     params: { minWins: 55, minChem: 95 } },
   { id: 'wire-to-wire',   type: 'objective', emoji: '⚡', title: 'Wire to Wire',
+    slug: 'wire-to-wire',
     desc: 'Put together a 20-game win streak at some point in the season.',
     params: { minWins: 50, minStreak: 20 } },
 
   // ── Locked-player builds ──
   { id: 'build-around-shaq',    type: 'locked', emoji: '🪓', title: 'Shaq Attack',
+    slug: 'shaq-attack',
     desc: "Shaquille O'Neal ('94 Magic) is locked at center. Build around him — win 60+ games.",
     params: { playerId: 'shaq_94', pos: 'C', minWins: 60 } },
   { id: 'build-around-lebron',  type: 'locked', emoji: '👑', title: 'The King\'s Court',
+    slug: 'the-kings-court',
     desc: "LeBron James ('18 Lakers) is locked at small forward. Win 60+ games.",
     params: { playerId: 'lebron_18', pos: 'SF', minWins: 60 } },
   { id: 'build-around-magic',   type: 'locked', emoji: '🎩', title: 'Showtime',
+    slug: 'showtime',
     desc: "Magic Johnson ('87 Lakers) is locked at point guard. Win 60+ games.",
     params: { playerId: 'magic_87', pos: 'PG', minWins: 60 } },
   { id: 'build-around-giannis', type: 'locked', emoji: '🦌', title: 'Greek Freak',
+    slug: 'greek-freak',
     desc: 'Giannis (\'19 Bucks) is locked at power forward. Win 60+ games.',
     params: { playerId: 'giannis_19', pos: 'PF', minWins: 60 } },
 ];

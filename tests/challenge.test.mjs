@@ -238,3 +238,29 @@ test('a missing season result fails cleanly instead of throwing', () => {
     assert.ok(v.detail);
   }
 });
+
+/**
+ * `slug` is a public URL twice over: it names the page the generator writes
+ * under daily/, and it is the path every shared daily result links to. So it is
+ * a wire format with the same rule as the rematch codes — appending is safe,
+ * renaming breaks every indexed page and every link already shared.
+ */
+test('every challenge carries a unique, URL-safe slug', () => {
+  const seen = new Map();
+  for (const ch of CHALLENGES) {
+    assert.ok(ch.slug, `challenge "${ch.id}" has no slug`);
+    assert.match(ch.slug, /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+      `slug "${ch.slug}" (${ch.id}) must be lowercase and hyphenated — it becomes a filename`);
+    assert.ok(!seen.has(ch.slug),
+      `slug collision: "${ch.slug}" on ${ch.id} and ${seen.get(ch.slug)} — one page would overwrite the other`);
+    seen.set(ch.slug, ch.id);
+  }
+  assert.equal(seen.size, CHALLENGES.length);
+});
+
+test("the day's challenge carries the slug its share link needs", () => {
+  for (const d of days(40)) {
+    const ch = getDailyChallenge(d);
+    assert.ok(ch.slug, `${d} resolved to "${ch.id}" with no slug — its share link would lose the preview`);
+  }
+});

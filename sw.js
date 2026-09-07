@@ -221,7 +221,7 @@
 //       keeps sending the old payload, and an event stream that is silently
 //       half-instrumented for however long a cache survives is worse to
 //       analyse later than one that simply starts on a known date.
-const CACHE_VERSION = '820-v31';
+const CACHE_VERSION = '820-v32';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 

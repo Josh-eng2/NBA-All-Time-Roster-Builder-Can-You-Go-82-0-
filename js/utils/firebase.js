@@ -565,12 +565,22 @@ async function getDb() {
 // fires before captureReferral() has written the key (module-load events race
 // with init) must not pin the dimension to null for the rest of the session.
 let _refSource = null;
+let _refChannel = null;
 function referralParam() {
   if (!_refSource) {
-    try { _refSource = JSON.parse(localStorage.getItem('nba820_ref') || 'null')?.ref ?? null; }
-    catch (_) { _refSource = null; }
+    try {
+      const stored = JSON.parse(localStorage.getItem('nba820_ref') || 'null');
+      _refSource  = stored?.ref ?? null;
+      // Channel rides along on the same record, so one read serves both. A
+      // record written before channels were tracked has none — the dimension is
+      // omitted for those rather than guessed at.
+      _refChannel = stored?.channel ?? null;
+    } catch (_) { _refSource = null; _refChannel = null; }
   }
-  return _refSource ? { ref_source: _refSource } : null;
+  if (!_refSource) return null;
+  return _refChannel
+    ? { ref_source: _refSource, ref_channel: _refChannel }
+    : { ref_source: _refSource };
 }
 
 /**
