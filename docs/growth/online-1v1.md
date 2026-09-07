@@ -167,14 +167,16 @@ normalised to `'other'`.
 ```
 matches/{code}
   v            1
-  status       'waiting' | 'drafting' | 'complete' | 'abandoned'
+  status       'waiting' | 'drafting' | 'ai-takeover' | 'complete' | 'abandoned'
   era          '1990s' | 'all'          // shared, set by the host
   seq          next event sequence number
-  turnUid      whose turn it is
-  host   { uid, name, seen }            // seen = heartbeat ms
-  guest  { uid, name, seen } | null
+  turnUid      whose turn it is — reassigned permanently on takeover (§8.4)
+  aiFrom       pick number the AI took over at, else null
+  host   { uid, name, seen }            // seen = serverTimestamp, never a
+  guest  { uid, name, seen } | null     //   client clock — see §8.4
   createdAt    serverTimestamp
-  expiresAt    ms — Firestore TTL policy deletes the match
+  expiresAt    Timestamp — Firestore TTL policies only accept a Timestamp
+               field, not a millisecond number
 
 matches/{code}/events/{seq}
   seq, by, t, ...payload                // immutable, see §2.2
@@ -186,18 +188,28 @@ use):
 
 ```
 match /matches/{code} {
+  function opponentSeat(d, uid) {
+    return uid == d.host.uid ? d.guest : d.host;
+  }
+
   allow read: if request.auth != null;
   allow create: if request.auth != null
                 && request.resource.data.host.uid == request.auth.uid
                 && request.resource.data.status == 'waiting'
                 && request.resource.data.guest == null;
-  // Two legal updates: the guest claims the empty seat once, and a seated
-  // player advances the turn / stamps their own heartbeat.
+  // Three legal updates: the guest claims the empty seat once, a seated player
+  // advances the turn / stamps their own heartbeat, and a seated player takes
+  // over for an opponent who has gone stale (§8.4).
   allow update: if request.auth != null && (
       (resource.data.guest == null
        && request.resource.data.guest.uid == request.auth.uid)
    || (request.auth.uid in [resource.data.host.uid, resource.data.guest.uid]
        && request.resource.data.seq == resource.data.seq + 1)
+   || (request.auth.uid in [resource.data.host.uid, resource.data.guest.uid]
+       && request.resource.data.status == 'ai-takeover'
+       && request.resource.data.turnUid == request.auth.uid
+       && opponentSeat(resource.data, request.auth.uid).seen
+            < request.time - duration.value(45, 's'))
   );
   allow delete: if false;
 
@@ -268,6 +280,9 @@ HOST                                    GUEST
   │                 appearing live in the recent-picks log           │
   └──────────────────────────────────────────────────────────────────┘
 
+  (if a player goes stale on their own turn, the other client takes the
+   seat over and chooseAiPick finishes their roster — §8.4)
+
   ten picks land → both clients run the seeded sim independently
   → identical best-of-7, revealed game by game on both screens
   → recap + Rematch (new code, seats swapped)
@@ -325,7 +340,9 @@ load-bearing module, so it is worth landing and sitting on before anything else.
 ### Phase 3 — polish
 
 - `vs/index.html` + `'vs'` in `referral.js` `KNOWN`.
-- Pick clock and auto-pick; disconnect handling (§8.4).
+- Pick clock and auto-pick; AI takeover on disconnect (§8.4), which includes
+  generalising `doAiTurn()` (`js/ui/events.js:970`) off its `gm-ai` gate so it
+  can drive either seat.
 - Analytics: `online_match_created`, `online_match_joined`,
   `online_match_completed`, `online_match_abandoned`. The ratio of created to
   joined is the health of the invite; joined to completed is the health of the
@@ -377,33 +394,74 @@ the mode costs anything. Worth knowing the number before launch, not after.
 Heartbeats are the cheapest thing to tune if that ceiling gets close — they
 only need to run during `drafting`, and a pick write is itself a heartbeat.
 
-### 8.4 Disconnects — **open decision**
+### 8.4 Disconnects: the AI finishes the draft — **decided**
 
-Firestore has no native presence, so this is a `seen` timestamp written every
-~20s and a >45s staleness threshold. What to *do* about it is a product call
-with three defensible answers:
+Firestore has no native presence, so this is a `seen` timestamp per seat and a
+staleness threshold. The decision: when a player goes stale, **`chooseAiPick()`
+takes over their remaining picks** and the draft plays through to a real series
+instead of dying half-drafted.
 
-1. **Abandon** — match over, no result. Simplest, most honest.
-2. **Claim the win** — the remaining player takes it. Invites rage-quit-proofing
-   but also invites a bad-connection player losing unfairly.
-3. **AI takes over** — `chooseAiPick()` (`js/logic/aiDraft.js:73`) already
-   drafts a competent roster, and GM vs AI already runs it mid-draft. The draft
-   finishes and there's a real series at the end.
+**Trigger.** Takeover fires only when it is the absent player's turn *and* they
+have been stale for >45s. You are replaced for holding up the draft, not for
+putting your phone down between turns — reconnect before your next pick and
+nothing happened.
 
-(3) is the most fun and reuses code that exists; (1) is the least surprising.
-Needs deciding before phase 3.
+**Mechanism.** The remaining client flips `status` to `'ai-takeover'`, stamps
+`aiFrom` with the pick number, and reassigns `turnUid` to itself permanently.
+From then on a single client is authoritative for every remaining event — its
+own picks and the AI's alike — which preserves the "exactly one writer per turn"
+property the events rule already depends on. No second write path, no
+contention, no new rule shape beyond the transition itself.
 
-### 8.5 Coaches — **open decision**
+**`seen` must be a `serverTimestamp()`, not a client millisecond value.** The
+rule authorising the takeover compares staleness against `request.time`, and
+`js/utils/firebase.js` already documents at length what goes wrong when a rule
+compares a client-reported time to the server's: a device with a drifting clock
+fails with the same generic `PERMISSION_DENIED` as a dozen unrelated causes, and
+nobody notices for weeks. Here it would break in both directions — a fast clock
+produces a seat that never goes stale, a slow one gets a player replaced while
+they are still sitting there playing. Writing `seen` server-side removes the
+entire class, and is the reason this field is specified as a timestamp rather
+than the `expiresAt` millisecond number next to it.
+
+**The takeover does not need to be deterministic.** `chooseAiPick()`
+(`js/logic/aiDraft.js:73`) happens to be — pure scoring, tiebreak on `overall`,
+no `Math.random` anywhere in the module — but `spinResult()` is not, and it does
+not matter: one client runs the AI and appends what it produced. A player who
+reconnects replays those events rather than recomputing them. This is the event
+log of §2 paying for itself.
+
+**Say so on the result screen.** A series won against an AI substitute is not a
+win over your friend. The recap, the series labels and any share card have to
+carry it ("Josh — AI from pick 6"). Presenting a takeover as a clean
+head-to-head result is the single fastest way for this mode to lose trust, and
+it costs one string to avoid.
+
+**Both players stale** is not a takeover — there is nobody left to run the AI.
+The match sits until the TTL policy collects it.
+
+**Work this implies**, beyond the rule: `doAiTurn()` (`js/ui/events.js:970`) is
+gated on `S.mode === 'gm-ai'` and hardcodes seat 2, so it needs generalising to
+either seat in either mode. And add `online_match_ai_takeover` with the pick
+number — if that fires on a meaningful share of matches, the pick clock is too
+tight or the staleness threshold too low, and the number tells you which.
+
+### 8.5 No coaches in v1 — **decided**
 
 Local 1v1 deliberately has none: `doStartGame()` (`js/ui/events.js:543`) sets
 `p1Coach = p2Coach = null` and launches straight into the draft, and `doSpin()`
-skips the coach lock for `'1v1'` entirely.
+skips the coach lock for `'1v1'` entirely. Online v1 matches that exactly.
 
-Online is a better moment for per-player coach identity — it is a real
-difference between the two teams and a natural thing to show next to a name.
-But it
-adds a lobby step before the draft and a synced field. Recommend keeping it out
-of v1 and revisiting once the mode has players.
+This costs nothing to build, because it is the path the code already takes.
+Both rosters reach `simulateHeadToHeadSeries(p1s, null, p2s, null)` just as they
+do today, and `chooseAiPick(board, roster, null)` already tolerates a null coach
+— its chemistry term runs through `calculateChemistry(..., null)`, which every
+local 1v1 simulate exercises today.
+
+It also keeps a step out of the part of the flow that most needs to be short.
+The gap between "friend opens the link" and "the wheel is spinning" is where an
+invite is won or lost; a coach picker sits directly in it. Revisit once the mode
+has players, and revisit it as an identity feature rather than a balance one.
 
 ### 8.6 Degradation
 
@@ -426,6 +484,9 @@ Worth stating so it isn't assumed:
   invite — which is the whole point of a link.
 - **No global online leaderboard.** See §8.2: client-authoritative spins mean
   these results should never reach a public board.
+- **No reclaiming a seat.** Once the AI has taken over a draft it finishes it
+  (§8.4). Handing the seat back mid-draft means two clients could both believe
+  they are authoritative for the same turn.
 - **No spectating, chat, or reconnect-into-someone-else's-match.**
 
 ---
@@ -436,6 +497,7 @@ Phase 0 first, and let it sit — it is the only work that touches a module the
 whole game depends on. Phases 1 and 2 are the feature. Phase 3 is what makes it
 survivable on a real network.
 
-The single decision that most changes the shape of the build is §8.1: settle
-how anonymous sessions and cloud saves coexist before writing the auth code,
-not after.
+Disconnect behaviour (§8.4) and coaches (§8.5) are settled. The one open item
+left is §8.1, and it is also the one that most changes the shape of the build:
+settle how anonymous sessions and cloud saves coexist **before** writing the
+auth code, not after.
