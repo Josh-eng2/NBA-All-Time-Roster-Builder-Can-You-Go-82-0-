@@ -23,6 +23,7 @@ What is covered:
 | `draft.test.mjs` | player-database integrity, cross-era duplicate prevention, spin pools, skip budgets and skip re-roll pools, the AI GM's pick policy, Legends catalog |
 | `challenge.test.mjs` | Daily Challenge determinism, no back-to-back repeats, every challenge is completable (including a star-chasing fans-budget run, which used to strand), pick legality vs roster check |
 | `rematch.test.mjs` | share-code round trip (a wire format), rejection of malformed codes |
+| `match.test.mjs` | the online 1v1 match core: snake turn order, the shared player pool (including cross-era twins), spin/skip/pick legality, skip budgets, sequence and out-of-turn rejection, AI takeover, and that a log replays to exactly the state it was recorded from |
 | `leaderboard-wire.test.mjs` | submitted documents stay inside the deployed Firestore rule ranges — an out-of-range field loses the whole submission |
 | `state.test.mjs` | config tables, run resets, snake draft order, daily PRNG seeding, mode config, era normalization, tier/grade agreement |
 | `render.test.mjs` | every screen renders — each phase, both themes, phone and desktop layouts, every roster fill level — with no crash, `NaN` or `undefined` reaching the DOM |

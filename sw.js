@@ -221,7 +221,15 @@
 //       keeps sending the old payload, and an event stream that is silently
 //       half-instrumented for however long a cache survives is worse to
 //       analyse later than one that simply starts on a known date.
-const CACHE_VERSION = '820-v32';
+//   v33 online 1v1 match core. New precached module: js/logic/match.js — the
+//       transport-independent rules for a live snake draft between two
+//       devices (turn order, the shared pool, spin and pick legality, the
+//       replay reducer). Nothing imports it yet, so a returning player on the
+//       old cache loses no behaviour today; it is listed and rolled now
+//       because the module is part of the shell from here on, and the bump
+//       that matters is the one shipped in the same commit as the file rather
+//       than remembered later when the UI lands on top of it.
+const CACHE_VERSION = '820-v33';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 
@@ -264,6 +272,7 @@ const PRECACHE_URLS = [
   './js/logic/aiDraft.js',
   './js/logic/dynastyDuel.js',
   './js/logic/rematch.js',
+  './js/logic/match.js',
   './js/utils/storage.js',
   './js/utils/viewport.js',
   './js/utils/firebase.js',
