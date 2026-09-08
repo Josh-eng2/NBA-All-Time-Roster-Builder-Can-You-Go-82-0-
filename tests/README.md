@@ -23,7 +23,7 @@ What is covered:
 | `draft.test.mjs` | player-database integrity, cross-era duplicate prevention, spin pools, skip budgets and skip re-roll pools, the AI GM's pick policy, Legends catalog |
 | `challenge.test.mjs` | Daily Challenge determinism, no back-to-back repeats, every challenge is completable (including a star-chasing fans-budget run, which used to strand), pick legality vs roster check |
 | `rematch.test.mjs` | share-code round trip (a wire format), rejection of malformed codes |
-| `leaderboard-wire.test.mjs` | submitted documents stay inside the deployed Firestore rule ranges — an out-of-range field loses the whole submission |
+| `leaderboard-wire.test.mjs` | submitted documents stay inside the deployed Firestore rule ranges — an out-of-range field loses the whole submission — and the builders' key sets match the `hasOnly()` lists read back out of `firestore.rules`, in both directions |
 | `state.test.mjs` | config tables, run resets, snake draft order, daily PRNG seeding, mode config, era normalization, tier/grade agreement |
 | `render.test.mjs` | every screen renders — each phase, both themes, phone and desktop layouts, every roster fill level — with no crash, `NaN` or `undefined` reaching the DOM |
 | `ui-regressions.test.mjs` | UI defects that have shipped: Ball IQ rules surviving a rematch, the share card's tier palette covering the tier set, a half-typed team name surviving a re-render, the URL hash tracking the screen |
@@ -31,6 +31,7 @@ What is covered:
 | `authmodal.test.mjs` | the account modal wires its root once, so listeners cannot double per view switch, and the delete guard is armed before its first await |
 | `escaping.test.mjs` | nothing a cloud save can carry reaches innerHTML unescaped — Trophy Room, local leaderboard modal, Daily Statistics distribution |
 | `assets.test.mjs` | no first-party module loads script from another origin, the confetti bundle is vendored and licensed, and sw.js's precache list matches the files on disk |
+| `leaderboard-export.test.mjs` | `scripts/leaderboard_stats.mjs`'s CSV boundary — a public, world-writable board feeding a file someone opens in a spreadsheet, so a cell that would be evaluated as a formula is defused — plus the degenerate correlation cases |
 
 `dom-stub.mjs` is the minimum DOM those tests need (a mount point, the theme
 attribute, `matchMedia`, `localStorage`, and enough of the event and child-list

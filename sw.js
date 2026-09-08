@@ -221,7 +221,30 @@
 //       keeps sending the old payload, and an event stream that is silently
 //       half-instrumented for however long a cache survives is worse to
 //       analyse later than one that simply starts on a known date.
-const CACHE_VERSION = '820-v32';
+//   v33 review follow-ups on the accounts and cloud-save work. Changed
+//       precached files: js/utils/cloudSave.js (deleting an account releases
+//       this device's ownership only once the delete has actually SUCCEEDED —
+//       authModal now aborts the deletion when it fails, and the two together
+//       left a live account owning an unclaimed device, which is exactly the
+//       state the next different account merges into itself; and a hand-off
+//       parks the raw key values as well as the parsed snapshot, so a key that
+//       failed to parse is preserved rather than deleted), js/ui/events.js
+//       (the account sync now re-checks accountsEnabled() per auth event and
+//       per upload instead of only once at wiring time — initRemoteConfig() is
+//       unawaited, so a published `accounts_enabled: false` used to half-land,
+//       hiding the pill while the cloud writes carried on),
+//       js/utils/remoteConfig.js (an unparseable Console number falls back to
+//       the shipped default instead of clamping to the floor of its range —
+//       asNumber() maps text to a finite 0, which the bounds cannot tell from
+//       a real value), js/utils/firebase.js (comment only: the mirrored rules
+//       block now shows the hasOnly() field list) and sw.js itself (.ico added
+//       to isStaticAsset, so the precached favicon is actually served).
+//       Also outside the bundle: firestore.rules closes both public
+//       collections' field lists with hasOnly() — needs a Console publish to
+//       take effect — and scripts/leaderboard_stats.mjs defuses spreadsheet
+//       formulas in its CSV export. The cloud-save and kill-switch fixes are
+//       the ones that must not wait for a cache to expire.
+const CACHE_VERSION = '820-v33';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 
@@ -316,8 +339,11 @@ function isNavigationRequest(request) {
     (request.method === 'GET' && request.headers.get('accept')?.includes('text/html'));
 }
 
+// `ico` is here because favicon.ico is precached: without the extension the
+// request never reaches cacheFirst(), so the precache entry was dead weight and
+// the tab icon went missing offline.
 function isStaticAsset(url) {
-  return /\.(?:css|js|mjs|svg|png|jpg|jpeg|webp|woff2?|webmanifest)$/i.test(url.pathname);
+  return /\.(?:css|js|mjs|svg|png|jpg|jpeg|webp|ico|woff2?|webmanifest)$/i.test(url.pathname);
 }
 
 self.addEventListener('fetch', event => {

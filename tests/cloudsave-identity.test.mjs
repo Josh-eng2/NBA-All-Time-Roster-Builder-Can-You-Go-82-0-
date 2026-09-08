@@ -206,16 +206,56 @@ test('an upload for an account that does not own this device is refused', async 
     "B's gameplay upload would have carried A's save");
 });
 
-test('deleting an account releases the device so the next one can claim it', async () => {
+/**
+ * The release is conditional on the delete SUCCEEDING, and this pins the half
+ * that is reachable under Node — where deleteUserSave() always fails, there
+ * being no Firestore to reach.
+ *
+ * It used to assert the opposite ("the network half fails under Node; the
+ * release must not"), which was defensible until authModal's doDelete() began
+ * ABORTING the account deletion on that same failure. From then on a failed
+ * delete left a live account owning an unclaimed device — and an unclaimed
+ * device is precisely what the next different account merges into itself,
+ * additively, with no operation that can separate it again. That is the
+ * shared-laptop leak the ownership rule exists to close, reached through the
+ * one flow that ends in a banner telling the player nothing happened.
+ *
+ * The success path (a delete that lands releases ownership, so the player's
+ * NEXT account claims the local progress they were promised they could keep)
+ * needs a Firestore stub and is not exercised here.
+ */
+test('a FAILED cloud-save delete leaves the device owned', async () => {
   const m = installStorage({ ...A_SAVE, nba820_owner: 'uid-A' });
-  await deleteCloudSave('uid-A');   // the network half fails under Node; the release must not
-  assert.equal(m.get('nba820_owner'), undefined, 'ownership outlived the account');
+  const res = await deleteCloudSave('uid-A');
+  assert.equal(res.ok, false, 'this test is only meaningful while the delete cannot succeed');
+  assert.equal(m.get('nba820_owner'), 'uid-A', 'a failed delete released the device anyway');
 
-  // The player is still here and was promised their local progress survives —
-  // so their next account must claim it, not hand it off.
+  // Which is the whole point: the account still exists, so the next account is
+  // still a hand-off and takes none of uid-A's progress.
   const { merged, handedOff } = applyRemoteToDevice('uid-C', null);
-  assert.equal(handedOff, false);
-  assert.equal(merged.save.progress.xp, 12000);
+  assert.equal(handedOff, true, "uid-C claimed a device uid-A's live account still owns");
+  assert.equal(merged.save.progress.xp, 0);
+  assert.equal(merged.save.legends.length, 0);
+});
+
+test('a hand-off parks a key that could not be parsed, rather than deleting it', () => {
+  // readLocalSave() reports an unparseable key as `complete: false` and returns
+  // that section as ABSENT, so the parsed snapshot alone does not carry it —
+  // and clearLocalSave() is about to remove the only copy. The raw values in
+  // the stash are what keep "a hand-off never destroys anything" true for the
+  // one file on the device that most needs recovering by hand.
+  const CORRUPT = '[{"date":"Sep 1, 2026","wins":82,truncated';
+  const m = installStorage({ ...A_SAVE, nba820_trophies: CORRUPT, nba820_owner: 'uid-A' });
+
+  const { handedOff } = applyRemoteToDevice('uid-B', null);
+  assert.equal(handedOff, true);
+  assert.equal(m.get('nba820_trophies'), undefined, 'the hand-off left uid-A data on the device');
+
+  const parked = JSON.parse(m.get('nba820_handoff'));
+  assert.equal(parked.uid, 'uid-A');
+  assert.equal(parked.raw.nba820_trophies, CORRUPT, 'the unparseable key was destroyed, not parked');
+  // The parseable keys are still in the snapshot as before — raw is additive.
+  assert.equal(parked.snapshot.save.progress.xp, 12000);
 });
 
 test('ownership is device-local and never rides along in a synced snapshot', () => {

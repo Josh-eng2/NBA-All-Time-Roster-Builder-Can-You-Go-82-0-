@@ -14,7 +14,11 @@
  *        match /databases/{database}/documents {
  *          match /leaderboard/{docId} {
  *            allow read: if true;
- *            allow create: if request.resource.data.wins is number
+ *            allow create: if request.resource.data.keys().hasOnly([
+ *                               'teamName', 'wins', 'losses', 'champion', 'coachId',
+ *                               'coachName', 'era', 'chemScore', 'avgPopularity',
+ *                               'fansM', 'starters', 'timestampMs', 'timestamp'])
+ *                          && request.resource.data.wins is number
  *                          && request.resource.data.wins >= 0
  *                          && request.resource.data.wins <= 82
  *                          && request.resource.data.losses is number
@@ -58,6 +62,14 @@
  *    and privacy.html promises its entries are not linked to any account, so
  *    an auth uid must not be able to reach one. Nothing here writes the field
  *    — buildGlobalDoc()/buildDailyDoc() below enumerate every key they send.
+ *
+ *    hasOnly() closes the field list rather than merely bounding the fields
+ *    that are named. Firestore does not reject an unknown field on its own,
+ *    so without it a document could satisfy every check above and still carry
+ *    a megabyte of anything else — read straight back out by the modal's
+ *    limit(250)/limit(500) queries. The list IS buildGlobalDoc() below plus
+ *    the serverTimestamp() submitGlobalScore() adds, so the two must change
+ *    together; firestore.rules carries the same list for dailyLeaderboard.
  *
  *    avgPopularity/fansM bounds (0-1000 / 0-2200) are generous headroom
  *    above the ~350 / ~410 theoretical maximums the current player data and
@@ -712,10 +724,10 @@ export async function submitGlobalScore(entry) {
     // Per-player season stats already persist to the LOCAL leaderboard
     // (storage.js → packLeaders). To surface leaders globally too, add:
     //     leaders: entry.leaders ?? null,   // { pts, reb, ast, stl, blk }
-    // BUT the Firestore security rule above validates the document shape and
-    // will REJECT the whole write if it uses hasOnly()/strict field checks.
-    // So publish the rule change FIRST (allow a `leaders` map field in the
-    // Firebase Console → Firestore → Rules), THEN uncomment the line above and
+    // BUT the Firestore security rule above now DOES use hasOnly(), so it will
+    // reject the whole write the moment an unlisted field appears. Add
+    // 'leaders' to the hasOnly() list in firestore.rules, publish that FIRST
+    // (Firebase Console → Firestore → Rules), THEN uncomment the line above and
     // pass `leaders` from the save-run handler. Leaving it out keeps global
     // submissions working until then.
   }));

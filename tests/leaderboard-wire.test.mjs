@@ -13,6 +13,7 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { loadGame, flattenDb, bestFive, mod } from './helpers.mjs';
 
 const { buildGlobalDoc, buildDailyDoc, sdkFromSettled, firestoreDbFor, withFirestoreErrorCode } = await import(mod('js/utils/firebase.js'));
@@ -311,3 +312,54 @@ test('no wire document carries an account identifier', () => {
       `${name} leaked an account identifier into the wire shape`);
   }
 });
+
+// ── hasOnly() field lists ─────────────────────────────────────────────────────
+// Both public rules close their field list with hasOnly(), which turns "the
+// builder gained a field" from a silent extra column into a rejection of the
+// WHOLE submission — the same all-or-nothing failure the bounds at the top of
+// this file exist to guard. The list lives in firestore.rules and the builders
+// live in js/utils/firebase.js, so nothing but this test makes the two-place
+// change enforceable. Read out of the rules file rather than transcribed: a
+// copy here would drift in exactly the way the test is meant to catch.
+
+const RULES = readFileSync(new URL('../firestore.rules', import.meta.url), 'utf8');
+
+/** The hasOnly([...]) list from one `match /<collection>/` block. */
+function hasOnlyList(collection) {
+  const block = RULES.split(`match /${collection}/`)[1];
+  assert.ok(block, `no ${collection} block in firestore.rules`);
+  const list = block.match(/hasOnly\(\[([\s\S]*?)\]\)/);
+  assert.ok(list, `${collection} rule no longer closes its field list with hasOnly()`);
+  return new Set([...list[1].matchAll(/'([^']+)'/g)].map(m => m[1]));
+}
+
+const WIRE_ENTRY = {
+  teamName: 'T', wins: 70, losses: 12, champion: false,
+  coachId: 'jackson', coachName: 'Phil Jackson', era: 'all',
+  chemScore: 80, avgPopularity: 180, fansM: 200, starters: 'A, B, C, D, E',
+  timestampMs: 1, date: '2026-09-01', challengeId: 'win-65', passed: true,
+};
+
+for (const [collection, build] of [['leaderboard', buildGlobalDoc], ['dailyLeaderboard', buildDailyDoc]]) {
+  test(`every field ${collection}'s builder sends is allowed by hasOnly()`, () => {
+    const allowed = hasOnlyList(collection);
+    for (const field of Object.keys(build(WIRE_ENTRY))) {
+      assert.ok(allowed.has(field),
+        `${collection}: the builder sends \`${field}\`, which hasOnly() would reject — `
+        + 'add it to firestore.rules and publish that BEFORE this ships');
+    }
+    // Added by submitGlobalScore()/submitDailyScore(), not by the builder.
+    assert.ok(allowed.has('timestamp'), `${collection}: serverTimestamp() field is not allowed`);
+  });
+
+  test(`hasOnly() for ${collection} allows nothing the game never writes`, () => {
+    // The other direction: a list that has outgrown its builder is a rule
+    // quietly wider than the game needs, which is how `uid` got in once
+    // before. Every entry must be something a submission actually carries.
+    const sent = new Set([...Object.keys(build(WIRE_ENTRY)), 'timestamp']);
+    for (const field of hasOnlyList(collection)) {
+      assert.ok(sent.has(field),
+        `${collection}: hasOnly() allows \`${field}\`, which no builder sends`);
+    }
+  });
+}
