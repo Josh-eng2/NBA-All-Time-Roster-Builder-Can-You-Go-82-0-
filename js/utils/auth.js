@@ -1,5 +1,5 @@
 /**
- * js/utils/auth.js — Firebase Authentication (email + password)
+ * js/utils/auth.js — Firebase Authentication (email + password, Google, Apple, phone)
  *
  * The ONLY module in this project that touches the Firebase Auth SDK. Consumed
  * by js/ui/authModal.js (the account modal) and js/ui/events.js (the session
@@ -48,10 +48,81 @@
  *   signOut()                    — end the session
  *   resendVerification()         — re-send the verification mail to the current user
  *   sendPasswordReset(email)     — send a password-reset mail
+ *   deleteAccount()              — delete the signed-in account
+ *   providerEnabled(id)          — is this sign-in method switched on
+ *   enabledProviders()           — the ids to offer, in display order
+ *   signInWithProvider(id, opts) — Google / Apple, via popup
+ *   startPhoneSignIn(phone, el)  — send the SMS code
+ *   confirmPhoneCode(code)       — finish the phone sign-in
+ *   cancelPhoneSignIn()          — tear down the reCAPTCHA and drop the attempt
+ *   linkProvider(id)             — attach Google / Apple to the CURRENT account
+ *   normalizePhone(raw)          — E.164 or null, exported for tests
  *
- * Requires "Email/Password" to be enabled in the Firebase console for project
- * basketball-gm-sim-c33ed, and the site's domains to be listed under
- * Authentication → Settings → Authorized domains.
+ * ONE ACCOUNT, SEVERAL DOORS
+ * ──────────────────────────
+ * Adding providers to a game that already has accounts is not a UI change, and
+ * the reason is js/utils/cloudSave.js: the device-ownership rule keys on `uid`,
+ * and a SECOND uid on a device is a hand-off — the player's trophies are parked
+ * under nba820_handoff and the Trophy Room they are looking at empties. That is
+ * correct for a shared laptop and catastrophic for one person who signed up with
+ * a password in March and taps "Continue with Google" in June.
+ *
+ * Firebase does not settle this for us. With "One account per email address" on
+ * (the Console default), Google sign-in against an address that already holds a
+ * VERIFIED password account fails with
+ * auth/account-exists-with-different-credential rather than merging; with it
+ * off, the player silently gets a second uid, which is the destructive case. So:
+ *
+ *   * linkProvider() exists, and the account view offers it. Linking attaches a
+ *     provider to the uid the player ALREADY has, which is the only path that
+ *     adds a door without adding an account.
+ *   * signInWithProvider() surfaces account-exists-with-different-credential as
+ *     its own outcome so the modal can say "sign in the way you did before,
+ *     then link this from your account" instead of a generic failure.
+ *   * The Google provider always asks which account to use (prompt=select_account).
+ *     Silently reusing whichever Google account the browser last saw is exactly
+ *     how a shared device hands one player's progress to the next.
+ *
+ * POPUP, NOT REDIRECT
+ * ───────────────────
+ * signInWithRedirect needs the auth handler to be a first-party context, and
+ * this site is canyougo820.com against an authDomain of
+ * basketball-gm-sim-c33ed.firebaseapp.com — a third-party context in every
+ * browser that partitions storage, which is now all of them. The popup IS
+ * first-party on firebaseapp.com, so it is the flow that works here.
+ *
+ * Its own cost is that a popup opened too long after the click is blocked, so
+ * ensureAuth() must already be warm when the button is pressed — the modal
+ * pre-warms it on mount, and auth/popup-blocked is handled as a normal outcome
+ * rather than an error.
+ *
+ * CONSOLE SETUP, per provider. None of this lives in the repo, and each
+ * provider stays behind its Remote Config key until its setup is done — see
+ * DEFAULTS in js/utils/remoteConfig.js.
+ *
+ *   Email/Password  Authentication → Sign-in method → enable. Already on.
+ *   Google          Authentication → Sign-in method → Google → enable, set the
+ *                   support email. No external account needed; the project is
+ *                   already a Google Cloud project. Then publish
+ *                   auth_google_enabled = true.
+ *   Apple           Needs a PAID Apple Developer membership. Create an App ID
+ *                   and a Services ID with Sign in with Apple, generate a .p8
+ *                   key, then fill Services ID / Team ID / Key ID / private key
+ *                   into Authentication → Sign-in method → Apple. Add
+ *                   basketball-gm-sim-c33ed.firebaseapp.com to Apple's Domains
+ *                   and Return URLs, and
+ *                   https://basketball-gm-sim-c33ed.firebaseapp.com/__/auth/handler
+ *                   as the return URL. Then publish auth_apple_enabled = true.
+ *   Phone           Authentication → Sign-in method → Phone → enable. COSTS
+ *                   MONEY past a small daily free allowance and needs the Blaze
+ *                   plan for real volume — this project is otherwise entirely
+ *                   on the no-cost tier, so that is a deliberate decision, not
+ *                   a toggle. Set a daily SMS quota before publishing
+ *                   auth_phone_enabled = true.
+ *
+ * Every provider also needs the site's domains under Authentication → Settings
+ * → Authorized domains (canyougo820.com, www.canyougo820.com,
+ * josh-eng2.github.io), or the popup returns auth/unauthorized-domain.
  */
 
 import { getFirebaseApp, SDK_BASE } from './firebase.js';
@@ -120,7 +191,9 @@ export function accountsEnabled() {
 let getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
     firebaseSignOut, sendEmailVerification, sendPasswordResetEmail,
     onAuthStateChanged, deleteUser,
-    setPersistence, browserLocalPersistence, browserSessionPersistence;
+    setPersistence, browserLocalPersistence, browserSessionPersistence,
+    GoogleAuthProvider, OAuthProvider, signInWithPopup, linkWithPopup,
+    RecaptchaVerifier, signInWithPhoneNumber, linkWithPhoneNumber;
 
 // Same retry policy as firebase.js loadSdk(): a failed load is retried rather
 // than remembered forever, so a CDN blip around the moment of the first call
@@ -159,6 +232,13 @@ function ensureAuth() {
         setPersistence,
         browserLocalPersistence,
         browserSessionPersistence,
+        GoogleAuthProvider,
+        OAuthProvider,
+        signInWithPopup,
+        linkWithPopup,
+        RecaptchaVerifier,
+        signInWithPhoneNumber,
+        linkWithPhoneNumber,
       } = mod);
       _auth = getAuth(app);
       return _auth;
@@ -184,13 +264,29 @@ export function currentUserSync() {
   return _lastUser;
 }
 
-/** The plain, SDK-free shape every caller sees. */
+/**
+ * The plain, SDK-free shape every caller sees.
+ *
+ * `providers` is the list of provider ids already attached to this account
+ * ('password', 'google.com', 'apple.com', 'phone'). It is what lets the account
+ * view offer only the doors this account does not already have, and what keeps
+ * rule 5 true now that there is more than one way in.
+ *
+ * `email` is genuinely null for a phone-only account, and `displayName` is null
+ * for a phone or a password one — so neither may be treated as present. The
+ * account view keys its "verify your email" note on `email && !emailVerified`
+ * for exactly that reason: a phone account has no address to verify, and
+ * telling its owner to check their inbox is an instruction they cannot follow.
+ */
 function userSnapshot(user) {
   if (!user) return null;
   return {
     uid:           user.uid,
     email:         user.email ?? null,
     emailVerified: !!user.emailVerified,
+    displayName:   user.displayName ?? null,
+    phoneNumber:   user.phoneNumber ?? null,
+    providers:     (user.providerData ?? []).map(p => p?.providerId).filter(Boolean),
   };
 }
 
@@ -300,9 +396,8 @@ export async function signUp(email, password) {
  * false scopes the session to the tab, which is the correct behaviour on a
  * shared or public computer.
  *
- * A failure to APPLY the persistence choice is not a failure to sign in — the
- * SDK's default (persistent local) still applies, so the sign-in proceeds
- * rather than stranding the player over a preference.
+ * The choice is applied by applyPersistence() below, which the provider flows
+ * share and which never fails the caller over a preference.
  *
  * @param {string} email
  * @param {string} password
@@ -312,15 +407,294 @@ export async function signUp(email, password) {
 export async function signIn(email, password, { remember = true } = {}) {
   const auth = await ensureAuth();
   if (!auth) return fail(null, UNAVAILABLE);
-  try {
-    const mode = remember ? browserLocalPersistence : browserSessionPersistence;
-    if (setPersistence && mode) await setPersistence(auth, mode);
-  } catch (_) { /* keep the SDK default rather than block the sign-in */ }
+  await applyPersistence(auth, remember);
   try {
     const cred = await signInWithEmailAndPassword(auth, email, password);
     return { ok: true, user: userSnapshot(cred.user) };
   } catch (err) {
     return fail(err, 'auth/sign-in-failed');
+  }
+}
+
+/**
+ * Applies the remember-me choice, and never fails the caller over it.
+ *
+ * A failure to APPLY the persistence choice is not a failure to sign in — the
+ * SDK's default (persistent local) still applies, so the sign-in proceeds
+ * rather than stranding the player over a preference.
+ */
+async function applyPersistence(auth, remember) {
+  try {
+    const mode = remember ? browserLocalPersistence : browserSessionPersistence;
+    if (setPersistence && mode) await setPersistence(auth, mode);
+  } catch (_) { /* keep the SDK default rather than block the sign-in */ }
+}
+
+// ── Federated providers ───────────────────────────────────────────────────────
+
+/**
+ * The sign-in methods this build knows how to offer.
+ *
+ * `id` is ours and is what the UI and the Remote Config keys use; `providerId`
+ * is Firebase's, and is what comes back in a user's providerData — the two are
+ * kept apart deliberately, because 'apple.com' is a string the Console owns and
+ * 'apple' is a string this codebase owns.
+ *
+ * Order is display order: Google first because it is the one most players
+ * already have, phone last because it is the one that costs money to send.
+ */
+export const PROVIDERS = {
+  google: { id: 'google', providerId: 'google.com', label: 'Google', flag: 'auth_google_enabled', kind: 'oauth' },
+  apple:  { id: 'apple',  providerId: 'apple.com',  label: 'Apple',  flag: 'auth_apple_enabled',  kind: 'oauth' },
+  phone:  { id: 'phone',  providerId: 'phone',      label: 'phone',  flag: 'auth_phone_enabled',  kind: 'phone' },
+};
+
+const PROVIDER_ORDER = ['google', 'apple', 'phone'];
+
+/**
+ * Whether one method may be offered right now.
+ *
+ * `=== true` and not a truthiness test, the mirror image of accountsEnabled()'s
+ * `!== false`: these keys ship OFF, so the value that switches a provider ON has
+ * to be an explicit published true. An unfetched key, an unreachable config or a
+ * Console typo must all leave the button hidden — a button for a provider the
+ * Console has not enabled fails every tap with auth/operation-not-allowed, and a
+ * player reads that as a broken game rather than as a missing setting.
+ *
+ * @param {string} id
+ */
+export function providerEnabled(id) {
+  const spec = PROVIDERS[id];
+  return !!spec && configValue(spec.flag) === true;
+}
+
+/** The provider ids to offer, in display order. Empty is the shipped state. */
+export function enabledProviders() {
+  return PROVIDER_ORDER.filter(providerEnabled);
+}
+
+/**
+ * A configured provider instance.
+ *
+ * prompt=select_account is not a nicety. Without it Google reuses whichever
+ * account the browser last authorised, with no visible choice — so on a shared
+ * device the second player is signed straight into the first player's account,
+ * which is the precise failure the cloud-save ownership rule spends a whole
+ * section defending against. Making the chooser unconditional costs one tap.
+ */
+function buildProvider(id) {
+  if (id === 'google') {
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+    return provider;
+  }
+  // Apple has no dedicated class — it is a generic OIDC provider keyed by id.
+  // Both scopes are needed for a display name, and Apple returns the name only
+  // on the FIRST authorisation ever, so a player who has used Sign in with
+  // Apple here before comes back with an email and nothing else. That is Apple's
+  // design, not a bug to work around.
+  const provider = new OAuthProvider('apple.com');
+  provider.addScope('email');
+  provider.addScope('name');
+  return provider;
+}
+
+/**
+ * Google / Apple sign-in, via popup.
+ *
+ * MUST be reached from a click with ensureAuth() already warm — see the
+ * "POPUP, NOT REDIRECT" note in the file header. auth/popup-blocked and
+ * auth/popup-closed-by-user are ordinary outcomes here, not errors: the first
+ * is a browser setting and the second is a player changing their mind.
+ *
+ * auth/account-exists-with-different-credential is the one worth reading
+ * closely. It means this email already has an account through a DIFFERENT
+ * method, and Firebase has refused to guess. Do not treat it as a failure to
+ * retry — the answer is to sign in the original way and then linkProvider(),
+ * which keeps the uid and therefore keeps the device's save.
+ *
+ * @param {'google'|'apple'} id
+ * @param {{ remember?: boolean }} [opts]
+ */
+export async function signInWithProvider(id, { remember = true } = {}) {
+  const spec = PROVIDERS[id];
+  if (!spec || spec.kind !== 'oauth') return fail(null, 'auth/unknown-provider');
+  if (!providerEnabled(id)) return fail(null, 'auth/operation-not-allowed');
+  const auth = await ensureAuth();
+  if (!auth) return fail(null, UNAVAILABLE);
+  await applyPersistence(auth, remember);
+  try {
+    const cred = await signInWithPopup(auth, buildProvider(id));
+    return { ok: true, user: userSnapshot(cred.user) };
+  } catch (err) {
+    return fail(err, 'auth/sign-in-failed');
+  }
+}
+
+/**
+ * Attaches a provider to the account that is ALREADY signed in.
+ *
+ * This is the operation that makes several sign-in methods safe here. Signing
+ * in with a new provider mints a new uid, and a new uid on a device that
+ * already belongs to one is a hand-off in cloudSave.js — the player's local
+ * progress is parked and the Trophy Room in front of them empties. Linking adds
+ * the door to the account they already have, so the uid never changes and
+ * nothing is parked.
+ *
+ * auth/credential-already-in-use means that Google or Apple identity is already
+ * its own separate account. Merging two existing accounts is not something this
+ * can do — there is no server to reconcile two saves — so the caller reports it
+ * rather than pretending.
+ *
+ * @param {'google'|'apple'} id
+ */
+export async function linkProvider(id) {
+  const spec = PROVIDERS[id];
+  if (!spec || spec.kind !== 'oauth') return fail(null, 'auth/unknown-provider');
+  if (!providerEnabled(id)) return fail(null, 'auth/operation-not-allowed');
+  const auth = await ensureAuth();
+  if (!auth) return fail(null, UNAVAILABLE);
+  const user = auth.currentUser;
+  if (!user) return fail(null, 'auth/no-current-user');
+  try {
+    const cred = await linkWithPopup(user, buildProvider(id));
+    return { ok: true, user: userSnapshot(cred.user) };
+  } catch (err) {
+    return fail(err, 'auth/link-failed');
+  }
+}
+
+// ── Phone ─────────────────────────────────────────────────────────────────────
+
+/**
+ * A typed number as E.164, or null when it cannot be one.
+ *
+ * Deliberately strict about the leading `+` rather than guessing a country from
+ * the browser's locale: a guessed country code sends a real SMS, at real cost,
+ * to a real stranger's phone. Asking for the country code is a smaller cost
+ * than that. Spaces, hyphens, brackets and dots are stripped, since every
+ * country writes its own numbers with some of them.
+ *
+ * E.164 is at most 15 digits including the country code, and the first digit
+ * is never 0.
+ *
+ * @param {string} raw
+ * @returns {string|null}
+ */
+export function normalizePhone(raw) {
+  const trimmed = String(raw ?? '').trim();
+  // A leading 00 is the other way half the world writes an international
+  // prefix, and it means exactly what + means.
+  const plus = trimmed.startsWith('00') ? `+${trimmed.slice(2)}` : trimmed;
+  if (!plus.startsWith('+')) return null;
+  const digits = plus.slice(1).replace(/[\s\-().]/g, '');
+  return /^[1-9]\d{6,14}$/.test(digits) ? `+${digits}` : null;
+}
+
+// The live attempt. Module-private for the same reason raw User objects are:
+// a ConfirmationResult is an SDK object, and handing one to the UI would put
+// the SDK back in a second file. The verifier is held so it can be torn down —
+// reCAPTCHA refuses to render twice into the same element, so a retry after a
+// wrong number fails at the widget rather than at the number without this.
+let _phoneConfirmation = null;
+let _phoneVerifier     = null;
+
+function tearDownVerifier() {
+  if (_phoneVerifier) {
+    try { _phoneVerifier.clear(); } catch (_) { /* already gone */ }
+    _phoneVerifier = null;
+  }
+}
+
+/**
+ * Sends the SMS code.
+ *
+ * The reCAPTCHA is invisible and solves itself on the way through, so the
+ * container element only ever has to exist — it is never seen. It is separate
+ * from the reCAPTCHA v3 that App Check uses (js/utils/firebase.js): different
+ * product, different key, and they coexist.
+ *
+ * This costs money on a real project. auth/quota-exceeded is the project's SMS
+ * allowance, not the player's fault, and is worth reporting as such.
+ *
+ * @param {string} phone     as typed; normalised here
+ * @param {string} container id of an element that already exists in the DOM
+ */
+export async function startPhoneSignIn(phone, container, { remember = true } = {}) {
+  if (!providerEnabled('phone')) return fail(null, 'auth/operation-not-allowed');
+  const e164 = normalizePhone(phone);
+  if (!e164) return fail(null, 'auth/invalid-phone-number');
+  const auth = await ensureAuth();
+  if (!auth) return fail(null, UNAVAILABLE);
+  await applyPersistence(auth, remember);
+  tearDownVerifier();
+  try {
+    _phoneVerifier = new RecaptchaVerifier(auth, container, { size: 'invisible' });
+    _phoneConfirmation = await signInWithPhoneNumber(auth, e164, _phoneVerifier);
+    return { ok: true, phone: e164 };
+  } catch (err) {
+    // A failed send leaves a spent verifier behind; the next attempt needs a
+    // fresh one or it fails on the widget rather than on the number.
+    tearDownVerifier();
+    _phoneConfirmation = null;
+    return fail(err, 'auth/phone-send-failed');
+  }
+}
+
+/**
+ * Finishes a phone sign-in with the code from the SMS.
+ *
+ * A wrong code does NOT end the attempt — auth/invalid-verification-code leaves
+ * the confirmation live so the player can simply retype it, which is what
+ * someone who fat-fingered one digit expects. Only an expired code
+ * (auth/code-expired) is terminal, and it sends them back to the number.
+ *
+ * @param {string} code
+ */
+export async function confirmPhoneCode(code) {
+  if (!_phoneConfirmation) return fail(null, 'auth/no-phone-attempt');
+  try {
+    const cred = await _phoneConfirmation.confirm(String(code ?? '').trim());
+    cancelPhoneSignIn();
+    return { ok: true, user: userSnapshot(cred.user) };
+  } catch (err) {
+    if (err?.code === 'auth/code-expired') cancelPhoneSignIn();
+    return fail(err, 'auth/phone-confirm-failed');
+  }
+}
+
+/** Drops a pending attempt and releases the reCAPTCHA widget. */
+export function cancelPhoneSignIn() {
+  _phoneConfirmation = null;
+  tearDownVerifier();
+}
+
+/** True while a code has been sent and not yet confirmed. */
+export function phoneAttemptPending() {
+  return _phoneConfirmation !== null;
+}
+
+/**
+ * Attaches a phone number to the account already signed in — the phone half of
+ * linkProvider(), and there for the same reason.
+ */
+export async function startPhoneLink(phone, container) {
+  if (!providerEnabled('phone')) return fail(null, 'auth/operation-not-allowed');
+  const e164 = normalizePhone(phone);
+  if (!e164) return fail(null, 'auth/invalid-phone-number');
+  const auth = await ensureAuth();
+  if (!auth) return fail(null, UNAVAILABLE);
+  const user = auth.currentUser;
+  if (!user) return fail(null, 'auth/no-current-user');
+  tearDownVerifier();
+  try {
+    _phoneVerifier = new RecaptchaVerifier(auth, container, { size: 'invisible' });
+    _phoneConfirmation = await linkWithPhoneNumber(user, e164, _phoneVerifier);
+    return { ok: true, phone: e164 };
+  } catch (err) {
+    tearDownVerifier();
+    _phoneConfirmation = null;
+    return fail(err, 'auth/phone-send-failed');
   }
 }
 
@@ -334,6 +708,8 @@ export async function signOut() {
   const auth = await ensureAuth();
   if (!auth) return fail(null, UNAVAILABLE);
   try {
+    // A half-finished phone attempt belongs to the session that started it.
+    cancelPhoneSignIn();
     await firebaseSignOut(auth);
     return { ok: true };
   } catch (err) {

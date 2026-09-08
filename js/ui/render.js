@@ -270,9 +270,16 @@ function accountPillHtml(cls, { signedInOnly = false } = {}) {
       : `<button data-action="open-auth" type="button" class="${cls} account-pill account-pill--text"
           title="Sign in" aria-label="Sign in">Sign in</button>`;
   }
-  const initial = (user.email || '?').trim().charAt(0).toUpperCase();
+  // Email is genuinely null on a phone-only account and a display name is null
+  // on a password one, so the pill takes whichever identity this account
+  // actually has. Falling through to '?' for a signed-in player would have been
+  // the visible face of adding phone sign-in.
+  const label   = user.displayName || user.email || user.phoneNumber || 'Your account';
+  // A phone number's first character is '+', which is not an initial. Take the
+  // first LETTER or DIGIT instead, and only fall back when there is neither.
+  const initial = ([...label].find(ch => /[\p{L}\p{N}]/u.test(ch)) || '?').toUpperCase();
   return `<button data-action="open-account" type="button" class="${cls} account-pill account-pill--in"
-    title="${esc(user.email || 'Your account')}" aria-label="Your account">${esc(initial)}</button>`;
+    title="${esc(label)}" aria-label="Your account">${esc(initial)}</button>`;
 }
 
 // ── Shared chrome ─────────────────────────────────────────────────────────────
