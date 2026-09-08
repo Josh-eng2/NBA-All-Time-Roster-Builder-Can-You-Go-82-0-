@@ -135,11 +135,17 @@ export function coerceRemoteValue(key, entry, defaults = DEFAULTS) {
       // rendering nothing.
       return s === '' ? spec.value : s;
     }
-    const n = entry.asNumber();
-    // asNumber() returns 0 for anything unparseable, so a Console value of
-    // "one point four" arrives as a perfectly finite 0 — the bounds, not the
-    // Number.isFinite check, are what actually catch that.
-    if (!Number.isFinite(n)) return spec.value;
+    // asNumber() maps anything unparseable to a perfectly finite 0, so a
+    // Console value of "one point four" survives Number.isFinite and is then
+    // CLAMPED to `min` rather than rejected — shipping the floor of the range
+    // (sim_k 0.80 against a calibrated 1.40, a materially flatter curve) on a
+    // typo, silently. The bounds cannot catch this: 0 is inside the domain of
+    // every check they make. Reading the raw string is what separates "someone
+    // typed something that is not a number" from a real value, so a typo falls
+    // back to the shipped default and only a genuine number is clamped.
+    const raw = entry.asString();
+    const n   = Number(raw);
+    if (raw === '' || !Number.isFinite(n)) return spec.value;
     return Math.min(spec.max ?? Infinity, Math.max(spec.min ?? -Infinity, n));
   } catch (_) {
     return spec.value;

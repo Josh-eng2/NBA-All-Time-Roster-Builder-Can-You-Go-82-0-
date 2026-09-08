@@ -54,11 +54,16 @@ test('an out-of-range number is clamped into calibrated territory', () => {
 });
 
 test('a value of the wrong shape can never reach game logic', () => {
-  // asNumber() reports unparseable text as a finite 0, so it is the bounds
-  // rather than a NaN check that catches this — which is exactly why the
-  // bounds are not optional.
-  assert.equal(coerceRemoteValue('sim_center', val('one point four')), DEFAULTS.sim_center.min);
-  assert.equal(coerceRemoteValue('sim_k', val('')), DEFAULTS.sim_k.min);
+  // asNumber() reports unparseable text as a finite 0, which is INSIDE the
+  // domain of every check the bounds make — so clamping alone answered a typo
+  // with the floor of the range (sim_k 0.80 against a calibrated 1.40, a
+  // materially flatter curve) and called it tuning. The raw string is what
+  // separates "not a number" from a real value, so a typo falls back to the
+  // shipped default and only a genuine number is clamped.
+  assert.equal(coerceRemoteValue('sim_center', val('one point four')), DEFAULTS.sim_center.value);
+  assert.equal(coerceRemoteValue('sim_k', val('')), DEFAULTS.sim_k.value);
+  // A deliberate, parseable 0 is still a number, and still clamps.
+  assert.equal(coerceRemoteValue('sim_k', val(0)), DEFAULTS.sim_k.min);
   // A getter that throws (a malformed entry) must not take the game with it.
   const hostile = { asNumber() { throw new Error('boom'); },
                     asBoolean() { throw new Error('boom'); },

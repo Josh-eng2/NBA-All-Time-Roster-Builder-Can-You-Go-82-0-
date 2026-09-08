@@ -70,6 +70,30 @@
 // has always documented — this file had drifted to `score >= 0 && <= 2000`,
 // which is the looser of the two and was NOT what that comment described.
 //
+// hasOnly() on both public collections: the field lists are closed, not just
+// bounded. Firestore does not reject an unknown field on its own, and neither
+// board's rule required auth, so a document could pass every check below and
+// still carry a megabyte of anything alongside it — the per-document limit was
+// the only ceiling. That is not a tidiness problem: the read paths are
+// limit(250) for the 24h/weekly windows and limit(500) for one day's board
+// (fetchGlobalLeaderboard / dailyDocsFor in js/utils/firebase.js), so a few
+// hundred padded documents turn one modal open into hundreds of megabytes of
+// egress on a project with no paid tier under it.
+//
+// The lists come from buildGlobalDoc()/buildDailyDoc() in js/utils/firebase.js
+// plus the serverTimestamp() its two submit functions add, so a NEW field is
+// now a two-place change — add it here in the same commit, or the first
+// submission carrying it is rejected whole (tests/leaderboard-wire.test.mjs
+// reads these lists back out of this file and fails on the drift). The
+// `leaders` map sketched in the FUTURE comment inside submitGlobalScore() is
+// the one already queued up. hasOnly permits a SUBSET, so a returning player
+// still serving an older cached bundle — which only ever wrote fewer fields —
+// is unaffected.
+//
+// noUid() is redundant under hasOnly and kept anyway: it is the line that
+// states the privacy promise, and a field list is the kind of thing that
+// drifts.
+//
 // This does not make the boards forgery-proof, and cannot: anyone holding the
 // public web config can write a document, so every rule here bounds what a
 // forgery may CLAIM rather than proving a run happened. Doing better needs a
@@ -171,7 +195,11 @@ service cloud.firestore {
 
     match /leaderboard/{docId} {
       allow read: if true;
-      allow create: if request.resource.data.wins is number
+      allow create: if request.resource.data.keys().hasOnly([
+                         'teamName', 'wins', 'losses', 'champion', 'coachId',
+                         'coachName', 'era', 'chemScore', 'avgPopularity',
+                         'fansM', 'starters', 'timestampMs', 'timestamp'])
+                    && request.resource.data.wins is number
                     && request.resource.data.wins >= 0
                     && request.resource.data.wins <= 82
                     && request.resource.data.losses is number
@@ -206,7 +234,12 @@ service cloud.firestore {
 
     match /dailyLeaderboard/{docId} {
       allow read: if true;
-      allow create: if request.resource.data.date is string
+      allow create: if request.resource.data.keys().hasOnly([
+                         'date', 'teamName', 'wins', 'losses', 'champion',
+                         'coachId', 'coachName', 'chemScore', 'starters',
+                         'timestampMs', 'challengeId', 'passed', 'score',
+                         'timestamp'])
+                    && request.resource.data.date is string
                     && request.resource.data.date.size() == 10
                     && request.resource.data.wins is number
                     && request.resource.data.wins >= 0

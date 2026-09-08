@@ -730,9 +730,13 @@ export function cancelUpload() {
 // cloud save and does not claim what it finds here.
 //
 // A hand-off never destroys anything. The departing state is parked under
-// HANDOFF_KEY first, so a player who hands their device over by accident has
-// not lost their run — it is one key away, recoverable by hand, rather than
-// merged into a stranger's account where nothing can separate it again.
+// HANDOFF_KEY first — as the parsed snapshot AND as the raw key values, so a
+// key that failed to parse is preserved too — so a player who hands their
+// device over by accident has not lost their run: it is one key away,
+// recoverable by hand, rather than merged into a stranger's account where
+// nothing can separate it again. Only ONE hand-off is parked at a time, which
+// is enough because a departing owner has already uploaded their save at
+// sign-in; the stash is the second line, not the first.
 
 /** The account this device's save belongs to, or null while unclaimed. */
 function readOwner() {
@@ -770,11 +774,26 @@ function isEmptySnapshot(snapshot) {
  * auth subscription — so two hand-offs can race, and the loser would be
  * parking the save the winner has already cleared. Never let an empty stash
  * replace a real one.
+ *
+ * The RAW key values go in alongside the parsed snapshot, and that is not
+ * belt-and-braces. readLocalSave() reports a key it could not JSON.parse as
+ * `complete: false` and returns that section as ABSENT — so a corrupted
+ * nba820_trophies is missing from the parsed snapshot, and clearLocalSave() is
+ * about to delete the only copy of it. Parking the parsed side alone would
+ * make the hand-off destroy the one thing on the device that most needed
+ * recovering by hand, which is the opposite of what this key is for.
  */
 function stashHandoff(previousOwner, snapshot) {
   try {
     if (isEmptySnapshot(snapshot) && cgGetItem(HANDOFF_KEY)) return;
-    cgSetItem(HANDOFF_KEY, JSON.stringify({ uid: previousOwner, at: Date.now(), snapshot }));
+    const raw = {};
+    for (const key of [...Object.values(K), ...Object.values(MODE_KEYS)]) {
+      try {
+        const v = cgGetItem(key);
+        if (v !== null && v !== undefined && v !== '') raw[key] = v;
+      } catch (_) { /* unreadable is the same as absent here */ }
+    }
+    cgSetItem(HANDOFF_KEY, JSON.stringify({ uid: previousOwner, at: Date.now(), snapshot, raw }));
   } catch (_) { /* a full quota must not block the hand-off itself */ }
 }
 
@@ -959,13 +978,21 @@ export function requestSync(uid, displayName) {
  * Removes the cloud save. Local progress is deliberately left alone — the
  * person deleting their account is still the person at this device.
  *
- * Ownership is released with it. The account that owned this device is about
- * to stop existing, so leaving its uid stamped here would make the player's
- * NEXT account read as a hand-off and quietly park the progress they were
- * explicitly promised they could keep.
+ * Ownership is released with it, but ONLY once the delete has actually
+ * succeeded. The account that owned this device is about to stop existing, so
+ * leaving its uid stamped here would make the player's NEXT account read as a
+ * hand-off and quietly park the progress they were explicitly promised they
+ * could keep — but releasing it on a FAILED delete is worse in the other
+ * direction, and the two changes that made that reachable arrived together:
+ * authModal's doDelete() now aborts the account deletion when this fails, so
+ * the account still exists and still owns this device. An unclaimed device
+ * under a live account is exactly the state the next different account merges
+ * into itself, additively and irreversibly — the shared-laptop leak the whole
+ * "Device ownership" section above exists to close.
  */
 export async function deleteCloudSave(uid) {
   cancelUpload();
-  clearOwner();
-  return deleteUserSave(uid);
+  const res = await deleteUserSave(uid);
+  if (res?.ok) clearOwner();
+  return res;
 }

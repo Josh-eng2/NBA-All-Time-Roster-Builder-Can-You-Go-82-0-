@@ -97,6 +97,21 @@ function initAccounts() {
   if (!accountsEnabled()) return;
 
   onAuthChanged(user => {
+    // Re-checked on every event, not just once at wiring time. initAccounts()
+    // runs at the first render(), and initRemoteConfig() is deliberately not
+    // awaited (main.js), so whether a published `accounts_enabled: false` is
+    // in force at that ONE evaluation is a race between two unrelated network
+    // fetches — while render.js re-reads accountsEnabled() on every paint. Lose
+    // the race and the switch half-lands: the account pill disappears while
+    // this subscription stays live and keeps writing to the cloud. For a lever
+    // whose whole purpose is being pulled during an incident, hiding the UI
+    // without stopping the writes is the wrong half.
+    if (!accountsEnabled()) {
+      _authUid = null;
+      _syncedUid = null;
+      cancelUpload();
+      return;
+    }
     _authUid = user?.uid || null;
     // A session restored at boot never goes through the auth modal, so nothing
     // else pulls the account's save down: without this, a returning signed-in
@@ -144,7 +159,10 @@ function initAccounts() {
  * storage is what the game plays from, and a failed sync leaves it untouched.
  */
 function syncProgress() {
-  if (!_authUid) return;
+  // accountsEnabled() again, for the same reason as the auth subscription
+  // above: this is the call that actually spends a write, so it is the one
+  // that has to honour a kill switch that landed after boot.
+  if (!_authUid || !accountsEnabled()) return;
   requestSync(_authUid);
 }
 
