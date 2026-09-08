@@ -266,7 +266,18 @@
 //       provider is switched on by publishing its key, with no deploy and no
 //       further cache roll — and a returning player on the cached v33 bundle
 //       would not have the code to honour it.
-const CACHE_VERSION = '820-v34';
+//   v35 playtest fixes. Changed precached file: js/ui/render.js. Two things
+//       a full play-through of every mode turned up: (1) the three
+//       post-season screens rendered "Draft New Roster", which is a no-op in
+//       the Daily Challenge (startFreshDraft bails on mode 'daily') and was
+//       the only nav on those screens — a player who entered the Daily's
+//       playoffs was stuck there until they reloaded the page. They now show
+//       "Back to Menu" in that mode, matching what the season results screen
+//       already did. (2) "🏆 87 Lakers Wins the Series!" — every dynasty
+//       nickname but '13 Heat' is plural and takes "Win". A returning player
+//       on the cached v34 bundle keeps both, which is why this is a bump and
+//       not just a deploy.
+const CACHE_VERSION = '820-v35';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 

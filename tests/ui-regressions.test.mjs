@@ -187,3 +187,88 @@ test('an inbound deep link is not clobbered by the first menu render', () => {
   assert.deepEqual(hashWrites(), []);
   globalThis.location.hash = '';
 });
+
+// ── The Daily Challenge always has a way out of the playoffs ────────────────
+// The three post-season screens (bracket, championship, eliminated) all
+// rendered "Draft New Roster". That action is a deliberate no-op in the Daily
+// — startFreshDraft() bails on mode 'daily' so the day's one attempt can't be
+// re-rolled — and it was the only nav on those screens, so a player who
+// entered the Daily's playoffs was stuck there until they reloaded the page.
+
+const PLAYOFF_SCREENS = ['bracket', 'championship', 'eliminated'];
+
+/** Puts S on one of the three post-season screens. */
+function enterPlayoffs(which) {
+  state.S.phase = 'drafting';
+  for (const pos of ['PG', 'SG', 'SF', 'PF', 'C']) state.S.roster[pos] = five[['PG','SG','SF','PF','C'].indexOf(pos)];
+  state.S.result = g.sim.simulateSeason(five, state.S.coach);
+  state.S.seasonGames = state.S.result.games;
+  const seed    = state.getPlayerSeed(state.S.result.wins);
+  const bracket = state.buildBracket(seed, state.S.result.strength);
+  state.S.playoffs = {
+    playerSeed: seed, playerStrength: state.S.result.strength,
+    initialBracket: bracket.map(pair => pair.map(t => ({ ...t }))),
+    rounds: [], currentRound: which === 'bracket' ? 0 : 3, bracket,
+    eliminated:   which === 'eliminated',
+    champion:     which === 'championship',
+    championTeam: which === 'eliminated' ? { name: '96 Bulls' } : null,
+    eliminatedIn: which === 'eliminated' ? 'NBA Finals' : null,
+    tickState: null, pendingReveal: false,
+    roundNames: ['Conference Quarterfinals', 'Conference Semifinals', 'NBA Finals'],
+  };
+  state.S.phase = 'playoffs';
+}
+
+for (const screen of PLAYOFF_SCREENS) {
+  test(`the Daily's ${screen} screen offers a route back to the menu`, () => {
+    state.startGame('all');
+    state.S.mode  = 'daily';
+    state.S.coach = 'jackson';
+    enterPlayoffs(screen);
+    render();
+
+    assert.ok(app.innerHTML.includes('data-action="back-to-menu"'),
+      'the Daily has no other nav here — without this the player is stuck on the screen');
+    assert.ok(!app.innerHTML.includes('data-action="draft-new-roster"'),
+      'draft-new-roster is a no-op in the Daily, so it must not be the way out');
+  });
+
+  test(`every other mode keeps Draft New Roster on the ${screen} screen`, () => {
+    state.startGame('all');
+    state.S.mode  = 'solo';
+    state.S.coach = 'jackson';
+    enterPlayoffs(screen);
+    render();
+
+    assert.ok(app.innerHTML.includes('data-action="draft-new-roster"'),
+      'outside the Daily, re-drafting is the point of the button');
+  });
+}
+
+// ── A plural dynasty agrees with its verb ───────────────────────────────────
+// "🏆 87 Lakers Wins the Series!" — the verb was picked by testing the label
+// against the literal 'You', so every 3rd-person label got "Wins". All but one
+// dynasty nickname in the rotation is plural.
+
+test('the series headline agrees with the winner it names', () => {
+  const p1 = five;
+  const p2 = ['PG', 'SG', 'SF', 'PF', 'C'].map((pos, i) =>
+    flattenDb(g.DB).filter(p => p.pos === pos && !p1.includes(p))[20 + i]);
+
+  for (const [name, verb] of [['87 Lakers', 'Win'], ['13 Heat', 'Wins']]) {
+    state.startGame('all');
+    state.S.mode  = 'dynasty-duel';
+    state.S.coach = 'jackson';
+    state.S.dynastyOpponent = { name, strength: 9, weekKey: '2026-01-05' };
+    state.S.seriesResult = g.sim.simulateHeadToHeadSeries(p1, 'jackson', p2, null);
+    // Force the dynasty to be the winner so the headline names it.
+    state.S.seriesResult.winner  = 'p2';
+    state.S.seriesResult.series  = { playerWins: 1, oppWins: 4, games: ['L','L','W','L','L'], won: false };
+    state.S.seriesConfettiFired  = true;
+    state.S.phase = 'series-result';
+    render();
+
+    assert.ok(app.innerHTML.includes(`${name} ${verb} the Series`),
+      `"${name}" must take "${verb}", not "${verb === 'Win' ? 'Wins' : 'Win'}"`);
+  }
+});

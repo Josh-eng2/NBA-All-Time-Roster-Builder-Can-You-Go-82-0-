@@ -2965,6 +2965,24 @@ function renderPlayoffBracketTree(po) {
   </div>`;
 }
 
+/**
+ * The "leave this run" button shared by the three post-season screens
+ * (bracket, championship, eliminated).
+ *
+ * Daily Challenge is one attempt, so `draft-new-roster` is a deliberate no-op
+ * there (startFreshDraft bails on mode 'daily') — rendering it anyway left a
+ * player who entered the Daily's playoffs with a button that did nothing and
+ * no other route out, exactly the trap renderHeader's Menu pill already fixed
+ * for the Daily's draft screen. The season results screen makes the same swap;
+ * these screens now match it.
+ */
+function renderLeaveRunButton(className) {
+  const daily = S.mode === 'daily';
+  return `<button data-action="${daily ? 'back-to-menu' : 'draft-new-roster'}" type="button" class="${className}">
+            ${daily ? 'Back to Menu' : 'Draft New Roster'}
+          </button>`;
+}
+
 function renderPlayoffs() {
   const po = S.playoffs;
   const r  = S.result;
@@ -3047,9 +3065,7 @@ function renderPlayoffs() {
             class="btn-courtside-outline btn-courtside-outline--playoffs card-shadow dk-po-secondary">
             Simulate Entire Playoffs →
           </button>`}
-          <button data-action="draft-new-roster" type="button" class="btn-neutral-outline card-shadow dk-po-tertiary">
-            Draft New Roster
-          </button>
+          ${renderLeaveRunButton('btn-neutral-outline card-shadow dk-po-tertiary')}
         </div>
       </div>
     </main>
@@ -3102,7 +3118,7 @@ function renderChampionship() {
         ${renderGlobalSubmitCard(true)}
         <div class="flex flex-col gap-3 w-full">
           <button data-action="share" class="py-3 rounded-xl font-bold text-sm bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer card-shadow">Share Championship 🏆</button>
-          <button data-action="draft-new-roster" class="py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer card-shadow">Draft New Roster</button>
+          ${renderLeaveRunButton('py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer card-shadow')}
         </div>
       </div>
     </main>
@@ -3141,7 +3157,7 @@ function renderEliminated() {
         </div>` : ''}
         ${renderGlobalSubmitCard(false)}
         <div class="flex flex-col gap-3 w-full">
-          <button data-action="draft-new-roster" class="py-3 rounded-xl font-bold text-sm bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer card-shadow">Draft New Roster</button>
+          ${renderLeaveRunButton('py-3 rounded-xl font-bold text-sm bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer card-shadow')}
           <button data-action="share" class="py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer card-shadow">Share Result</button>
         </div>
       </div>
@@ -3304,9 +3320,13 @@ function renderSeriesResult() {
   const loserLabel  = p1Win ? labels.p2 : labels.p1;
   const winnerLabel = p1Win ? labels.p1 : labels.p2;
   // seriesLabels() uses 'You' (2nd person) for the human side in GM vs AI /
-  // Dynasty Duel — "You Wins the Series!" doesn't agree; every other label
-  // ('Player 1', 'AI GM', a dynasty name) is 3rd person and takes "Wins".
-  const winnerVerb  = winnerLabel === 'You' ? 'Win' : 'Wins';
+  // Dynasty Duel — "You Wins the Series!" doesn't agree. Neither does a
+  // Dynasty Duel opponent: every name in DYNASTY_ROTATION but '13 Heat' is a
+  // plural nickname ('96 Bulls', '87 Lakers', '89 Pistons'), and those take
+  // "Win" too. The -s test decides that correctly for the whole CPU_TEAMS
+  // list, and leaves the singular labels ('Player 1', 'AI GM', the 'Dynasty'
+  // fallback) on "Wins".
+  const winnerVerb  = winnerLabel === 'You' || /s$/i.test(winnerLabel) ? 'Win' : 'Wins';
 
   const gameChips = series.games.map((g, i) => {
     const p1Won = g === 'W';
