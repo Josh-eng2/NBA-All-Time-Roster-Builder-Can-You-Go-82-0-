@@ -2724,6 +2724,102 @@ button.autopsy-strip:hover {
   align-items: flex-start;
 }
 .auth-note--ok { background: var(--surface-green); border-color: var(--border); }
+
+/* ── Federated sign-in ──────────────────────────────────────────────────────
+   Neutral, bordered buttons rather than each provider's own brand colour: the
+   modal already has one filled accent button (the primary action), and a row
+   of coloured buttons above it turns the whole panel into competing calls to
+   action. The marks carry the branding. */
+.auth-providers { display: flex; flex-direction: column; gap: 8px; }
+.auth-provider {
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--fg);
+  background: var(--card2);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 14px;
+  cursor: pointer;
+  width: 100%;
+  /* 44px minimum touch target, same floor as .auth-btn. */
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.auth-provider:hover:not(:disabled) { background: var(--card3); border-color: var(--primary); }
+.auth-provider:disabled { opacity: 0.6; cursor: default; }
+.auth-provider__icon { width: 18px; height: 18px; flex-shrink: 0; }
+/* The Apple mark is taller than it is wide and is drawn in currentColor, so it
+   needs its own box to sit on the same optical baseline as the Google G. */
+.auth-provider--apple .auth-provider__icon { width: 15px; height: 17px; }
+
+.auth-providers--sm { gap: 6px; }
+.auth-provider--sm {
+  font-size: 13px;
+  min-height: 38px;
+  padding: 8px 12px;
+  justify-content: flex-start;
+}
+
+/* "or" rule. Rendered only when there is a provider block above it — a lone
+   divider over an email form reads as a rendering fault. */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.auth-linked {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px solid var(--border);
+}
+.auth-linked__title {
+  margin: 4px 0 0;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted-fg);
+}
+.auth-linked__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.auth-linked__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg);
+}
+.auth-linked__on { font-size: 11px; font-weight: 700; color: var(--muted-fg); }
+
+/* The invisible reCAPTCHA phone auth mounts into. It never shows anything —
+   the widget solves itself — but the element has to be in the DOM before the
+   verifier is constructed, so it is in the markup rather than created on
+   demand. Not display:none: reCAPTCHA refuses to attach to a hidden element. */
+#auth-recaptcha { width: 100%; height: 0; overflow: hidden; }
+/* Google's terms permit hiding the badge above only while this notice is
+   shown, so the two travel together. */
+.auth-recaptcha-notice a { color: var(--primary); }
 .auth-note__title {
   margin: 0;
   font-size: 12.5px;

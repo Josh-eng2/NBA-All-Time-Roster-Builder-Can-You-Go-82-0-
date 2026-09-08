@@ -244,7 +244,29 @@
 //       take effect — and scripts/leaderboard_stats.mjs defuses spreadsheet
 //       formulas in its CSV export. The cloud-save and kill-switch fixes are
 //       the ones that must not wait for a cache to expire.
-const CACHE_VERSION = '820-v33';
+//   v34 Google, Apple and phone sign-in. Changed precached files:
+//       js/utils/auth.js (the providers, the two-step phone flow, and
+//       linkProvider — which is the one that matters: every distinct sign-in
+//       method mints a distinct uid unless it is LINKED, and a second uid on a
+//       device that already belongs to one is a hand-off in cloudSave.js, so
+//       "I'll just use Google this time" would otherwise park a player's own
+//       Trophy Room), js/ui/authModal.js (the provider buttons, the phone
+//       views, the link controls on the account view, and the copy for
+//       auth/account-exists-with-different-credential, which has to teach
+//       linking or the player makes a second account), js/ui/render.js (the
+//       header pill takes a display name or a phone number — a phone account
+//       has no email and was rendering as '?'), js/utils/remoteConfig.js and
+//       css/styles.css. Also privacy.html, which now describes what each
+//       method actually stores; that page must be live BEFORE any provider is
+//       switched on.
+//
+//       All three providers ship OFF behind auth_google_enabled /
+//       auth_apple_enabled / auth_phone_enabled, so this bump changes nothing
+//       a player can see. It is what puts the code in place: from here a
+//       provider is switched on by publishing its key, with no deploy and no
+//       further cache roll — and a returning player on the cached v33 bundle
+//       would not have the code to honour it.
+const CACHE_VERSION = '820-v34';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 

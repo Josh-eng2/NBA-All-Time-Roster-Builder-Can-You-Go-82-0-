@@ -8,10 +8,29 @@
  * render() replaces #app wholesale, so a modal that lived inside it would be
  * destroyed by any re-render behind it.
  *
- * One modal, four views — signin, signup, reset, account — sharing a shell and
- * switching inline, so a player who guesses wrong about whether they already
- * have an account is one tap from the right form with their email carried
- * across.
+ * One modal, several views — signin, signup, reset, account, delete, and the
+ * two-step phone pair — sharing a shell and switching inline, so a player who
+ * guesses wrong about whether they already have an account is one tap from the
+ * right form with their email carried across.
+ *
+ * SEVERAL DOORS, ONE ACCOUNT
+ * ──────────────────────────
+ * The provider buttons are not just more ways in. Every distinct sign-in method
+ * a player uses mints a distinct Firebase uid unless it is LINKED, and a second
+ * uid on a device that already belongs to one is a hand-off in
+ * utils/cloudSave.js — trophies parked, Trophy Room emptied. So this modal:
+ *
+ *   * offers linking from the account view, which is the path that adds a door
+ *     without adding an account (see linkProvider in utils/auth.js);
+ *   * gives auth/account-exists-with-different-credential its own copy, telling
+ *     the player to sign in the way they did before and link it, rather than the
+ *     generic "something went wrong" that would leave them creating a second
+ *     account and losing a Trophy Room to it.
+ *
+ * Nothing is shown for a provider whose Remote Config key is not published
+ * true: enabledProviders() is empty in the shipped build, and the whole block
+ * — buttons, divider and all — is absent rather than disabled. A button that
+ * fails every tap is worse than no button.
  *
  * WHAT THIS MODAL WILL NOT DO
  * ───────────────────────────
@@ -31,7 +50,10 @@
 
 import {
   signUp, signIn, signOut, sendPasswordReset, resendVerification,
-  deleteAccount, getCurrentUser,
+  deleteAccount, getCurrentUser, isAuthAvailable,
+  PROVIDERS, enabledProviders, providerEnabled, signInWithProvider, linkProvider,
+  startPhoneSignIn, startPhoneLink, confirmPhoneCode, cancelPhoneSignIn,
+  normalizePhone,
 } from '../utils/auth.js';
 import { syncOnSignIn, deleteCloudSave } from '../utils/cloudSave.js';
 import { showToast } from './render.js';
@@ -121,6 +143,46 @@ function humanError(code) {
       return 'For safety this needs a fresh sign-in. Sign out, sign back in, then try again.';
     case 'auth/unavailable':
       return 'Accounts are unavailable right now. Your progress on this device is unaffected.';
+
+    // ── Federated sign-in ────────────────────────────────────────────────────
+    case 'auth/account-exists-with-different-credential':
+      // The one message here that has to teach rather than apologise. Creating
+      // a second account is what a player does next if this is vague, and a
+      // second account on this device parks their Trophy Room.
+      return 'That email already has an account from a different sign-in method. '
+           + 'Sign in the way you did before, then add this one from Your account — '
+           + 'that keeps all your progress on one account.';
+    case 'auth/credential-already-in-use':
+    case 'auth/provider-already-linked':
+      return 'That is already connected to an account. Sign in with it instead.';
+    case 'auth/popup-blocked':
+      return 'Your browser blocked the sign-in window. Allow pop-ups for this site and try again.';
+    case 'auth/popup-closed-by-user':
+    case 'auth/cancelled-popup-request':
+    case 'auth/user-cancelled':
+      // Closing the window is a decision, not a fault. Say nothing.
+      return '';
+    case 'auth/unauthorized-domain':
+      return 'Sign-in is not set up for this address yet. Nothing is wrong with your account.';
+
+    // ── Phone ────────────────────────────────────────────────────────────────
+    case 'auth/invalid-phone-number':
+    case 'auth/missing-phone-number':
+      return 'Enter your number with its country code, like +1 415 555 0132.';
+    case 'auth/invalid-verification-code':
+      return 'That code is not right. Check the message and try again.';
+    case 'auth/code-expired':
+      return 'That code has expired. Send a new one.';
+    case 'auth/missing-verification-code':
+      return 'Enter the code from the message.';
+    case 'auth/quota-exceeded':
+      // The project's SMS allowance, not anything the player did.
+      return 'Too many codes have been sent today. Try another sign-in method.';
+    case 'auth/captcha-check-failed':
+      return 'The robot check did not pass. Reload the page and try again.';
+    case 'auth/no-phone-attempt':
+      return 'That code request has expired. Enter your number again.';
+
     default:
       return 'Something went wrong. Your progress on this device is unaffected.';
   }
@@ -130,6 +192,12 @@ function humanError(code) {
 
 let _view  = 'signin';
 let _email = '';
+let _phone = '';
+// Whether the phone attempt in flight is LINKING to the signed-in account or
+// signing a new one in. The code step looks identical either way, so without
+// this the "use a different number" link would send a linking player back to
+// the sign-in flow and mint the second uid the linking existed to avoid.
+let _phoneLinking = false;
 let _busy  = false;
 let _resendAt = 0;
 
@@ -144,11 +212,119 @@ function fieldHtml({ id, label, type, value = '', autocomplete, hint = '', extra
     </label>`;
 }
 
+// ── Provider buttons ──────────────────────────────────────────────────────────
+// Inline SVG, not an <img> and not a font: the marks have to render on the
+// first paint of a modal that may be opened offline, and Google's own branding
+// guidance requires its wordmark button to carry the G. Everything here is
+// same-origin by construction — see tests/assets.test.mjs.
+
+const PROVIDER_ICON = {
+  google: `<svg class="auth-provider__icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+    <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/>
+    <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/>
+    <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0 1 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/>
+    <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/>
+  </svg>`,
+  apple: `<svg class="auth-provider__icon" viewBox="0 0 384 512" aria-hidden="true" focusable="false" fill="currentColor">
+    <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/>
+  </svg>`,
+  phone: `<svg class="auth-provider__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"
+              fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="6" y="2" width="12" height="20" rx="2.5"/><line x1="11" y1="18" x2="13" y2="18"/>
+  </svg>`,
+};
+
+/**
+ * Required attribution.
+ *
+ * The reCAPTCHA phone auth uses is invisible and its badge is hidden by
+ * #auth-recaptcha's styling. Google's terms allow hiding the badge only if this
+ * notice is shown to the user instead, so the two are a pair — restyle the
+ * container to show the badge and this can go, and not before.
+ */
+const RECAPTCHA_NOTICE = `<p class="auth-modal__fine auth-recaptcha-notice">This step is protected by reCAPTCHA. Google's
+      <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a> and
+      <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer">Terms of Service</a> apply.</p>`;
+
+const PROVIDER_LABEL = {
+  google: 'Continue with Google',
+  apple:  'Continue with Apple',
+  phone:  'Continue with a phone number',
+};
+
+/** The action each button dispatches, by view. */
+const PROVIDER_ACTION = { google: 'provider-google', apple: 'provider-apple', phone: 'to-phone' };
+
+/**
+ * The provider block above the email form, or '' when none is switched on.
+ *
+ * Returning '' takes the divider with it. A lone "or" rule above an email form
+ * with nothing above it looks like a rendering fault, and the shipped build —
+ * every key false — is exactly that case.
+ */
+function providersHtml() {
+  const ids = enabledProviders();
+  if (!ids.length) return '';
+  const buttons = ids.map(id => `
+    <button data-auth="${PROVIDER_ACTION[id]}" type="button" class="auth-provider auth-provider--${id}">
+      ${PROVIDER_ICON[id] || ''}<span>${esc(PROVIDER_LABEL[id])}</span>
+    </button>`).join('');
+  return `<div class="auth-providers">${buttons}</div>
+    <div class="auth-divider"><span>or</span></div>`;
+}
+
+/** Friendly names for the provider ids Firebase reports back on a user. */
+const LINKED_LABEL = {
+  'password':   'Email and password',
+  'google.com': 'Google',
+  'apple.com':  'Apple',
+  'phone':      'Phone',
+};
+
+/**
+ * The "how you sign in" block on the account view.
+ *
+ * Lists what is already attached and offers what is not, because linking is
+ * the only way to add a sign-in method without minting a second uid — and a
+ * second uid on this device parks the player's save (see the header note).
+ * Unlinking is deliberately absent: removing the last method would strand the
+ * account outright, and the guard for that is worth more thought than a
+ * symmetry argument.
+ */
+function linkedHtml(user) {
+  const linked = new Set(user?.providers || []);
+  const rows = [...linked].map(pid =>
+    `<li class="auth-linked__row"><span>${esc(LINKED_LABEL[pid] || pid)}</span><span class="auth-linked__on">Connected</span></li>`
+  ).join('');
+
+  const offer = Object.values(PROVIDERS)
+    .filter(spec => providerEnabled(spec.id) && !linked.has(spec.providerId))
+    .map(spec => `
+      <button data-auth="${spec.kind === 'phone' ? 'to-phone-link' : `link-${spec.id}`}"
+              type="button" class="auth-provider auth-provider--sm auth-provider--${spec.id}">
+        ${PROVIDER_ICON[spec.id] || ''}<span>Add ${esc(spec.label)}</span>
+      </button>`).join('');
+
+  if (!rows && !offer) return '';
+  return `
+    <div class="auth-linked">
+      <p class="auth-linked__title">How you sign in</p>
+      ${rows ? `<ul class="auth-linked__list">${rows}</ul>` : ''}
+      ${offer ? `<div class="auth-providers auth-providers--sm">${offer}</div>
+      <p class="auth-modal__fine">Adding a method keeps you on this same account — your trophies, legends and level stay exactly where they are.</p>` : ''}
+    </div>`;
+}
+
 function viewHtml(view, user) {
   if (view === 'account' && user) {
-    const unverified = !user.emailVerified;
+    // A phone-only account HAS no email address, so the verify note would be an
+    // instruction its owner cannot follow — and the Resend button under it would
+    // fail every press. Key the note on there being an address to verify, not on
+    // the flag alone, which is false for every phone account by construction.
+    const unverified = !!user.email && !user.emailVerified;
+    const who = user.email || user.phoneNumber || user.displayName || 'your account';
     return `
-      <p class="auth-modal__lead">Signed in as <strong>${esc(user.email || 'your account')}</strong></p>
+      <p class="auth-modal__lead">Signed in as <strong>${esc(who)}</strong></p>
       ${unverified ? `
       <div class="auth-note" id="auth-verify-note">
         <p class="auth-note__title">Verify your email</p>
@@ -158,9 +334,42 @@ function viewHtml(view, user) {
       <div class="auth-note auth-note--ok">
         <p class="auth-note__body">Your progress syncs to every device you sign in on.</p>
       </div>`}
+      ${linkedHtml(user)}
       <button data-auth="signout" type="button" class="auth-btn auth-btn--primary">Sign out</button>
       <p class="auth-modal__fine">Signing out leaves every trophy, legend and level on this device exactly where it is.</p>
       <button data-auth="delete-start" type="button" class="auth-link auth-link--danger">Delete my account</button>`;
+  }
+
+  // ── Phone, step 1: the number ───────────────────────────────────────────────
+  // The reCAPTCHA container must be in the DOM before startPhoneSignIn() runs,
+  // and it is invisible — it solves itself and is never seen. It lives in the
+  // markup rather than being created on demand so the verifier always has a
+  // stable element to attach to.
+  if (view === 'phone' || view === 'phone-link') {
+    const linking = view === 'phone-link';
+    return `
+      <p class="auth-modal__lead">${linking
+        ? 'Add a phone number to this account. We will text you a code.'
+        : 'We will text you a six-digit code. No password to remember.'}</p>
+      ${fieldHtml({ id: 'auth-phone', label: 'Phone number', type: 'tel', value: _phone,
+                    autocomplete: 'tel', hint: '', extra: 'placeholder="+1 415 555 0132"' })}
+      <p class="auth-modal__fine">Include your country code. Standard message rates apply.</p>
+      <div id="auth-recaptcha"></div>
+      ${RECAPTCHA_NOTICE}
+      <button data-auth="${linking ? 'phone-link-send' : 'phone-send'}" type="button" class="auth-btn auth-btn--primary">Send the code</button>
+      <button data-auth="${linking ? 'to-account' : 'to-signin'}" type="button" class="auth-link">${linking ? 'Cancel' : 'Back to sign in'}</button>`;
+  }
+
+  // ── Phone, step 2: the code ─────────────────────────────────────────────────
+  if (view === 'phone-code') {
+    return `
+      <p class="auth-modal__lead">We texted a code to <strong>${esc(_phone)}</strong>.</p>
+      ${fieldHtml({ id: 'auth-code', label: 'Six-digit code', type: 'text', autocomplete: 'one-time-code',
+                    extra: 'inputmode="numeric" pattern="[0-9]*" maxlength="6"' })}
+      <div id="auth-recaptcha"></div>
+      ${RECAPTCHA_NOTICE}
+      <button data-auth="phone-confirm" type="button" class="auth-btn auth-btn--primary">Sign in</button>
+      <button data-auth="${_phoneLinking ? 'to-phone-link' : 'to-phone'}" type="button" class="auth-link">Use a different number</button>`;
   }
 
   if (view === 'delete') {
@@ -183,6 +392,7 @@ function viewHtml(view, user) {
   if (view === 'signup') {
     return `
       <p class="auth-modal__lead">Keep your trophies, legends and level on every device you play on.</p>
+      ${providersHtml()}
       ${fieldHtml({ id: 'auth-name', label: 'GM name', type: 'text', autocomplete: 'nickname',
                     extra: `maxlength="${MAX_NAME}"` })}
       ${fieldHtml({ id: 'auth-email', label: 'Email', type: 'email', value: _email, autocomplete: 'email' })}
@@ -193,6 +403,7 @@ function viewHtml(view, user) {
 
   return `
     <p class="auth-modal__lead">Sign in to pick your game up on any device.</p>
+    ${providersHtml()}
     ${fieldHtml({ id: 'auth-email', label: 'Email', type: 'email', value: _email, autocomplete: 'email' })}
     ${fieldHtml({ id: 'auth-password', label: 'Password', type: 'password', autocomplete: 'current-password' })}
     <label class="auth-check">
@@ -209,6 +420,8 @@ function viewHtml(view, user) {
 const TITLES = {
   signin: 'Sign in', signup: 'Create an account', reset: 'Reset your password',
   account: 'Your account', delete: 'Delete your account',
+  phone: 'Sign in with your phone', 'phone-link': 'Add a phone number',
+  'phone-code': 'Enter your code',
 };
 
 function shellHtml(view, user) {
@@ -306,6 +519,96 @@ async function mergeAfterAuth(user, displayName) {
     const tr = res.merged.save?.trophies?.length || 0;
     showToast(`Progress merged · ${lv} legends · ${tr} trophies`, 3200);
   } catch (_) { /* the cloud is a mirror; local is what the game plays from */ }
+}
+
+/**
+ * Google / Apple, via popup.
+ *
+ * setBusy() first and synchronously: it is DOM work only, so it does not spend
+ * the click's user activation, and it is the guard against a second popup being
+ * opened behind the first. signInWithProvider() then awaits ensureAuth(), which
+ * showAuthModal() has already pre-warmed — an SDK import at this point would
+ * outlast the activation window and the browser would block the popup.
+ *
+ * @param {'google'|'apple'} id
+ */
+async function doProvider(id) {
+  banner('');
+  setBusy(true, 'Opening…');
+  const remember = !!q('#auth-remember')?.checked || _view !== 'signin';
+  const res = await signInWithProvider(id, { remember });
+  setBusy(false);
+  if (!res.ok) { banner(humanError(res.code)); return; }
+  closeAuthModal();
+  showToast('Signed in');
+  // The provider's own display name becomes the GM name, so a Google player
+  // never has to invent one. Phone accounts have none, which snapshotToRemote()
+  // handles by simply omitting the field.
+  mergeAfterAuth(res.user, res.user?.displayName || undefined);
+}
+
+/** Attaches a provider to the account already signed in. Stays in the modal. */
+async function doLink(id) {
+  banner('');
+  setBusy(true, 'Opening…');
+  const res = await linkProvider(id);
+  setBusy(false);
+  if (!res.ok) { banner(humanError(res.code)); return; }
+  showToast(`${PROVIDERS[id]?.label || 'Sign-in method'} added`);
+  // Repaint from the SDK's own view of the account rather than from res.user:
+  // the account view lists what is linked, and that list is exactly what just
+  // changed.
+  repaint('account');
+}
+
+/** Phone step 1 — send the code. `linking` keeps a signed-in player on their uid. */
+async function doPhoneSend(linking) {
+  const raw = val('auth-phone');
+  banner('');
+  if (!fieldErr('auth-phone', normalizePhone(raw) ? null : 'Include your country code, like +1 415 555 0132')) return;
+  _phone = raw;
+  _phoneLinking = !!linking;
+  setBusy(true, 'Sending…');
+  const send = linking
+    ? await startPhoneLink(raw, 'auth-recaptcha')
+    : await startPhoneSignIn(raw, 'auth-recaptcha');
+  setBusy(false);
+  if (!send.ok) { banner(humanError(send.code)); return; }
+  // Show the number back in the format it was actually sent in, not as typed.
+  _phone = send.phone || raw;
+  await repaint('phone-code');
+}
+
+/**
+ * Phone step 2 — confirm.
+ *
+ * A wrong code keeps the attempt alive so the player can retype it; only an
+ * expired one (which auth.js drops) sends them back to the number.
+ */
+async function doPhoneConfirm() {
+  const code = val('auth-code');
+  banner('');
+  if (!fieldErr('auth-code', code ? null : 'Enter the code from the message')) return;
+  setBusy(true, 'Checking…');
+  const res = await confirmPhoneCode(code);
+  setBusy(false);
+  if (!res.ok) {
+    const expired = res.code === 'auth/code-expired' || res.code === 'auth/no-phone-attempt';
+    // repaint() clears the banner, so the message is set AFTER it — otherwise
+    // the player lands back on the number field with no explanation.
+    if (expired) await repaint(_phoneLinking ? 'phone-link' : 'phone');
+    banner(humanError(res.code));
+    return;
+  }
+  if (_phoneLinking) {
+    _phoneLinking = false;
+    showToast('Phone number added');
+    repaint('account');
+    return;
+  }
+  closeAuthModal();
+  showToast('Signed in');
+  mergeAfterAuth(res.user, res.user?.displayName || undefined);
 }
 
 async function doSignIn() {
@@ -420,9 +723,13 @@ async function doDelete() {
   showToast('Account deleted — your progress stays on this device', 3600);
 }
 
+// Views that need the signed-in user to render. 'phone-link' is here because
+// it is reached from the account view and returns to it.
+const USER_VIEWS = ['account', 'delete', 'phone-link'];
+
 async function repaint(view) {
   banner('');
-  paint(view, view === 'account' || view === 'delete' ? await getCurrentUser() : null);
+  paint(view, USER_VIEWS.includes(view) ? await getCurrentUser() : null);
 }
 
 /**
@@ -442,10 +749,23 @@ function wireActions(el) {
     if (!btn || _busy) return;
     const a = btn.dataset.auth;
     if (a === 'close')          { closeAuthModal();      return; }
-    if (a === 'to-signin')      { repaint('signin');     return; }
+    if (a === 'to-signin')      { cancelPhoneSignIn(); _phoneLinking = false; repaint('signin'); return; }
     if (a === 'to-signup')      { repaint('signup');     return; }
     if (a === 'to-reset')       { repaint('reset');      return; }
-    if (a === 'to-account')     { repaint('account');    return; }
+    if (a === 'to-account')     { cancelPhoneSignIn(); _phoneLinking = false; repaint('account'); return; }
+    // Leaving the phone flow by any route drops the pending attempt AND the
+    // reCAPTCHA widget with it. Without the teardown the next attempt fails on
+    // "reCAPTCHA has already been rendered in this element" rather than on
+    // anything the player did.
+    if (a === 'to-phone')       { cancelPhoneSignIn(); _phoneLinking = false; repaint('phone'); return; }
+    if (a === 'to-phone-link')  { cancelPhoneSignIn(); _phoneLinking = true;  repaint('phone-link'); return; }
+    if (a === 'provider-google'){ doProvider('google');  return; }
+    if (a === 'provider-apple') { doProvider('apple');   return; }
+    if (a === 'link-google')    { doLink('google');      return; }
+    if (a === 'link-apple')     { doLink('apple');       return; }
+    if (a === 'phone-send')     { doPhoneSend(false);    return; }
+    if (a === 'phone-link-send'){ doPhoneSend(true);     return; }
+    if (a === 'phone-confirm')  { doPhoneConfirm();      return; }
     if (a === 'delete-start')   { repaint('delete');     return; }
     if (a === 'signin')         { doSignIn();            return; }
     if (a === 'signup')         { doSignUp();            return; }
@@ -501,6 +821,13 @@ export async function showAuthModal(view = 'signin') {
   // repaints the root's children but must not re-run this.
   wireActions(el);
 
+  // Pre-warm the auth SDK the moment the modal opens, unawaited. A popup has to
+  // be opened inside the click's user-activation window, and a first-call
+  // dynamic import of firebase-auth.js takes far longer than that — so without
+  // this the FIRST tap of a provider button is the one the browser blocks.
+  // Nothing waits on it: the email form is usable either way.
+  try { isAuthAvailable(); } catch (_) { /* the button paths report their own failures */ }
+
   const onKey = e => { if (e.key === 'Escape' && !_busy) closeAuthModal(); };
   document.addEventListener('keydown', onKey);
   el._removeKey = () => document.removeEventListener('keydown', onKey);
@@ -526,6 +853,11 @@ export function closeAuthModal() {
   const el = root();
   if (!el) return;
   if (el._removeKey) el._removeKey();
+  // The reCAPTCHA widget is attached to an element inside this root, so it has
+  // to go before the root does — a verifier left pointing at detached DOM makes
+  // the next attempt fail on the widget instead of on the number.
+  cancelPhoneSignIn();
+  _phoneLinking = false;
   el.remove();
   _root = null;
   _busy = false;

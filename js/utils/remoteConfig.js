@@ -82,6 +82,26 @@ export const DEFAULTS = {
   // rollback case is the one that happens under pressure.
   accounts_enabled: { value: true, type: 'boolean' },
 
+  // Per-provider sign-in switches, all shipped OFF.
+  //
+  // These are not a rollback lever like accounts_enabled — they are the
+  // "ship the knob before you need it" rule at the top of this file doing the
+  // job it exists for. Each of the three needs configuration this repo cannot
+  // carry out or verify: Google is a Console toggle, Apple additionally needs
+  // a paid Apple Developer membership plus a Services ID and signing key, and
+  // Phone needs Console setup and has a per-SMS cost beyond a small free tier.
+  // A button for a provider the Console has not enabled does not degrade — it
+  // fails every single tap with auth/operation-not-allowed, which reads to a
+  // player as a broken game.
+  //
+  // So the code ships complete and the button appears the moment the matching
+  // key is published true, with no deploy and no cache roll. Turn one on only
+  // AFTER its provider is enabled in Firebase Console → Authentication →
+  // Sign-in method, and after signing in with it once yourself.
+  auth_google_enabled: { value: false, type: 'boolean' },
+  auth_apple_enabled:  { value: false, type: 'boolean' },
+  auth_phone_enabled:  { value: false, type: 'boolean' },
+
   // Sim curve — see the measured anchors and method at the top of
   // js/logic/simulation.js. Bounds are roughly ±30 % around the calibrated
   // values: enough to shift the win-rate distribution meaningfully, not
