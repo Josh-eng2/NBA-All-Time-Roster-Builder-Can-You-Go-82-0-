@@ -28,28 +28,14 @@ import { configValue }        from '../utils/remoteConfig.js';
 //             finite strength and 82-0 can never be guaranteed anyway. Kept as
 //             the one knob that could force a hard ceiling if that changes.
 //
-// ANCHORS BELOW ARE MEASURED, AND THEY DESCRIBE THE CONSTANTS ON THE NEXT
-// THREE LINES. An earlier version of this block documented K 3.5 / CENTER 1.8 /
-// CAP 0.99 and quoted win rates for that curve, long after the constants had
-// moved — which mis-stated every daily-challenge win gate that was calibrated
-// against it. If these three numbers change again, re-measure and rewrite this
-// block in the same commit.
-//
-// Method, so a re-measure is reproducible: 4000 seeded seasons per row against
-// the live DB, coach Jackson, one player per slot; "star-chasing" draws each
-// slot uniformly from that position's top 15 % by `overall`, "random" from the
-// whole pool. Strengths are post-multiplier (adjustedStrength).
-//
-//   star-chasing — median strength 1.94 → 56 wins; p90 2.33 → 66 wins
-//   random       — median strength 1.23 → 36 wins; p90 1.64 → 49 wins
-//
-// Daily-challenge win gates, star-chasing, before the day's own constraint:
-//   55+ ≈ 56 % · 60+ ≈ 34 % · 65+ ≈ 14 % · 70+ ≈ 3 % pass rates.
-//
-// The chase itself: a strength-optimised five (~3.2, ≈92.7 % per game) posts a
-// 76-win median and goes 82-0 in roughly 0.2 % of seasons — about 1 run in 450,
-// and only for a roster drafted about as well as this database allows. Rare,
-// and reachable, which is the point of the name.
+// Reproduce calibration with node scripts/calibrate_simulation.mjs.
+// Seed 8202026, 4,000 seasons per policy, Jackson, independent natural-position
+// pools: random median strength 1.248 / 37 wins (p90 50); top 15% by overall
+// median strength 1.929 / 56 wins (p90 66), 3.225% reaching 70 wins.
+// The script records the database hash and effective default configuration.
+// These pools do not model the franchise wheel or establish legal draft odds.
+// At strength 3.2 the default curve gives p≈0.9255 and p^82≈1/570, conditional
+// on already possessing that roster. This is not a per-draft perfection rate.
 //
 // These three are the shipped DEFAULTS, and are also tunable at runtime
 // through Remote Config (keys sim_k / sim_center / win_cap — see DEFAULTS in
@@ -336,7 +322,7 @@ const clampNum = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
  * @param {number}   winPct  team per-game win probability (0..1)
  * @returns {{ playerStats: object[], statLeaders: object, simTotals: object }}
  */
-function simulatePlayerStats(starters, winPct) {
+function simulatePlayerStats(starters, winPct, games) {
   // Team-success coupling: a juggernaut lifts everyone slightly, a cellar team
   // drags them down — deliberately gentle so it never distorts who the player is.
   const teamFactor = 1 + (clampNum(winPct, 0, 1) - 0.5) * 0.04; // 0.98 … 1.02
@@ -355,6 +341,20 @@ function simulatePlayerStats(starters, winPct) {
     }
     return line;
   });
+
+  const weights = playerStats.map(p => Math.max(0, p.ppg));
+  const totalWeight = weights.reduce((a, b) => a + b, 0);
+  for (const p of playerStats) p.pts = 0;
+  for (const g of (playerStats.length ? games : [])) {
+    const shares = playerStats.map((p, i) => ({ i, exact: g.ps * (totalWeight ? weights[i] / totalWeight : 1 / playerStats.length) }));
+    const points = shares.map(s => Math.floor(s.exact));
+    const remainder = g.ps - points.reduce((a, b) => a + b, 0);
+    shares.sort((a, b) => (b.exact % 1) - (a.exact % 1) || a.i - b.i);
+    for (let n = 0; n < remainder; n++) points[shares[n].i]++;
+    g.playerPoints = Object.fromEntries(playerStats.map((p, i) => [p.id, points[i]]));
+    playerStats.forEach((p, i) => { p.pts += points[i]; });
+  }
+  for (const p of playerStats) p.ppg = +(p.pts / gp).toFixed(1);
 
   // Best starter in each category this season.
   const leaderFor = k => {
@@ -375,6 +375,7 @@ function simulatePlayerStats(starters, winPct) {
     return acc;
   }, {});
 
+  simTotals.ppg = +(games.reduce((sum, g) => sum + g.ps, 0) / gp).toFixed(1);
   return { playerStats, statLeaders, simTotals };
 }
 
@@ -518,7 +519,7 @@ export function simulateSeason(starters, coach = null, profile = null) {
 
   const totals = { ...sTotals };
 
-  const { playerStats, statLeaders, simTotals } = simulatePlayerStats(starters, winPct);
+  const { playerStats, statLeaders, simTotals } = simulatePlayerStats(starters, winPct, games);
 
   const teamStocks = +(sTotals.spg + sTotals.bpg).toFixed(1);
 
@@ -651,7 +652,7 @@ export function simulateHeadToHeadSeries(p1Starters, p1Coach, p2Starters, p2Coac
  * Dynasty Duel matches a drafted roster against a fixed legendary team, and
  * the two are not drawn from the same distribution: the opponent pool runs
  * 1.87–2.38 (CPU_TEAMS) while the calibration anchors at the top of this file
- * put random builds at a 1.41 median and a 1.78 p90. Under the default
+ * put random builds near a 1.23 median and a 1.64 p90. Under the default
  * steepness of 6 that made every matchup a 0% series for anything short of a
  * star-chasing build — the mode invites you to "play as often as you want"
  * and then could not be won.

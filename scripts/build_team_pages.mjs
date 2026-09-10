@@ -244,6 +244,7 @@ function head({ title, desc, url, jsonLd, depth = 1 }) {
     try { if (localStorage.getItem('nba820_theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark'); } catch(e){}
   </script>
   <link rel="stylesheet" href="${up}css/styles.css" />
+  <script defer src="${up}js/utils/contentRelay.js"></script>
 
   <script type="application/ld+json">
 ${JSON.stringify(jsonLd, null, 2).split('\n').map(l => '  ' + l).join('\n')}
@@ -373,7 +374,7 @@ function renderTeamPage(team, players, decades, allTeams) {
       <h1>${esc(full)} all-time roster</h1>
       <p><strong>${players.length} ${esc(team)} legends across ${byDecade.length} decades are in the draft pool.</strong>
          Spin into ${esc(team)} in any of those eras and this is the board you are picking from.</p>
-      <p><a class="seo-cta" href="../">▶ Draft a ${esc(team)} legend now</a></p>
+      <p><a class="seo-cta" href="../?ref=teampage#/classic">▶ Play the all-time draft — random franchises</a></p>
 
       <h2>The all-time ${esc(team)} starting five</h2>
       <p>Best available at each position by era-adjusted overall rating — the same number the game drafts on.</p>

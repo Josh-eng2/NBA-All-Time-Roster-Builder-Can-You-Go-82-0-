@@ -45,7 +45,8 @@ import {
 import { showInstallPrompt, dismissInstallPrompt } from '../utils/install.js';
 import { accountsEnabled, onAuthChanged } from '../utils/auth.js';
 import { showAuthModal } from './authModal.js';
-import { requestSync, flushUpload, cancelUpload, syncOnSignIn } from '../utils/cloudSave.js';
+import { getDailyBoards, personId, DAILY_RULES_VERSION } from '../logic/dailyBoards.js';
+import { requestSync, invalidateSync, flushUpload, cancelUpload, syncOnSignIn } from '../utils/cloudSave.js';
 import { seasonTier } from '../logic/seasonTier.js';
 import { computeRunXp, addXp, CHAMPION_BONUS_XP } from '../logic/progression.js';
 import {
@@ -109,9 +110,10 @@ function initAccounts() {
     if (!accountsEnabled()) {
       _authUid = null;
       _syncedUid = null;
-      cancelUpload();
+      invalidateSync();
       return;
     }
+    if (_authUid !== (user?.uid || null)) invalidateSync();
     _authUid = user?.uid || null;
     // A session restored at boot never goes through the auth modal, so nothing
     // else pulls the account's save down: without this, a returning signed-in
@@ -353,7 +355,8 @@ function dispatch(action) {
     S.teamSkips   = 0;
     S.decadeSkips = 0;
     seedDailyRng(today);
-    logAnalyticsEvent('daily_started', { challenge: ch.id, date: today });
+    S.dailyBoards = getDailyBoards(today, ch);
+    logAnalyticsEvent('daily_started', { challenge: ch.id, date: today, daily_version: DAILY_RULES_VERSION });
     render(); return;
   }
   if (action === 'open-daily-leaderboard') { showDailyLeaderboardModal(); return; }
@@ -691,6 +694,10 @@ export function doSpin() {
       // all — the rigging and pity rules above only decide where a free spin
       // lands, and this round's landing is already known.
       const forced = forcedSpin();
+      if (S.mode === 'rematch' && (!forced || !getAvailablePlayers(forced.team, forced.decade).length)) {
+        S.spinState = 'idle'; S.phase = 'mode-select'; S.mode = null; render();
+        showToast('This shared board has no remaining players. Start a new challenge.'); return;
+      }
       const spin = forced ? forced
         : rigGoat ? spinResultAtLeast('goat')
         : (rigStar || pity) ? spinResultAtLeast('star')
@@ -724,10 +731,11 @@ export function doSpin() {
  * handing them a board with nothing on it.
  */
 function forcedSpin() {
+  if (S.mode === 'daily') return S.dailyBoards?.[S.round] || null;
   if (S.mode !== 'rematch') return null;
   const spin = S.rematch?.board?.[S.round];
   if (!spin) return null;
-  return getAvailablePlayers(spin.team, spin.decade).length ? spin : null;
+  return spin;
 }
 
 /**
@@ -898,7 +906,7 @@ function placePlayer(pos) {
       return false;
     }
 
-    if (S.draftedPlayerNames?.has(player.name)) {
+    if ([...(S.draftedPlayerNames || [])].some(name => personId(name) === personId(player))) {
       showToast('Player already drafted!');
       return false;
     }
@@ -1138,11 +1146,7 @@ function doSimulate() {
   // Cosmetic draw — the daily seed governs draft OFFERS only (state.js), so
   // season dressing must not consume from the deterministic stream.
   rg.opp    = `'` + pickCosmetic(CPU_TEAMS).name;                // "'96 Bulls"
-  rg.margin = 2 + Math.floor(Math.random() * 6);                 // rivalry games are tight
-  const rBase = 95 + Math.floor(Math.random() * 28);
-  rg.ps   = rg.won ? rBase + Math.ceil(rg.margin / 2) : rBase - Math.floor(rg.margin / 2);
-  rg.os   = rg.won ? rBase - Math.floor(rg.margin / 2) : rBase + Math.ceil(rg.margin / 2);
-  rg.type = 'close';
+  // Keep the simulated score and its player allocation unchanged.
 
   // Longest streak + first-loss marker — computed on the final presented
   // order (post cold-open reorder, post rival insert). The first loss of
@@ -1366,11 +1370,13 @@ async function doSubmitGlobal() {
   const stillThisRun = () => S.gameId === runGameId;
 
   try {
-    await submitGlobalScore(buildGlobalScorePayload());
+    const submitted = buildGlobalScorePayload();
+    await submitGlobalScore(submitted);
     if (!stillThisRun()) return;
     S.globalScoreSubmitted    = true;
     S.globalSubmitError       = null;
-    S.globalSubmittedChampion = S.playoffs?.champion ?? false;
+    S.globalSubmittedChampion = submitted.champion;
+    if (S.playoffs?.champion && !submitted.champion) S.globalScoreSubmitted = false;
     render();
     showToast('✅ Submitted to personal & global leaderboards!');
   } catch (err) {
@@ -1505,11 +1511,16 @@ function buildResultCardData() {
   // every player already draws that day's board — so it links to that
   // challenge's own page, which is the one share here that previews properly.
   const rematchCode = buildRematchCode();
-  const shareUrl = S.mode === 'daily' ? buildDailyUrl(S.dailyChallenge?.slug)
+  const baseUrl = S.mode === 'daily' ? buildDailyUrl(S.dailyChallenge?.slug)
     : rematchCode                     ? buildRematchUrl(rematchCode)
     : buildPlainUrl();
+  const shareId = crypto.randomUUID();
+  const link = new URL(baseUrl);
+  link.searchParams.set('sid', shareId);
+  const shareUrl = link.href;
 
   return {
+    shareId,
     wins: r.wins, losses: r.losses, winPct: r.winPct,
     chemScore: r.chemScore, longestStreak: r.longestStreak,
     tierId, tierLabel, tierEmoji,
@@ -1549,7 +1560,7 @@ function doShare(variant = 'feed') {
  */
 async function shareResultCard(data, variant = 'feed') {
   const caption = buildShareCaption(data);
-  const base = { mode: S.mode ?? 'solo', variant, has_code: !!data.rematchCode };
+  const base = { mode: S.mode ?? 'solo', variant, has_code: !!data.rematchCode, invite_id: data.shareId };
   logAnalyticsEvent('share_attempted', base);
 
   let blob = null;
@@ -1621,7 +1632,7 @@ async function doInstallApp() {
 function doCopyChallengeLink() {
   const data = buildResultCardData();
   if (!data?.rematchCode) return;
-  const base = { mode: S.mode ?? 'solo', variant: 'link', has_code: true };
+  const base = { mode: S.mode ?? 'solo', variant: 'link', has_code: true, invite_id: data.shareId };
   logAnalyticsEvent('share_attempted', base);
   if (!navigator.clipboard) {
     logAnalyticsEvent('share_failed', { ...base, method: 'clipboard' });
@@ -1673,7 +1684,6 @@ function onPlayoffChampion() {
     S.globalSubmitError    = null;
   }
   logAnalyticsEvent('championship_won', {
-    team:  S.teamName,
     wins:  S.result?.wins ?? 0,
     coach: S.coach ?? 'none',
     era:   S.selectedEra ?? 'all',

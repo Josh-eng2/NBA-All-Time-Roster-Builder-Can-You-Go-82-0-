@@ -244,6 +244,7 @@ function ensureAuth() {
       return _auth;
     })().catch(() => null).then(auth => {
       if (!auth) { _authPromise = null; _authRetryAt = Date.now() + AUTH_RETRY_COOLDOWN_MS; }
+      if (auth) attachAuthObserver(auth);
       return auth;
     });
   }
@@ -342,21 +343,25 @@ export async function getCurrentUser() {
  * @param {(user: object|null) => void} cb
  * @returns {() => void} unsubscribe
  */
-export function onAuthChanged(cb) {
-  let unsub    = null;
-  let stopped  = false;
-  ensureAuth().then(auth => {
-    if (stopped) return;
-    if (!auth) { _lastUser = null; try { cb(null); } catch (_) {} return; }
-    unsub = onAuthStateChanged(auth, user => {
-      _lastUser = userSnapshot(user);
-      try { cb(_lastUser); } catch (_) { /* a subscriber must not break auth */ }
-    });
+const authSubscribers = new Set();
+let observerAuth = null;
+let observerUnsubscribe = null;
+function attachAuthObserver(auth) {
+  if (observerAuth === auth) return;
+  observerUnsubscribe?.(); observerAuth = auth;
+  observerUnsubscribe = onAuthStateChanged(auth, user => {
+    _lastUser = userSnapshot(user);
+    for (const cb of authSubscribers) { try { cb(_lastUser); } catch (_) {} }
   });
-  return () => {
-    stopped = true;
-    if (unsub) { try { unsub(); } catch (_) {} unsub = null; }
-  };
+}
+export function onAuthChanged(cb) {
+  authSubscribers.add(cb);
+  ensureAuth().then(auth => {
+    if (!authSubscribers.has(cb)) return;
+    if (!auth) { _lastUser = null; cb(null); }
+    else if (_lastUser !== undefined) cb(_lastUser);
+  });
+  return () => authSubscribers.delete(cb);
 }
 
 /**
@@ -775,6 +780,7 @@ export async function deleteAccount() {
   if (!user) return fail(null, 'auth/no-current-user');
   try {
     await deleteUser(user);
+    _lastUser = null;
     return { ok: true };
   } catch (err) {
     return fail(err, 'auth/delete-failed');

@@ -30,7 +30,7 @@ export const REF_KEY = 'nba820_ref';
  *  - dailypage: the Play button on a daily challenge page, for a reader who
  *    arrived there some other way (search, mostly). Kept distinct from `daily`
  *    so organic traffic through those pages can't be read as shares. */
-const KNOWN = ['share', 'rematch', 'daily', 'story', 'era', 'dailypage'];
+const KNOWN = ['share', 'rematch', 'daily', 'story', 'era', 'dailypage', 'teampage', 'campaign'];
 
 /**
  * Referrer host → channel. Each entry is matched as a whole-label suffix, so
@@ -124,7 +124,7 @@ export function captureReferral() {
     if (raw) ref = KNOWN.includes(raw) ? raw : 'other';
   } catch (_) { /* malformed query — treat as direct */ }
 
-  if (!ref) return { ref: null, channel: null, firstTouch: false };
+  if (!ref) ref = 'direct';
 
   const channel = bucketHost(referrerHost());
   const stored = readStored();
@@ -135,7 +135,7 @@ export function captureReferral() {
     } catch (_) { /* private mode — attribution is best-effort, never fatal */ }
   }
 
-  logAnalyticsEvent('referral_landing', { ref, channel, first_touch: firstTouch });
+  logAnalyticsEvent('referral_landing', { ref, channel, first_touch: firstTouch, ...readLinkAttribution() });
   return { ref, channel, firstTouch };
 }
 
@@ -149,4 +149,14 @@ export function getReferralSource() {
  *  than a default, so old visitors read as unknown instead of 'direct'. */
 export function getReferralChannel() {
   return readStored()?.channel ?? null;
+}
+
+/** Bounded, non-personal link dimensions. No arbitrary query strings are logged. */
+export function readLinkAttribution(search = globalThis.location?.search || '') {
+  const query = new URLSearchParams(search), out = {};
+  for (const [key, field] of [['sid', 'invite_id'], ['campaign', 'campaign']]) {
+    const value = query.get(key);
+    if (/^[a-zA-Z0-9_-]{1,64}$/.test(value || '')) out[field] = value;
+  }
+  return out;
 }

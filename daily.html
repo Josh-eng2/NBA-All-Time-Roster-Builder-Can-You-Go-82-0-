@@ -38,6 +38,7 @@
     try { if (localStorage.getItem('nba820_theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark'); } catch(e){}
   </script>
   <link rel="stylesheet" href="css/styles.css" />
+  <script defer src="js/utils/contentRelay.js"></script>
 </head>
 <body>
 
@@ -49,7 +50,7 @@
         world the <strong>same draft board</strong> and one special rule. Same spins, same players,
         one attempt each. Clear it to build your streak and climb the global daily leaderboard.
       </p>
-      <p><a class="seo-cta" href="./">▶ Play Today's Challenge</a></p>
+      <p><a class="seo-cta" href="./?ref=dailypage#/daily">▶ Play Today's Challenge</a></p>
 
       <h3>Recent challenges</h3>
       <div id="recent-list">
@@ -82,7 +83,7 @@
       <div class="challenge-card"><span class="emoji">🔥</span><div><p class="title"><a href="daily/bucket-getter.html">Bucket Getter</a></p><p class="desc">A starter must average 30+ PPG this season — and win 50+ games.</p></div></div>
       <div class="challenge-card"><span class="emoji">🖐️</span><div><p class="title"><a href="daily/swat-team.html">Swat Team</a></p><p class="desc">Your five must combine for 8+ blocks per game — and win 50+ games.</p></div></div>
       <div class="challenge-card"><span class="emoji">🧪</span><div><p class="title"><a href="daily/chemistry-class.html">Chemistry Class</a></p><p class="desc">Reach Perfect Team Chemistry and win 55+ games.</p></div></div>
-      <div class="challenge-card"><span class="emoji">⚡</span><div><p class="title"><a href="daily/wire-to-wire.html">Wire to Wire</a></p><p class="desc">Put together a 20-game win streak at some point in the season.</p></div></div>
+      <div class="challenge-card"><span class="emoji">⚡</span><div><p class="title"><a href="daily/wire-to-wire.html">Wire to Wire</a></p><p class="desc">Win 50+ games and put together a 20-game win streak during the season.</p></div></div>
 
       <h3>Locked-legend builds — one superstar is pre-drafted for you</h3>
       <div class="challenge-card"><span class="emoji">🪓</span><div><p class="title"><a href="daily/shaq-attack.html">Shaq Attack</a></p><p class="desc">Shaquille O&#39;Neal (&#39;94 Magic) is locked at center. Build around him — win 60+ games.</p></div></div>
@@ -117,7 +118,7 @@
         const ch = getDailyChallenge(ds);
         if (!ch) continue;
         rows.push(`<div class="challenge-card"><span class="emoji">${ch.emoji}</span><div>
-          <p class="title"><a href="daily/${slug(ch.title)}.html">${ch.title}</a>${i === 0 ? ' — <a href="./">play now</a>' : ''}</p>
+          <p class="title"><a href="daily/${slug(ch.title)}.html">${ch.title}</a>${i === 0 ? ' — <a href="./?ref=dailypage#/daily">play now</a>' : ''}</p>
           <p class="desc">${ch.desc}</p></div>
           <span class="date">${i === 0 ? 'Today' : fmt(ds)}</span></div>`);
       }

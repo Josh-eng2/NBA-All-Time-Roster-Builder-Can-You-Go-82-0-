@@ -23,10 +23,15 @@ concurrency:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Node
         uses: actions/setup-node@v4
@@ -35,3 +40,55 @@ jobs:
 
       - name: Run tests
         run: node --test 'tests/*.test.mjs'
+
+      - name: Check cache release version
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        shell: bash
+        run: node scripts/check_cache_version.mjs "$BASE_SHA"
+
+  firestore:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install isolated test tooling
+        run: npm install --prefix "$RUNNER_TEMP/820-tools" --ignore-scripts --no-audit --no-fund firebase@10.12.4 @firebase/rules-unit-testing@3.0.4 firebase-tools@13.35.1
+      - name: Start local rules emulator and test
+        env:
+          TEST_TOOLS_DIR: ${{ runner.temp }}/820-tools
+          FIREBASE_EMULATORS_PATH: ${{ runner.temp }}/820-emulators
+        run: |
+          printf '%s' '{"firestore":{"rules":"firestore.rules"},"emulators":{"firestore":{"host":"127.0.0.1","port":8087},"ui":{"enabled":false}}}' > firebase.test.json
+          "$TEST_TOOLS_DIR/node_modules/.bin/firebase" emulators:exec --only firestore --project demo-820-review --config firebase.test.json "node tests/rules-emulator.mjs"
+
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install isolated browser tooling
+        run: |
+          npm install --prefix "$RUNNER_TEMP/820-browser" --ignore-scripts --no-audit --no-fund playwright@1.62.1
+          "$RUNNER_TEMP/820-browser/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Exercise offline-service game flows
+        env:
+          PLAYWRIGHT_MODULE: ${{ runner.temp }}/820-browser/node_modules/playwright
+        run: |
+          python -m http.server 8001 --bind 127.0.0.1 > "$RUNNER_TEMP/820-http.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid"' EXIT
+          for attempt in 1 2 3 4 5; do curl -fsS http://127.0.0.1:8001/ > /dev/null && break; sleep 1; done
+          node tests/browser-smoke.mjs

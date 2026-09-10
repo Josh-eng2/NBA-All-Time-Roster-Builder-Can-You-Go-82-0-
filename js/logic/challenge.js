@@ -121,7 +121,7 @@ export const CHALLENGES = [
     params: { minWins: 55, minChem: 95 } },
   { id: 'wire-to-wire',   type: 'objective', emoji: '⚡', title: 'Wire to Wire',
     slug: 'wire-to-wire',
-    desc: 'Put together a 20-game win streak at some point in the season.',
+    desc: 'Win 50+ games and put together a 20-game win streak during the season.',
     params: { minWins: 50, minStreak: 20 } },
 
   // ── Locked-player builds ──

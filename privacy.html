@@ -52,17 +52,20 @@
   <h2>Information we collect</h2>
   <ul>
     <li>
-      <strong>Anonymous gameplay analytics</strong> — the game logs anonymous events (e.g. a
-      season being started or simulated, win/loss totals, which coach or era was chosen) via
-      Google Firebase Analytics. This isn't tied to your name or identity.
+      <strong>Gameplay analytics</strong> — Google Firebase Analytics receives gameplay events,
+      device/browser information, and pseudonymous identifiers. Events include run IDs,
+      referral source, campaign and invite-link IDs so we can measure whether a shared link
+      leads to a game. We do not attach account emails, phone numbers or typed team names
+      to these gameplay events. Pseudonymous data is not the same as anonymous data.
     </li>
     <li>
       <strong>Optional Global Leaderboard submissions</strong> — if you choose to submit a run to
       the public Global Leaderboard, the team name you type, your record, chosen coach, era,
       chemistry score, and starting five are stored and shown publicly to every visitor. This only
       happens if you press "Submit" — don't type anything in the team name field you wouldn't want
-      public. Global Leaderboard entries aren't linked to any account and can't be edited or
-      deleted by us on request, since they're anonymous by design.
+      public. Public leaderboard entries are not linked to your account. The app does not offer
+      editing or deletion of these entries; account deletion does not remove them. The operator
+      can moderate entries, but may not be able to verify who submitted an anonymous record.
     </li>
     <li>
       <strong>Locally saved progress</strong> — your personal best record, Trophy Room, collected
@@ -117,8 +120,9 @@
   <h2>Third-party services</h2>
   <ul>
     <li>
-      <strong>Google Firebase</strong> — Analytics, the Firestore database behind the Global
-      Leaderboard and cloud saves, and Firebase Authentication for accounts. Google processes and
+      <strong>Google Firebase</strong> — Analytics, the Firestore database behind the public
+      Global and Daily leaderboards and cloud saves, Authentication for accounts, Remote Config
+      for game settings, and App Check/reCAPTCHA for abuse protection. Google processes and
       stores this data on our behalf; see
       <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Google's Privacy Policy</a>.
     </li>
@@ -126,13 +130,18 @@
       <strong>Google Fonts</strong> — loads a web font file directly from Google's servers.
     </li>
     <li>
-      <strong>CrazyGames</strong> — if you're playing on crazygames.com, their own
+      <strong>CrazyGames</strong> — the site loads the CrazyGames SDK, so its server receives
+      the request even outside the portal. On crazygames.com, their own
       <a href="https://www.crazygames.com/privacy-policy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
       and
       <a href="https://www.crazygames.com/terms-and-conditions" target="_blank" rel="noopener noreferrer">Terms of Service</a>
       apply to that session, including any ads or SDK features their platform provides.
     </li>
   </ul>
+
+  <h2>GameDistribution</h2>
+  <p>On an identified GameDistribution embed, its SDK provides platform and advertising
+    services. Its privacy policy and consent controls apply to that portal session.</p>
 
   <h2>Accounts are optional</h2>
   <p>

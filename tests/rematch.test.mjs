@@ -20,6 +20,13 @@ const board = [
   { team: 'Spurs',    decade: '2000s' },
 ];
 
+test('historical version-a code keeps its published franchise and decade meaning', () => {
+  const historical = 'a00a020j0l131y';
+  assert.deepEqual(decodeBoardCode(historical).board, board);
+  assert.equal(decodeBoardCode(historical).wins, 70);
+  assert.equal(encodeBoardCode({ board, wins: 70, style: 'solo' }), historical);
+});
+
 test('a board survives the round trip exactly', () => {
   for (const style of ['solo', 'blind']) {
     for (const wins of [0, 1, 41, 82]) {
@@ -43,6 +50,7 @@ test('every team/decade combination encodes distinctly', () => {
     for (const decade of DECADES) {
       const slot = [{ team, decade }, ...board.slice(1)];
       const code = encodeBoardCode({ board: slot, wins: 50, style: 'solo' });
+      if (!g.DB[`${team}_${decade}`]?.length) { assert.equal(code, null); continue; }
       assert.ok(code, `${team} ${decade} did not encode`);
       const key = code.slice(2, 4);
       assert.ok(!seen.has(key), `${team} ${decade} collides with another slot`);
@@ -50,7 +58,7 @@ test('every team/decade combination encodes distinctly', () => {
       assert.deepEqual(decodeBoardCode(code).board[0], { team, decade });
     }
   }
-  assert.equal(seen.size, TEAMS.length * DECADES.length);
+  assert.equal(seen.size, TEAMS.reduce((n, team) => n + DECADES.filter(d => g.DB[`${team}_${d}`]?.length).length, 0));
 });
 
 test('decoding is case- and whitespace-tolerant', () => {

@@ -32,13 +32,10 @@
 import { S } from '../logic/state.js';
 
 // ── Family caps ──────────────────────────────────────────────────────────────
-// Calibrated by A/B sweep against the pre-cap engine over the live DB
-// (1500-sample random & star-chasing builds, 150-sample greedy chemistry
-// maximizers): random builds land within ±1 expected win of the old engine,
-// star-chasing medians stay on the sim's documented ~72-win anchor, and only
-// degenerate synergy-stacking builds get trimmed (−4 to −8 expected wins).
-// position: natural max is 0.22 (5×3% primary + 7% flawless) — cap never binds,
-// it exists so every family reports uniformly.
+// Positive contributions are capped by family; penalties remain uncapped.
+// Reproducible current balance probe: scripts/calibrate_simulation.mjs.
+// Position's scaled natural maximum is 0.176 (5×0.024 + 0.056); its cap does
+// not bind, but keeps every family represented uniformly.
 export const FAMILY_CAPS = {
   position:    0.22,
   offense:     0.38,
@@ -143,12 +140,11 @@ function slotOrdersForCount(n) {
 }
 
 // Returns the raw chemBonus contribution for one player-slot pair.
-// Primary match = +3%, secondary/flex = +2%, out-of-position = +1%.
-// OOP is intentionally lower than secondary — it fills a role but doesn't fit it.
-function slotFitScore(player, slot) {
-  if (player.pos === slot) return 0.03;
-  if ((player.secondaryPos || []).includes(slot)) return 0.02;
-  return 0.01;
+// Match the applied engine: scaled primary bonus, neutral flex, and OOP penalty.
+export function slotFitScore(player, slot) {
+  if (player.pos === slot) return 0.03 * SYNERGY_SCALE;
+  if ((player.secondaryPos || []).includes(slot)) return 0;
+  return -0.12;
 }
 
 /**
@@ -162,12 +158,13 @@ function optimizeLineup(starters) {
   const n = Math.min(starters.length, 5);
   if (n === 0) return { assignment: [], posBonus: 0, flawless: false };
 
-  const players = starters.slice(0, n);
+  const players = starters.slice(0, n).sort((a, b) => String(a.id || a.name).localeCompare(String(b.id || b.name)));
 
   let bestSlots = null;
   let bestScore = -Infinity;
   for (const perm of slotOrdersForCount(n)) {
-    const score = players.reduce((s, p, i) => s + slotFitScore(p, perm[i]), 0);
+    const score = players.reduce((s, p, i) => s + slotFitScore(p, perm[i]), 0)
+      + (n === 5 && players.every((p, i) => p.pos === perm[i]) ? 0.07 * SYNERGY_SCALE : 0);
     if (score > bestScore) { bestScore = score; bestSlots = perm; }
   }
 
@@ -187,7 +184,7 @@ function optimizeLineup(starters) {
   }
 
   const allPrimary = n === 5 && assignment.every(a => a.fit === 'primary');
-  if (allPrimary) posBonus += 0.07;
+  if (allPrimary) posBonus += 0.07 * SYNERGY_SCALE;
 
   return { assignment, posBonus, flawless: allPrimary };
 }
@@ -240,13 +237,13 @@ export function calculateChemistry(starters, coachId = null) {
     synergy('flawless-construction', 'position', 0.07,
       'Flawless Construction: All 5 starters playing natural positions (+7%)');
     for (const { slot, player, bonus } of assignment) {
-      synergy(`fit-${slot}`, 'position', bonus,
+      synergy(`fit-${slot}`, 'position', 0.03,
         `Perfect Fit: ${player.name} plays natural ${slot} (+3%)`);
     }
   } else {
     for (const { slot, player, fit, bonus } of assignment) {
       if (fit === 'primary') {
-        synergy(`fit-${slot}`, 'position', bonus,
+        synergy(`fit-${slot}`, 'position', 0.03,
           `Perfect Fit: ${player.name} plays natural ${slot} (+3%)`);
       } else if (fit === 'flex') {
         add(`fit-${slot}`, 'synergy', 'position', 0,
@@ -358,8 +355,8 @@ export function calculateChemistry(starters, coachId = null) {
       `Heliocentric Engine${coach === 'jackson' ? ' ⭐ Triangle' : ''}: System centered cleanly around ${helioPG.name.split(' ').pop()} (+${Math.round(bonus * 100)}%)`);
   }
 
-  const startingPF = starters.find(p => p.pos === 'PF');
-  const startingC  = starters.find(p => p.pos === 'C');
+  const startingPF = starters.find(p => p.pos === 'PF' && p.archetype === 'Paint Beast');
+  const startingC  = starters.find(p => p.pos === 'C' && p.archetype === 'Paint Beast');
   if (startingPF?.archetype === 'Paint Beast' && startingC?.archetype === 'Paint Beast') {
     const bonus = coach === 'auerbach' ? 0.08 : 0.05;
     synergy('bully-ball', 'defense', bonus,

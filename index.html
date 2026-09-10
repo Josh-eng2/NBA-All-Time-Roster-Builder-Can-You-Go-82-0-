@@ -45,10 +45,9 @@
        active from the first line those SDKs execute. See file header for the
        incident this defends against. -->
   <script src="js/utils/pageIntegrity.js"></script>
-  <!-- CrazyGames HTML5 v2 SDK — loaded first so window.CrazyGames exists
-       before js/main.js calls into js/utils/crazygames.js. No-ops (via
-       environment detection) when not running on crazygames.com. -->
-  <script src="https://sdk.crazygames.com/crazygames-sdk-v2.js"></script>
+  <!-- Optional portal SDK never blocks HTML parsing or the app module.
+       The adapter makes a bounded, session-stable storage choice at boot. -->
+  <script async src="https://sdk.crazygames.com/crazygames-sdk-v2.js"></script>
   <!-- GameDistribution HTML5 SDK — loaded early so window.gdsdk exists before
        js/main.js/events.js call into js/utils/gamedistribution.js.
        GD is a "monetize any website" product, not portal-only — on our own
@@ -65,9 +64,8 @@
        one document there puts two competing systems on the same screen, which
        is also against CrazyGames' own terms — so the injection below waits on
        the CrazyGames SDK's own environment answer and is skipped outright when
-       that answer is 'crazygames'. Everything else — the GD portal, any other
-       embed, a blocked or stalled CrazyGames SDK — still loads GD via the
-       timeout fallback, so no ad revenue depends on that answer arriving. -->
+       that answer is 'crazygames'. GameDistribution loads only after a known
+       GameDistribution parent or explicit environment answer identifies it. -->
   <script>
     var GD_IN_IFRAME;
     try { GD_IN_IFRAME = window.self !== window.top; } catch (e) { GD_IN_IFRAME = true; }
@@ -111,17 +109,18 @@
         js.src = 'https://html5.api.gamedistribution.com/main.min.js';
         fjs.parentNode.insertBefore(js, fjs);
       }
-      // getEnvironment() is async and may never answer at all (SDK blocked or
-      // never loaded), so the timeout is what guarantees GD still loads
-      // everywhere it should. Whichever settles first wins, and injectGd() is
-      // idempotent, so a late answer after the timeout changes nothing.
+      // An unknown embed is not permission to load an advertising SDK.
+      // injectGd() is idempotent when more than one signal identifies GD.
       var decided = false;
       function decide(env) {
         if (decided) return;
         decided = true;
-        if (env !== 'crazygames') injectGd();
+        if (env === 'gamedistribution') injectGd();
       }
-      setTimeout(function () { decide(null); }, 1500);
+      // Only a known portal embedding may load its advertising SDK.
+      var parentHost = '';
+      try { parentHost = new URL(document.referrer).hostname; } catch (_) {}
+      if (/(^|\.)gamedistribution\.com$/.test(parentHost)) decide('gamedistribution');
       try {
         var sdk = window.CrazyGames && window.CrazyGames.SDK;
         if (sdk && typeof sdk.getEnvironment === 'function') {
@@ -258,7 +257,7 @@
   <meta property="og:site_name"   content="Can You Go 82-0?" />
   <meta property="og:url"         content="https://canyougo820.com" />
   <meta property="og:title"       content="Can You Go 82-0? NBA Team Generator &amp; Roster Builder" />
-  <meta property="og:description" content="Draft an all-time NBA roster from legends across every era, pick your coach, and run the season simulator — can you go a perfect 82-0?" />
+  <meta property="og:description" content="Five boards. Your picks. Draft NBA legends, simulate 82 games, then challenge a friend to beat your record on the same boards." />
   <!-- PNG, not SVG — Facebook/Twitter/most crawlers won't render SVG previews.
        Regenerated from og-image.html (see scripts/build_og_image.sh). -->
   <meta property="og:image"       content="https://canyougo820.com/og-image.png" />
@@ -266,7 +265,7 @@
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card"        content="summary_large_image" />
   <meta name="twitter:title"       content="Can You Go 82-0? NBA Team Generator &amp; Roster Builder" />
-  <meta name="twitter:description" content="Draft an all-time NBA roster, pick your coach, and run the season simulator — can you go a perfect 82-0?" />
+  <meta name="twitter:description" content="Five boards. Your picks. Draft NBA legends, simulate 82 games, then challenge a friend to beat your record on the same boards." />
   <meta name="twitter:image"       content="https://canyougo820.com/og-image.png" />
 
   <!-- Structured data: helps Google identify the game as an entity.
@@ -466,7 +465,25 @@
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function () {
-        navigator.serviceWorker.register('./sw.js').catch(function () {});
+        navigator.serviceWorker.register('./sw.js').then(function (registration) {
+          function offerUpdate() {
+            if (!registration.waiting || document.getElementById('update-ready')) return;
+            var button = document.createElement('button');
+            button.id = 'update-ready'; button.className = 'update-ready';
+            button.textContent = 'Update ready — reload when you finish';
+            button.onclick = function () {
+              if (confirm('Reload all open game tabs to update? Finish any current drafts first.')) registration.waiting.postMessage({ type: 'ACTIVATE_UPDATE' });
+            };
+            document.body.appendChild(button);
+          }
+          offerUpdate();
+          registration.addEventListener('updatefound', function () {
+            var worker = registration.installing;
+            worker.addEventListener('statechange', offerUpdate);
+          });
+        }).catch(function () {});
+        var controlled = !!navigator.serviceWorker.controller;
+        navigator.serviceWorker.addEventListener('controllerchange', function () { if (controlled) location.reload(); });
       });
     }
   </script>

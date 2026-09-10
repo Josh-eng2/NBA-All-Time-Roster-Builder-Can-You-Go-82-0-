@@ -58,12 +58,13 @@ test('every source a link builder emits is recognised', () => {
   }
 });
 
-test('no ?ref= is not a referral, and stores nothing', () => {
-  stubBrowser({ search: '?utm_source=newsletter' });
-  const r = captureReferral();
-  assert.equal(r.ref, null);
-  assert.equal(r.channel, null);
-  assert.equal(stored(), null, 'a direct visit must not occupy the first-touch slot');
+test('a direct first visit cannot later be relabelled as a referral', () => {
+  stubBrowser({ search: '' });
+  assert.equal(captureReferral().ref, 'direct');
+  assert.equal(stored().ref, 'direct');
+  globalThis.location.search = '?ref=rematch';
+  assert.equal(captureReferral().firstTouch, false);
+  assert.equal(getReferralSource(), 'direct');
 });
 
 test('first touch wins — a later link never relabels the visitor', () => {

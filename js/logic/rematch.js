@@ -28,11 +28,20 @@
  *   [12..13]  wins (0–82); losses are 82 - wins
  *
  * IMPORTANT: the encoding indexes into TEAMS and DECADES, so those arrays are
- * a wire format now. Appending entries is safe; reordering or removing any
+ * a wire format now. These version-a tables are frozen; adding, reordering or removing entries
  * invalidates every code already shared — bump VERSION if that ever happens.
  */
 
-import { TEAMS, DECADES, TOTAL_ROUNDS } from './state.js';
+import { TOTAL_ROUNDS } from './state.js';
+import { DB } from '../data/players.js';
+const TEAMS = Object.freeze([
+  'Lakers','Bulls','Warriors','Celtics','Heat','Spurs','Knicks',
+  'Jazz','Pistons','Magic','Suns','Nuggets','Sixers',
+  'Rockets','Thunder','Bucks','Mavericks','Cavaliers',
+  'Blazers','Nets','Kings','Raptors','Hawks','Hornets','Pacers','Clippers','Timberwolves','Pelicans',
+  'Grizzlies','Wizards',
+]);
+const DECADES = Object.freeze(['1960s','1970s','1980s','1990s','2000s','2010s','2020s']);
 
 /** Canonical public origin. Shared links always point at the real site, never
  *  at the CrazyGames / GameDistribution iframe or a localhost dev server the
@@ -69,7 +78,7 @@ export function encodeBoardCode({ board, wins, style }) {
   for (const spin of board) {
     const t = TEAMS.indexOf(spin?.team);
     const d = DECADES.indexOf(spin?.decade);
-    if (t < 0 || d < 0) return null;
+    if (t < 0 || d < 0 || !DB?.[`${spin.team}_${spin.decade}`]?.length) return null;
     out += enc(t * DECADES.length + d);
   }
   return out + enc(Math.max(0, Math.min(82, Math.round(wins ?? 0))));
@@ -97,7 +106,7 @@ export function decodeBoardCode(code) {
     if (!Number.isFinite(n)) return null;
     const team   = TEAMS[Math.floor(n / DECADES.length)];
     const decade = DECADES[n % DECADES.length];
-    if (!team || !decade) return null;
+    if (!team || !decade || !DB?.[`${team}_${decade}`]?.length) return null;
     board.push({ team, decade });
   }
 

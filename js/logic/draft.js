@@ -1,6 +1,7 @@
 /**
  * js/logic/draft.js — Draft Pool & Duplicate Prevention
  */
+import { personId, minimumCompletion } from './dailyBoards.js';
 import { S, ALL_POSITIONS, TEAMS, DECADES, pick } from '../logic/state.js';
 import { DB }                                     from '../data/players.js';
 import { isDualDraft, getModeConfig }             from '../logic/modes.js';
@@ -117,7 +118,7 @@ export function getLegendCatalog() {
 export function getAvailablePlayers(team, decade) {
   return getPlayers(team, decade).filter(p =>
     !S.usedPlayerIds.includes(p.id) &&
-    !(S.draftedPlayerNames?.has(p.name))
+    ![...(S.draftedPlayerNames || [])].some(name => personId(name) === personId(p))
   );
 }
 
@@ -233,6 +234,14 @@ export function cheapestRemainingTotal(slots, afterDecade = null, excludeName = 
  * @returns {{ legal: boolean, reason: string|null }}
  */
 export function isPickDraftable(challenge, player, filled = []) {
+  if (S.mode === 'daily' && S.dailyBoards) {
+    const current = checkPickLegal(challenge, player, filled, { remainingFloor: 0 });
+    if (!current.legal) return current;
+    const remaining = S.dailyBoards.slice(S.round + 1);
+    const floor = minimumCompletion(remaining, [...filled, player], challenge);
+    if (!Number.isFinite(floor)) return { legal: false, reason: 'This player is needed on a later shared board.' };
+    return checkPickLegal(challenge, player, filled, { remainingFloor: floor });
+  }
   // The lookahead only bears on the fans budget, and it walks the whole pool —
   // skip it entirely on the other fifteen challenges.
   if (challenge?.params?.maxPopTotal == null) {
@@ -297,6 +306,7 @@ export function playerTier(p) {
  * @param {'star'|'goat'} tier
  */
 export function spinResultAtLeast(tier, fixedTeam = null, fixedDecade = null) {
+  if (S.mode === 'daily' && S.dailyBoards) return S.dailyBoards[S.round] || null;
   const wantRank   = TIER_RANK[tier] ?? 0;
   const decadePool = availableDecades();
   if (!decadePool.length) return null;
@@ -323,6 +333,7 @@ export function spinResultAtLeast(tier, fixedTeam = null, fixedDecade = null) {
  * @returns {{ team: string, decade: string } | null}
  */
 export function spinResult(fixedTeam = null, fixedDecade = null) {
+  if (S.mode === 'daily' && S.dailyBoards) return S.dailyBoards[S.round] || null;
   const decadePool = availableDecades();
   if (!decadePool.length) return null;
 

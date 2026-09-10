@@ -170,7 +170,7 @@ test('a hand-off parks the outgoing save rather than destroying it', () => {
   const m = installStorage({ ...A_SAVE, nba820_owner: 'uid-A' });
   applyRemoteToDevice('uid-B', null);
 
-  const parked = JSON.parse(m.get('nba820_handoff'));
+  const parked = JSON.parse(m.get('nba820_handoff')).accounts['uid-A'];
   assert.equal(parked.uid, 'uid-A');
   assert.equal(parked.snapshot.save.progress.xp, 12000, "A's progress was not recoverable");
   assert.deepEqual(parked.snapshot.save.legends, ['a1', 'a2', 'a3']);
@@ -183,7 +183,7 @@ test('a racing second hand-off cannot overwrite the parked save with an empty on
   applyRemoteToDevice('uid-B', null);            // winner: parks A's real save
   applyRemoteToDevice('uid-B', null);            // loser: device is already empty
 
-  const parked = JSON.parse(m.get('nba820_handoff'));
+  const parked = JSON.parse(m.get('nba820_handoff')).accounts['uid-A'];
   assert.equal(parked.snapshot.save.progress.xp, 12000, 'the real backup was clobbered');
 });
 
@@ -251,7 +251,7 @@ test('a hand-off parks a key that could not be parsed, rather than deleting it',
   assert.equal(handedOff, true);
   assert.equal(m.get('nba820_trophies'), undefined, 'the hand-off left uid-A data on the device');
 
-  const parked = JSON.parse(m.get('nba820_handoff'));
+  const parked = JSON.parse(m.get('nba820_handoff')).accounts['uid-A'];
   assert.equal(parked.uid, 'uid-A');
   assert.equal(parked.raw.nba820_trophies, CORRUPT, 'the unparseable key was destroyed, not parked');
   // The parseable keys are still in the snapshot as before — raw is additive.

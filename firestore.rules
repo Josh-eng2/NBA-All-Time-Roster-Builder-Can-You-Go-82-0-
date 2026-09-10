@@ -2,7 +2,7 @@
 // project's global leaderboard depends on.
 //
 // This file is NOT deployed automatically. This repo is a static site with
-// no backend and no Firebase CLI / deploy workflow (see AGENTS.md /
+// no backend and no Firebase deployment workflow (see AGENTS.md /
 // README.md) — nothing reads this file at build or run time. It exists so
 // the rules actually protecting the live database have a version-controlled
 // source of truth that reviewers and future edits can diff against, instead
@@ -75,8 +75,8 @@
 // board's rule required auth, so a document could pass every check below and
 // still carry a megabyte of anything alongside it — the per-document limit was
 // the only ceiling. That is not a tidiness problem: the read paths are
-// limit(250) for the 24h/weekly windows and limit(500) for one day's board
-// (fetchGlobalLeaderboard / dailyDocsFor in js/utils/firebase.js), so a few
+// paginated in 250-document batches (fetchLeaderboard / fetchDailyDocs in
+// js/utils/firebase.js), so a few
 // hundred padded documents turn one modal open into hundreds of megabytes of
 // egress on a project with no paid tier under it.
 //
@@ -131,6 +131,11 @@ service cloud.firestore {
     // note at the top of this file: privacy.html promises these entries are
     // not linked to an account, and the game never writes the field, so the
     // rule and the promise can simply agree.
+    function validRecord() {
+      let d = request.resource.data;
+      return d.wins is int && d.losses is int && d.wins + d.losses == 82
+        && d.timestamp == request.time;
+    }
     function noUid() {
       return !('uid' in request.resource.data);
     }
@@ -228,7 +233,7 @@ service cloud.firestore {
                             && request.resource.data.fansM <= 2200))
                     && request.resource.data.champion is bool
                     && request.resource.data.timestampMs is number
-                    && noUid();
+                    && noUid() && validRecord();
       allow update, delete: if false;
     }
 
@@ -241,6 +246,7 @@ service cloud.firestore {
                          'timestamp'])
                     && request.resource.data.date is string
                     && request.resource.data.date.size() == 10
+                    && request.resource.data.date.matches('^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$')
                     && request.resource.data.wins is number
                     && request.resource.data.wins >= 0
                     && request.resource.data.wins <= 82
@@ -262,12 +268,16 @@ service cloud.firestore {
                     && request.resource.data.timestampMs is number
                     && request.resource.data.challengeId is string
                     && request.resource.data.challengeId.size() <= 40
+                    // Keep legacy clients writable during the cache rollout.
+                    // Exact day/catalog matching is also checked on reads;
+                    // these rules cannot attest to a client-side simulation.
+                    && request.resource.data.challengeId.matches('^(nineties-only|y2k-ball|old-school|modern-era|budget-ball|no-la-boston|win-65|win-70|volume-scorer|swat-team|chemistry-class|wire-to-wire|build-around-shaq|build-around-lebron|build-around-magic|build-around-giannis)(:boards-v2)?$')
                     && request.resource.data.passed is bool
                     && request.resource.data.score is number
                     && request.resource.data.score ==
                          request.resource.data.wins * 10
                          + (request.resource.data.passed ? 200 : 0)
-                    && noUid();
+                    && noUid() && validRecord();
       allow update, delete: if false;
     }
 
@@ -294,7 +304,9 @@ service cloud.firestore {
       // in a separate document holding only the fields meant to be public,
       // never by loosening this one.
       allow read:          if isOwner(uid);
-      allow create, update: if isOwner(uid) && userDocValid(request.resource.data);
+      allow create: if isOwner(uid) && userDocValid(request.resource.data);
+      allow update: if isOwner(uid) && userDocValid(request.resource.data)
+        && request.resource.data.schemaVersion >= resource.data.get('schemaVersion', 1);
       // Account deletion has to actually erase the data, so the owner — and
       // only the owner — may delete their own document.
       allow delete:        if isOwner(uid);

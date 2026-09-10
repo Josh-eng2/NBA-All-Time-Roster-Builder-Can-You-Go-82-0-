@@ -1,0 +1,30 @@
+{
+  "wins": 60,
+  "losses": 22,
+  "roster": 5,
+  "boards": [
+    {
+      "team": "Bucks",
+      "decade": "2020s"
+    },
+    {
+      "team": "Lakers",
+      "decade": "1970s"
+    },
+    {
+      "team": "Spurs",
+      "decade": "2010s"
+    },
+    {
+      "team": "Hawks",
+      "decade": "1990s"
+    },
+    {
+      "team": "Kings",
+      "decade": "1980s"
+    }
+  ],
+  "code": "a03301144d3y1o",
+  "link": "https://canyougo820.com/?ref=rematch#/rematch?c=a03301144d3y1o",
+  "exactPoints": true
+}
