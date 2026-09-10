@@ -41,3 +41,25 @@ layout, CSS and event delivery are not modelled, so the *look* of the game is
 still verified by playing it (see the repo README). What the render tests catch
 is the class of failure that blanks a screen — a field read off a null, a
 divide by an empty roster, a helper called with a shape it doesn't handle.
+
+## Review regression coverage
+
+- `save-model.test.mjs`: independent XP credits, first-attempt Daily ledgers, merge invariants and hostile streak values.
+- `cloudsave-transport.test.mjs`: failed deletion/backup/adoption, returning owners, interrupted handoffs, stale authentication, transaction retries, corrupt saves and future schemas.
+- `auth-recovery.test.mjs`: original subscriptions reconnect after SDK recovery.
+- `daily-boards.test.mjs`: divergent legal picks receive identical precomputed boards, with bounded budget feasibility and athlete aliases.
+- `optimizer-invariants.test.mjs`: all 120 position assignments and integer player/team scoring reconciliation.
+- `leaderboard-ui.test.mjs`: stale tab requests, reopened dialogs, dynamic keyboard focus, and read-only Daily timestamps.
+- `service-worker.test.mjs`: failed critical installation, optional assets, coherent release caches, nested offline navigation and HTTP 5xx fallback.
+- `portal-startup.test.mjs`: absent, delayed and hung portal SDKs, with stable storage selection.
+- Historical rematch codes and Windows file URLs are pinned in their existing suites.
+
+The normal suite remains dependency-free. Tests using `node:module` hooks need Node 22.15+; CI uses current Node 22 on Windows and Linux.
+
+## Optional integration checks
+
+`browser-smoke.mjs` requires Playwright installed **outside the application**. Set `PLAYWRIGHT_MODULE` to its installed package directory and optionally `BROWSER_EXE` to Chrome/Edge. Serve the repository on `http://127.0.0.1:8001`, then run `node tests/browser-smoke.mjs`. It blocks external requests and exercises Classic/Daily/rematch/playoffs, stalled SDK startup, failed submission retry, keyboard placement, reduced motion and generated-page attribution. `SMOKE_ASSETS` optionally exports real feed/story cards plus the matching run metadata to that directory.
+
+`rules-emulator.mjs` requires external test tooling (`firebase@10.12.4`, `@firebase/rules-unit-testing@3.0.4`, `firebase-tools@13.35.1`) and Java 21. Set `TEST_TOOLS_DIR` to that tooling directory and `FIRESTORE_EMULATOR_HOST=127.0.0.1:8087`. Start a local Firestore emulator for **demo-820-review**, then run `node tests/rules-emulator.mjs`. It clears that demo database, evaluates malicious writes, exercises concurrent transactions and pages more than 500 records through the shipped transport. It refuses live endpoints. CI provisions this isolated setup automatically.
+
+Before release, run `node scripts/check_cache_version.mjs <base-ref>`. For a repeatable, read-only balance probe, run `node scripts/calibrate_simulation.mjs`; its output includes the seed, data hash, policy and configuration. Its position pools do not model an attainable wheel draft.

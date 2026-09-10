@@ -32,9 +32,11 @@
  *   handlers in modal HTML can call them.
  */
 
+import { count, normalizeStreak, mergeDailyHistory } from '../logic/saveModel.js';
 import { S, COACHES, POSITIONS, getUtcDateString } from '../logic/state.js';
 import { getLegendCatalog }                      from '../logic/draft.js';
 import { fetchLeaderboard, fetchDailyLeaderboard, fetchDailyCommunityStats } from '../utils/firebase.js';
+import { getProgression } from '../logic/progression.js';
 import { cgGetItem, cgSetItem }                    from '../utils/crazygames.js';
 import { getDailyChallenge }                       from '../logic/challenge.js';
 import { weekKeyUTC }                              from '../logic/dynastyDuel.js';
@@ -139,9 +141,11 @@ export function saveLeaderboard() {
     starters:      POSITIONS.map(p => S.roster[p]?.name || '—').join(', '),
     avgPopularity: r.avgPopularity ?? 50,
     leaders:       packLeaders(r),
+    level:         getProgression().rewards.includes('leaderboard-badge') ? getProgression().level : null,
   };
   let lb = [];
   try { lb = JSON.parse(cgGetItem('nba820_lb') || '[]'); } catch (e) {}
+  if (!Array.isArray(lb)) lb = [];
   lb.push(entry);
   // Tie-breakers: 1° wins  2° Team Popularity
   lb.sort((a, b) => {
@@ -173,6 +177,7 @@ export function saveModeLeaderboard(mode, entry) {
   if (!key || !entry) return;
   let lb = [];
   try { lb = JSON.parse(cgGetItem(key) || '[]'); } catch (e) {}
+  if (!Array.isArray(lb)) lb = [];
   lb.push(entry);
   if (mode === 'fans') {
     lb.sort((a, b) => (b.score ?? 0) - (a.score ?? 0) || (b.wins ?? 0) - (a.wins ?? 0));
@@ -273,6 +278,7 @@ export function saveToTrophyRoom() {
   };
   let trophies = [];
   try { trophies = JSON.parse(cgGetItem('nba820_trophies') || '[]'); } catch (e) {}
+  if (!Array.isArray(trophies)) trophies = [];
   trophies.unshift(entry);
   if (trophies.length > 12) trophies = trophies.slice(0, 12);
   try {
@@ -315,6 +321,7 @@ function renderLeaderboardModal() {
           <div style="flex:1;min-width:0">
             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:2px">
               <span style="font-weight:900;font-size:15px;color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px">${name}</span>
+              ${Number.isInteger(e.level) && e.level > 0 ? `<span class="earned-badge">Level ${e.level}</span>` : ''}
               ${isPerfect ? '<span style="font-size:10px;font-weight:900;padding:2px 8px;border-radius:999px;background:var(--amber-badge-bg);color:var(--amber-text);border:1px solid var(--amber-border)">🏆 PERFECT</span>' : ''}
             </div>
             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
@@ -352,6 +359,9 @@ export function showLeaderboardModal() {
   const div = document.createElement('div');
   div.id = 'lb-modal-root';
   div.innerHTML = renderLeaderboardModal();
+  div._previousFocus = document.activeElement;
+  div.setAttribute('role', 'dialog'); div.setAttribute('aria-modal', 'true');
+  div.setAttribute('aria-label', div.querySelector('h2')?.textContent || 'Game details');
   document.body.appendChild(div);
   const onKey = e => { if (e.key === 'Escape') closeLeaderboardModal(); };
   document.addEventListener('keydown', onKey);
@@ -359,7 +369,10 @@ export function showLeaderboardModal() {
   const focusable = div.querySelectorAll('button, [tabindex]:not([tabindex="-1"])');
   const first = focusable[0], last = focusable[focusable.length - 1];
   div.addEventListener('keydown', e => {
-    if (e.key !== 'Tab' || !first) return;
+    if (e.key !== 'Tab' || document.getElementById('global-lb-detail-root')) return;
+    const focusable = div.querySelectorAll('button, [tabindex]:not([tabindex="-1"])');
+    const first = focusable[0], last = focusable[focusable.length - 1];
+    if (!first) return;
     if (e.shiftKey ? document.activeElement === first : document.activeElement === last) {
       e.preventDefault();
       (e.shiftKey ? last : first).focus();
@@ -373,6 +386,7 @@ export function closeLeaderboardModal() {
   if (el) {
     if (el._removeKey) el._removeKey();
     el.remove();
+    el._previousFocus?.focus();
   }
 }
 
@@ -553,10 +567,14 @@ function showGlobalLbTeamDetail(index) {
   closeGlobalLbTeamDetail();
   const div = document.createElement('div');
   div.id = 'global-lb-detail-root';
+  div._previousFocus = document.activeElement;
+  div.setAttribute('role', 'dialog'); div.setAttribute('aria-modal', 'true'); div.setAttribute('aria-label', 'Team breakdown');
   div.innerHTML = _globalLbTeamDetailHtml(entry);
   document.body.appendChild(div);
+  div.querySelector('button')?.focus();
   const onKey = e => {
-    if (e.key === 'Escape') closeGlobalLbTeamDetail();
+    if (e.key === 'Tab') { e.preventDefault(); div.querySelector('button')?.focus(); }
+    if (e.key === 'Escape') { e.stopImmediatePropagation(); closeGlobalLbTeamDetail(); }
   };
   document.addEventListener('keydown', onKey);
   div._removeKey = () => document.removeEventListener('keydown', onKey);
@@ -565,6 +583,7 @@ function showGlobalLbTeamDetail(index) {
 function closeGlobalLbTeamDetail() {
   const el = document.getElementById('global-lb-detail-root');
   if (el) {
+    el._previousFocus?.focus();
     if (el._removeKey) el._removeKey();
     el.remove();
   }
@@ -671,17 +690,23 @@ function _globalModalShellHtml(activeTab) {
         ${_globalLbLoadingHtml()}
       </div>
       <p style="text-align:center;font-size:11px;color:var(--muted-fg);margin:12px 0 0;font-family:Fira Sans,sans-serif">Tap a team to view starting 5, team chemistry &amp; fans</p>
+      <p style="text-align:center;font-size:11px;color:var(--muted-fg)">Community scores are self-reported; completed runs cannot be independently verified.</p>
     </div>
   </div>`;
 }
 
+let globalRequest = 0;
 async function _loadGlobalLb(tab) {
+  const request = ++globalRequest;
+  const instance = document.getElementById('global-lb-modal-root');
   try {
     const entries  = await fetchLeaderboard(tab);
+    if (request !== globalRequest || instance !== document.getElementById('global-lb-modal-root')) return;
     _globalLbCache = entries;
     const tableEl  = document.getElementById('global-lb-table');
     if (tableEl) tableEl.innerHTML = _globalLbRowsHtml(entries);
   } catch (err) {
+    if (request !== globalRequest || instance !== document.getElementById('global-lb-modal-root')) return;
     const tableEl = document.getElementById('global-lb-table');
     // Never read .message off a bare throw — a non-Error rejection here used
     // to raise a TypeError inside the catch and leave the spinner forever.
@@ -715,6 +740,9 @@ export function showGlobalLeaderboardModal(tab = 'alltime') {
   const div  = document.createElement('div');
   div.id     = 'global-lb-modal-root';
   div.innerHTML = _globalModalShellHtml(tab);
+  div._previousFocus = document.activeElement;
+  div.setAttribute('role', 'dialog'); div.setAttribute('aria-modal', 'true');
+  div.setAttribute('aria-label', div.querySelector('h2')?.textContent || 'Game details');
   document.body.appendChild(div);
   const onKey = e => {
     if (e.key === 'Escape') {
@@ -727,7 +755,10 @@ export function showGlobalLeaderboardModal(tab = 'alltime') {
   const focusable = div.querySelectorAll('button, [tabindex]:not([tabindex="-1"])');
   const first = focusable[0], last = focusable[focusable.length - 1];
   div.addEventListener('keydown', e => {
-    if (e.key !== 'Tab' || !first) return;
+    if (e.key !== 'Tab' || document.getElementById('global-lb-detail-root')) return;
+    const focusable = div.querySelectorAll('button, [tabindex]:not([tabindex="-1"])');
+    const first = focusable[0], last = focusable[focusable.length - 1];
+    if (!first) return;
     if (e.shiftKey ? document.activeElement === first : document.activeElement === last) {
       e.preventDefault();
       (e.shiftKey ? last : first).focus();
@@ -743,6 +774,7 @@ export function closeGlobalLeaderboardModal() {
   if (el) {
     if (el._removeKey) el._removeKey();
     el.remove();
+    el._previousFocus?.focus();
   }
 }
 
@@ -788,7 +820,7 @@ function _binKeyForWins(wins) {
 
 /** @returns {{ streak: number, lastPassDate: string|null }} consecutive-day challenge passes */
 export function getDailyStreak() {
-  try { return JSON.parse(cgGetItem(DAILY_STREAK_KEY) || 'null') || { streak: 0, lastPassDate: null }; }
+  try { return normalizeStreak(JSON.parse(cgGetItem(DAILY_STREAK_KEY) || 'null')); }
   catch (e) { return { streak: 0, lastPassDate: null }; }
 }
 
@@ -817,68 +849,16 @@ export function currentDailyStreak(today = getUtcDateString()) {
  * @returns {{ played: number, wins: number, currentStreak: number, maxStreak: number, lastPlayedDate: string|null, distribution: Record<string, number> }}
  */
 export function getDailyStats() {
-  // Live value — a stored streak stops counting once a day has been skipped
-  // (see currentDailyStreak), so the Statistics modal never shows a dead 🔥.
-  const liveStreak = currentDailyStreak();
-  let stats = null;
-  try { stats = JSON.parse(cgGetItem(DAILY_STATS_KEY) || 'null'); } catch (e) {}
-  if (!stats || typeof stats !== 'object') {
-    stats = {
-      played: 0,
-      wins: 0,
-      currentStreak: liveStreak,
-      maxStreak: liveStreak,
-      lastPlayedDate: null,
-      distribution: _emptyDailyDist(),
-    };
-  } else {
-    // Coerced, not spread through as-is: nba820_dailyStats is written back
-    // from the cloud-save merge, whose Firestore rule bounds the document's
-    // shape but never its values — and these counts are interpolated straight
-    // into the Statistics modal's innerHTML.
-    const storedDist = obj(stats.distribution) || {};
-    const dist = _emptyDailyDist();
-    for (const key of Object.keys(dist)) dist[key] = Math.max(0, Number(storedDist[key]) || 0);
-    const currentStreak = liveStreak;
-    const storedMax = Number(stats.maxStreak);
-    const maxStreak = Math.max(
-      Number.isFinite(storedMax) ? Math.max(0, storedMax) : 0,
-      Number(stats.currentStreak) || 0,
-      currentStreak,
-    );
-    stats = {
-      played:        Math.max(0, Number(stats.played) || 0),
-      wins:          Math.max(0, Number(stats.wins) || 0),
-      currentStreak,
-      maxStreak,
-      lastPlayedDate: stats.lastPlayedDate || null,
-      distribution:  dist,
-    };
-  }
-
-  // If today's daily is already locked but never recorded into lifetime
-  // stats (upgrade mid-day), fold it in once.
+  let raw;
+  try { raw = JSON.parse(cgGetItem(DAILY_STATS_KEY) || 'null'); } catch (_) {}
+  let stats = mergeDailyHistory(raw, null);
   const status = getDailyStatus();
-  if (status.playedToday && status.result && stats.lastPlayedDate !== status.today) {
-    stats.played += 1;
-    if (status.result.passed) stats.wins += 1;
-    const bin = _binKeyForWins(status.result.wins);
-    stats.distribution[bin] = (stats.distribution[bin] || 0) + 1;
-    stats.lastPlayedDate = status.today;
-    stats.currentStreak = liveStreak;
-    if (stats.currentStreak > stats.maxStreak) stats.maxStreak = stats.currentStreak;
-    try {
-      cgSetItem(DAILY_STATS_KEY, JSON.stringify({
-        played: stats.played,
-        wins: stats.wins,
-        currentStreak: stats.currentStreak,
-        maxStreak: stats.maxStreak,
-        lastPlayedDate: stats.lastPlayedDate,
-        distribution: stats.distribution,
-      }));
-    } catch (e) {}
+  if (status.playedToday && status.result && status.today > (stats.baseline.lastPlayedDate || '')) {
+    stats = mergeDailyHistory(stats, { attempts: { [status.today]: status.result } });
+    if (JSON.stringify(raw) !== JSON.stringify(stats)) cgSetItem(DAILY_STATS_KEY, JSON.stringify(stats));
   }
-
+  stats.currentStreak = currentDailyStreak();
+  stats.maxStreak = Math.max(count(stats.maxStreak), stats.currentStreak);
   return stats;
 }
 
@@ -898,9 +878,22 @@ export function getDailyStats() {
  */
 export function markDailyPlayed({ date, wins, losses, chemScore, champion, challengeId = null, passed = false, score = 0 }) {
   const day = (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) ? date : getUtcDateString();
+  const at = Date.now();
+  let previous = null;
+  try { previous = JSON.parse(cgGetItem(DAILY_KEY) || 'null'); } catch (_) {}
+  // The first completion owns that day's lock, including on a double-click.
+  if (previous?.date === day) return currentDailyStreak();
+  if (previous?.date > day) {
+    // A second tab finished yesterday's run after today's. Count its history
+    // without moving today's lock or streak backwards.
+    let raw;
+    try { raw = JSON.parse(cgGetItem(DAILY_STATS_KEY) || 'null'); } catch (_) {}
+    cgSetItem(DAILY_STATS_KEY, JSON.stringify(mergeDailyHistory(raw, { attempts: { [day]: { at, wins, passed } } })));
+    return currentDailyStreak();
+  }
   try {
     cgSetItem(DAILY_KEY, JSON.stringify({
-      date: day, wins, losses, chemScore, champion, challengeId, passed, score, at: Date.now(),
+      date: day, wins, losses, chemScore, champion, challengeId, passed, score, at,
     }));
   } catch (e) {}
 
@@ -920,25 +913,13 @@ export function markDailyPlayed({ date, wins, losses, chemScore, champion, chall
   } catch (e) { streakVal = 0; }
 
   try {
-    const stats = getDailyStats();
-    if (stats.lastPlayedDate !== day) {
-      stats.played += 1;
-      if (passed) stats.wins += 1;
-      const bin = _binKeyForWins(wins);
-      stats.distribution[bin] = (stats.distribution[bin] || 0) + 1;
-      stats.lastPlayedDate = day;
-    }
+    let raw;
+    try { raw = JSON.parse(cgGetItem(DAILY_STATS_KEY) || 'null'); } catch (_) {}
+    const stats = mergeDailyHistory(raw, { attempts: { [day]: { at, wins, passed } } });
     stats.currentStreak = streakVal;
-    if (streakVal > stats.maxStreak) stats.maxStreak = streakVal;
-    cgSetItem(DAILY_STATS_KEY, JSON.stringify({
-      played: stats.played,
-      wins: stats.wins,
-      currentStreak: stats.currentStreak,
-      maxStreak: stats.maxStreak,
-      lastPlayedDate: stats.lastPlayedDate,
-      distribution: stats.distribution,
-    }));
-  } catch (e) {}
+    stats.maxStreak = Math.max(stats.maxStreak, streakVal);
+    cgSetItem(DAILY_STATS_KEY, JSON.stringify(stats));
+  } catch (_) {}
 
   return streakVal;
 }
@@ -1020,6 +1001,7 @@ function _dailyModalShellHtml(dateLabel) {
       <div id="daily-lb-table" style="display:flex;flex-direction:column;gap:8px">
         ${_globalLbLoadingHtml()}
       </div>
+      <p style="text-align:center;font-size:11px;color:var(--muted-fg)">Community results are self-reported.</p>
       <p id="daily-lb-community" style="text-align:center;font-size:12px;font-weight:700;color:var(--primary);margin:14px 0 0;font-family:Fira Sans,sans-serif;min-height:18px"></p>
       <p style="text-align:center;font-size:11px;color:var(--muted-fg);margin:8px 0 0;font-family:Fira Sans,sans-serif">Everyone drafts from the same board today — only your picks and your season differ</p>
     </div>
@@ -1068,6 +1050,9 @@ export function showDailyLeaderboardModal() {
   const div  = document.createElement('div');
   div.id     = 'daily-lb-modal-root';
   div.innerHTML = _dailyModalShellHtml(dateLabel);
+  div._previousFocus = document.activeElement;
+  div.setAttribute('role', 'dialog'); div.setAttribute('aria-modal', 'true');
+  div.setAttribute('aria-label', div.querySelector('h2')?.textContent || 'Game details');
   document.body.appendChild(div);
   const onKey = e => { if (e.key === 'Escape') closeDailyLeaderboardModal(); };
   document.addEventListener('keydown', onKey);
@@ -1075,7 +1060,10 @@ export function showDailyLeaderboardModal() {
   const focusable = div.querySelectorAll('button, [tabindex]:not([tabindex="-1"])');
   const first = focusable[0], last = focusable[focusable.length - 1];
   div.addEventListener('keydown', e => {
-    if (e.key !== 'Tab' || !first) return;
+    if (e.key !== 'Tab' || document.getElementById('global-lb-detail-root')) return;
+    const focusable = div.querySelectorAll('button, [tabindex]:not([tabindex="-1"])');
+    const first = focusable[0], last = focusable[focusable.length - 1];
+    if (!first) return;
     if (e.shiftKey ? document.activeElement === first : document.activeElement === last) {
       e.preventDefault();
       (e.shiftKey ? last : first).focus();
@@ -1090,6 +1078,7 @@ export function closeDailyLeaderboardModal() {
   if (el) {
     if (el._removeKey) el._removeKey();
     el.remove();
+    el._previousFocus?.focus();
   }
 }
 
@@ -1110,7 +1099,7 @@ function _dailyStatsBodyHtml() {
     { value: stats.maxStreak,     label: 'Max<br>Streak' },
   ].map(c => `
     <div style="text-align:center;flex:1;min-width:0">
-      <p style="font-size:36px;font-weight:700;line-height:1;margin:0;color:var(--fg);font-family:Fira Sans,sans-serif">${c.value}</p>
+      <p style="font-size:36px;font-weight:700;line-height:1;margin:0;color:var(--fg);font-family:Fira Sans,sans-serif">${esc(c.value)}</p>
       <p style="font-size:11px;font-weight:600;line-height:1.2;margin:6px 0 0;color:var(--muted-fg);text-transform:uppercase;letter-spacing:0.04em;font-family:Fira Sans,sans-serif">${c.label}</p>
     </div>`).join('');
 
@@ -1166,6 +1155,9 @@ export function showDailyStatsModal() {
       ${_dailyStatsBodyHtml()}
     </div>
   </div>`;
+  div._previousFocus = document.activeElement;
+  div.setAttribute('role', 'dialog'); div.setAttribute('aria-modal', 'true');
+  div.setAttribute('aria-label', div.querySelector('h2')?.textContent || 'Game details');
   document.body.appendChild(div);
   const onKey = e => { if (e.key === 'Escape') closeDailyStatsModal(); };
   document.addEventListener('keydown', onKey);
@@ -1173,7 +1165,10 @@ export function showDailyStatsModal() {
   const focusable = div.querySelectorAll('button, [tabindex]:not([tabindex="-1"])');
   const first = focusable[0], last = focusable[focusable.length - 1];
   div.addEventListener('keydown', e => {
-    if (e.key !== 'Tab' || !first) return;
+    if (e.key !== 'Tab' || document.getElementById('global-lb-detail-root')) return;
+    const focusable = div.querySelectorAll('button, [tabindex]:not([tabindex="-1"])');
+    const first = focusable[0], last = focusable[focusable.length - 1];
+    if (!first) return;
     if (e.shiftKey ? document.activeElement === first : document.activeElement === last) {
       e.preventDefault();
       (e.shiftKey ? last : first).focus();
@@ -1187,6 +1182,6 @@ export function closeDailyStatsModal() {
   if (el) {
     if (el._removeKey) el._removeKey();
     el.remove();
+    el._previousFocus?.focus();
   }
 }
-

@@ -5,144 +5,9 @@
  * ──────────────────
  * 1. Go to https://console.firebase.google.com → create a project.
  * 2. Click "Firestore Database" → Create database → Start in production mode.
- * 3. Set Firestore Rules (Firestore → Rules tab) — kept in sync as
- *    ../../firestore.rules at the repo root, which is the copy to paste;
- *    the block below is a read-along reference only:
- *
- *      rules_version = '2';
- *      service cloud.firestore {
- *        match /databases/{database}/documents {
- *          match /leaderboard/{docId} {
- *            allow read: if true;
- *            allow create: if request.resource.data.keys().hasOnly([
- *                               'teamName', 'wins', 'losses', 'champion', 'coachId',
- *                               'coachName', 'era', 'chemScore', 'avgPopularity',
- *                               'fansM', 'starters', 'timestampMs', 'timestamp'])
- *                          && request.resource.data.wins is number
- *                          && request.resource.data.wins >= 0
- *                          && request.resource.data.wins <= 82
- *                          && request.resource.data.losses is number
- *                          && request.resource.data.losses >= 0
- *                          && request.resource.data.losses <= 82
- *                          && request.resource.data.teamName is string
- *                          && request.resource.data.teamName.size() <= 30
- *                          && request.resource.data.coachId is string
- *                          && request.resource.data.coachId.size() <= 20
- *                          && request.resource.data.coachName is string
- *                          && request.resource.data.coachName.size() <= 30
- *                          && request.resource.data.era is string
- *                          && request.resource.data.era.size() <= 10
- *                          && request.resource.data.starters is string
- *                          && request.resource.data.starters.size() <= 100
- *                          && request.resource.data.chemScore is number
- *                          && request.resource.data.chemScore >= 0
- *                          && request.resource.data.chemScore <= 100
- *                          && (!('avgPopularity' in request.resource.data)
- *                              || (request.resource.data.avgPopularity is number
- *                                  && request.resource.data.avgPopularity >= 0
- *                                  && request.resource.data.avgPopularity <= 1000))
- *                          && (!('fansM' in request.resource.data)
- *                              || (request.resource.data.fansM is number
- *                                  && request.resource.data.fansM >= 0
- *                                  && request.resource.data.fansM <= 2200))
- *                          && request.resource.data.champion is bool
- *                          && request.resource.data.timestampMs is number
- *                          && !('uid' in request.resource.data);
- *            allow update, delete: if false;
- *          }
- *        }
- *      }
- *
- *    NOTE: every field the client renders must be validated here — documents
- *    can be written by anyone holding the public web config, and the modal
- *    renders them for every visitor. The client also numeric-coerces on read
- *    (storage.js) as defense in depth.
- *
- *    The `uid` exclusion is not incidental: this collection is world-readable
- *    and privacy.html promises its entries are not linked to any account, so
- *    an auth uid must not be able to reach one. Nothing here writes the field
- *    — buildGlobalDoc()/buildDailyDoc() below enumerate every key they send.
- *
- *    hasOnly() closes the field list rather than merely bounding the fields
- *    that are named. Firestore does not reject an unknown field on its own,
- *    so without it a document could satisfy every check above and still carry
- *    a megabyte of anything else — read straight back out by the modal's
- *    limit(250)/limit(500) queries. The list IS buildGlobalDoc() below plus
- *    the serverTimestamp() submitGlobalScore() adds, so the two must change
- *    together; firestore.rules carries the same list for dailyLeaderboard.
- *
- *    avgPopularity/fansM bounds (0-1000 / 0-2200) are generous headroom
- *    above the ~350 / ~410 theoretical maximums the current player data and
- *    fansM formula can produce — see the comment above clampWireNumber()
- *    below for the client-side mirror of these two numbers, which MUST be
- *    updated together with whatever is actually deployed here.
- *
- *    `timestampMs` is client-reported and MUST NOT be compared against
- *    request.time — do not add `&& request.resource.data.timestampMs <=
- *    request.time.toMillis() + 60000` (or any variant of it) to this rule.
- *    That comparison rejects every write from a device whose system clock
- *    reports a time more than a minute ahead of Firestore's server clock —
- *    a genuinely common condition (unsynced clocks, a wrong timezone, a VM
- *    or container with clock drift), and it fails with the exact same
- *    generic PERMISSION_DENIED the client shows for a dozen unrelated
- *    causes, so it is very easy to reintroduce this by accident while
- *    editing the rule for something else and not notice for weeks. If this
- *    project's LIVE rules currently have that comparison, remove it and
- *    republish — every affected player's submissions are being silently
- *    rejected at the door regardless of what the client code does. Time-
- *    window reads (24h/weekly) filter on the `timestamp` field instead,
- *    which Firestore stamps via serverTimestamp() and is authoritative
- *    regardless of the submitting client's clock — so nothing actually
- *    needs this check to be trustworthy in the first place.
- *
- *    Also add this second rule block for the Daily Challenge leaderboard
- *    (same file, same `match /databases/{database}/documents {` block):
- *
- *      match /dailyLeaderboard/{docId} {
- *        allow read: if true;
- *        allow create: if request.resource.data.date is string
- *                      && request.resource.data.date.size() == 10
- *                      && request.resource.data.wins is number
- *                      && request.resource.data.wins >= 0
- *                      && request.resource.data.wins <= 82
- *                      && request.resource.data.losses is number
- *                      && request.resource.data.losses >= 0
- *                      && request.resource.data.losses <= 82
- *                      && request.resource.data.teamName is string
- *                      && request.resource.data.teamName.size() <= 30
- *                      && request.resource.data.coachId is string
- *                      && request.resource.data.coachId.size() <= 20
- *                      && request.resource.data.coachName is string
- *                      && request.resource.data.coachName.size() <= 30
- *                      && request.resource.data.chemScore is number
- *                      && request.resource.data.chemScore >= 0
- *                      && request.resource.data.chemScore <= 100
- *                      && request.resource.data.starters is string
- *                      && request.resource.data.starters.size() <= 100
- *                      && request.resource.data.champion is bool
- *                      && request.resource.data.timestampMs is number
- *                      && request.resource.data.challengeId is string
- *                      && request.resource.data.challengeId.size() <= 40
- *                      && request.resource.data.passed is bool
- *                      && request.resource.data.score is number
- *                      && request.resource.data.score ==
- *                           request.resource.data.wins * 10
- *                           + (request.resource.data.passed ? 200 : 0);
- *        allow update, delete: if false;
- *      }
- *
- *    The score equality check mirrors js/logic/challenge.js dailyScore()
- *    (wins*10 + 200 pass bonus) — a document whose score doesn't match its
- *    own wins/passed fields was not written by the game and is rejected at
- *    the door. fetchDailyLeaderboard() applies the same check client-side
- *    as defense in depth for documents written before this rule.
- *
- *    `date` is the 'YYYY-MM-DD' UTC calendar day (see state.js getUtcDateString)
- *    — reads filter on it with a single equality `where()`, deliberately with
- *    no `orderBy`, so no composite index needs to be created for this
- *    collection; results are sorted by challenge score client-side instead
- *    (same trick the 24h/weekly windows above use). `challengeId`/`passed`/
- *    `score` describe the day's specific challenge (see js/logic/challenge.js).
+ * 3. Publish the complete ../../firestore.rules file from the repository root.
+ *    It is the single rules source; do not copy a stale snippet from comments.
+ *    See docs/review-fixes.md for rollout and remaining self-report limits.
  *
  * 4. In Firebase Console → Project Settings → Your apps → Add web app.
  *    Copy the firebaseConfig object and paste the values into FIREBASE_CONFIG below.
@@ -193,7 +58,7 @@
 // and analytics unavailable" instead of "game never boots".
 let initializeApp, getApps, getFirestore, initializeFirestore, collection, addDoc, getDocs,
     query, orderBy, limit, where, serverTimestamp, Timestamp,
-    doc, getDoc, setDoc, deleteDoc,
+    doc, getDoc, setDoc, deleteDoc, runTransaction, startAfter, documentId,
     getAnalytics, logEvent,
     initializeAppCheck, ReCaptchaV3Provider;
 
@@ -392,7 +257,7 @@ function ensureInit() {
           ({ initializeApp, getApps } = sdk.app);
           ({ getFirestore, initializeFirestore, collection, addDoc, getDocs,
              query, orderBy, limit, where, serverTimestamp, Timestamp,
-             doc, getDoc, setDoc, deleteDoc } = sdk.firestore);
+             doc, getDoc, setDoc, deleteDoc, runTransaction, startAfter, documentId } = sdk.firestore);
           // `?? {}`: analytics is optional, so sdk.analytics is null whenever
           // that module was blocked. Destructuring null throws, and the throw
           // would land in the catch below and null out _app — reintroducing
@@ -576,6 +441,9 @@ async function getDb() {
 // the two files circular. Only a successful read is cached — an event that
 // fires before captureReferral() has written the key (module-load events race
 // with init) must not pin the dimension to null for the rest of the session.
+import { telemetryContext } from './telemetry.js';
+import { DAILY_RULES_VERSION } from '../logic/dailyBoards.js';
+import { getDailyChallenge } from '../logic/challenge.js';
 let _refSource = null;
 let _refChannel = null;
 function referralParam() {
@@ -601,9 +469,10 @@ function referralParam() {
  * @param {object} [params]
  */
 export function logAnalyticsEvent(eventName, params = {}) {
+  const context = { ...telemetryContext(), ...params, ...referralParam() };
   ensureInit().then(() => {
     try {
-      if (_analytics) logEvent(_analytics, eventName, { ...params, ...referralParam() });
+      if (_analytics) logEvent(_analytics, eventName, context);
     } catch (_) { /* silently ignore */ }
   }).catch(() => {});
 }
@@ -735,7 +604,7 @@ export async function submitGlobalScore(entry) {
 }
 
 /**
- * Fetches up to 50 leaderboard entries, sorted by wins descending.
+ * Fetches the top ten valid records, paging the full recent window when needed.
  *
  * @param {'alltime'|'24h'|'weekly'} filter
  * @returns {Promise<object[]>}
@@ -746,26 +615,21 @@ export async function fetchLeaderboard(filter = 'alltime') {
   if (!db) throw new Error('Firebase unavailable — leaderboard could not load');
   const col = collection(db, 'leaderboard');
 
-  let q;
   if (filter === 'alltime') {
-    q = query(col, orderBy('wins', 'desc'), limit(10));
+    const entries = await fetchPages(col, [orderBy('wins', 'desc')], rows => rows.filter(validRecord).length >= 10);
+    return entries.filter(validRecord).slice(0, 10);
   } else {
     const msInDay = 24 * 60 * 60 * 1000;
     // Filter on `timestamp` (server-stamped via serverTimestamp()), not the
     // client-reported `timestampMs` — this keeps the window authoritative
     // regardless of the reading device's own clock.
     const cutoff = Timestamp.fromMillis(Date.now() - (filter === '24h' ? msInDay : 7 * msInDay));
-    // Same-field where + orderBy — no composite index required. The window is
-    // fetched newest-first then re-sorted by wins client-side, so the limit
-    // bounds how many recent entries the top-10 is drawn from; 250 keeps a
-    // busy week from dropping high-win runs off the board.
-    q = query(col, where('timestamp', '>', cutoff), orderBy('timestamp', 'desc'), limit(250));
+    // Same-field where/orderBy avoids a composite index. Page the entire
+    // window so busy days cannot hide older high-scoring records.
+    const entries = await fetchPages(col, [where('timestamp', '>', cutoff), orderBy('timestamp', 'desc')]);
+    return entries.filter(validRecord).sort((a, b) => b.wins - a.wins || serverMillis(a) - serverMillis(b)).slice(0, 10);
   }
 
-  const snap    = await withFirestoreErrorCode(getDocs(q));
-  const entries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  if (filter !== 'alltime') entries.sort((a, b) => b.wins - a.wins);
-  return entries.slice(0, 10);
 }
 
 /**
@@ -812,7 +676,7 @@ export function buildDailyDoc(entry) {
     timestampMs:  entry.timestampMs ?? 0,
     // Day's specific challenge (era rules, rating caps, win targets, …):
     // score = wins*10 + 200 pass bonus — the board's primary sort key.
-    challengeId: (entry.challengeId ?? '').slice(0, 40),
+    challengeId: ((entry.challengeId ?? '').replace(/:boards-v\d+$/, '') + ':' + DAILY_RULES_VERSION).slice(0, 40),
     passed,
     score:        wins * 10 + (passed ? 200 : 0),
   };
@@ -864,8 +728,7 @@ function fetchDailyDocs(date) {
     const col = collection(db, 'dailyLeaderboard');
     // Single equality filter, no orderBy — needs no composite index. Sorted
     // client-side, same pattern fetchLeaderboard() uses for 24h/weekly.
-    const snap = await withFirestoreErrorCode(getDocs(query(col, where('date', '==', date), limit(500))));
-    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    return fetchPages(col, [where('date', '==', date), orderBy(documentId())]);
   })().catch(err => {
     // A failed read must not be cached — the next call has to retry.
     if (_dailyDocs.promise === pending) invalidateDailyDocs();
@@ -882,8 +745,8 @@ function invalidateDailyDocs() {
 
 /**
  * Fetches up to 10 Daily Challenge entries for one UTC day, best first.
- * Sorted by challenge score (falls back to wins*10 for entries written
- * before the challenge system), then earliest submission.
+ * Sorted by challenge score, then earliest server submission. Only the
+ * current Daily rules cohort and the requested day's challenge are shown.
  *
  * @param {string} date  'YYYY-MM-DD' — see state.js getUtcDateString()
  * @returns {Promise<object[]>}
@@ -897,20 +760,12 @@ export async function fetchDailyLeaderboard(date) {
   // public web config, and rules can't verify a run actually happened):
   // drop rows whose numbers are internally impossible. The score is fully
   // determined by wins + passed (wins*10 + 200 pass bonus), so any row
-  // where they disagree was not written by the game. Entries from before
-  // the challenge system (no challengeId) keep the plain wins*10 path.
-  entries = entries.filter(e => {
-    const wins = Number(e.wins);
-    if (!Number.isInteger(wins) || wins < 0 || wins > 82) return false;
-    if (e.challengeId) {
-      const expected = wins * 10 + (e.passed === true ? 200 : 0);
-      if (Number(e.score) !== expected) return false;
-    }
-    return true;
-  });
+  // where they disagree was not written by the game. Older board versions
+  // cannot be ranked against this release's shared deterministic boards.
+  entries = entries.filter(e => validDailyEntry(e, date));
 
   const scoreOf = e => Number(e.score) || (Number(e.wins) || 0) * 10;
-  entries.sort((a, b) => scoreOf(b) - scoreOf(a) || (a.timestampMs ?? 0) - (b.timestampMs ?? 0));
+  entries.sort((a, b) => scoreOf(b) - scoreOf(a) || serverMillis(a) - serverMillis(b));
   return entries.slice(0, 10);
 }
 
@@ -928,10 +783,46 @@ export async function fetchDailyCommunityStats(date) {
   let passed   = 0;
   for (const data of docs) {
     // Skip pre-challenge-system submissions that never recorded a verdict.
-    if (typeof data.passed !== 'boolean') continue;
+    if (!validDailyEntry(data, date)) continue;
     attempts += 1;
     if (data.passed) passed += 1;
   }
   const pct = attempts > 0 ? Math.round((passed / attempts) * 100) : null;
   return { attempts, passed, pct };
+}
+
+/** The merge callback is retried on contention against the latest document. */
+export async function transactUserSave(uid, merge) {
+  const db = await getDb();
+  if (!db || !uid) return { ok: false, code: 'unavailable' };
+  try {
+    await runTransaction(db, async transaction => {
+      const ref = doc(db, 'users', uid), snapshot = await transaction.get(ref);
+      const body = merge(snapshot.exists() ? snapshot.data() : null);
+      body.updatedAt = serverTimestamp();
+      if (!snapshot.exists()) body.createdAt = serverTimestamp();
+      transaction.set(ref, body, { merge: true });
+    });
+    return { ok: true };
+  } catch (err) { return { ok: false, code: err?.code || err?.message || 'write-failed' }; }
+}
+
+const serverMillis = entry => entry.timestamp?.toMillis?.() ?? Infinity;
+const validRecord = e => Number.isInteger(e.wins) && Number.isInteger(e.losses) && e.wins >= 0 && e.losses >= 0 && e.wins + e.losses === 82;
+function validDailyEntry(entry, date) {
+  try {
+    return /^\d{4}-\d{2}-\d{2}$/.test(date) && new Date(date + 'T00:00:00Z').toISOString().slice(0, 10) === date
+      && entry.date === date && validRecord(entry) && typeof entry.passed === 'boolean'
+      && entry.challengeId === getDailyChallenge(date).id + ':' + DAILY_RULES_VERSION
+      && entry.score === entry.wins * 10 + (entry.passed ? 200 : 0);
+  } catch (_) { return false; }
+}
+async function fetchPages(col, constraints, enough = () => false) {
+  const entries = []; let cursor = null;
+  for (;;) {
+    const page = await withFirestoreErrorCode(getDocs(query(col, ...constraints, ...(cursor ? [startAfter(cursor)] : []), limit(250))));
+    entries.push(...page.docs.map(d => ({ id: d.id, ...d.data() })));
+    if (page.docs.length < 250 || enough(entries)) return entries;
+    cursor = page.docs[page.docs.length - 1];
+  }
 }

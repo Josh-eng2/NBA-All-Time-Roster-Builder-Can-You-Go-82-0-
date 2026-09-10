@@ -14,6 +14,7 @@
  * comparable on the leaderboard.
  */
 
+import { normalizeProgress } from './saveModel.js';
 import { cgGetItem, cgSetItem } from '../utils/crazygames.js';
 
 // ── Tuning table — the entire design lives here ───────────────────────────────
@@ -70,9 +71,8 @@ const LEVEL_BASE_STEP    = 400;
 const LEVEL_STEP_GROWTH  = 300;
 
 /** Level → reward. `title` rewards set the player's displayed GM title (the
- *  highest one unlocked wins). `cosmetic` rewards are recorded as unlocked and
- *  listed on the results card; applying them visually would mean reworking the
- *  Trophy Room and draft board, which is out of scope for this system. */
+ *  highest one unlocked wins). Frame/accent rewards style the Trophy Room and
+ *  draft board; the level badge is recorded on new local leaderboard entries. */
 const REWARDS = [
   { level:  2, id: 'title-scout',      kind: 'title',    label: 'Scout' },
   { level:  3, id: 'frame-bronze',     kind: 'cosmetic', label: 'Bronze Trophy Room frame' },
@@ -256,8 +256,10 @@ export function getProgression() {
   try {
     const raw = JSON.parse(cgGetItem(PROGRESS_KEY) || 'null');
     if (!raw || typeof raw !== 'object') return { ...EMPTY };
-    const xp = Math.max(0, Number(raw.xp) || 0);
+    const ledger = normalizeProgress(raw);
+    const xp = ledger.xp;
     return {
+      ...ledger,
       xp,
       // Recomputed from XP rather than trusted: XP is the single source of
       // truth, so a stored level that disagrees (an old build, a hand-edited
@@ -284,16 +286,24 @@ export function getProgression() {
 export function addXp(amount) {
   const gain   = Math.max(0, Math.round(Number(amount) || 0));
   const before = getProgression();
-  const after  = { xp: before.xp + gain, level: 0, rewards: before.rewards.slice() };
+  let device = cgGetItem('nba820_xp_device');
+  if (!device) {
+    device = globalThis.crypto?.randomUUID?.() || `d${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    cgSetItem('nba820_xp_device', device);
+  }
+  const ledger = normalizeProgress(before);
+  ledger.credits[device] = (ledger.credits[device] || 0) + gain;
+  const after = { ...normalizeProgress({ ...ledger, xp: 0 }), level: 0 };
   after.level  = levelForXp(after.xp);
 
   const newRewards = rewardsUpTo(after.level).filter(r => !after.rewards.includes(r.id));
   newRewards.forEach(r => after.rewards.push(r.id));
 
-  try { cgSetItem(PROGRESS_KEY, JSON.stringify(after)); } catch (e) {}
+  let persisted = false;
+  try { persisted = cgSetItem(PROGRESS_KEY, JSON.stringify(after)); } catch (e) {}
 
   return {
-    gain,
+    gain, persisted,
     xpBefore: before.xp, xpAfter: after.xp,
     levelBefore: before.level, levelAfter: after.level,
     leveledUp: after.level > before.level,

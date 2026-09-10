@@ -5,7 +5,7 @@
  * Strategy:
  *   - Precache the app shell + local static assets on install
  *   - Cache-first for same-origin static files (CSS/JS/icons/SVG)
- *   - Network-first for HTML navigations (so deploys show up quickly)
+ *   - Cached release shell; network-first content-page navigations
  *   - Leave third-party CDNs (Firebase, fonts, CrazyGames, etc.) alone
  *
  * Bump CACHE_VERSION when shipping asset changes so old caches are dropped.
@@ -13,8 +13,8 @@
 // The rule, which this file has now proved four times: any change to a file in
 // PRECACHE_URLS needs this version bumped in the same commit. Static assets are
 // served cache-first below, so without the bump a returning visitor keeps the
-// old copy indefinitely while network-first HTML hands them the new index —
-// a mix of old modules and new markup, which behaves worse than either alone.
+// old copy indefinitely. The shell stays with its matching release until the
+// waiting worker activates, keeping markup and modules together.
 //
 //   v2  desktop redesign: css/desktop.css new, styles.css + render.js changed
 //   v3  responsive system: css/responsive.css + js/utils/viewport.js new
@@ -266,7 +266,7 @@
 //       provider is switched on by publishing its key, with no deploy and no
 //       further cache roll — and a returning player on the cached v33 bundle
 //       would not have the code to honour it.
-const CACHE_VERSION = '820-v34';
+const CACHE_VERSION = '820-v35';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 
@@ -309,6 +309,8 @@ const PRECACHE_URLS = [
   './js/logic/aiDraft.js',
   './js/logic/dynastyDuel.js',
   './js/logic/rematch.js',
+  './js/logic/saveModel.js',
+  './js/logic/dailyBoards.js',
   './js/utils/storage.js',
   './js/utils/viewport.js',
   './js/utils/firebase.js',
@@ -318,26 +320,25 @@ const PRECACHE_URLS = [
   './js/utils/crazygames.js',
   './js/utils/gamedistribution.js',
   './js/utils/referral.js',
+  './js/utils/telemetry.js',
+  './js/utils/contentRelay.js',
   './js/utils/install.js',
 ];
 
-// Each URL is added on its own, and a failure is logged rather than thrown.
-//
-// cache.addAll() is all-or-nothing: one 404 — a file renamed without updating
-// the list above, a CDN hiccup mid-deploy — rejected the whole install, so
-// skipWaiting() never ran, the new worker never activated, and every returning
-// visitor stayed on the OLD cache-first bundle indefinitely. That failure is
-// both silent and sticky, which is the worst combination for the mechanism
-// whose entire job is shipping updates. A shell that is one asset short is
-// still worth activating; the missing asset just falls through to the network.
+// Do not replace a playable release with a partial shell. Optional media may
+// fail; every executable/style dependency must be cached before installation.
+const CRITICAL_URLS = PRECACHE_URLS.filter(url => url === './' || url.endsWith('.html') || /\.(js|css|webmanifest)$/.test(url));
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
     const cache = await caches.open(PRECACHE);
-    const results = await Promise.allSettled(PRECACHE_URLS.map(url => cache.add(url)));
-    const failed = PRECACHE_URLS.filter((_, i) => results[i].status === 'rejected');
-    if (failed.length) console.warn('[sw] precache incomplete, activating anyway:', failed);
-    await self.skipWaiting();
+    await Promise.all(CRITICAL_URLS.map(url => cache.add(url)));
+    await Promise.allSettled(PRECACHE_URLS.filter(url => !CRITICAL_URLS.includes(url)).map(url => cache.add(url)));
+    // Existing games keep their coherent release until all its tabs close,
+    // or the player explicitly accepts the update invitation.
   })());
+});
+self.addEventListener('message', event => {
+  if (event.data?.type === 'ACTIVATE_UPDATE') event.waitUntil(self.skipWaiting());
 });
 
 self.addEventListener('activate', event => {
@@ -345,7 +346,7 @@ self.addEventListener('activate', event => {
     caches.keys().then(keys =>
       Promise.all(
         keys
-          .filter(key => key !== PRECACHE && key !== RUNTIME)
+          .filter(key => /^(precache|runtime)-820-v/.test(key) && key !== PRECACHE && key !== RUNTIME)
           .map(key => caches.delete(key))
       )
     ).then(() => self.clients.claim())
@@ -379,7 +380,9 @@ self.addEventListener('fetch', event => {
   if (!isSameOrigin(url)) return;
 
   if (isNavigationRequest(request)) {
-    event.respondWith(networkFirst(request));
+    const root = new URL('./', self.location.href);
+    const isShell = url.pathname === root.pathname || url.pathname === new URL('index.html', root).pathname;
+    event.respondWith(isShell ? matchRelease('./index.html').then(cached => cached || networkFirst(request)) : networkFirst(request));
     return;
   }
 
@@ -397,26 +400,38 @@ async function networkFirst(request) {
     // always made the same check.
     if (fresh && fresh.ok) {
       const cache = await caches.open(RUNTIME);
-      cache.put(request, fresh.clone());
+      await cache.put(request, fresh.clone()).catch(() => {});
     }
+    if (fresh.status >= 500) throw new Error('Temporary server error');
     return fresh;
   } catch (_) {
-    const cached = await caches.match(request);
+    const cached = await matchRelease(request);
     if (cached) return cached;
-    const shell = await caches.match('./index.html');
-    if (shell) return shell;
+    const shell = await matchRelease('./index.html');
+    if (shell) {
+      const base = new URL('./', self.location.href).href;
+      const html = (await shell.text()).replace('<head>', `<head><base href="${base}">`);
+      return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+    }
     throw new Error('Offline and no cached shell');
   }
 }
 
 async function cacheFirst(request) {
-  const cached = await caches.match(request);
+  const cached = await matchRelease(request);
   if (cached) return cached;
   const fresh = await fetch(request);
   // Only cache successful same-origin responses.
   if (fresh && fresh.ok) {
     const cache = await caches.open(RUNTIME);
-    cache.put(request, fresh.clone());
+    await cache.put(request, fresh.clone()).catch(() => {});
   }
   return fresh;
+}
+
+async function matchRelease(request) {
+  // A waiting or failed install may have another cache on this origin. It
+  // must never supply modules to a page controlled by this worker version.
+  return (await (await caches.open(PRECACHE)).match(request))
+    || (await (await caches.open(RUNTIME)).match(request));
 }

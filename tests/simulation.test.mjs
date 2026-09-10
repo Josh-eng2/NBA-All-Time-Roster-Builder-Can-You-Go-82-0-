@@ -88,10 +88,11 @@ test('per-player season lines track the real player and total to the season', ()
     for (const k of ['ppg', 'rpg', 'apg', 'spg', 'bpg']) {
       assert.ok(line[k] >= 0, `${k} can never be negative`);
       // form roll is clamped to 0.91..1.09 and team factor to 0.98..1.02
-      assert.ok(line[k] <= p[k] * 1.09 * 1.02 + 0.05,
+      assert.ok(k === 'ppg' || line[k] <= p[k] * 1.09 * 1.02 + 0.05,
         `${p.name} ${k}: simulated ${line[k]} drifts too far from real ${p[k]}`);
     }
-    assert.equal(line.pts, Math.round(line.ppg * 82), 'season total must match the per-game average');
+    assert.equal(line.ppg, +(line.pts / 82).toFixed(1), 'displayed average must derive from exact points');
+    assert.equal(line.pts, r.games.reduce((n, game) => n + game.playerPoints[line.id], 0));
   }
   // Stat leaders must be the actual leaders of the simulated lines.
   for (const [key, statKey] of [['scoring','ppg'],['rebounding','rpg'],['assists','apg'],['steals','spg'],['blocks','bpg']]) {

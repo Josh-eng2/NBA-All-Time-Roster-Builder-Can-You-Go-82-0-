@@ -190,7 +190,7 @@ test('daily lifetime stats take a per-counter maximum', () => {
   assert.equal(s.wins, 20);
   assert.equal(s.maxStreak, 9);
   assert.equal(s.lastPlayedDate, '2026-09-02', 'the later play date must win');
-  assert.deepEqual(s.distribution, { '0-39': 5, '80-82': 1, '70-79': 7 },
+  assert.deepEqual(s.distribution, { '0-39': 5, '40-49': 0, '50-59': 0, '60-69': 0, '80-82': 1, '70-79': 7 },
     'every bin takes its own maximum and no bin is dropped');
 });
 
@@ -299,7 +299,7 @@ test('dynasty duel locks on the later week and keeps the first attempt', () => {
 
   const d = mergeSaves(a, b).save.dynastyDuel;
   assert.equal(d.last.weekKey, '2026-08-31', 'the later week must win');
-  assert.equal(d.streak.streak, 5, 'a dated streak beats an undated zero');
+  assert.equal(d.streak.streak, 0, 'a later loss breaks the dated winning streak');
 
   const same = mergeSaves(
     snap({ dynastyDuel: { last: { weekKey: '2026-08-31', at: 500 }, streak: null } }),

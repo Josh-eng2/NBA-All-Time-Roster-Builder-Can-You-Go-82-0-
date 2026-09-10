@@ -2,7 +2,7 @@
  * js/utils/crazygames.js — CrazyGames HTML5 SDK v2 integration
  *
  * Depends on the SDK script tag in index.html:
- *   <script src="https://sdk.crazygames.com/crazygames-sdk-v2.js"></script>
+ *   <script async src="https://sdk.crazygames.com/crazygames-sdk-v2.js"></script>
  *
  * The SDK reports one of three environments via getEnvironment():
  *   'crazygames' — embedded in the CrazyGames iframe
@@ -14,14 +14,40 @@
  * or embedded on CrazyGames — no build flag or separate copy needed.
  */
 
-const envPromise = (async () => {
-  try {
-    if (!window.CrazyGames?.SDK?.getEnvironment) return 'disabled';
-    return await window.CrazyGames.SDK.getEnvironment();
-  } catch (_) {
-    return 'disabled';
-  }
-})();
+/** A stalled optional SDK must never hold the loading screen indefinitely. */
+export function resolveCrazyGamesEnvironment(win, timeoutMs = 1500) {
+  if (!win) return Promise.resolve('disabled');
+  let embedded = false;
+  try { embedded = !!win.top && win.self !== win.top; } catch (_) { embedded = true; }
+  // Direct visits need no portal storage. Embeds allow a short window for the
+  // async script to arrive, including when the parent suppresses its referrer.
+  if (!embedded && !win.CrazyGames?.SDK?.getEnvironment) return Promise.resolve('disabled');
+  return new Promise(resolve => {
+    let poll;
+    let settled = false;
+    const finish = env => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(deadline);
+      clearTimeout(poll);
+      resolve(env === 'crazygames' || env === 'local' ? env : 'disabled');
+    };
+    const deadline = setTimeout(() => finish('disabled'), timeoutMs);
+    const inspect = () => {
+      try {
+        const sdk = win.CrazyGames?.SDK;
+        if (typeof sdk?.getEnvironment === 'function') {
+          Promise.resolve(sdk.getEnvironment()).then(finish, () => finish('disabled'));
+        } else {
+          poll = setTimeout(inspect, 25);
+        }
+      } catch (_) { finish('disabled'); }
+    };
+    inspect();
+  });
+}
+
+const envPromise = resolveCrazyGamesEnvironment(typeof window === 'undefined' ? null : window);
 
 async function isActive() {
   const env = await envPromise;
@@ -98,11 +124,15 @@ export async function cgRequestMidgameAd() {
 // instead of the iframe's own localStorage — which browsers increasingly
 // partition or block for third-party iframes. Resolved once at boot via
 // initCrazyGamesData() so every other call below can stay synchronous.
-let _dataEnv = 'disabled';
+let _dataStore = null;
+let _dataInitialized = false;
 
 /** Call once at app boot, before anything reads/writes saved progress. */
 export async function initCrazyGamesData() {
-  _dataEnv = await envPromise;
+  const env = await envPromise;
+  if (_dataInitialized) return;
+  _dataInitialized = true;
+  _dataStore = (env === 'crazygames' || env === 'local') ? window.CrazyGames?.SDK?.data || null : null;
 }
 
 function usingCgData() {
@@ -112,7 +142,7 @@ function usingCgData() {
   // throws (window.CrazyGames.SDK.data is undefined there). Check the module
   // exists, not just the environment string, so local/plain-web runs fall
   // through to localStorage instead of crashing every save/load call.
-  return (_dataEnv === 'crazygames' || _dataEnv === 'local') && !!window.CrazyGames?.SDK?.data;
+  return !!_dataStore;
 }
 
 // The three accessors below all follow the same shape: try the Data Module
@@ -128,24 +158,32 @@ function usingCgData() {
  *  CrazyGames Data Module when embedded there, else plain localStorage. */
 export function cgGetItem(key) {
   if (usingCgData()) {
-    try { return window.CrazyGames.SDK.data.getItem(key); } catch (_) { /* fall through */ }
+    try { return _dataStore.getItem(key); } catch (_) { /* fall through */ }
   }
   try { return localStorage.getItem(key); } catch (_) { return null; }
 }
 
-/** Drop-in replacement for localStorage.setItem. */
-export function cgSetItem(key, value) {
+let persistenceFailed = false;
+export const hasPersistenceFailure = () => persistenceFailed;
+/** Returns whether the write reached durable storage. */
+export function cgSetItem(key, value, { remote = false } = {}) {
+  const remember = () => {
+    if (!remote && key.startsWith('nba820_') && !['nba820_modified', 'nba820_owner', 'nba820_handoff'].includes(key)) {
+      cgSetItem('nba820_modified', String(Date.now()), { remote: true });
+    }
+    return true;
+  };
   if (usingCgData()) {
-    try { window.CrazyGames.SDK.data.setItem(key, value); return; } catch (_) { /* fall through */ }
+    try { _dataStore.setItem(key, value); return remember(); } catch (_) { /* fall through */ }
   }
-  try { localStorage.setItem(key, value); }
-  catch (e) { console.warn('[storage] could not persist', key, e); }
+  try { localStorage.setItem(key, value); return remember(); }
+  catch (e) { persistenceFailed = true; console.warn('[storage] could not persist', key); return false; }
 }
 
 /** Drop-in replacement for localStorage.removeItem. */
 export function cgRemoveItem(key) {
   if (usingCgData()) {
-    try { window.CrazyGames.SDK.data.removeItem(key); return; } catch (_) { /* fall through */ }
+    try { _dataStore.removeItem(key); return; } catch (_) { /* fall through */ }
   }
   try { localStorage.removeItem(key); } catch (_) {}
 }

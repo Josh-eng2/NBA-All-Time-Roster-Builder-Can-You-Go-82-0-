@@ -20,12 +20,12 @@ import { rosterFull, availableDecades, getLegendCatalog, getSkips, isPickDraftab
 import { coachSystemProgress, COACH_BOOST_MAX }           from '../logic/simulation.js';
 import { getBracketDisplayState }                         from '../logic/playoffs.js';
 import { markReturning, getCollectedLegends, getDailyStatus, FANS_TEAM_MAX, FANS_PLAYER_MAX } from '../utils/storage.js';
-import { cgGameplayStart, cgGameplayStop, cgGetItem }     from '../utils/crazygames.js';
+import { cgGameplayStart, cgGameplayStop, cgGetItem, hasPersistenceFailure }     from '../utils/crazygames.js';
 import { gdRewardedAvailable }                            from '../utils/gamedistribution.js';
 import { getDailyChallenge, checkRosterConstraint } from '../logic/challenge.js';
 import { isDualDraft, isBlindDraft, seriesLabels, MORE_MODES, fansFirstScore } from '../logic/modes.js';
 import { seasonTier, seasonGrade } from '../logic/seasonTier.js';
-import { levelProgress, titleForLevel, getProgression } from '../logic/progression.js';
+import { levelProgress, titleForLevel, getProgression, rewardsUpTo } from '../logic/progression.js';
 import { fetchDailyCommunityStats, isFirebaseConfigured } from '../utils/firebase.js';
 import { bindEvents, buildRematchCode, hasKnownHashRoute } from '../ui/events.js'; // circular — safe (called inside functions only)
 import { installPromptKind }                              from '../utils/install.js';
@@ -194,6 +194,7 @@ export function fmtPlayerLine(p) {
 const CONFETTI_SRC = './js/vendor/confetti.browser.js';
 let _confettiLoading = null;
 export function withConfetti(fire) {
+  if (globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
   if (typeof confetti !== 'undefined') { fire(); return; }
   if (!_confettiLoading) {
     _confettiLoading = new Promise(resolve => {
@@ -204,7 +205,7 @@ export function withConfetti(fire) {
       document.head.appendChild(s);
     });
   }
-  _confettiLoading.then(() => { if (typeof confetti !== 'undefined') fire(); });
+  _confettiLoading.then(() => { if (!globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches && typeof confetti !== 'undefined') fire(); });
 }
 
 // Toasts live in a shared flex column so simultaneous ones stack instead of
@@ -1145,13 +1146,13 @@ function render1v1RosterPanel(roster, playerNum, isActive) {
     const label   = pos;
 
     if (canPlace && !p) {
-      return `<div data-action="place-${pos}"
+      return `<button type="button" aria-label="Place ${esc(S.selectedPlayer.name)} at ${pos}" data-action="place-${pos}"
         class="flex items-center gap-1.5 py-1.5 border-b border-border last:border-0 rounded cursor-pointer transition-all"
         style="background:${bg}">
         <span class="text-[10px] font-black w-5 flex-shrink-0" style="color:${color}">${label}</span>
         <span class="text-[11px] font-bold flex-1" style="color:${color}">Tap to place</span>
         <span class="text-[10px] font-black" style="color:${color}">+</span>
-      </div>`;
+      </button>`;
     }
     return `<div class="flex items-center gap-1.5 py-1 border-b border-border last:border-0 ${p ? 'locked' : ''}">
       <span class="text-[10px] font-black w-5 flex-shrink-0" style="color:${p ? color : '#cbd5e1'}">${label}</span>
@@ -1451,7 +1452,7 @@ function renderStatGauges({ withOverall = false, trio = false, showSub = false }
   }
 
   let ovrGauge = '';
-  if (withOverall) {
+  if (withOverall && !isBlindDraft()) {
     const { ovr, count, pct } = calcTeamOverall(roster);
     ovrGauge = renderStatGauge({
       id: 'ovr', icon: '🏀', pct,
@@ -1654,7 +1655,7 @@ function renderRosterSlot(pos, canPlace) {
   const label = pos;
 
   if (p) {
-    const fitType  = p.pos === pos ? 'primary' : (p.secondaryPos || []).includes(pos) ? 'flex' : 'place';
+    const fitType  = isBlindDraft() ? 'place' : p.pos === pos ? 'primary' : (p.secondaryPos || []).includes(pos) ? 'flex' : 'place';
     const fitClass  = 'fit-' + fitType;
     // Primary green, flex amber, off-position slate.
     //
@@ -1726,10 +1727,10 @@ function renderRosterSlot(pos, canPlace) {
   const slotText   = !canDrop ? 'Empty' : primaryMatch ? 'Primary' : flexMatch ? 'Flex' : oopMatch ? 'Off-Position' : 'Place';
   // Short form for the accessible name (read out five times in a row);
   // the long form explains the consequence on hover.
-  const fitWord    = primaryMatch ? 'natural position'
+  const fitWord    = !showFit ? 'choose this slot' : primaryMatch ? 'natural position'
                    : flexMatch    ? 'secondary position'
                    : 'off position';
-  const slotTitle  = !canDrop ? '' : primaryMatch
+  const slotTitle  = !canDrop || !showFit ? '' : primaryMatch
     ? `${sp.name} is a natural ${label}`
     : flexMatch
     ? `${sp.name} covers ${label} as a secondary position`
@@ -1893,7 +1894,7 @@ function renderSaveRunCard() {
           <div class="flex items-center gap-3">
             <span class="text-2xl">✅</span>
             <div class="min-w-0 flex-1">
-              <p class="font-black text-sm text-green-700">Submitted!</p>
+              <p class="font-black text-sm text-green-700">${hasPersistenceFailure() ? 'Saved for this session only' : 'Saved on this device'}</p>
               <p class="text-xs text-green-600 mt-0.5">"${esc(S.teamName)}" &nbsp;·&nbsp; ${r.wins}–${r.losses}</p>
               <p class="text-[10px] text-green-600 mt-0.5">Personal leaderboard${S.globalScoreSubmitted ? ' · Global board 🌍' : ''}</p>
             </div>
@@ -1901,6 +1902,7 @@ function renderSaveRunCard() {
               <button data-action="open-leaderboard" class="text-xs font-bold px-3 py-1.5 rounded-lg border border-green-300 bg-white text-green-700 hover:bg-green-50 transition-all cursor-pointer">
                 Personal
               </button>
+              ${!S.globalScoreSubmitted ? `<button type="button" data-action="submit-global" class="auth-btn">${S.globalSubmitError ? 'Retry global submission' : 'Submit to global board'}</button><p role="status">${esc(S.globalSubmitError || '')}</p>` : ''}
               ${S.globalScoreSubmitted ? `<button data-action="open-global-leaderboard" class="text-xs font-bold px-3 py-1.5 rounded-lg border border-green-300 bg-white text-green-700 hover:bg-green-50 transition-all cursor-pointer">Global 🌍</button>` : ''}
             </div>
           </div>` : `
@@ -2740,6 +2742,9 @@ export function showTeamReportModal() {
   const div = document.createElement('div');
   div.id = 'team-report-root';
   div.innerHTML = renderTeamReportModal();
+  div._previousFocus = document.activeElement;
+  div.setAttribute('role', 'dialog'); div.setAttribute('aria-modal', 'true');
+  div.setAttribute('aria-label', div.querySelector('h2')?.textContent || 'Game details');
   document.body.appendChild(div);
   const onKey = e => { if (e.key === 'Escape') closeTeamReportModal(); };
   document.addEventListener('keydown', onKey);
@@ -2761,6 +2766,7 @@ export function closeTeamReportModal() {
   if (el) {
     if (el._removeKey) el._removeKey();
     el.remove();
+    el._previousFocus?.focus();
   }
 }
 
@@ -3047,8 +3053,8 @@ function renderPlayoffs() {
             class="btn-courtside-outline btn-courtside-outline--playoffs card-shadow dk-po-secondary">
             Simulate Entire Playoffs →
           </button>`}
-          <button data-action="draft-new-roster" type="button" class="btn-neutral-outline card-shadow dk-po-tertiary">
-            Draft New Roster
+          <button data-action="${S.mode === 'daily' ? 'back-to-menu' : 'draft-new-roster'}" type="button" class="btn-neutral-outline card-shadow dk-po-tertiary">
+            ${S.mode === 'daily' ? 'Back to Menu' : 'Draft New Roster'}
           </button>
         </div>
       </div>
@@ -3102,7 +3108,7 @@ function renderChampionship() {
         ${renderGlobalSubmitCard(true)}
         <div class="flex flex-col gap-3 w-full">
           <button data-action="share" class="py-3 rounded-xl font-bold text-sm bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer card-shadow">Share Championship 🏆</button>
-          <button data-action="draft-new-roster" class="py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer card-shadow">Draft New Roster</button>
+          <button data-action="${S.mode === 'daily' ? 'back-to-menu' : 'draft-new-roster'}" class="py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer card-shadow">${S.mode === 'daily' ? 'Back to Menu' : 'Draft New Roster'}</button>
         </div>
       </div>
     </main>
@@ -3141,7 +3147,7 @@ function renderEliminated() {
         </div>` : ''}
         ${renderGlobalSubmitCard(false)}
         <div class="flex flex-col gap-3 w-full">
-          <button data-action="draft-new-roster" class="py-3 rounded-xl font-bold text-sm bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer card-shadow">Draft New Roster</button>
+          <button data-action="${S.mode === 'daily' ? 'back-to-menu' : 'draft-new-roster'}" class="py-3 rounded-xl font-bold text-sm bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer card-shadow">${S.mode === 'daily' ? 'Back to Menu' : 'Draft New Roster'}</button>
           <button data-action="share" class="py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer card-shadow">Share Result</button>
         </div>
       </div>
@@ -3176,6 +3182,20 @@ function safeTrophy(t) {
     bench:       o.bench ? esc(o.bench) : '',
     date:        esc(o.date ?? ''),
   };
+}
+
+function renderEarnedDecor() {
+  const progress = getProgression();
+  const decor = rewardsUpTo(progress.level).filter(r => r.kind === 'trophy' || r.kind === 'badge');
+  if (!decor.length) return '';
+  const icons = { 'trophy-rafter-spotlights': '💡', 'trophy-hardwood-inlay': '🪵',
+    'trophy-jersey-rack': '🎽', 'trophy-glass-case': '🏛️', 'trophy-confetti': '🎊',
+    'trophy-plinth-bronze': '🗿', 'trophy-booth-backdrop': '🎙️', 'trophy-rafters-legends': '🏟️',
+    'trophy-marble-floor': '🏛️', 'trophy-eternal-flame': '🔥', 'trophy-legends-wing': '🏛️',
+    'trophy-monument': '🗽', 'trophy-banner-perfection': '🏳️' };
+  return `<section class="earned-decor" aria-label="Earned Trophy Room decorations">
+    ${decor.map(r => `<figure><span aria-hidden="true">${icons[r.id] || '🌟'}</span><figcaption>${esc(r.label)}</figcaption></figure>`).join('')}
+  </section>`;
 }
 
 function renderTrophyRoom() {
@@ -3262,6 +3282,7 @@ function renderTrophyRoom() {
           </button>
         </div>
         ${pedestalGrid}
+        ${renderEarnedDecor()}
         ${(() => {
           const { total } = getLegendCatalog();
           const collected = getCollectedLegends().size;
@@ -3790,6 +3811,11 @@ export function render() {
   else if (S.phase === 'series-preview') $app.innerHTML = renderSeriesPreview();
   else if (S.phase === 'series-sim')    $app.innerHTML = renderSeriesSim();
   else if (S.phase === 'series-result') $app.innerHTML = renderSeriesResult();
+  const cosmetics = getProgression();
+  $app.setAttribute('data-frame', cosmetics.rewards.includes('frame-gold') ? 'gold' : cosmetics.rewards.includes('frame-silver') ? 'silver' : cosmetics.rewards.includes('frame-bronze') ? 'bronze' : 'none');
+  $app.setAttribute('data-accent', cosmetics.rewards.includes('accent-2') ? 'violet' : cosmetics.rewards.includes('accent-1') ? 'teal' : 'none');
+  $app.setAttribute('data-phase', S.phase);
+  if (hasPersistenceFailure()) $app.insertAdjacentHTML('afterbegin', '<p role="status" class="save-warning">Progress could not be saved on this device. Keep this tab open and allow site storage before playing another run.</p>');
   bindEvents();
   syncHashRoute();
   updateDraftPanelScroll();

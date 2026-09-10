@@ -274,33 +274,7 @@ ${JSON.stringify({
   ])],
 }, null, 2).split('\n').map(l => '  ' + l).join('\n')}
   </script>
-  <script>
-    /* This page is the landing spot for shared daily links, and the game reads
-       its ?ref= from the URL it is opened with (js/utils/referral.js) — so
-       without this the hop through this page would relabel every shared arrival
-       as organic. Copies an inbound ref onto the Play link; the static href
-       above already carries ref=dailypage for search traffic and stands on its own
-       with JS off. Whitelisted, because the value lands in an href. */
-    (function () {
-      try {
-        var ref = new URLSearchParams(location.search).get('ref');
-        if (!/^(daily|share|rematch|story)$/.test(ref || '')) return;
-        var a = document.getElementById('cp-play');
-        if (!a) return;
-        /* Relay who sent the reader here. Without it the game sees this page as
-           its referrer and buckets every daily share as 'internal' — the one
-           path where the channel is worth knowing. Hostname only, shape-checked
-           here and again in referral.js, which owns the hostname -> channel map
-           so there is only ever one copy of it. */
-        var via = '';
-        try {
-          var h = document.referrer ? new URL(document.referrer).hostname : '';
-          if (/^[a-z0-9.-]{1,60}$/i.test(h)) via = '&via=' + encodeURIComponent(h);
-        } catch (e2) { /* no readable referrer — ref alone still lands */ }
-        a.href = '../?ref=' + ref + via + '#/daily';
-      } catch (e) { /* the static href is already correct */ }
-    })();
-  </script>
+  <script defer src="../js/utils/contentRelay.js"></script>
 </head>
 <body>
 

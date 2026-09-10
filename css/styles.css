@@ -2854,3 +2854,18 @@ button.autopsy-strip:hover {
   padding-left: 10px;
   padding-right: 10px;
 }
+
+/* Earned cosmetics and durable-save/update feedback. */
+#app[data-phase="trophy-room"][data-frame="bronze"] { outline: 3px solid #b77942; outline-offset: 4px; border-radius: 18px; }
+#app[data-phase="trophy-room"][data-frame="silver"] { outline: 3px solid #94a3b8; outline-offset: 4px; border-radius: 18px; }
+#app[data-phase="trophy-room"][data-frame="gold"] { outline: 3px solid #d4a017; outline-offset: 4px; border-radius: 18px; }
+#app[data-phase="drafting"][data-accent="teal"] { border-top: 4px solid #0d9488; }
+#app[data-phase="drafting"][data-accent="violet"] { border-top: 4px solid #8b5cf6; }
+.earned-badge { display:inline-block; padding:3px 7px; border:1px solid currentColor; border-radius:12px; font-size:11px; }
+.save-warning { padding:12px; border:2px solid #d97706; border-radius:12px; background:var(--card); color:var(--fg); }
+.update-ready { position:fixed; bottom:max(16px,env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%); z-index:10000; max-width:90vw; padding:14px 20px; border-radius:14px; background:var(--primary); color:var(--primary-fg); border:2px solid var(--border); cursor:pointer; }
+
+.earned-decor { display:flex; flex-wrap:wrap; gap:12px; }
+.earned-decor figure { margin:0; padding:12px; min-width:100px; flex:1; text-align:center; color:var(--fg); background:var(--card); border:1px solid var(--border); border-radius:12px; }
+.earned-decor figure span { display:block; font-size:32px; }
+.earned-decor figcaption { font-size:12px; }

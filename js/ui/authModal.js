@@ -55,7 +55,7 @@ import {
   startPhoneSignIn, startPhoneLink, confirmPhoneCode, cancelPhoneSignIn,
   normalizePhone,
 } from '../utils/auth.js';
-import { syncOnSignIn, deleteCloudSave } from '../utils/cloudSave.js';
+import { syncOnSignIn, deleteCloudSave, releaseDeletedAccount } from '../utils/cloudSave.js';
 import { showToast } from './render.js';
 
 const ROOT_ID = 'auth-modal-root';
@@ -335,6 +335,7 @@ function viewHtml(view, user) {
         <p class="auth-note__body">Your progress syncs to every device you sign in on.</p>
       </div>`}
       ${linkedHtml(user)}
+      <button data-auth="sync" type="button" class="auth-btn auth-btn--ghost">Sync progress now</button>
       <button data-auth="signout" type="button" class="auth-btn auth-btn--primary">Sign out</button>
       <p class="auth-modal__fine">Signing out leaves every trophy, legend and level on this device exactly where it is.</p>
       <button data-auth="delete-start" type="button" class="auth-link auth-link--danger">Delete my account</button>`;
@@ -500,14 +501,14 @@ const val = id => (q(`#${id}`)?.value || '').trim();
 /**
  * After a successful sign-in or sign-up, pull the account's save down and
  * merge it with whatever is on this device. Never blocks the modal from
- * closing and never surfaces as a failure — the player is signed in either
- * way, and local progress is untouched by a failed sync.
+ * closing. Sync failure is reported separately from sign-in success, with a
+ * retry action in the account view.
  */
 async function mergeAfterAuth(user, displayName) {
   if (!user?.uid) return;
   try {
     const res = await syncOnSignIn(user.uid, displayName);
-    if (!res?.ok || !res.merged) return;
+    if (!res?.ok || !res.merged) { showToast('Signed in, but progress could not sync. Use Sync progress now in Account to retry.', 5000); return; }
     // A hand-off is not a merge and must not be reported as one: this device
     // was signed in to a different account, so nothing that was on it has
     // been added to this one (see cloudSave.js "Device ownership").
@@ -515,6 +516,7 @@ async function mergeAfterAuth(user, displayName) {
       showToast('Loaded your account — this device was last used by a different account', 4200);
       return;
     }
+    if (!res.uploaded) { showToast('Progress is on this device. Cloud backup is pending; use Sync progress now in Account to retry.', 5000); return; }
     const lv = res.merged.save?.legends?.length || 0;
     const tr = res.merged.save?.trophies?.length || 0;
     showToast(`Progress merged · ${lv} legends · ${tr} trophies`, 3200);
@@ -719,6 +721,7 @@ async function doDelete() {
   const res = await deleteAccount();
   setBusy(false);
   if (!res.ok) { banner(humanError(res.code)); return; }
+  releaseDeletedAccount(user?.uid);
   closeAuthModal();
   showToast('Account deleted — your progress stays on this device', 3600);
 }
@@ -771,6 +774,13 @@ function wireActions(el) {
     if (a === 'signup')         { doSignUp();            return; }
     if (a === 'reset')          { doReset();             return; }
     if (a === 'resend')         { doResend();            return; }
+    if (a === 'sync') {
+      setBusy(true);
+      getCurrentUser().then(user => mergeAfterAuth(user, user?.displayName))
+        .catch(() => showToast('Sync unavailable. Try again when connected.', 4000))
+        .finally(() => setBusy(false));
+      return;
+    }
     if (a === 'signout')        { doSignOut();           return; }
     if (a === 'delete-confirm') { doDelete();            return; }
   });

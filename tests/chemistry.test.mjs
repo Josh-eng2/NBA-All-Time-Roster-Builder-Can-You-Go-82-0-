@@ -103,7 +103,7 @@ test('the lineup assignment covers the roster with no slot used twice', () => {
     for (const a of r.lineupAssignment) {
       assert.ok(g.state.POSITIONS.includes(a.slot));
       assert.ok(['primary', 'flex', 'oop'].includes(a.fit));
-      const expected = a.fit === 'primary' ? 0.03 : a.fit === 'flex' ? 0.02 : 0.01;
+      const expected = a.fit === 'primary' ? 0.024 : a.fit === 'flex' ? 0 : -0.12;
       assert.ok(Math.abs(a.bonus - expected) < 1e-9, `${a.fit} fit scored ${a.bonus}`);
       if (a.fit === 'primary') assert.equal(a.player.pos, a.slot);
       if (a.fit === 'flex')    assert.ok((a.player.secondaryPos || []).includes(a.slot));

@@ -17,11 +17,11 @@
  * matches each field's meaning. Almost everything this game stores is
  * monotonic by design, which is what makes a correct merge tractable:
  *
- *   xp                 max        progression.js: XP only ever accumulates
+ *   xp                 shared legacy base + per-device earning counters
  *   rewards            union      an unlock is never revoked
  *   legends            union      a drafted player id is collected forever
  *   lb/trophies/modes  concat, de-dup, re-sort, re-cap
- *   daily stats        per-counter max
+ *   daily stats        date-keyed first attempts + legacy aggregate baseline
  *   daily streak       the record with the later lastPassDate, broken to 0
  *                      when the merged lock shows a failure after that date
  *   daily lock         later date; same date, the first attempt stands
@@ -63,10 +63,12 @@
  */
 
 import { cgGetItem, cgSetItem, cgRemoveItem }        from './crazygames.js';
-import { fetchUserSave, writeUserSave, deleteUserSave } from './firebase.js';
+import { fetchUserSave, transactUserSave, deleteUserSave } from './firebase.js';
+import { currentUserSync, accountsEnabled } from './auth.js';
+import { normalizeProgress, mergeProgress, normalizeStreak, mergeDailyHistory } from '../logic/saveModel.js';
 
 /** Bumped only when the snapshot shape changes in a way a reader must know. */
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 // ── Storage keys ──────────────────────────────────────────────────────────────
 // Deliberately NOT synced, and absent from every structure below: nba820_theme,
@@ -91,6 +93,7 @@ const K = {
   bestStreak: 'nba820_bestStreak',
   lastRun:    'nba820_lastRun',
   coach:      'nba820_coach',
+  modified:   'nba820_modified',
 };
 
 /** Mode-board keys, mirroring MODE_LB_KEYS in utils/storage.js. */
@@ -102,12 +105,13 @@ const MODE_KEYS = {
 };
 
 /**
- * The account whose progress the keys above currently hold, and a one-slot
- * parking space for the previous owner's save. Device-local, never synced.
+ * The account whose progress the keys above currently hold, and per-account
+ * parking spaces for the previous owner's save. Device-local, never synced.
  * See the "Device ownership" section further down for what they are for.
  */
 const OWNER_KEY   = 'nba820_owner';
 const HANDOFF_KEY = 'nba820_handoff';
+const JOURNAL_KEY = 'nba820_handoff_pending';
 
 // Caps mirror the writers in utils/storage.js exactly. A merge that produced a
 // longer list than the game itself writes would hand the render layer more
@@ -268,7 +272,7 @@ export function emptySave() {
     schemaVersion:   SCHEMA_VERSION,
     deviceUpdatedAt: 0,
     save: {
-      progress:    { xp: 0, rewards: [] },
+      progress:    normalizeProgress(null),
       legends:     [],
       leaderboard: [],
       trophies:    [],
@@ -314,7 +318,7 @@ export function readLocalSave() {
   if (progress) {
     // `level` is intentionally not stored: progression.js recomputes it from
     // xp on every read and treats a disagreeing stored level as stale.
-    out.save.progress = { xp: Math.max(0, num(progress.xp)), rewards: arr(progress.rewards) };
+    out.save.progress = normalizeProgress(progress);
   }
 
   out.save.legends     = arr(readJson(K.legends, state)).filter(id => typeof id === 'string');
@@ -361,7 +365,7 @@ export function readLocalSave() {
     coach,
   };
 
-  out.deviceUpdatedAt = Date.now();
+  out.deviceUpdatedAt = num(cgGetItem(K.modified));
   return { snapshot: out, complete: state.complete };
 }
 
@@ -369,7 +373,7 @@ export function readLocalSave() {
 
 function writeJson(key, value, state) {
   if (value === null || value === undefined) return;   // never clear a key
-  try { cgSetItem(key, JSON.stringify(value)); } catch (_) { state.ok = false; }
+  try { if (!cgSetItem(key, JSON.stringify(value), { remote: true })) state.ok = false; } catch (_) { state.ok = false; }
 }
 
 /**
@@ -380,23 +384,17 @@ function writeJson(key, value, state) {
  * player's local progress, and that guarantee is easier to keep here than to
  * audit at every call site.
  *
- * The return value reports whether there was a valid snapshot to write, NOT
- * whether it reached the disk. cgSetItem() catches its own failures by design
- * — "a save that cannot be persisted must never break the run in progress" —
- * so a blocked write is invisible from here, exactly as it already is to the
- * Trophy Room and the local leaderboard. This function makes the same bargain
- * rather than pretending to a certainty the seam cannot give it.
- *
- * @returns {boolean} false only when the snapshot was missing or malformed
+ * @returns {boolean} false when the snapshot is invalid or any required write
+ * fails. Callers must not claim a successful durable save when this is false.
  */
 export function writeLocalSave(snapshot) {
   const s = obj(snapshot)?.save;
-  if (!s) return false;
+  if (!s || !supportedSnapshot(snapshot)) return false;
   const state = { ok: true };
 
   if (obj(s.progress)) {
     // Written without `level` on purpose — see readLocalSave().
-    writeJson(K.progress, { xp: Math.max(0, num(s.progress.xp)), rewards: arr(s.progress.rewards) }, state);
+    writeJson(K.progress, normalizeProgress(s.progress), state);
   }
   if (arr(s.legends).length)     writeJson(K.legends,     s.legends,     state);
   if (arr(s.leaderboard).length) writeJson(K.leaderboard, s.leaderboard, state);
@@ -409,7 +407,7 @@ export function writeLocalSave(snapshot) {
 
   const daily = obj(s.daily) || {};
   writeJson(K.dailyLast,   daily.last,   state);
-  writeJson(K.dailyStreak, daily.streak, state);
+  writeJson(K.dailyStreak, daily.streak ? normalizeStreak(daily.streak) : null, state);
   writeJson(K.dailyStats,  daily.stats,  state);
 
   const duel = obj(s.dynastyDuel) || {};
@@ -420,12 +418,13 @@ export function writeLocalSave(snapshot) {
   writeJson(K.best,    bests.best,    state);
   writeJson(K.lastRun, bests.lastRun, state);
   if (num(bests.bestStreak) > 0) {
-    try { cgSetItem(K.bestStreak, String(Math.round(num(bests.bestStreak)))); } catch (_) { state.ok = false; }
+    try { if (!cgSetItem(K.bestStreak, String(Math.round(num(bests.bestStreak))), { remote: true })) state.ok = false; } catch (_) { state.ok = false; }
   }
   if (typeof bests.coach === 'string' && bests.coach !== '') {
-    try { cgSetItem(K.coach, bests.coach); } catch (_) { state.ok = false; }
+    try { if (!cgSetItem(K.coach, bests.coach, { remote: true })) state.ok = false; } catch (_) { state.ok = false; }
   }
 
+  if (!cgSetItem(K.modified, String(num(snapshot.deviceUpdatedAt)), { remote: true })) state.ok = false;
   return state.ok;
 }
 
@@ -531,27 +530,7 @@ function breakStreakOnLaterFail(streak, last) {
 
 /** Daily lifetime stats: every counter only ever rises. */
 function mergeDailyStats(a, b) {
-  const x = obj(a);
-  const y = obj(b);
-  if (!x) return y;
-  if (!y) return x;
-  const dist = {};
-  for (const key of new Set([
-    ...Object.keys(obj(x.distribution) || {}),
-    ...Object.keys(obj(y.distribution) || {}),
-  ])) {
-    dist[key] = maxNum(obj(x.distribution)?.[key], obj(y.distribution)?.[key]);
-  }
-  return {
-    played:         maxNum(x.played, y.played),
-    wins:           maxNum(x.wins, y.wins),
-    // Recomputed live by getDailyStats() from the streak record on every read,
-    // so this is a starting value rather than a source of truth.
-    currentStreak:  maxNum(x.currentStreak, y.currentStreak),
-    maxStreak:      maxNum(x.maxStreak, y.maxStreak),
-    lastPlayedDate: laterDate(x.lastPlayedDate, y.lastPlayedDate),
-    distribution:   dist,
-  };
+  return (!a && !b) ? null : mergeDailyHistory(a, b);
 }
 
 /** Personal best: the better record. */
@@ -578,6 +557,7 @@ function mergeBest(a, b) {
  * @returns {object} a new snapshot; neither argument is mutated
  */
 export function mergeSaves(a, b) {
+  if (!supportedSnapshot(a) || !supportedSnapshot(b)) throw new Error("unsupported-schema");
   const A = obj(a);
   const B = obj(b);
   if (!A && !B) return emptySave();
@@ -595,14 +575,7 @@ export function mergeSaves(a, b) {
 
   out.deviceUpdatedAt = maxNum(A.deviceUpdatedAt, B.deviceUpdatedAt);
 
-  // XP only ever accumulates (progression.js), so max cannot lose progress;
-  // level is derived from xp on read, so it follows automatically.
-  const pa = obj(sa.progress) || {};
-  const pb = obj(sb.progress) || {};
-  out.save.progress = {
-    xp:      maxNum(pa.xp, pb.xp),
-    rewards: mergeIds(pa.rewards, pb.rewards),
-  };
+  out.save.progress = mergeProgress(sa.progress, sb.progress);
 
   out.save.legends     = mergeIds(sa.legends, sb.legends);
   out.save.leaderboard = mergeList(sa.leaderboard, sb.leaderboard, cmpLeaderboard, LEADERBOARD_CAP);
@@ -619,7 +592,7 @@ export function mergeSaves(a, b) {
   const dailyLast = mergeDailyLast(da.last, db.last);
   out.save.daily = {
     last:   dailyLast,
-    streak: breakStreakOnLaterFail(mergeDailyStreak(da.streak, db.streak), dailyLast),
+    streak: (() => { const s = breakStreakOnLaterFail(mergeDailyStreak(da.streak, db.streak), dailyLast); return s ? normalizeStreak(s) : null; })(),
     stats:  mergeDailyStats(da.stats, db.stats),
   };
 
@@ -630,6 +603,10 @@ export function mergeSaves(a, b) {
     streak: mergeDuelStreak(ua.streak, ub.streak),
   };
 
+  const duel = out.save.dynastyDuel;
+  if (duel.last?.won === false && duel.last.weekKey > (duel.streak?.lastWinWeek || '')) {
+    duel.streak = { ...duel.streak, streak: 0 };
+  }
   const ea = obj(sa.bests) || {};
   const eb = obj(sb.bests) || {};
   const newer = aNewer ? ea : eb;
@@ -734,9 +711,9 @@ export function cancelUpload() {
 // key that failed to parse is preserved too — so a player who hands their
 // device over by accident has not lost their run: it is one key away,
 // recoverable by hand, rather than merged into a stranger's account where
-// nothing can separate it again. Only ONE hand-off is parked at a time, which
-// is enough because a departing owner has already uploaded their save at
-// sign-in; the stash is the second line, not the first.
+// nothing can separate it again. Each account has its own parked entry.
+// A verified rollback journal protects adoption failures and blocks uploads
+// until interrupted hand-offs have been recovered.
 
 /** The account this device's save belongs to, or null while unclaimed. */
 function readOwner() {
@@ -747,7 +724,7 @@ function readOwner() {
 }
 
 function writeOwner(uid) {
-  try { cgSetItem(OWNER_KEY, uid); } catch (_) { /* best effort, same as every write here */ }
+  return cgSetItem(OWNER_KEY, uid, { remote: true }) && readOwner() === uid;
 }
 
 /**
@@ -783,24 +760,33 @@ function isEmptySnapshot(snapshot) {
  * make the hand-off destroy the one thing on the device that most needed
  * recovering by hand, which is the opposite of what this key is for.
  */
-function stashHandoff(previousOwner, snapshot) {
+function parkedSaves() {
   try {
-    if (isEmptySnapshot(snapshot) && cgGetItem(HANDOFF_KEY)) return;
-    const raw = {};
-    for (const key of [...Object.values(K), ...Object.values(MODE_KEYS)]) {
-      try {
-        const v = cgGetItem(key);
-        if (v !== null && v !== undefined && v !== '') raw[key] = v;
-      } catch (_) { /* unreadable is the same as absent here */ }
-    }
-    cgSetItem(HANDOFF_KEY, JSON.stringify({ uid: previousOwner, at: Date.now(), snapshot, raw }));
-  } catch (_) { /* a full quota must not block the hand-off itself */ }
+    const saved = JSON.parse(cgGetItem(HANDOFF_KEY) || '{}');
+    return saved.uid ? { [saved.uid]: saved } : (obj(saved.accounts) || {});
+  } catch (_) { throw new Error('handoff-backup-unreadable'); }
+}
+function stashHandoff(previousOwner, snapshot) {
+  const accounts = parkedSaves();
+  const raw = {};
+  for (const key of [...Object.values(K), ...Object.values(MODE_KEYS)]) {
+    const value = cgGetItem(key);
+    if (value != null) raw[key] = value;
+  }
+  const previous = accounts[previousOwner];
+  accounts[previousOwner] = { uid: previousOwner, at: Date.now(), raw,
+    snapshot: mergeSaves(previous?.snapshot, snapshot) };
+  const encoded = JSON.stringify({ accounts });
+  if (!cgSetItem(HANDOFF_KEY, encoded, { remote: true }) || cgGetItem(HANDOFF_KEY) !== encoded) {
+    throw new Error('handoff-backup-failed');
+  }
 }
 
 /** Empties every synced key. Only ever called after stashHandoff() succeeds. */
 function clearLocalSave() {
   for (const key of [...Object.values(K), ...Object.values(MODE_KEYS)]) {
-    try { cgRemoveItem(key); } catch (_) {}
+    cgRemoveItem(key);
+    if (cgGetItem(key) != null) throw new Error('local-clear-failed');
   }
 }
 
@@ -820,34 +806,64 @@ function clearLocalSave() {
  *   `complete` is readLocalSave()'s verdict on the device, forwarded so the
  *   caller can decide whether the result is safe to upload.
  */
+function recoverHandoff() {
+  const encoded = cgGetItem(JOURNAL_KEY);
+  if (!encoded) return;
+  const pending = JSON.parse(encoded);
+  if (!pending.owner || !obj(pending.raw)) throw new Error('handoff-journal-unreadable');
+  clearLocalSave();
+  for (const [key, value] of Object.entries(pending.raw)) {
+    if (![...Object.values(K), ...Object.values(MODE_KEYS)].includes(key)) continue;
+    if (!cgSetItem(key, value, { remote: true }) || cgGetItem(key) !== value) throw new Error('handoff-recovery-failed');
+  }
+  if (!writeOwner(pending.owner)) throw new Error('handoff-recovery-failed');
+  cgRemoveItem(JOURNAL_KEY);
+  if (cgGetItem(JOURNAL_KEY)) throw new Error('handoff-recovery-failed');
+}
 export function applyRemoteToDevice(uid, remote) {
+  recoverHandoff();
+  if (!supportedSnapshot(remote)) throw new Error("unsupported-schema");
   const owner = readOwner();
   const { snapshot: local, complete } = readLocalSave();
 
   // Hand-off: this device's save belongs to someone else's account. Park it,
-  // clear it, and adopt this account's own save — never merge, and never
-  // upload, because everything here is the other player's.
+  // clear it, and adopt only the incoming account's cloud and parked saves.
+  // None of the departing owner's progress enters that account's upload.
   if (owner && owner !== uid) {
     stashHandoff(owner, local);
-    clearLocalSave();
-    const adopted = mergeSaves(emptySave(), remote);
-    writeLocalSave(adopted);
-    writeOwner(uid);
+    const accounts = parkedSaves();
+    const adopted = mergeSaves(accounts[uid]?.snapshot || emptySave(), remote);
+    const journal = JSON.stringify({ owner, raw: accounts[owner].raw });
+    if (!cgSetItem(JOURNAL_KEY, journal, { remote: true }) || cgGetItem(JOURNAL_KEY) !== journal) {
+      throw new Error('handoff-journal-failed');
+    }
+    try {
+      clearLocalSave();
+      if (!writeLocalSave(adopted) || !writeOwner(uid)) throw new Error('handoff-restore-failed');
+      cgRemoveItem(JOURNAL_KEY);
+      if (cgGetItem(JOURNAL_KEY)) throw new Error('handoff-journal-failed');
+    } catch (error) {
+      // A persistent storage failure leaves the verified journal intact. All
+      // uploads remain blocked until a later attempt restores the old owner.
+      try { recoverHandoff(); } catch (_) { /* recover on the next sign-in */ }
+      throw error;
+    }
     return { merged: adopted, handedOff: true, complete };
   }
 
   const merged = mergeSaves(local, remote);
-  writeLocalSave(merged);
+  // Claim before copying private account data onto an unclaimed device. If
+  // this write fails, a later account must not inherit a partial remote copy.
+  if (!owner && !writeOwner(uid)) throw new Error('owner-write-failed');
+  if (!writeLocalSave(merged)) throw new Error('local-write-failed');
   // The device is this account's from here on: whatever unclaimed progress was
   // sitting on it has just become part of their save.
-  writeOwner(uid);
   return { merged, handedOff: false, complete };
 }
 
 // ── Sync ──────────────────────────────────────────────────────────────────────
-// Everything below is the transport. It never throws and never blocks: a
-// failed sync leaves local storage exactly as it was, which is the state the
-// game plays from anyway.
+// Transport failures are returned as status. A failed upload may follow a
+// successful local merge; its progress remains available for the next retry.
 
 /** Strips the wire fields the rules do not accept back out of a fetched doc. */
 function remoteToSnapshot(data) {
@@ -883,89 +899,61 @@ function snapshotToRemote(snapshot, displayName) {
   return body;
 }
 
-/**
- * The first-sign-in sequence, and the one run on every boot with a live
- * session. In order, deliberately:
- *
- *   1. Read the complete local save BEFORE any network call.
- *   2. Fetch the remote. Absent means a brand-new account — the local save
- *      becomes the document as-is and nothing is at risk.
- *   3. Merge additively.
- *   4. Write local FIRST, then upload. If the network dies after step 3 the
- *      player still ends up better off than before, never worse.
- *
- * An incomplete local read aborts the upload but still applies the merge
- * locally: a save missing a section must never be pushed, because merging
- * into it on another device would propagate the loss instead of healing it.
- *
- * A DIFFERENT account than the one this device belongs to takes the hand-off
- * path instead of any of the above — see "Device ownership". It adopts its own
- * cloud save and uploads nothing, so a shared device cannot leak one player's
- * progress into another player's account.
- *
- * @param {string} uid
- * @param {string} [displayName]
- * @returns {Promise<{ok: boolean, code?: string, merged?: object,
- *                    uploaded?: boolean, handedOff?: boolean}>}
- */
-export async function syncOnSignIn(uid, displayName) {
-  if (!uid) return { ok: false, code: 'no-uid' };
-
-  const res = await fetchUserSave(uid);
-  if (!res.ok) return { ok: false, code: res.code };
-
-  const remote = res.exists ? remoteToSnapshot(res.data) : null;
-  const { merged, handedOff, complete } = applyRemoteToDevice(uid, remote);
-
-  // A hand-off adopted the account's own save and claimed nothing from this
-  // device, so there is nothing new to send back.
-  if (handedOff) return { ok: true, merged, uploaded: false, handedOff: true };
-
-  if (!complete) return { ok: true, merged, uploaded: false, code: 'local-incomplete' };
-
-  const put = await writeUserSave(uid, snapshotToRemote(merged, displayName), { isNew: !res.exists });
-  return { ok: true, merged, uploaded: put.ok, code: put.ok ? undefined : put.code };
+/** Sign-in reads the account, settles device ownership, and merges a fresh
+ * local snapshot. The upload transaction re-reads both sides on each retry.
+ * Incomplete local reads never upload. Session epochs invalidate old work. */
+let syncGeneration = 0;
+let syncQueue = Promise.resolve();
+export function invalidateSync() { syncGeneration++; cancelUpload(); }
+export function supportedSnapshot(snapshot) {
+  return !snapshot || snapshot.schemaVersion == null ||
+    (Number.isInteger(snapshot.schemaVersion) && snapshot.schemaVersion >= 1 && snapshot.schemaVersion <= SCHEMA_VERSION);
+}
+function sessionCurrent(uid, generation) {
+  return generation === syncGeneration && accountsEnabled() && currentUserSync()?.uid === uid;
+}
+function serializeSync(fn) {
+  const next = syncQueue.then(fn, fn);
+  syncQueue = next.catch(() => {});
+  return next;
+}
+export function syncOnSignIn(uid, displayName) {
+  const generation = syncGeneration;
+  return serializeSync(async () => {
+    try {
+      if (!sessionCurrent(uid, generation)) return { ok: false, code: 'stale-session' };
+      const res = await fetchUserSave(uid);
+      if (!sessionCurrent(uid, generation)) return { ok: false, code: 'stale-session' };
+      if (!res.ok) return res;
+      const remote = res.exists ? remoteToSnapshot(res.data) : null;
+      const { merged, handedOff, complete } = applyRemoteToDevice(uid, remote);
+      if (!complete) return { ok: true, merged, handedOff, uploaded: false, code: 'local-incomplete' };
+      const put = await transactUserSave(uid, data => {
+        if (!sessionCurrent(uid, generation) || readOwner() !== uid || cgGetItem(JOURNAL_KEY)) throw new Error('stale-session');
+        const fresh = readLocalSave();
+        if (!fresh.complete) throw new Error('local-incomplete');
+        return snapshotToRemote(mergeSaves(fresh.snapshot, remoteToSnapshot(data)), displayName);
+      });
+      return { ...put, merged, handedOff, uploaded: put.ok };
+    } catch (err) { return { ok: false, code: err.message || 'sync-failed' }; }
+  });
 }
 
-/**
- * Uploads the current local save. Used by the debounced scheduler after a run
- * is saved, XP is added or a Daily is played.
- *
- * Read-merge-write, exactly like syncOnSignIn() — never a blind overwrite.
- * The write is a document-level setDoc(merge: true), so whatever this uploads
- * REPLACES the remote's arrays and counters, and the local snapshot is not
- * automatically the newer one: readLocalSave() reports blocked storage as
- * empty-and-complete (see its comment), and a device that has been idle since
- * another one played is stale by definition. Either would push the account
- * backwards. Merging the fetched remote in first makes that impossible — the
- * merge is additive, so the upload can only ever be a superset of what is
- * already there.
- *
- * A failed fetch aborts rather than falling back to a blind push: if the
- * remote cannot be read it cannot be safely replaced, and the next save
- * retries. Local storage is untouched either way, which is what the game
- * plays from.
- *
- * @param {string} uid
- * @param {string} [displayName]
- */
-export async function pushLocalSave(uid, displayName) {
-  if (!uid) return { ok: false, code: 'no-uid' };
-  // Belt and braces on the hand-off rule: syncOnSignIn() normally settles
-  // ownership before any gameplay upload can fire, but a run finishing inside
-  // that window would otherwise push the previous owner's save into this
-  // account. Refusing costs one upload; the next one goes through.
-  const owner = readOwner();
-  if (owner && owner !== uid) return { ok: false, code: 'device-owned-elsewhere' };
-
-  const { snapshot, complete } = readLocalSave();
-  if (!complete) return { ok: false, code: 'local-incomplete' };
-
-  const res = await fetchUserSave(uid);
-  if (!res.ok) return { ok: false, code: res.code };
-
-  const merged = res.exists ? mergeSaves(snapshot, remoteToSnapshot(res.data)) : snapshot;
-  return writeUserSave(uid, snapshotToRemote(merged, displayName), { isNew: !res.exists });
+/** Uploads an owned, complete snapshot in a Firestore transaction. The merge
+ * is retried against the latest remote document; session changes invalidate it.
+ * Local progress remains available if the network is unavailable. */
+export function pushLocalSave(uid, displayName) {
+  const generation = syncGeneration;
+  return serializeSync(async () => {
+    if (readOwner() !== uid) return { ok: false, code: 'device-owned-elsewhere' };
+    if (!sessionCurrent(uid, generation) || cgGetItem(JOURNAL_KEY)) return { ok: false, code: 'stale-session' };
+    const { snapshot, complete } = readLocalSave();
+    if (!complete) return { ok: false, code: 'local-incomplete' };
+    return transactUserSave(uid, data => {
+      if (!sessionCurrent(uid, generation) || readOwner() !== uid || cgGetItem(JOURNAL_KEY)) throw new Error('stale-session');
+      return snapshotToRemote(mergeSaves(snapshot, remoteToSnapshot(data)), displayName);
+    });
+  });
 }
 
 /** Schedules a debounced upload of the current local save. */
@@ -974,25 +962,15 @@ export function requestSync(uid, displayName) {
   scheduleUpload(() => pushLocalSave(uid, displayName));
 }
 
-/**
- * Removes the cloud save. Local progress is deliberately left alone — the
- * person deleting their account is still the person at this device.
- *
- * Ownership is released with it, but ONLY once the delete has actually
- * succeeded. The account that owned this device is about to stop existing, so
- * leaving its uid stamped here would make the player's NEXT account read as a
- * hand-off and quietly park the progress they were explicitly promised they
- * could keep — but releasing it on a FAILED delete is worse in the other
- * direction, and the two changes that made that reachable arrived together:
- * authModal's doDelete() now aborts the account deletion when this fails, so
- * the account still exists and still owns this device. An unclaimed device
- * under a live account is exactly the state the next different account merges
- * into itself, additively and irreversibly — the shared-laptop leak the whole
- * "Device ownership" section above exists to close.
- */
+/** Delete after any in-flight transaction has settled. Device ownership stays
+ * claimed until the separate Authentication deletion succeeds. */
 export async function deleteCloudSave(uid) {
-  cancelUpload();
-  const res = await deleteUserSave(uid);
-  if (res?.ok) clearOwner();
+  invalidateSync();
+  const res = await serializeSync(() => deleteUserSave(uid));
+  // Ownership is released only after Firebase Authentication deletion succeeds.
   return res;
+}
+
+export function releaseDeletedAccount(uid) {
+  if (readOwner() === uid && !currentUserSync()) clearOwner();
 }
