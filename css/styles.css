@@ -2010,6 +2010,15 @@ button.autopsy-strip:hover {
   border-color: rgba(165, 180, 252, 0.35) !important;
 }
 
+/* The one light indigo surface that had no dark counterpart while its text,
+   border and hover state all did: the Trophy Room's "Legends Collected" card
+   stayed #eef2ff while .text-indigo-700 lifted to #a5b4fc, i.e. pale indigo on
+   near-white at 1.8:1. Matches --surface-indigo, which the results screen's
+   legends card already uses inline for the same treatment. */
+[data-theme="dark"] .bg-indigo-50 {
+  background-color: var(--surface-indigo) !important;
+}
+
 [data-theme="dark"] .hover\:bg-indigo-100:hover {
   background-color: rgba(99, 102, 241, 0.18) !important;
 }

@@ -465,9 +465,25 @@
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function () {
+        // Read before registering: a page already under a controller is running
+        // a PREVIOUS build, which is the only situation where a newly installed
+        // worker is an update to offer. A first-ever visit has no controller —
+        // and its install still passes briefly through `installed` with
+        // `registration.waiting` set on its way to activating, which fired
+        // offerUpdate() and pinned "Update ready — reload when you finish"
+        // across the whole cold open, over the roster slots and the sim button,
+        // for a player who had nothing to update.
+        var controlled = !!navigator.serviceWorker.controller;
         navigator.serviceWorker.register('./sw.js').then(function (registration) {
           function offerUpdate() {
-            if (!registration.waiting || document.getElementById('update-ready')) return;
+            var existing = document.getElementById('update-ready');
+            // Also the teardown path: a worker that stops waiting (it activated,
+            // or was discarded) leaves nothing to reload into.
+            if (!controlled || !registration.waiting) {
+              if (existing) existing.remove();
+              return;
+            }
+            if (existing) return;
             var button = document.createElement('button');
             button.id = 'update-ready'; button.className = 'update-ready';
             button.textContent = 'Update ready — reload when you finish';
@@ -478,11 +494,12 @@
           }
           offerUpdate();
           registration.addEventListener('updatefound', function () {
+            // `installing` can already be null here if the worker raced through
+            // its states — addEventListener on it would throw out of the handler.
             var worker = registration.installing;
-            worker.addEventListener('statechange', offerUpdate);
+            if (worker) worker.addEventListener('statechange', offerUpdate);
           });
         }).catch(function () {});
-        var controlled = !!navigator.serviceWorker.controller;
         navigator.serviceWorker.addEventListener('controllerchange', function () { if (controlled) location.reload(); });
       });
     }

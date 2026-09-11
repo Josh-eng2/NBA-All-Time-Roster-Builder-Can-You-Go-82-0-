@@ -166,6 +166,32 @@ function seriesAgree(label, thirdPerson, secondPerson) {
   return label === 'You' ? secondPerson : thirdPerson;
 }
 
+/**
+ * Side palette for the head-to-head screens (1v1 / GM vs AI / Dynasty Duel):
+ * blue = player 1, amber = player 2.
+ *
+ * These used to be literal light-mode hexes inline (`#eff6ff`, `#fffbeb`,
+ * `#2563eb`, `#d97706`). The panels they paint carry `text-foreground` and
+ * `text-muted-fg`, which are near-white in dark mode — so the winner banner's
+ * own headline ("🏆 Player 2 Wins the Series!") rendered white-on-cream at
+ * 1.0:1, i.e. invisible, on the theme desktop opens in by default.
+ *
+ * The tinted surfaces already have theme tokens, and theme.js already picks
+ * the lifted ink for a dark card (`ovrColor`) — this is the same pair, in the
+ * one place the series screens can share.
+ *
+ * `strong` is the accented (winner / leader) panel, `soft` the resting one.
+ */
+function seriesSide(isP1, dark = isDark()) {
+  return isP1
+    ? { ink: dark ? '#93c5fd' : '#2563eb',
+        strong: 'var(--surface-blue)',  soft: 'var(--surface-sky)',
+        edge: dark ? 'rgba(147,197,253,0.45)' : '#bfdbfe' }
+    : { ink: dark ? '#fbbf24' : '#d97706',
+        strong: 'var(--surface-amber)', soft: 'var(--surface-cream)',
+        edge: dark ? 'rgba(251,191,36,0.45)' : '#fde68a' };
+}
+
 export function fmtDecadeShort(decade) {
   if (!decade) return '';
   const m = decade.match(/(\d{2})(\d{2})s/);
@@ -1133,8 +1159,9 @@ function renderDrafting() {
 
 // ── 1v1 Alternating Draft screen ──────────────────────────────────────────────
 function render1v1RosterPanel(roster, playerNum, isActive) {
-  const color    = playerNum === 1 ? '#2563eb' : '#d97706';
-  const bg       = playerNum === 1 ? '#eff6ff'  : '#fffbeb';
+  const side     = seriesSide(playerNum === 1);
+  const color    = side.ink;
+  const bg       = side.strong;
   const bdrCol   = isActive ? color : 'var(--border)';
   const coachId  = playerNum === 1 ? S.p1Coach : S.p2Coach;
   const coachObj = coachId ? COACHES.find(c => c.id === coachId) : null;
@@ -1181,9 +1208,12 @@ function renderDrafting1v1() {
   const totalPicks     = SNAKE_ORDER.length; // 10
   const isP1Turn       = S.currentPlayer === 1;
   const isAiThinking   = S.mode === 'gm-ai' && !isP1Turn;
-  const clockColor     = isP1Turn ? '#2563eb' : '#d97706';
-  const clockBg        = isP1Turn ? '#eff6ff'  : '#fffbeb';
-  const clockBdr       = isP1Turn ? '#bfdbfe'  : '#fde68a';
+  const sideP1         = seriesSide(true);
+  const sideP2         = seriesSide(false);
+  const clockSide      = isP1Turn ? sideP1 : sideP2;
+  const clockColor     = clockSide.ink;
+  const clockBg        = clockSide.strong;
+  const clockBdr       = clockSide.edge;
   const turnLabel      = isAiThinking
     ? '🤖 AI GM is picking…'
     : `⚡ ${isP1Turn ? labels.p1 : labels.p2} On The Clock`;
@@ -1198,11 +1228,13 @@ function renderDrafting1v1() {
       : isCurrent
         ? (p1Pick ? '#2563eb' : '#d97706')
         : 'var(--border)';
+    // Done/current dots keep a fixed light fill, so their ink stays the dark
+    // ramp in both themes — it is read against that fill, not against --card.
     const dotText   = isDone
       ? (p1Pick ? '#1e40af' : '#92400e')
       : isCurrent
         ? '#ffffff'
-        : '#94a3b8';
+        : (isDark() ? '#cbd5e1' : '#94a3b8');
     const short = p1Pick ? labels.p1Short : labels.p2Short;
     const label     = isCurrent ? short : (isDone ? '✓' : short);
     const ringStyle = isCurrent
@@ -1217,10 +1249,10 @@ function renderDrafting1v1() {
 
   // Recent picks log (last 5)
   const recentPicks = S.draftLog.slice(-5).reverse().map(entry => {
-    const c = entry.playerNum === 1 ? '#2563eb' : '#d97706';
+    const eSide = seriesSide(entry.playerNum === 1);
     const who = entry.playerNum === 1 ? labels.p1Short : labels.p2Short;
     return `<div class="flex items-center gap-2 py-1 border-b border-border last:border-0">
-      <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full" style="background:${entry.playerNum === 1 ? '#eff6ff' : '#fffbeb'};color:${c}">${who}</span>
+      <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full" style="background:${eSide.strong};color:${eSide.ink}">${who}</span>
       <span class="text-xs text-foreground font-semibold truncate">${entry.name}</span>
       <span class="text-[10px] text-muted-fg ml-auto flex-shrink-0">Pick ${entry.pick}</span>
     </div>`;
@@ -1250,8 +1282,8 @@ function renderDrafting1v1() {
             ${snakeDots}
           </div>
           <div class="flex items-center gap-3 mt-2">
-            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full inline-block" style="background:#2563eb"></span><span class="text-[9px] text-muted-fg">${labels.p1}</span></span>
-            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full inline-block" style="background:#d97706"></span><span class="text-[9px] text-muted-fg">${labels.p2}${aiCoach ? ` · ${aiCoach.name}` : ''}</span></span>
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full inline-block" style="background:${sideP1.ink}"></span><span class="text-[9px] text-muted-fg">${labels.p1}</span></span>
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full inline-block" style="background:${sideP2.ink}"></span><span class="text-[9px] text-muted-fg">${labels.p2}${aiCoach ? ` · ${aiCoach.name}` : ''}</span></span>
           </div>
         </div>
 
@@ -1779,7 +1811,7 @@ function renderSimulateCard() {
   return `
   <div class="rounded-2xl border-2 border-primary bg-white p-5 text-center animate-scale-in card-shadow draft-simulate-card" style="border-color:${btnColor}20">
     <div class="flex justify-center mb-3">${iconBall('h-10 w-10 text-primary')}</div>
-    ${isDual ? `<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-2 text-xs font-bold" style="background:${isP1 ? '#eff6ff' : '#fffbeb'};color:${isP1 ? '#2563eb' : '#d97706'}">⚔️ ${seriesLabels().p1} / ${seriesLabels().p2}</div>` : ''}
+    ${isDual ? (() => { const s2 = seriesSide(isP1); return `<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-2 text-xs font-bold" style="background:${s2.strong};color:${s2.ink}">⚔️ ${seriesLabels().p1} / ${seriesLabels().p2}</div>`; })() : ''}
     <p class="font-black text-lg text-foreground mb-1">Roster Complete</p>
     <p class="text-sm text-muted-fg mb-4">${subtitle}</p>
     <button data-action="simulate" class="w-full py-3.5 rounded-xl font-black text-sm uppercase tracking-widest text-white transition-all cursor-pointer animate-pulse-glow"
@@ -3053,13 +3085,35 @@ function renderPlayoffs() {
             class="btn-courtside-outline btn-courtside-outline--playoffs card-shadow dk-po-secondary">
             Simulate Entire Playoffs →
           </button>`}
-          <button data-action="${S.mode === 'daily' ? 'back-to-menu' : 'draft-new-roster'}" type="button" class="btn-neutral-outline card-shadow dk-po-tertiary">
-            ${S.mode === 'daily' ? 'Back to Menu' : 'Draft New Roster'}
-          </button>
+          ${S.mode === 'daily' ? '' : `
+          <button data-action="draft-new-roster" type="button" class="btn-neutral-outline card-shadow dk-po-tertiary">
+            Draft New Roster
+          </button>`}
+          ${playoffMenuExitHtml()}
         </div>
       </div>
     </main>
   </div>`;
+}
+
+/**
+ * The way off the playoff screens.
+ *
+ * These three screens (bracket, champion, eliminated) used to end a run with
+ * "Draft New Roster" as their only route — which re-enters the SAME mode — so
+ * a player who finished a Classic run and wanted the Daily, another mode or
+ * the Trophy Room had no in-app way there. The hash is written with
+ * history.replaceState (one entry), so browser Back leaves the site rather
+ * than stepping back a screen, and the installed PWA (display: standalone) has
+ * no back button at all: the only exits were a reload or force-quitting.
+ *
+ * Daily already had it, because its own "Draft New Roster" is meaningless —
+ * every other mode simply never got the second button.
+ */
+function playoffMenuExitHtml() {
+  return `<button data-action="back-to-menu" type="button" class="btn-neutral-outline card-shadow dk-po-tertiary">
+            ← Back to Menu
+          </button>`;
 }
 
 /** One line on the championship screen for the title's own XP award. The
@@ -3108,7 +3162,8 @@ function renderChampionship() {
         ${renderGlobalSubmitCard(true)}
         <div class="flex flex-col gap-3 w-full">
           <button data-action="share" class="py-3 rounded-xl font-bold text-sm bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer card-shadow">Share Championship 🏆</button>
-          <button data-action="${S.mode === 'daily' ? 'back-to-menu' : 'draft-new-roster'}" class="py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer card-shadow">${S.mode === 'daily' ? 'Back to Menu' : 'Draft New Roster'}</button>
+          ${S.mode === 'daily' ? '' : `<button data-action="draft-new-roster" class="py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer card-shadow">Draft New Roster</button>`}
+          <button data-action="back-to-menu" class="py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer card-shadow">← Back to Menu</button>
         </div>
       </div>
     </main>
@@ -3147,8 +3202,9 @@ function renderEliminated() {
         </div>` : ''}
         ${renderGlobalSubmitCard(false)}
         <div class="flex flex-col gap-3 w-full">
-          <button data-action="${S.mode === 'daily' ? 'back-to-menu' : 'draft-new-roster'}" class="py-3 rounded-xl font-bold text-sm bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer card-shadow">${S.mode === 'daily' ? 'Back to Menu' : 'Draft New Roster'}</button>
+          ${S.mode === 'daily' ? '' : `<button data-action="draft-new-roster" class="py-3 rounded-xl font-bold text-sm bg-primary text-white hover:bg-blue-700 transition-all cursor-pointer card-shadow">Draft New Roster</button>`}
           <button data-action="share" class="py-3 rounded-xl font-bold text-sm border border-border bg-white text-foreground hover:border-primary hover:bg-card2 transition-all cursor-pointer card-shadow">Share Result</button>
+          <button data-action="back-to-menu" class="py-3 rounded-xl font-bold text-sm ${S.mode === 'daily' ? 'bg-primary text-white hover:bg-blue-700' : 'border border-border bg-white text-foreground hover:border-primary hover:bg-card2'} transition-all cursor-pointer card-shadow">← Back to Menu</button>
         </div>
       </div>
     </main>
@@ -3320,8 +3376,11 @@ function renderSeriesResult() {
   const p2Wins = series.oppWins;
   const p1Win  = winner === 'p1';
 
-  const winnerColor = p1Win ? '#2563eb' : '#d97706';
-  const winnerBg    = p1Win ? '#eff6ff'  : '#fffbeb';
+  const sideP1      = seriesSide(true);
+  const sideP2      = seriesSide(false);
+  const winSide     = p1Win ? sideP1 : sideP2;
+  const winnerColor = winSide.ink;
+  const winnerBg    = winSide.strong;
   const loserLabel  = p1Win ? labels.p2 : labels.p1;
   const winnerLabel = p1Win ? labels.p1 : labels.p2;
   // seriesLabels() uses 'You' (2nd person) for the human side in GM vs AI /
@@ -3331,8 +3390,9 @@ function renderSeriesResult() {
 
   const gameChips = series.games.map((g, i) => {
     const p1Won = g === 'W';
+    const side  = seriesSide(p1Won);
     return `<div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-black border-2"
-      style="background:${p1Won ? '#eff6ff' : '#fffbeb'};color:${p1Won ? '#2563eb' : '#d97706'};border-color:${p1Won ? '#bfdbfe' : '#fde68a'}">
+      style="background:${side.strong};color:${side.ink};border-color:${side.edge}">
       ${p1Won ? labels.p1Short : labels.p2Short}</div>`;
   }).join('');
 
@@ -3405,25 +3465,25 @@ function renderSeriesResult() {
           <p class="text-xs font-bold uppercase tracking-widest text-muted-fg mb-3">Game-by-Game</p>
           <div class="flex gap-2 flex-wrap">${gameChips}</div>
           <div class="flex gap-4 mt-3 text-xs text-muted-fg">
-            <span><span class="font-bold" style="color:#2563eb">${labels.p1Short}</span> = ${labels.p1} won that game</span>
-            <span><span class="font-bold" style="color:#d97706">${labels.p2Short}</span> = ${labels.p2} won that game</span>
+            <span><span class="font-bold" style="color:${sideP1.ink}">${labels.p1Short}</span> = ${labels.p1} won that game</span>
+            <span><span class="font-bold" style="color:${sideP2.ink}">${labels.p2Short}</span> = ${labels.p2} won that game</span>
           </div>
         </div>
 
         <!-- Roster comparison -->
         <div class="grid grid-cols-2 gap-3">
-          <div class="rounded-2xl border p-4 card-shadow" style="border-color:#bfdbfe;background:var(--surface-sky)">
+          <div class="rounded-2xl border p-4 card-shadow" style="border-color:${sideP1.edge};background:${sideP1.soft}">
             <div class="flex items-center justify-between mb-3">
-              <p class="text-xs font-bold uppercase tracking-widest" style="color:#2563eb">${labels.p1}</p>
+              <p class="text-xs font-bold uppercase tracking-widest" style="color:${sideP1.ink}">${labels.p1}</p>
               ${chemBadge(p1s.chemScore)}
             </div>
             ${p1Coach ? `<p class="text-[10px] text-muted-fg mb-2 font-medium">Coach: ${p1Coach.name}</p>` : ''}
             <p class="text-[10px] font-bold uppercase tracking-wider text-muted-fg/60 mb-1">Starting 5</p>
             ${rosterMini(S.p1Roster || S.p1?.roster || {}, ['PG','SG','SF','PF','C'])}
           </div>
-          <div class="rounded-2xl border p-4 card-shadow" style="border-color:#fde68a;background:var(--surface-cream)">
+          <div class="rounded-2xl border p-4 card-shadow" style="border-color:${sideP2.edge};background:${sideP2.soft}">
             <div class="flex items-center justify-between mb-3">
-              <p class="text-xs font-bold uppercase tracking-widest" style="color:#d97706">${labels.p2}</p>
+              <p class="text-xs font-bold uppercase tracking-widest" style="color:${sideP2.ink}">${labels.p2}</p>
               ${chemBadge(p2s.chemScore)}
             </div>
             ${p2Coach ? `<p class="text-[10px] text-muted-fg mb-2 font-medium">Coach: ${p2Coach.name}</p>` : ''}
@@ -3444,12 +3504,12 @@ function renderSeriesResult() {
               const p2pct  = Math.round((p2s.strength / maxStr) * 100);
               return `
               <div>
-                <div class="flex justify-between text-xs mb-1"><span class="font-bold" style="color:#2563eb">${labels.p1}</span><span class="font-semibold text-foreground">${p1s.strength.toFixed(3)}</span></div>
-                <div class="h-2.5 rounded-full bg-border overflow-hidden"><div class="h-full rounded-full" style="width:${p1pct}%;background:#2563eb"></div></div>
+                <div class="flex justify-between text-xs mb-1"><span class="font-bold" style="color:${sideP1.ink}">${labels.p1}</span><span class="font-semibold text-foreground">${p1s.strength.toFixed(3)}</span></div>
+                <div class="h-2.5 rounded-full bg-border overflow-hidden"><div class="h-full rounded-full" style="width:${p1pct}%;background:${sideP1.ink}"></div></div>
               </div>
               <div>
-                <div class="flex justify-between text-xs mb-1"><span class="font-bold" style="color:#d97706">${labels.p2}</span><span class="font-semibold text-foreground">${p2s.strength.toFixed(3)}</span></div>
-                <div class="h-2.5 rounded-full bg-border overflow-hidden"><div class="h-full rounded-full" style="width:${p2pct}%;background:#d97706"></div></div>
+                <div class="flex justify-between text-xs mb-1"><span class="font-bold" style="color:${sideP2.ink}">${labels.p2}</span><span class="font-semibold text-foreground">${p2s.strength.toFixed(3)}</span></div>
+                <div class="h-2.5 rounded-full bg-border overflow-hidden"><div class="h-full rounded-full" style="width:${p2pct}%;background:${sideP2.ink}"></div></div>
               </div>`;
             })()}
           </div>
@@ -3475,6 +3535,8 @@ function renderSeriesPreview() {
   const p1CoachObj = COACHES.find(c => c.id === S.p1Coach);
   const p2CoachObj = COACHES.find(c => c.id === S.p2Coach);
   const isDynasty = S.mode === 'dynasty-duel';
+  const sideP1 = seriesSide(true);
+  const sideP2 = seriesSide(false);
   const maxStr  = Math.max(p1s.strength, p2s.strength, 0.01);
   const p1pct   = Math.round((p1s.strength / maxStr) * 100);
   const p2pct   = Math.round((p2s.strength / maxStr) * 100);
@@ -3507,20 +3569,20 @@ function renderSeriesPreview() {
           <div class="flex flex-col gap-2">
             <div>
               <div class="flex justify-between text-xs mb-1">
-                <span class="font-bold" style="color:#2563eb">${labels.p1}${p1CoachObj ? ` · ${p1CoachObj.name}` : ''}</span>
+                <span class="font-bold" style="color:${sideP1.ink}">${labels.p1}${p1CoachObj ? ` · ${p1CoachObj.name}` : ''}</span>
                 <span class="font-semibold text-foreground">${p1s.strength.toFixed(3)}</span>
               </div>
               <div class="h-2.5 rounded-full bg-border overflow-hidden">
-                <div class="h-full rounded-full stat-bar-fill" style="width:${p1pct}%;background:#2563eb"></div>
+                <div class="h-full rounded-full stat-bar-fill" style="width:${p1pct}%;background:${sideP1.ink}"></div>
               </div>
             </div>
             <div>
               <div class="flex justify-between text-xs mb-1">
-                <span class="font-bold" style="color:#d97706">${labels.p2}${p2CoachObj ? ` · ${p2CoachObj.name}` : ''}</span>
+                <span class="font-bold" style="color:${sideP2.ink}">${labels.p2}${p2CoachObj ? ` · ${p2CoachObj.name}` : ''}</span>
                 <span class="font-semibold text-foreground">${p2s.strength.toFixed(3)}</span>
               </div>
               <div class="h-2.5 rounded-full bg-border overflow-hidden">
-                <div class="h-full rounded-full stat-bar-fill" style="width:${p2pct}%;background:#d97706"></div>
+                <div class="h-full rounded-full stat-bar-fill" style="width:${p2pct}%;background:${sideP2.ink}"></div>
               </div>
             </div>
           </div>
@@ -3528,15 +3590,15 @@ function renderSeriesPreview() {
 
         <!-- Side-by-side rosters -->
         <div class="grid grid-cols-2 gap-3">
-          <div class="rounded-2xl border-2 bg-white p-3 card-shadow" style="border-color:#bfdbfe">
-            <p class="text-xs font-black uppercase tracking-wider mb-2" style="color:#2563eb">${labels.p1}</p>
-            ${rosterMini(S.p1Roster || S.roster, '#2563eb')}
+          <div class="rounded-2xl border-2 bg-white p-3 card-shadow" style="border-color:${sideP1.edge}">
+            <p class="text-xs font-black uppercase tracking-wider mb-2" style="color:${sideP1.ink}">${labels.p1}</p>
+            ${rosterMini(S.p1Roster || S.roster, sideP1.ink)}
           </div>
-          <div class="rounded-2xl border-2 bg-white p-3 card-shadow" style="border-color:#fde68a">
-            <p class="text-xs font-black uppercase tracking-wider mb-2" style="color:#d97706">${labels.p2}</p>
+          <div class="rounded-2xl border-2 bg-white p-3 card-shadow" style="border-color:${sideP2.edge}">
+            <p class="text-xs font-black uppercase tracking-wider mb-2" style="color:${sideP2.ink}">${labels.p2}</p>
             ${isDynasty
               ? `<p class="text-xs text-muted-fg leading-relaxed py-2">Legendary CPU dynasty. Strength ${p2s.strength.toFixed(2)}.</p>`
-              : rosterMini(S.p2Roster, '#d97706')}
+              : rosterMini(S.p2Roster, sideP2.ink)}
           </div>
         </div>
 
@@ -3562,24 +3624,30 @@ function renderSeriesSim() {
   const seriesOver = p1Wins === 4 || p2Wins === 4;
   const nextGameNum = revealed + 1;
 
+  const sideP1 = seriesSide(true);
+  const sideP2 = seriesSide(false);
+  // Winner first, loser second — the same order the "leads" line below uses.
+  // Printing the raw p1–p2 pair made a P2 win read as "AI GM wins the series
+  // 1–4", i.e. the winner appearing to have scored the loser's total.
+  const hi = Math.max(p1Wins, p2Wins), lo = Math.min(p1Wins, p2Wins);
+
   let statusText, statusColor, statusBg, statusBdr;
   if (!revealed) {
     statusText  = 'Series Not Started';
     statusColor = 'var(--muted-fg)'; statusBg = 'var(--card3)'; statusBdr = 'var(--border)';
   } else if (seriesOver) {
+    const side = p1Wins === 4 ? sideP1 : sideP2;
     const w = p1Wins === 4 ? labels.p1 : labels.p2;
-    const wc = p1Wins === 4 ? '#2563eb' : '#d97706';
-    statusText  = `🏆 ${w} ${seriesAgree(w, 'wins', 'win')} the series ${p1Wins}–${p2Wins}!`;
-    statusColor = wc; statusBg = p1Wins === 4 ? '#eff6ff' : '#fffbeb'; statusBdr = wc + '40';
+    statusText  = `🏆 ${w} ${seriesAgree(w, 'wins', 'win')} the series ${hi}–${lo}!`;
+    statusColor = side.ink; statusBg = side.strong; statusBdr = side.edge;
   } else if (p1Wins === p2Wins) {
     statusText  = `Series tied ${p1Wins}–${p2Wins}`;
     statusColor = 'var(--muted-fg)'; statusBg = 'var(--card3)'; statusBdr = 'var(--border)';
   } else {
+    const side   = p1Wins > p2Wins ? sideP1 : sideP2;
     const leader = p1Wins > p2Wins ? labels.p1 : labels.p2;
-    const lc     = p1Wins > p2Wins ? '#2563eb' : '#d97706';
-    const lw = Math.max(p1Wins, p2Wins), ll = Math.min(p1Wins, p2Wins);
-    statusText  = `${leader} ${seriesAgree(leader, 'leads', 'lead')} ${lw}–${ll}`;
-    statusColor = lc; statusBg = p1Wins > p2Wins ? '#eff6ff' : '#fffbeb'; statusBdr = lc + '40';
+    statusText  = `${leader} ${seriesAgree(leader, 'leads', 'lead')} ${hi}–${lo}`;
+    statusColor = side.ink; statusBg = side.strong; statusBdr = side.edge;
   }
 
   const gameRows = games.map((g, i) => {
@@ -3590,17 +3658,16 @@ function renderSeriesSim() {
       </div>`;
     }
     const p1Won = g.p1Won;
-    const wc    = p1Won ? '#2563eb' : '#d97706';
+    const side  = p1Won ? sideP1 : sideP2;
     const wlbl  = p1Won ? `${labels.p1Short} W` : `${labels.p2Short} W`;
-    const wbg   = p1Won ? '#eff6ff' : '#fffbeb';
     return `<div class="flex items-center gap-3 py-2.5 border-b border-border last:border-0">
       <span class="text-[10px] font-bold text-muted-fg w-12 flex-shrink-0">Game ${g.gameNum}</span>
       <span class="flex-1 text-sm font-black text-foreground">
-        <span style="color:#2563eb">${g.p1Score}</span>
+        <span style="color:${sideP1.ink}">${g.p1Score}</span>
         <span class="text-muted-fg font-normal mx-1">–</span>
-        <span style="color:#d97706">${g.p2Score}</span>
+        <span style="color:${sideP2.ink}">${g.p2Score}</span>
       </span>
-      <span class="text-[10px] font-black px-2 py-0.5 rounded-full flex-shrink-0" style="background:${wbg};color:${wc}">${wlbl}</span>
+      <span class="text-[10px] font-black px-2 py-0.5 rounded-full flex-shrink-0" style="background:${side.strong};color:${side.ink}">${wlbl}</span>
       <span class="text-[10px] text-muted-fg flex-shrink-0">${g.p1WinsAfter}–${g.p2WinsAfter}</span>
     </div>`;
   }).join('');
@@ -3619,14 +3686,14 @@ function renderSeriesSim() {
 
         <!-- Win counters -->
         <div class="grid grid-cols-2 gap-3">
-          <div class="rounded-2xl border-2 p-4 text-center card-shadow" style="border-color:${p1Wins > p2Wins ? '#2563eb' : '#bfdbfe'};background:${p1Wins > p2Wins ? '#eff6ff' : '#f8fbff'}">
-            <p class="text-[10px] font-bold uppercase tracking-widest mb-1" style="color:#2563eb">${labels.p1}</p>
-            <p class="text-5xl font-black" style="color:#2563eb">${p1Wins}</p>
+          <div class="rounded-2xl border-2 p-4 text-center card-shadow" style="border-color:${p1Wins > p2Wins ? sideP1.ink : sideP1.edge};background:${p1Wins > p2Wins ? sideP1.strong : sideP1.soft}">
+            <p class="text-[10px] font-bold uppercase tracking-widest mb-1" style="color:${sideP1.ink}">${labels.p1}</p>
+            <p class="text-5xl font-black" style="color:${sideP1.ink}">${p1Wins}</p>
             <p class="text-[10px] text-muted-fg mt-1">${p1Wins === 1 ? 'win' : 'wins'}</p>
           </div>
-          <div class="rounded-2xl border-2 p-4 text-center card-shadow" style="border-color:${p2Wins > p1Wins ? '#d97706' : '#fde68a'};background:${p2Wins > p1Wins ? '#fffbeb' : '#fffef8'}">
-            <p class="text-[10px] font-bold uppercase tracking-widest mb-1" style="color:#d97706">${labels.p2}</p>
-            <p class="text-5xl font-black" style="color:#d97706">${p2Wins}</p>
+          <div class="rounded-2xl border-2 p-4 text-center card-shadow" style="border-color:${p2Wins > p1Wins ? sideP2.ink : sideP2.edge};background:${p2Wins > p1Wins ? sideP2.strong : sideP2.soft}">
+            <p class="text-[10px] font-bold uppercase tracking-widest mb-1" style="color:${sideP2.ink}">${labels.p2}</p>
+            <p class="text-5xl font-black" style="color:${sideP2.ink}">${p2Wins}</p>
             <p class="text-[10px] text-muted-fg mt-1">${p2Wins === 1 ? 'win' : 'wins'}</p>
           </div>
         </div>
