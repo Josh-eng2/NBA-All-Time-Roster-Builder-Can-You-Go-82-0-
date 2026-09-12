@@ -1,13 +1,13 @@
 /**
- * The federated sign-in methods (Google, Apple, phone), and the two rules that
- * keep adding them from costing anyone their progress.
+ * The federated sign-in methods (Google, phone), and the two rules that keep
+ * adding them from costing anyone their progress.
  *
  *   1. A BUTTON IS SHOWN ONLY FOR A PROVIDER THE CONSOLE HAS ENABLED. A
  *      button for one it has not does not degrade gracefully: it fails every
  *      single tap with auth/operation-not-allowed, which a player reads as a
- *      broken game — which is exactly what Apple did, so Google and phone
- *      render and Apple does not. Each stays behind its Remote Config key,
- *      which is what turns one on, or hides it again, without a deploy.
+ *      broken game — which is exactly what Sign in with Apple did before it
+ *      was removed. Each provider stays behind its Remote Config key, which is
+ *      what turns one on, or hides it again, without a deploy.
  *
  *   2. A SECOND SIGN-IN METHOD MUST NOT MEAN A SECOND ACCOUNT. Every distinct
  *      method mints a distinct uid unless it is linked, and a second uid on a
@@ -34,15 +34,10 @@ const clickOn = action => ({ target: { closest: () => ({ dataset: { auth: action
 // ── Shipped state ─────────────────────────────────────────────────────────────
 
 test('only the providers that actually work ship switched on', () => {
-  // Apple is off: enabled, its button opened the popup and came back with
-  // auth/operation-not-allowed, which is the Identity Toolkit refusing a
-  // provider whose Apple credentials are not usable. A dead button is worse
-  // than no button, so it stays out until publishing the key turns it on.
   assert.deepEqual(auth.enabledProviders(), ['google', 'phone'],
     'the offered providers are not the ones that work');
   assert.equal(auth.providerEnabled('google'), true);
   assert.equal(auth.providerEnabled('phone'),  true);
-  assert.equal(auth.providerEnabled('apple'),  false, 'apple would fail every tap');
 });
 
 test('each provider has a Remote Config key, and that key is a boolean', () => {
@@ -81,19 +76,13 @@ test('a provider call with no SDK fails as a result, never as a throw', async ()
   assert.equal(sms.code, 'auth/invalid-phone-number', 'an SMS would have been sent, and billed');
 });
 
-test('a switched-off provider refuses at the API, not only in the markup', async () => {
-  // Hiding the button is the first line; a caller that reaches the function
-  // anyway (a stale view, a cached page, a hand-typed action) must still be
-  // refused rather than opening a popup that can only fail — which is the
-  // failure this gate was put back in front of.
-  const res = await auth.signInWithProvider('apple');
-  assert.equal(res.ok, false);
-  assert.equal(res.code, 'auth/operation-not-allowed', 'apple attempted a popup while switched off');
-  assert.equal((await auth.linkProvider('apple')).code, 'auth/operation-not-allowed');
-});
-
 test('an unknown provider id is rejected before anything else', async () => {
   assert.equal((await auth.signInWithProvider('facebook')).code, 'auth/unknown-provider');
+  // Sign in with Apple was removed, so 'apple' is now simply unknown. A cached
+  // page or a hand-typed action reaching for it must be refused here, not left
+  // to open a popup that can only fail.
+  assert.equal((await auth.signInWithProvider('apple')).code, 'auth/unknown-provider');
+  assert.equal((await auth.linkProvider('apple')).code, 'auth/unknown-provider');
   assert.equal((await auth.linkProvider('phone')).code, 'auth/unknown-provider',
     'phone is not an OAuth popup provider and must not be treated as one');
 });

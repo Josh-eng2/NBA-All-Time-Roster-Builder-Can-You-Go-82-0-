@@ -31,7 +31,7 @@ What is covered:
 | `authmodal.test.mjs` | the account modal wires its root once, so listeners cannot double per view switch, and the delete guard is armed before its first await |
 | `escaping.test.mjs` | nothing a cloud save can carry reaches innerHTML unescaped — Trophy Room, local leaderboard modal, Daily Statistics distribution |
 | `assets.test.mjs` | no first-party module loads script from another origin, the confetti bundle is vendored and licensed, and sw.js's precache list matches the files on disk |
-| `authproviders.test.mjs` | Google / Apple / phone sign-in: that all three ship switched off and refuse at the API as well as in the markup, E.164 normalisation (a guessed country code sends a real SMS to a stranger), and that the account-collision copy teaches linking rather than leaving a player to make a second account |
+| `authproviders.test.mjs` | Google / phone sign-in: which providers ship switched on, that an id this build does not offer is refused at the API and not only in the markup, E.164 normalisation (a guessed country code sends a real SMS to a stranger), and that the account-collision copy teaches linking rather than leaving a player to make a second account |
 | `leaderboard-export.test.mjs` | `scripts/leaderboard_stats.mjs`'s CSV boundary — a public, world-writable board feeding a file someone opens in a spreadsheet, so a cell that would be evaluated as a formula is defused — plus the degenerate correlation cases |
 
 `dom-stub.mjs` is the minimum DOM those tests need (a mount point, the theme

@@ -2752,9 +2752,6 @@ button.autopsy-strip:hover {
 .auth-provider:hover:not(:disabled) { background: var(--card3); border-color: var(--primary); }
 .auth-provider:disabled { opacity: 0.6; cursor: default; }
 .auth-provider__icon { width: 18px; height: 18px; flex-shrink: 0; }
-/* The Apple mark is taller than it is wide and is drawn in currentColor, so it
-   needs its own box to sit on the same optical baseline as the Google G. */
-.auth-provider--apple .auth-provider__icon { width: 15px; height: 17px; }
 
 .auth-providers--sm { gap: 6px; }
 .auth-provider--sm {

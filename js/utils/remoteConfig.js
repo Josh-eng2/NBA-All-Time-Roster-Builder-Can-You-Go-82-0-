@@ -82,42 +82,32 @@ export const DEFAULTS = {
   // rollback case is the one that happens under pressure.
   accounts_enabled: { value: true, type: 'boolean' },
 
-  // Per-provider sign-in switches, all shipped OFF.
+  // Per-provider sign-in switches.
   //
   // These are not a rollback lever like accounts_enabled — they are the
   // "ship the knob before you need it" rule at the top of this file doing the
-  // job it exists for. Each of the three needs configuration this repo cannot
-  // carry out or verify: Google is a Console toggle, Apple additionally needs
-  // a paid Apple Developer membership plus a Services ID and signing key, and
-  // Phone needs Console setup and has a per-SMS cost beyond a small free tier.
-  // A button for a provider the Console has not enabled does not degrade — it
-  // fails every single tap with auth/operation-not-allowed, which reads to a
-  // player as a broken game.
+  // job it exists for. Each needs configuration this repo cannot carry out or
+  // verify: Google is a Console toggle, and Phone needs Console setup and has
+  // a per-SMS cost beyond a small free tier. A button for a provider the
+  // Console has not enabled does not degrade — it fails every single tap with
+  // auth/operation-not-allowed, which reads to a player as a broken game.
   //
-  // So the code ships complete and the button appears the moment the matching
-  // key is true, with no deploy and no cache roll. Turn one on only AFTER its
-  // provider is enabled in Firebase Console → Authentication → Sign-in method,
-  // and after signing in with it once yourself.
-  //
-  // Google and phone read Enabled in the Console under Authentication →
-  // Sign-in method and are on. Publishing a key false in Remote Config hides
-  // that one provider with no deploy, which stays the rollback if one
+  // Both read Enabled in the Console under Authentication → Sign-in method and
+  // are on here. Publishing a key false in Remote Config hides that one
+  // provider with no deploy and no cache roll, which is the rollback if one
   // misbehaves — and note a key published false in the Console beats the
   // default here, so a provider hidden despite a true below is one whose
   // Remote Config parameter is published false.
   //
-  // APPLE IS OFF, and this is the paragraph above proving itself rather than a
-  // guess: switched on, its button opened the popup and came back with
-  // auth/operation-not-allowed — the Identity Toolkit refusing the provider.
-  // Reading Enabled in the Console is NOT the same as being usable: Apple only
-  // works once the Services ID, Team ID, Key ID and .p8 signing key behind that
-  // toggle are filled in and valid, which needs a paid Apple Developer
-  // membership. Until then every tap is a dead button, so there must not be
-  // one. Turn it back on by publishing auth_apple_enabled = true — no deploy,
-  // no cache roll — after signing in with Apple once yourself.
-  auth_google_enabled: { value: true,  type: 'boolean' },
-  auth_apple_enabled:  { value: false, type: 'boolean' },
-  auth_phone_enabled:  { value: true,  type: 'boolean' },
+  // There is deliberately no Apple key. Sign in with Apple was removed: with
+  // its Console toggle reading Enabled, its button still opened the popup and
+  // came back with auth/operation-not-allowed, because the Services ID, Team
+  // ID, Key ID and .p8 signing key behind that toggle need a paid Apple
+  // Developer membership this project does not have. A key absent from
+  // DEFAULTS can never be introduced by a publish (see the file header), so an
+  // auth_apple_enabled parameter left in the Console is now inert.
+  auth_google_enabled: { value: true, type: 'boolean' },
+  auth_phone_enabled:  { value: true, type: 'boolean' },
 
   // Sim curve — see the measured anchors and method at the top of
   // js/logic/simulation.js. Bounds are roughly ±30 % around the calibrated

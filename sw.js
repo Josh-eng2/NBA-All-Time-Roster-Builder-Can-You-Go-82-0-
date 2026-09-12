@@ -285,7 +285,15 @@
 //       auth/operation-not-allowed: the Console toggle reads Enabled but the
 //       Apple credentials behind it are not usable, so every tap was a dead
 //       button. Google and phone are unaffected and stay on.
-const CACHE_VERSION = '820-v39';
+//
+//   v40 Sign in with Apple removed. Changed precached files: js/utils/auth.js
+//       (the PROVIDERS entry, the OAuthProvider branch and its binding),
+//       js/ui/authModal.js (the mark, the label, the action and the account
+//       view's link row), js/utils/remoteConfig.js (auth_apple_enabled is gone,
+//       so a parameter left in the Console is inert) and css/styles.css. The
+//       provider was never usable — see v39 — and no account can hold an
+//       apple.com credential, so nothing a player has is affected.
+const CACHE_VERSION = '820-v40';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 
