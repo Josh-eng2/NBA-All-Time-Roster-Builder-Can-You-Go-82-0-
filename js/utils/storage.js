@@ -735,7 +735,7 @@ window.switchGlobalLbTab = function (tab) {
   _loadGlobalLb(tab);
 };
 
-export function showGlobalLeaderboardModal(tab = 'alltime') {
+export function showGlobalLeaderboardModal(tab = '24h') {
   closeGlobalLeaderboardModal();
   const div  = document.createElement('div');
   div.id     = 'global-lb-modal-root';
