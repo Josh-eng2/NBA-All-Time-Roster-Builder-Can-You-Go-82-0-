@@ -43,7 +43,7 @@ import {
   buildRematchUrl, buildDailyUrl, buildPlainUrl,
 } from '../logic/rematch.js';
 import { showInstallPrompt, dismissInstallPrompt } from '../utils/install.js';
-import { accountsEnabled, onAuthChanged } from '../utils/auth.js';
+import { accountsEnabled, onAuthChanged, currentUserSync } from '../utils/auth.js';
 import { showAuthModal } from './authModal.js';
 import { getDailyBoards, personId, DAILY_RULES_VERSION } from '../logic/dailyBoards.js';
 import { requestSync, invalidateSync, flushUpload, cancelUpload, syncOnSignIn } from '../utils/cloudSave.js';
@@ -68,12 +68,63 @@ window.runItBackFromReport         = runItBackFromReport;
 // is safe — the guard ensures the listener is only ever attached once.
 let _bound = false;
 let _submittingGlobal = false;
+let runOwner = null;
+let ownedGameId = null;
+
+// Local progress remains with its owner after sign-out. A first sign-in may
+// adopt an unclaimed guest run, but a different account cannot inherit it.
+function accountHandoffPending() {
+  if (cgGetItem('nba820_handoff_pending')) return true;
+  const owner = cgGetItem('nba820_owner');
+  const uid = currentUserSync()?.uid;
+  return !!(owner && uid && owner !== uid);
+}
+
+function discardForeignRun() {
+  cancelUpload();
+  ownedGameId = null;
+  runOwner = null;
+  Object.assign(S, {
+    gameId: null, mode: null, phase: 'mode-select', result: null,
+    roster: {}, p1: null, selectedPlayer: null, playoffs: null,
+    seriesResult: null, dailyChallenge: null, dynastyOpponent: null,
+    rematch: null, teamName: '', coach: null,
+  });
+  closeTeamReportModal();
+  render();
+  showToast('Account changed — start a new run for this player.', 4200);
+}
+
+export function ensureRunOwner() {
+  const owner = cgGetItem('nba820_owner') || null;
+  if (S.gameId && S.mode) {
+    if (ownedGameId !== S.gameId) {
+      ownedGameId = S.gameId;
+      runOwner = owner || currentUserSync()?.uid || null;
+    }
+    if ((runOwner && owner && runOwner !== owner) || accountHandoffPending()) {
+      discardForeignRun();
+      return false;
+    }
+    if (!runOwner) runOwner = owner || currentUserSync()?.uid || null;
+  }
+  return !accountHandoffPending();
+}
 
 export function bindEvents() {
+  ensureRunOwner();
   if (_bound) return;
   _bound = true;
   $app.addEventListener('click', handleClick);
   window.addEventListener('hashchange', handleHashRoute);
+  window.addEventListener('nba820-owner-change', () => ensureRunOwner());
+  window.addEventListener('storage', event => {
+    // Use the event's transition too: A -> B -> A may all be queued while
+    // this tab is suspended, even though durable storage already says A.
+    if (event.key === 'nba820_owner' && S.gameId && runOwner
+        && event.newValue !== runOwner) discardForeignRun();
+    else ensureRunOwner();
+  });
   initAccounts();
 }
 
@@ -88,9 +139,8 @@ let _syncedUid = null;
 /**
  * Phases where a re-render is safe. A draft holds live, unsaved input — a
  * half-typed team name has already needed its own regression test — so an auth
- * change arriving mid-run updates the cached state and waits. The header
- * catches up at the next natural render, which costs nothing, and the run is
- * never disturbed.
+ * change for the same owner updates the header at the next natural render.
+ * A different owner discards the run immediately, before any progress writes.
  */
 const AUTH_RERENDER_PHASES = ['mode-select', 'more-modes', 'results', 'trophy-room', 'legends'];
 
@@ -115,6 +165,7 @@ function initAccounts() {
     }
     if (_authUid !== (user?.uid || null)) invalidateSync();
     _authUid = user?.uid || null;
+    ensureRunOwner();
     // A session restored at boot never goes through the auth modal, so nothing
     // else pulls the account's save down: without this, a returning signed-in
     // player plays on whatever this device happens to hold and the next upload
@@ -285,6 +336,10 @@ function handleClick(e) {
 // ── Action dispatcher ─────────────────────────────────────────────────────────
 
 function dispatch(action) {
+  if (!ensureRunOwner() && !['open-account', 'open-auth'].includes(action)) {
+    showToast('Wait for the account save to load, or sign out to keep playing on this device.', 4200);
+    return;
+  }
   // Block human input while the AI GM is drafting
   if (S.mode === 'gm-ai' && S.currentPlayer === 2 && S.phase === 'drafting') {
     const blocked = action === 'spin' || action === 'skip-team' || action === 'skip-decade'
@@ -638,6 +693,7 @@ export function confirmLeave(fn, opts = {}) {
 // ── Draft mechanics ───────────────────────────────────────────────────────────
 
 export function doSpin() {
+  if (!ensureRunOwner()) return;
   if (S.spinState === 'spinning') return;
 
   // First spin commits the coach — the system is chosen with zero players
@@ -864,7 +920,7 @@ async function doWatchAdForSkips() {
   const watched = await gdShowRewardedAd();
   _rewardedAdBusy = false;
   if (!watched) { showToast('No ad available right now — try again later'); return; }
-  if (S.gameId !== adGameId || S.phase !== 'drafting') return; // that draft is over
+  if (!ensureRunOwner() || S.gameId !== adGameId || S.phase !== 'drafting') return;
   S.adSkipsEarned = true;
   if (S.mode === '1v1' || S.mode === 'gm-ai') {
     const k = `p${S.currentPlayer}`;
@@ -881,6 +937,7 @@ async function doWatchAdForSkips() {
 
 /** @returns {boolean} true if the player was actually placed on a roster. */
 function placePlayer(pos) {
+  if (!ensureRunOwner()) return;
   if (!S.selectedPlayer) { render(); return false; }
   const spin   = S.currentSpin;
   const player = { ...S.selectedPlayer, team: spin?.team, decade: spin?.decade };
@@ -994,6 +1051,7 @@ function placePlayer(pos) {
 
 /** Instant spin + pick for the AI GM (no slot-machine animation). */
 function doAiTurn() {
+  if (!ensureRunOwner()) return;
   if (S.mode !== 'gm-ai' || S.currentPlayer !== 2 || S.phase !== 'drafting') return;
   if (S.p2Round >= 5) return;
 
@@ -1034,6 +1092,7 @@ function doAiTurn() {
 }
 
 function doSimulate() {
+  if (!ensureRunOwner()) return;
   if (S.phase !== 'drafting' || isDualDraft()) return;
   const starters = POSITIONS.map(p => S.roster[p]).filter(Boolean);
 
@@ -1276,6 +1335,7 @@ function buildGlobalScorePayload() {
 }
 
 async function doSaveRun() {
+  if (!ensureRunOwner()) return;
   if (_submittingGlobal) return;
   const input = document.getElementById('team-name-input');
   const raw   = input ? input.value.trim() : '';
@@ -1327,6 +1387,7 @@ async function doSaveRun() {
 // ── Global leaderboard submit ─────────────────────────────────────────────────
 
 async function doSubmitGlobal() {
+  if (!ensureRunOwner()) return;
   if (S.globalScoreSubmitted || _submittingGlobal) return;
   _submittingGlobal = true;
 
@@ -1367,7 +1428,7 @@ async function doSubmitGlobal() {
   // unconditionally stamped the next run's fresh state as already-submitted,
   // under the previous run's team name.
   const runGameId = S.gameId;
-  const stillThisRun = () => S.gameId === runGameId;
+  const stillThisRun = () => ensureRunOwner() && S.gameId === runGameId;
 
   try {
     const submitted = buildGlobalScorePayload();
@@ -1415,6 +1476,7 @@ function buildDailyScorePayload() {
 }
 
 async function doSubmitDaily() {
+  if (!ensureRunOwner()) return;
   if (S.mode !== 'daily' || S.dailyScoreSubmitted || _submittingDaily) return;
   _submittingDaily = true;
 
@@ -1441,7 +1503,7 @@ async function doSubmitDaily() {
 
   // Same gameId guard as doSubmitGlobal — S is replaced by the next run.
   const runGameId = S.gameId;
-  const stillThisRun = () => S.gameId === runGameId;
+  const stillThisRun = () => ensureRunOwner() && S.gameId === runGameId;
 
   try {
     await submitDailyScore(buildDailyScorePayload());
@@ -1662,6 +1724,7 @@ function computeRoundResults(bracket) {
 }
 
 function onPlayoffChampion() {
+  if (!ensureRunOwner()) return;
   saveToTrophyRoom();
   syncProgress();
   // The championship XP cannot ride along with the run's other XP: the season
@@ -1729,6 +1792,7 @@ function doAdvanceToPlayoffs() {
 }
 
 function doSimNextRound() {
+  if (!ensureRunOwner()) return;
   const po = S.playoffs;
   // currentRound === 3 means the Finals are already in the books; a fourth
   // round would push a phantom result onto po.rounds and corrupt the bracket
@@ -1747,7 +1811,7 @@ function doSimNextRound() {
   render();
 
   const ticker = setInterval(() => {
-    if (S.phase !== 'playoffs') { clearInterval(ticker); return; }
+    if (!ensureRunOwner() || S.phase !== 'playoffs' || S.playoffs !== po) { clearInterval(ticker); return; }
     po.tickState.revealedGames++;
     render();
     if (po.tickState.revealedGames >= po.tickState.maxGames) {
@@ -1755,7 +1819,7 @@ function doSimNextRound() {
       po.tickState.done = true;
       render();
       setTimeout(() => {
-        if (S.phase !== 'playoffs') return;
+        if (!ensureRunOwner() || S.phase !== 'playoffs' || S.playoffs !== po) return;
         const { results: r2 } = po.tickState;
         po.tickState = null;
         const outcome = applyPlayoffRound(po, r2);
@@ -1767,6 +1831,7 @@ function doSimNextRound() {
 }
 
 function doSimAllPlayoffs() {
+  if (!ensureRunOwner()) return;
   const po = S.playoffs;
   if (!po || po.tickState || po.currentRound >= 3) return;
 

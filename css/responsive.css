@@ -520,14 +520,14 @@ html[data-page="game"] svg {
     gap: var(--stack-gap) !important;
   }
   html[data-page="game"] .draft-board-wrap {
-    flex: 1 1 auto;
+    flex: 0 0 auto;
     min-height: 0;
     display: flex;
     flex-direction: column;
   }
   html[data-page="game"] .draft-board-scroll {
-    flex: 1 1 auto;
-    height: auto;
+    flex: 0 0 auto;
+    height: clamp(8rem, 30vh, 22rem);
     min-height: 8rem;
     max-height: none;
   }
@@ -568,14 +568,9 @@ html[data-page="game"] svg {
      redundant item here — it repeats the phase already named in the bar
      itself — so it is the only thing dropped. Everything else compacts.
 
-     Note for anyone tempted to go further: pairing the round bar and coach
-     chip into a two-column grid row saves ~40px, but turning
-     `.draft-screen__inner` into a grid breaks the flex contract the board
-     column depends on (`.draft-board-wrap { flex: 1 1 auto }`) and the
-     gauges end up overlapping the cards. At 390px tall the screen cannot
-     show spinner + cards + roster at once regardless; the board scrolls
-     inside its own panel, which is the right answer for a viewport this
-     short. */
+     At 390px tall the screen cannot show spinner + cards + roster at once.
+     The board keeps its own height; the surrounding screen scrolls instead
+     of shrinking the wrapper below its children and overlapping the gauges. */
   @media (max-height: 480px) {
     html[data-page="game"] .draft-round-bar__meta { display: none; }
   }
@@ -631,4 +626,9 @@ html[data-page="game"] .grid > .flex-shrink-0 {
     animation-duration: 1.5s !important;
     animation-iteration-count: infinite !important;
   }
+}
+
+/* Phone cards keep readable text and a full finger-sized draft action. */
+@media (max-width: 639px) {
+  html[data-page="game"] .draft-card-btn { min-height: 44px; }
 }

@@ -1686,7 +1686,6 @@ button.autopsy-strip:hover {
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    zoom: 0.68;
   }
 
   .draft-board-wrap__head {
@@ -1709,7 +1708,7 @@ button.autopsy-strip:hover {
   }
 
   .draft-board-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 
   .draft-board-scroll {
@@ -1740,17 +1739,17 @@ button.autopsy-strip:hover {
   }
 
   .draft-card__pos {
-    font-size: 0.45rem !important;
+    font-size: 0.6875rem !important;
     padding: 0.04rem 0.2rem !important;
   }
 
   .draft-card__arch span {
-    font-size: 0.45rem !important;
+    font-size: 0.6875rem !important;
     padding: 0.04rem 0.2rem !important;
   }
 
   .draft-card__name {
-    font-size: 0.5625rem !important;
+    font-size: 0.875rem !important;
     margin-bottom: 0.1rem !important;
     line-height: 1.1 !important;
   }
@@ -1760,7 +1759,7 @@ button.autopsy-strip:hover {
   }
 
   .draft-card__stats span {
-    font-size: 0.45rem !important;
+    font-size: 0.75rem !important;
   }
 
   .draft-card-traits {
@@ -1774,7 +1773,7 @@ button.autopsy-strip:hover {
   .draft-card-btn {
     padding-top: 0.15rem !important;
     padding-bottom: 0.15rem !important;
-    font-size: 0.45rem !important;
+    font-size: 0.8125rem !important;
     line-height: 1.15;
     border-radius: 0.35rem !important;
   }

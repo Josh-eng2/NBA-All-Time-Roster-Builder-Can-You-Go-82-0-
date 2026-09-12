@@ -69,6 +69,34 @@ test('cloud deletion alone never releases a still-existing account', async () =>
   cloud.releaseDeletedAccount('A');
   assert.equal(store.has('nba820_owner'), false);
 });
+
+test('a cloud delete completing after an account switch cannot continue account deletion', async () => {
+  setup();
+  let finish, called;
+  saveTest.delete = uid => { called = uid; return new Promise(resolve => { finish = resolve; }); };
+  const deleting = cloud.deleteCloudSave('A');
+  await Promise.resolve();
+  assert.equal(called, 'A');
+  saveTest.user = { uid: 'B' };
+  cloud.invalidateSync();
+  finish({ ok: true });
+  assert.equal((await deleting).code, 'stale-session');
+});
+
+test('a queued delete checks identity before it touches cloud storage', async () => {
+  setup();
+  let finish;
+  saveTest.fetch = () => new Promise(resolve => { finish = resolve; });
+  const pending = cloud.syncOnSignIn('A');
+  await Promise.resolve();
+  saveTest.delete = () => assert.fail('must not delete after account switch');
+  const deleting = cloud.deleteCloudSave('A');
+  saveTest.user = { uid: 'B' };
+  cloud.invalidateSync();
+  finish({ ok: true, exists: false });
+  await pending;
+  assert.equal((await deleting).code, 'stale-session');
+});
 test('a delayed fetch after account change cannot adopt or upload its result', async () => {
   const store = setup(), before = [...store];
   let resolveFetch;

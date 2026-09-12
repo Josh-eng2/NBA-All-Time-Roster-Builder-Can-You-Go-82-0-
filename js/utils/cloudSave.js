@@ -472,7 +472,7 @@ function mergeDailyLast(a, b) {
   return dx > dy ? x : y;
 }
 
-/** Dynasty Duel weekly lock — the Daily rule on a weekly cadence. */
+/** Unlimited duels: the latest outcome wins, including losses in the same week. */
 function mergeDuelLast(a, b) {
   const x = obj(a);
   const y = obj(b);
@@ -480,7 +480,12 @@ function mergeDuelLast(a, b) {
   if (!y) return x;
   const wx = typeof x.weekKey === 'string' ? x.weekKey : null;
   const wy = typeof y.weekKey === 'string' ? y.weekKey : null;
-  if (wx === wy) return num(x.at, Infinity) <= num(y.at, Infinity) ? x : y;
+  if (wx === wy) {
+    if (num(x.at) !== num(y.at)) return num(x.at) > num(y.at) ? x : y;
+    // Stable tie-break for same-millisecond outcomes; never resurrect a loss.
+    if ((x.won === false) !== (y.won === false)) return x.won === false ? x : y;
+    return canonicalJson(x) <= canonicalJson(y) ? x : y;
+  }
   if (!wx) return y;
   if (!wy) return x;
   return wx > wy ? x : y;
@@ -604,7 +609,13 @@ export function mergeSaves(a, b) {
   };
 
   const duel = out.save.dynastyDuel;
-  if (duel.last?.won === false && duel.last.weekKey > (duel.streak?.lastWinWeek || '')) {
+  if (duel.last) {
+    const latestA = canonicalJson(duel.last) === canonicalJson(ua.last);
+    const latestB = canonicalJson(duel.last) === canonicalJson(ub.last);
+    if (latestA && !latestB && obj(ua.streak)) duel.streak = ua.streak;
+    if (latestB && !latestA && obj(ub.streak)) duel.streak = ub.streak;
+  }
+  if (duel.last?.won === false) {
     duel.streak = { ...duel.streak, streak: 0 };
   }
   const ea = obj(sa.bests) || {};
@@ -848,6 +859,9 @@ export function applyRemoteToDevice(uid, remote) {
       try { recoverHandoff(); } catch (_) { /* recover on the next sign-in */ }
       throw error;
     }
+    // Notify this tab as well as the other tabs receiving the storage event.
+    // Saved progress is already parked; an in-memory run must not change owner.
+    try { window.dispatchEvent(new CustomEvent('nba820-owner-change', { detail: { previousOwner: owner, owner: uid } })); } catch (_) {}
     return { merged: adopted, handedOff: true, complete };
   }
 
@@ -966,7 +980,10 @@ export function requestSync(uid, displayName) {
  * claimed until the separate Authentication deletion succeeds. */
 export async function deleteCloudSave(uid) {
   invalidateSync();
-  const res = await serializeSync(() => deleteUserSave(uid));
+  const generation = syncGeneration;
+  const current = () => !!uid && currentUserSync()?.uid === uid && generation === syncGeneration;
+  const res = await serializeSync(() => current() ? deleteUserSave(uid) : { ok: false, code: 'stale-session' });
+  if (!current()) return { ok: false, code: 'stale-session' };
   // Ownership is released only after Firebase Authentication deletion succeeds.
   return res;
 }

@@ -291,7 +291,7 @@ test("today's Daily lock cannot be dodged by switching devices", () => {
 
 // ── Dynasty Duel ──────────────────────────────────────────────────────────────
 
-test('dynasty duel locks on the later week and keeps the first attempt', () => {
+test('dynasty duel keeps the latest outcome, including repeat attempts in a week', () => {
   const wk1 = { weekKey: '2026-08-24', won: true,  score: 300, at: 100 };
   const wk2 = { weekKey: '2026-08-31', won: false, score: 10,  at: 200 };
   const a = snap({ dynastyDuel: { last: wk1, streak: { streak: 5, lastWinWeek: '2026-08-24' } } });
@@ -305,7 +305,23 @@ test('dynasty duel locks on the later week and keeps the first attempt', () => {
     snap({ dynastyDuel: { last: { weekKey: '2026-08-31', at: 500 }, streak: null } }),
     snap({ dynastyDuel: { last: { weekKey: '2026-08-31', at: 900 }, streak: null } }),
   );
-  assert.equal(same.save.dynastyDuel.last.at, 500, 'same week keeps the first attempt');
+  assert.equal(same.save.dynastyDuel.last.at, 900, 'same week keeps the latest attempt');
+});
+
+test('duel win/loss/win merges preserve the latest streak in either device order', () => {
+  const save = (won, at, streak) => snap({ dynastyDuel: {
+    last: { weekKey: '2026-08-31', won, at }, streak: { streak, lastWinWeek: '2026-08-31' },
+  } });
+  const win = save(true, 100, 5), loss = save(false, 200, 0), recovery = save(true, 300, 1);
+  for (const [a, b, won, streak] of [[win, loss, false, 0], [loss, recovery, true, 1], [win, recovery, true, 1], [win, save(false, 100, 0), false, 0]]) {
+    const before = JSON.stringify([a, b]);
+    for (const [x, y] of [[a, b], [b, a]]) {
+      const duel = mergeSaves(x, y).save.dynastyDuel;
+      assert.equal(duel.last.won, won);
+      assert.equal(duel.streak.streak, streak);
+    }
+    assert.equal(JSON.stringify([a, b]), before, 'merge must not mutate snapshots');
+  }
 });
 
 // ── Bests ─────────────────────────────────────────────────────────────────────

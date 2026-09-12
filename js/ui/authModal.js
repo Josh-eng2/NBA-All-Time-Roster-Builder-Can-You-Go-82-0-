@@ -141,6 +141,8 @@ function humanError(code) {
       return 'Accounts are not switched on yet. Nothing is wrong with yours.';
     case 'auth/requires-recent-login':
       return 'For safety this needs a fresh sign-in. Sign out, sign back in, then try again.';
+    case 'auth/user-mismatch':
+      return 'The signed-in account changed. Close this window and confirm deletion again.';
     case 'auth/unavailable':
       return 'Accounts are unavailable right now. Your progress on this device is unaffected.';
 
@@ -191,6 +193,7 @@ function humanError(code) {
 // ── Shell ─────────────────────────────────────────────────────────────────────
 
 let _view  = 'signin';
+let _deleteUid = null;
 let _email = '';
 let _phone = '';
 // Whether the phone attempt in flight is LINKING to the signed-in account or
@@ -458,6 +461,7 @@ function paint(view, user) {
   const el = root();
   if (!el) return;
   _view = view;
+  _deleteUid = view === 'delete' ? user?.uid || null : null;
   el.innerHTML = shellHtml(view, user);
   // Only the FIELD listeners are re-bound here. The delegated action listeners
   // live on the root, which paint() does not replace — see wireActions().
@@ -702,7 +706,13 @@ async function doDelete() {
   // the loser of that race reported "Something went wrong" over a deletion
   // that had in fact succeeded.
   setBusy(true, 'Deleting…');
+  const expectedUid = _deleteUid;
   const user = await getCurrentUser();
+  if (!expectedUid || user?.uid !== expectedUid) {
+    setBusy(false);
+    banner('The signed-in account changed. Close this window and confirm deletion again.');
+    return;
+  }
   // Cloud save first: once the auth account is gone the rules no longer let
   // anyone — including us — touch the document it owned. So a failure here
   // has to STOP the deletion: carrying on would erase the only credential
@@ -718,7 +728,7 @@ async function doDelete() {
       return;
     }
   }
-  const res = await deleteAccount();
+  const res = await deleteAccount(expectedUid);
   setBusy(false);
   if (!res.ok) { banner(humanError(res.code)); return; }
   releaseDeletedAccount(user?.uid);
@@ -856,7 +866,7 @@ export async function showAuthModal(view = 'signin') {
   });
 
   _busy = false;
-  paint(view, view === 'account' ? await getCurrentUser() : null);
+  paint(view, USER_VIEWS.includes(view) ? await getCurrentUser() : null);
 }
 
 export function closeAuthModal() {

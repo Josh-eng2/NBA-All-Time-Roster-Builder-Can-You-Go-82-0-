@@ -118,6 +118,10 @@ export function chemTierColors(tierId, dark = false) {
 
 const FLOOR_SLOTS = ['PG', 'SG', 'SF', 'PF', 'C'];
 
+// Player averages are stored to hundredths. Sum those integers so a threshold
+// like 28 RPG cannot become 28.000000000000004 when the roster is reversed.
+const statTotal = (players, key) => players.reduce((sum, p) => sum + Math.round(p[key] * 100), 0) / 100;
+
 // Ordered slot selections P(5, n), memoized by n. The pool is always
 // FLOOR_SLOTS, so the permutation set never changes — but optimizeLineup runs
 // inside hot paths (AI-draft candidate scoring calls calculateChemistry twice
@@ -370,9 +374,7 @@ export function calculateChemistry(starters, coachId = null) {
       `Dynamic Duo${coach === 'jackson' ? ' ⭐ Triangle' : coach === 'rivers' ? ' ⭐ Ubuntu' : ''}: Explosive baseline tandem active (+${Math.round(bonus * 100)}%)`);
   }
 
-  const pfcBlocks = starters
-    .filter(p => p.pos === 'PF' || p.pos === 'C')
-    .reduce((sum, p) => sum + p.bpg, 0);
+  const pfcBlocks = statTotal(starters.filter(p => p.pos === 'PF' || p.pos === 'C'), 'bpg');
   if (starters.filter(p => p.pos === 'PF' || p.pos === 'C').length === 2 && pfcBlocks >= 3.5) {
     synergy('paint-patrol', 'defense', 0.05,
       'Paint Patrol: Defensive interior blocks active (+5%)');
@@ -384,9 +386,7 @@ export function calculateChemistry(starters, coachId = null) {
       `Three-and-D Paradigm${coach === 'kerr' ? ' ⭐ Kerr' : ''}: Flawless modern floor symmetry (+${Math.round(bonus * 100)}%)`);
   }
 
-  const sPerimSteals = starters
-    .filter(p => p.pos === 'PG' || p.pos === 'SG')
-    .reduce((sum, p) => sum + p.spg, 0);
+  const sPerimSteals = statTotal(starters.filter(p => p.pos === 'PG' || p.pos === 'SG'), 'spg');
   if (starters.filter(p => p.pos === 'PG' || p.pos === 'SG').length === 2 && sPerimSteals >= 3.6) {
     synergy('perimeter-clamps', 'defense', 0.05,
       'Perimeter Clamps: Stifling backcourt on-ball pressure (+5%)');
@@ -394,7 +394,7 @@ export function calculateChemistry(starters, coachId = null) {
 
   // Dominant frontcourt rebounding
   const frontcourt = starters.filter(p => p.pos === 'SF' || p.pos === 'PF' || p.pos === 'C');
-  const fcRPG      = frontcourt.reduce((sum, p) => sum + p.rpg, 0);
+  const fcRPG      = statTotal(frontcourt, 'rpg');
   if (frontcourt.length >= 2 && fcRPG > 28) {
     const bonus = coach === 'auerbach' ? 0.09 : 0.07;
     synergy('board-crashers', 'defense', bonus,
@@ -700,7 +700,7 @@ export function calculateChemistry(starters, coachId = null) {
     }
   }
 
-  const totalFcRPG = frontcourt.reduce((s, p) => s + p.rpg, 0);
+  const totalFcRPG = fcRPG;
   if (frontcourt.length >= 2 && !sHasPaintBeast && totalFcRPG < 18.0) {
     penalty('rebounding-crisis', 0.07,
       `Rebounding Crisis: Frontcourt combines for only ${totalFcRPG.toFixed(1)} RPG with no Paint Beast in sight (-7%)`);
@@ -735,9 +735,7 @@ export function calculateChemistry(starters, coachId = null) {
   }
 
   if (coach !== 'auerbach') {
-    const pfcBlocksLow = starters
-      .filter(p => p.pos === 'PF' || p.pos === 'C')
-      .reduce((sum, p) => sum + p.bpg, 0);
+    const pfcBlocksLow = pfcBlocks;
     if (starters.filter(p => p.pos === 'PF' || p.pos === 'C').length === 2 && pfcBlocksLow < 1.5) {
       penalty('no-paint-protection', 0.07,
         'No Paint Protection: Frontcourt blocks fall below 1.5 BPG (-7%)');

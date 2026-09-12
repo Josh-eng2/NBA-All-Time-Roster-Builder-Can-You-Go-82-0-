@@ -482,8 +482,13 @@
             worker.addEventListener('statechange', offerUpdate);
           });
         }).catch(function () {});
-        var controlled = !!navigator.serviceWorker.controller;
-        navigator.serviceWorker.addEventListener('controllerchange', function () { if (controlled) location.reload(); });
+        // The worker changes the query to force a full document navigation.
+        // Remove that internal marker while preserving routes and attribution.
+        var updateUrl = new URL(location.href);
+        if (updateUrl.searchParams.has('__820_update')) {
+          updateUrl.searchParams.delete('__820_update');
+          history.replaceState(history.state, '', updateUrl.href);
+        }
       });
     }
   </script>
