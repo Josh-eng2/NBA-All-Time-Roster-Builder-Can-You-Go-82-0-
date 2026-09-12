@@ -47,6 +47,7 @@
  *   submitDailyScore(entry)     — writes one document to 'dailyLeaderboard'
  *   fetchDailyLeaderboard(date) — reads top entries for a 'YYYY-MM-DD' day
  *   fetchDailyCommunityStats(date) — { attempts, passed, pct } for the day's board
+ *   measure(name, fn, attrs)    — times fn() as a Firebase Performance trace
  */
 
 // The SDK is loaded via dynamic import (below), not a static one. main.js and
@@ -60,7 +61,8 @@ let initializeApp, getApps, getFirestore, initializeFirestore, collection, addDo
     query, orderBy, limit, where, serverTimestamp, Timestamp,
     doc, getDoc, setDoc, deleteDoc, runTransaction, startAfter, documentId,
     getAnalytics, logEvent,
-    initializeAppCheck, ReCaptchaV3Provider;
+    initializeAppCheck, ReCaptchaV3Provider,
+    getPerformance, trace;
 
 // Exported so js/utils/auth.js loads `firebase-auth.js` from this exact same
 // pinned version. It must not keep a second copy of this URL: the browser
@@ -71,12 +73,12 @@ let initializeApp, getApps, getFirestore, initializeFirestore, collection, addDo
 export const SDK_BASE = 'https://www.gstatic.com/firebasejs/10.12.4';
 
 /**
- * Assembles the SDK from three settled dynamic imports.
+ * Assembles the SDK from five settled dynamic imports.
  *
  * Analytics is OPTIONAL and Firestore is not. `firebase-analytics.js` is on
  * essentially every ad/tracker blocklist (uBlock Origin, Brave Shields,
  * Firefox ETP, Pi-hole, NextDNS), while `firebase-firestore.js` is on almost
- * none — so loading all three with Promise.all meant one blocked analytics
+ * none — so loading them all with Promise.all meant one blocked analytics
  * module rejected the lot, left the Firebase app uninitialised, and made every
  * leaderboard read AND every score submission fail with "Firebase unavailable"
  * for a player whose Firestore access was working perfectly.
@@ -95,17 +97,27 @@ export const SDK_BASE = 'https://www.gstatic.com/firebasejs/10.12.4';
  * make — so it degrades to "submitted without a token" and lets Firestore
  * answer, exactly as it already degrades to "submitted without analytics".
  *
- * @param {PromiseSettledResult<any>[]} settled  [app, firestore, analytics, appCheck]
- * @returns {{ app: object, firestore: object, analytics: object|null, appCheck: object|null }|null}
+ * Performance Monitoring is optional for the same reason analytics is, and
+ * from the same direction: `firebase-performance.js` sits on those same
+ * blocklists, so a fifth REQUIRED gstatic import would reintroduce the exact
+ * v13 bug this function exists to prevent — one blocked telemetry module
+ * taking the whole leaderboard down with it. Timing data is the least
+ * important thing this module loads and must be the first thing given up.
+ *
+ * @param {PromiseSettledResult<any>[]} settled
+ *   [app, firestore, analytics, appCheck, performance]
+ * @returns {{ app: object, firestore: object, analytics: object|null,
+ *             appCheck: object|null, performance: object|null }|null}
  *   null only when a REQUIRED module is missing.
  */
-export function sdkFromSettled([app, firestore, analytics, appCheck] = []) {
+export function sdkFromSettled([app, firestore, analytics, appCheck, performance] = []) {
   if (app?.status !== 'fulfilled' || firestore?.status !== 'fulfilled') return null;
   return {
-    app:       app.value,
-    firestore: firestore.value,
-    analytics: analytics?.status === 'fulfilled' ? analytics.value : null,
-    appCheck:  appCheck?.status === 'fulfilled' ? appCheck.value : null,
+    app:         app.value,
+    firestore:   firestore.value,
+    analytics:   analytics?.status   === 'fulfilled' ? analytics.value   : null,
+    appCheck:    appCheck?.status    === 'fulfilled' ? appCheck.value    : null,
+    performance: performance?.status === 'fulfilled' ? performance.value : null,
   };
 }
 
@@ -127,6 +139,7 @@ function loadSdk() {
       import(`${SDK_BASE}/firebase-firestore.js`),
       import(`${SDK_BASE}/firebase-analytics.js`),
       import(`${SDK_BASE}/firebase-app-check.js`),
+      import(`${SDK_BASE}/firebase-performance.js`),
     ]).then(settled => {
       const sdk = sdkFromSettled(settled);
       if (!sdk) { _sdkPromise = null; _sdkRetryAt = Date.now() + SDK_RETRY_COOLDOWN_MS; }
@@ -209,6 +222,7 @@ let _db        = null;
 let _analytics = null;
 let _app       = null;
 let _appCheck  = null;
+let _perf      = null;
 
 // Initialize the Firebase app and Analytics eagerly at module load (kicked
 // off below, not awaited) so that session tracking and page-view events fire
@@ -266,6 +280,11 @@ function ensureInit() {
           ({ getAnalytics, logEvent } = sdk.analytics ?? {});
           // Same `?? {}` reasoning as analytics: App Check is optional here.
           ({ initializeAppCheck, ReCaptchaV3Provider } = sdk.appCheck ?? {});
+          // And again for Performance: firebase-performance.js is on the same
+          // blocklists as analytics, so sdk.performance is null whenever it
+          // was blocked, and destructuring that null would throw into the
+          // catch below and null out _app.
+          ({ getPerformance, trace } = sdk.performance ?? {});
           const existing = getApps();
           _app = existing.length ? existing[0] : initializeApp(FIREBASE_CONFIG);
           // Before any Firestore call, so the very first read/write already
@@ -273,6 +292,12 @@ function ensureInit() {
           setUpAppCheck(_app);
           if (getAnalytics) {
             try { _analytics = getAnalytics(_app); } catch (_) { /* blocked by adblocker */ }
+          }
+          // Constructing this is all the auto-instrumentation needs: page-load
+          // timing (TTFB, FCP, DOM load) and every fetch/XHR start reporting
+          // themselves from here on. Custom traces go through measure() below.
+          if (getPerformance) {
+            try { _perf = getPerformance(_app); } catch (_) { /* blocked by adblocker */ }
           }
         } catch (_) { _app = null; }
       }
@@ -475,6 +500,49 @@ export function logAnalyticsEvent(eventName, params = {}) {
       if (_analytics) logEvent(_analytics, eventName, context);
     } catch (_) { /* silently ignore */ }
   }).catch(() => {});
+}
+
+// ── Performance traces ────────────────────────────────────────────────────────
+
+/**
+ * Times `fn()` as a named Firebase Performance custom trace.
+ *
+ * Deliberately SYNCHRONOUS, unlike logAnalyticsEvent(): the calls worth
+ * measuring here (simulateSeason, buildDraftBoard) are sync CPU burns on the
+ * main thread, and awaiting ensureInit() first would both push the work into a
+ * microtask and change when it runs relative to the render that follows it.
+ * The trade-off is that `_perf` may not exist yet — the SDK arrives via a
+ * dynamic import, so a trace fired in the first few hundred ms of page life
+ * silently no-ops. Every measured call site is behind a user interaction, so
+ * that window is not reachable in practice.
+ *
+ * `fn()` runs and its value is returned whether or not the trace could be
+ * started: an ad blocker on firebase-performance.js must cost timing data, not
+ * the season simulation itself. Hence the try/finally and the swallowed
+ * throws — a stop() failure must not mask an exception from fn().
+ *
+ * @param {string} name  trace name; Firebase allows <=100 chars of [A-Za-z0-9_]
+ * @param {Function} fn  synchronous work to measure
+ * @param {object} [attrs]  low-cardinality string dimensions to slice by in the
+ *   console, e.g. { mode: 'gm-ai' }. Firebase caps this at 5 per trace and
+ *   aggregates across users, so never put a player, team or user id in here.
+ * @returns {*} whatever fn() returns
+ */
+export function measure(name, fn, attrs = {}) {
+  let t = null;
+  try {
+    if (_perf && trace) { t = trace(_perf, name); t.start(); }
+  } catch (_) { t = null; }
+  try {
+    return fn();
+  } finally {
+    try {
+      if (t) {
+        for (const [k, v] of Object.entries(attrs)) t.putAttribute(k, String(v));
+        t.stop();
+      }
+    } catch (_) { /* a broken trace must never break the game */ }
+  }
 }
 
 // ── Public API ────────────────────────────────────────────────────────────────

@@ -4,6 +4,11 @@ import vm from 'node:vm';
 import { readFileSync } from 'node:fs';
 
 const source = readFileSync(new URL('../sw.js', import.meta.url), 'utf8');
+// Read out of sw.js rather than restated here: the update-navigation assertion
+// below checks the query parameter the worker stamps on each reopened tab, and
+// that carries CACHE_VERSION. Hard-coding it made every routine cache bump fail
+// a test that has nothing to do with what the bump changed.
+const CACHE_VERSION = source.match(/const CACHE_VERSION = '([^']+)'/)[1];
 function worker({ broken = '', offline = false, status = 200, windows = [] } = {}) {
   const listeners = {}, stores = new Map();
   const key = value => new URL(value.url || value, 'https://game.test/').href;
@@ -46,7 +51,7 @@ test('accepted update navigates every old scope tab without requiring page liste
   await w.dispatch('message', { data: { type: 'ACTIVATE_UPDATE' } });
   await w.dispatch('activate');
   assert.deepEqual(navigated, windows.slice(1, 3).map(w => {
-    const url = new URL(w.url); url.searchParams.set('__820_update', '820-v40'); return url.href;
+    const url = new URL(w.url); url.searchParams.set('__820_update', CACHE_VERSION); return url.href;
   }));
   assert.equal(w.claims(), 1, 'navigation requires this worker to control the target');
 });

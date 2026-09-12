@@ -30,7 +30,7 @@ import {
   showDailyStatsModal, closeDailyStatsModal,
   saveModeLeaderboard, getDynastyDuelStatus, markDynastyDuelPlayed,
 } from '../utils/storage.js';
-import { submitGlobalScore, submitDailyScore, logAnalyticsEvent } from '../utils/firebase.js';
+import { submitGlobalScore, submitDailyScore, logAnalyticsEvent, measure } from '../utils/firebase.js';
 import { cgGetItem, cgSetItem } from '../utils/crazygames.js';
 import { gdShowAd, gdShowRewardedAd } from '../utils/gamedistribution.js';
 import { buildShareCardBlob, buildShareCaption } from './shareCard.js';
@@ -754,10 +754,14 @@ export function doSpin() {
         S.spinState = 'idle'; S.phase = 'mode-select'; S.mode = null; render();
         showToast('This shared board has no remaining players. Start a new challenge.'); return;
       }
-      const spin = forced ? forced
+      // Measured, not the 14-tick animation above it: that loop is a fixed
+      // ~1.26s on every device, so timing it would only report our own
+      // constant back to us. The wheel's real cost is picking a landing out of
+      // the remaining pool, which shrinks and gets pickier as the draft runs.
+      const spin = measure('spin_resolve', () => forced ? forced
         : rigGoat ? spinResultAtLeast('goat')
         : (rigStar || pity) ? spinResultAtLeast('star')
-        : spinResult();
+        : spinResult(), { round: String(S.round) });
       if (!spin) {
         // All player slots exhausted — reset to idle so the user isn't stuck
         S.spinState = 'idle';
@@ -768,7 +772,13 @@ export function doSpin() {
       S.currentSpin      = spin;
       S.spinState        = 'done';
       S.availablePlayers = getAvailablePlayers(spin.team, spin.decade);
-      S.draftBoard       = buildDraftBoard();
+      // The other half of perceived spin latency — this walks the pool and is
+      // the likelier culprit of the two on a low-end phone. `source` separates
+      // it from the identical call in animateSkipReveal(): a skip rebuilds the
+      // board against an already-narrowed pool, so the two are worth reading
+      // apart rather than as one blended average.
+      S.draftBoard       = measure('build_draft_board', () => buildDraftBoard(),
+                                   { round: String(S.round), source: 'spin' });
       S.selectedPlayer   = null;
       updateDryCounter();
       render();
@@ -875,7 +885,8 @@ function animateSkipReveal(spin, tumbleTeam, tumbleDecade) {
       S.currentSpin      = spin;
       S.spinState        = 'done';
       S.availablePlayers = getAvailablePlayers(spin.team, spin.decade);
-      S.draftBoard       = buildDraftBoard();
+      S.draftBoard       = measure('build_draft_board', () => buildDraftBoard(),
+                                   { round: String(S.round), source: 'skip' });
       S.selectedPlayer   = null;
       updateDryCounter();
       render();
@@ -1099,7 +1110,8 @@ function doSimulate() {
   // Dynasty Duel — skip the 82-game ticker; go straight to a best-of-7.
   if (S.mode === 'dynasty-duel') {
     const opponent = S.dynastyOpponent || pickDynastyForPlay();
-    S.result = simulateSeason(starters, S.coach);
+    S.result = measure('simulate_season', () => simulateSeason(starters, S.coach),
+                       { mode: S.mode, era: S.selectedEra || 'all' });
     S.result.newLegends = recordLegends(starters).length;
     S.seriesResult = simulateDynastySeries(S.result, opponent);
     S.seriesRevealedCount = 0;
@@ -1137,7 +1149,12 @@ function doSimulate() {
     return;
   }
 
-  S.result  = simulateSeason(starters, S.coach);
+  // The button says "SIMULATE 82 GAMES" and this is the whole of it: one
+  // synchronous main-thread burn between the click and the next paint. The
+  // attributes are what make the trace worth having — Firebase slices p50/p90
+  // by them, so a mode or an era that is quietly slower shows up on its own.
+  S.result  = measure('simulate_season', () => simulateSeason(starters, S.coach),
+                      { mode: S.mode, era: S.selectedEra || 'all' });
   S.runSaved = false;
 
   // Meta-progression: every started legend joins the permanent collection.
