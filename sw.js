@@ -278,7 +278,14 @@
 //       letter of the player's email. Changed precached files: js/ui/render.js
 //       and css/styles.css. The initial remains the fallback for a progression
 //       that cannot be read, so the pill never paints empty.
-const CACHE_VERSION = '820-v38';
+//
+//   v39 Apple sign-in switched back OFF. Changed precached file:
+//       js/utils/remoteConfig.js — auth_apple_enabled defaults false again.
+//       Enabled, its button opened the popup and returned
+//       auth/operation-not-allowed: the Console toggle reads Enabled but the
+//       Apple credentials behind it are not usable, so every tap was a dead
+//       button. Google and phone are unaffected and stay on.
+const CACHE_VERSION = '820-v39';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 

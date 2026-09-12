@@ -99,16 +99,25 @@ export const DEFAULTS = {
   // provider is enabled in Firebase Console → Authentication → Sign-in method,
   // and after signing in with it once yourself.
   //
-  // All three now read Enabled in the Console under Authentication → Sign-in
-  // method, so the defaults here are true and the buttons are part of the
-  // shipped build. Publishing a key false in Remote Config still hides that one
-  // provider with no deploy, which stays the rollback if one misbehaves — and
-  // note a key published false in the Console beats the default here, so a
-  // provider still hidden after this change is one whose Remote Config
-  // parameter is published false.
-  auth_google_enabled: { value: true, type: 'boolean' },
-  auth_apple_enabled:  { value: true, type: 'boolean' },
-  auth_phone_enabled:  { value: true, type: 'boolean' },
+  // Google and phone read Enabled in the Console under Authentication →
+  // Sign-in method and are on. Publishing a key false in Remote Config hides
+  // that one provider with no deploy, which stays the rollback if one
+  // misbehaves — and note a key published false in the Console beats the
+  // default here, so a provider hidden despite a true below is one whose
+  // Remote Config parameter is published false.
+  //
+  // APPLE IS OFF, and this is the paragraph above proving itself rather than a
+  // guess: switched on, its button opened the popup and came back with
+  // auth/operation-not-allowed — the Identity Toolkit refusing the provider.
+  // Reading Enabled in the Console is NOT the same as being usable: Apple only
+  // works once the Services ID, Team ID, Key ID and .p8 signing key behind that
+  // toggle are filled in and valid, which needs a paid Apple Developer
+  // membership. Until then every tap is a dead button, so there must not be
+  // one. Turn it back on by publishing auth_apple_enabled = true — no deploy,
+  // no cache roll — after signing in with Apple once yourself.
+  auth_google_enabled: { value: true,  type: 'boolean' },
+  auth_apple_enabled:  { value: false, type: 'boolean' },
+  auth_phone_enabled:  { value: true,  type: 'boolean' },
 
   // Sim curve — see the measured anchors and method at the top of
   // js/logic/simulation.js. Bounds are roughly ±30 % around the calibrated
