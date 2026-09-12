@@ -187,3 +187,45 @@ test('an inbound deep link is not clobbered by the first menu render', () => {
   assert.deepEqual(hashWrites(), []);
   globalThis.location.hash = '';
 });
+
+test('a result bound to A cannot save or award progress after storage hands off to B', async () => {
+  const { applyRemoteToDevice, emptySave } = await import('../js/utils/cloudSave.js');
+  localStorage.clear(); localStorage.setItem('nba820_owner', 'A');
+  state.startGame('all'); state.S.mode = 'solo'; state.S.coach = 'jackson';
+  state.POSITIONS.forEach((pos, i) => { state.S.roster[pos] = five[i]; });
+  state.S.result = g.sim.simulateSeason(five, 'jackson'); state.S.phase = 'results';
+  render(); // bind this real result to A before the account transition
+  const input = makeEl('input'); input.value = 'Player A roster';
+  registerEl('team-name-input', input);
+  try {
+    applyRemoteToDevice('B', emptySave());
+    const { readLocalSave } = await import('../js/utils/cloudSave.js');
+    const before = readLocalSave().snapshot.save;
+    app.__fire('click', { target: { closest: () => ({ dataset: { action: 'save-run' } }) } });
+    assert.equal(state.S.phase, 'mode-select');
+    assert.equal(state.S.result, null);
+    assert.equal(state.S.gameId, null);
+    assert.deepEqual(readLocalSave().snapshot.save, before, 'the previous run cannot add progress to B');
+  } finally { unregisterEl('team-name-input'); localStorage.clear(); }
+});
+
+test('a guest run survives its first ownership claim and owner sign-out', async () => {
+  const { ensureRunOwner } = await import('../js/ui/events.js');
+  localStorage.clear(); state.startGame('all'); state.S.mode = 'solo'; render();
+  const id = state.S.gameId;
+  localStorage.setItem('nba820_owner', 'A');
+  assert.equal(ensureRunOwner(), true);
+  assert.equal(state.S.gameId, id);
+  assert.equal(ensureRunOwner(), true, 'signed-out play keeps the durable owner');
+  localStorage.clear();
+});
+
+test('a run stops while another tab is replacing the device save', async () => {
+  const { ensureRunOwner } = await import('../js/ui/events.js');
+  localStorage.clear(); localStorage.setItem('nba820_owner', 'A');
+  state.startGame('all'); state.S.mode = 'solo'; render();
+  localStorage.setItem('nba820_handoff_pending', JSON.stringify({ owner: 'A', raw: {} }));
+  assert.equal(ensureRunOwner(), false);
+  assert.equal(state.S.gameId, null);
+  localStorage.clear();
+});

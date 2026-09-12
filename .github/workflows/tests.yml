@@ -73,6 +73,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -92,3 +94,4 @@ jobs:
           trap 'kill "$server_pid"' EXIT
           for attempt in 1 2 3 4 5; do curl -fsS http://127.0.0.1:8001/ > /dev/null && break; sleep 1; done
           node tests/browser-smoke.mjs
+          node tests/browser-playtest-regressions.mjs

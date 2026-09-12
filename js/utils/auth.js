@@ -771,16 +771,19 @@ export async function sendPasswordReset(email) {
  * 'auth/requires-recent-login' when the session is too old. That is a normal
  * outcome to be shown to the player, not an error to swallow.
  *
+ * @param {string} expectedUid The account displayed in the deletion confirmation.
  * @returns {Promise<{ok: true}|{ok: false, code: string, message: string}>}
  */
-export async function deleteAccount() {
+export async function deleteAccount(expectedUid) {
   const auth = await ensureAuth();
   if (!auth) return fail(null, UNAVAILABLE);
   const user = auth.currentUser;
   if (!user) return fail(null, 'auth/no-current-user');
+  if (!expectedUid || user.uid !== expectedUid) return fail(null, 'auth/user-mismatch');
   try {
     await deleteUser(user);
-    _lastUser = null;
+    // A different account may have signed in while this request was pending.
+    _lastUser = userSnapshot(auth.currentUser);
     return { ok: true };
   } catch (err) {
     return fail(err, 'auth/delete-failed');

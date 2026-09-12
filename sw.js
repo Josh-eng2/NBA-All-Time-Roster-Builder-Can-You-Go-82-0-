@@ -266,7 +266,7 @@
 //       provider is switched on by publishing its key, with no deploy and no
 //       further cache roll — and a returning player on the cached v33 bundle
 //       would not have the code to honour it.
-const CACHE_VERSION = '820-v35';
+const CACHE_VERSION = '820-v36';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 
@@ -337,8 +337,13 @@ self.addEventListener('install', event => {
     // or the player explicitly accepts the update invitation.
   })());
 });
+// Persist consent across worker suspension between message and activation.
+const UPDATE_ACCEPTED = './__update_accepted__';
 self.addEventListener('message', event => {
-  if (event.data?.type === 'ACTIVATE_UPDATE') event.waitUntil(self.skipWaiting());
+  if (event.data?.type === 'ACTIVATE_UPDATE') event.waitUntil((async () => {
+    await (await caches.open(PRECACHE)).put(UPDATE_ACCEPTED, new Response('yes'));
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener('activate', event => {
@@ -349,7 +354,28 @@ self.addEventListener('activate', event => {
           .filter(key => /^(precache|runtime)-820-v/.test(key) && key !== PRECACHE && key !== RUNTIME)
           .map(key => caches.delete(key))
       )
-    ).then(() => self.clients.claim())
+    ).then(async () => {
+      const cache = await caches.open(PRECACHE);
+      if (await cache.match(UPDATE_ACCEPTED)) {
+        // Navigate even pre-v35 pages, which have no controllerchange listener.
+        // navigate() requires this worker to control each target window.
+        const scope = self.registration.scope;
+        const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+        await self.clients.claim();
+        await cache.delete(UPDATE_ACCEPTED);
+        // Start each navigation, but do not await its load inside activation:
+        // the navigation's fetch must wait for this worker to finish activating.
+        for (const client of windows.filter(client => client.url.startsWith(scope))) {
+          const target = new URL(client.url);
+          // Navigating to the same URL with a hash can be a same-document
+          // route change. Change the query to guarantee a new module graph.
+          target.searchParams.set('__820_update', CACHE_VERSION);
+          client.navigate(target.href).catch(() => {}); // a tab may already have closed
+        }
+      } else {
+        await self.clients.claim();
+      }
+    })
   );
 });
 

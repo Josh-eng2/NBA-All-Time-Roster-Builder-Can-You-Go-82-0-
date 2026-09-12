@@ -79,7 +79,9 @@ test('the confetti bundle is vendored, same-origin and licensed', () => {
 
 test('every app module is precached, and everything precached exists', () => {
   const sw = read('sw.js');
-  const listed = [...sw.matchAll(/'\.\/([^']*)'/g)].map(m => m[1]).filter(p => p !== '');
+  const precache = sw.match(/const PRECACHE_URLS = \[([\s\S]*?)\];/)?.[1];
+  assert.ok(precache, 'the precache inventory must be inspectable');
+  const listed = [...precache.matchAll(/'\.\/([^']*)'/g)].map(m => m[1]).filter(p => p !== '');
 
   for (const rel of appModules()) {
     assert.ok(listed.includes(rel),
