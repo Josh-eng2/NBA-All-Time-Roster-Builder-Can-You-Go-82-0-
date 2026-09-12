@@ -273,7 +273,27 @@
 //       appear on the sign-in and create-account views. No other code changed;
 //       a returning player on the cached v36 bundle would keep the old
 //       defaults and see none of them, which is what this bump is for.
-const CACHE_VERSION = '820-v37';
+//
+//   v38 the account pill shows the GM level as a crest instead of the first
+//       letter of the player's email. Changed precached files: js/ui/render.js
+//       and css/styles.css. The initial remains the fallback for a progression
+//       that cannot be read, so the pill never paints empty.
+//
+//   v39 Apple sign-in switched back OFF. Changed precached file:
+//       js/utils/remoteConfig.js — auth_apple_enabled defaults false again.
+//       Enabled, its button opened the popup and returned
+//       auth/operation-not-allowed: the Console toggle reads Enabled but the
+//       Apple credentials behind it are not usable, so every tap was a dead
+//       button. Google and phone are unaffected and stay on.
+//
+//   v40 Sign in with Apple removed. Changed precached files: js/utils/auth.js
+//       (the PROVIDERS entry, the OAuthProvider branch and its binding),
+//       js/ui/authModal.js (the mark, the label, the action and the account
+//       view's link row), js/utils/remoteConfig.js (auth_apple_enabled is gone,
+//       so a parameter left in the Console is inert) and css/styles.css. The
+//       provider was never usable — see v39 — and no account can hold an
+//       apple.com credential, so nothing a player has is affected.
+const CACHE_VERSION = '820-v40';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 

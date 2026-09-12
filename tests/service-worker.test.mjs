@@ -46,7 +46,7 @@ test('accepted update navigates every old scope tab without requiring page liste
   await w.dispatch('message', { data: { type: 'ACTIVATE_UPDATE' } });
   await w.dispatch('activate');
   assert.deepEqual(navigated, windows.slice(1, 3).map(w => {
-    const url = new URL(w.url); url.searchParams.set('__820_update', '820-v37'); return url.href;
+    const url = new URL(w.url); url.searchParams.set('__820_update', '820-v40'); return url.href;
   }));
   assert.equal(w.claims(), 1, 'navigation requires this worker to control the target');
 });

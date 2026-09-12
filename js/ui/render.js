@@ -279,8 +279,33 @@ function accountPillHtml(cls, { signedInOnly = false } = {}) {
   // A phone number's first character is '+', which is not an initial. Take the
   // first LETTER or DIGIT instead, and only fall back when there is neither.
   const initial = ([...label].find(ch => /[\p{L}\p{N}]/u.test(ch)) || '?').toUpperCase();
+  // The pill carries the GM level rather than that initial, so it reads as a
+  // rank the player earns rather than an accident of their email address, and
+  // so it changes as they play. Progression is DEVICE-local (see
+  // getProgression), so this is what has been played here, not what the
+  // account has played everywhere — the identity stays in the tooltip, which
+  // is what distinguishes two accounts on a shared device.
+  //
+  // Wrapped the way renderHomeIntro() wraps its own read: a progression that
+  // cannot be read falls back to the initial rather than to a blank pill.
+  let level = null;
+  try {
+    const n = getProgression().level;
+    if (Number.isFinite(n) && n >= 1) level = Math.floor(n);
+  } catch (e) { /* progression unavailable — fall through to the initial */ }
+
+  const face = level === null
+    ? esc(initial)
+    // aria-hidden because the number is already in the button's own label; a
+    // screen reader would otherwise announce the level twice.
+    : `<span class="account-crest${String(level).length > 2 ? ' account-crest--wide' : ''}"
+        aria-hidden="true">${level}</span>`;
+  // Both the tooltip and the label name the level: on its own the number is a
+  // glyph with nothing to say what it counts.
+  const title = level === null ? label : `${label} — Level ${level}`;
+  const name  = level === null ? 'Your account' : `Your account, Level ${level}`;
   return `<button data-action="open-account" type="button" class="${cls} account-pill account-pill--in"
-    title="${esc(label)}" aria-label="Your account">${esc(initial)}</button>`;
+    title="${esc(title)}" aria-label="${esc(name)}">${face}</button>`;
 }
 
 // ── Shared chrome ─────────────────────────────────────────────────────────────

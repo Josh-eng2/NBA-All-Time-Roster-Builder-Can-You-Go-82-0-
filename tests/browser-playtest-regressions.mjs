@@ -12,6 +12,13 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 const require = createRequire(resolve(process.env.PLAYWRIGHT_MODULE, 'package.json'));
 const { chromium } = require('./index.js');
 const exec = promisify(execFile);
+// The release under test, read from sw.js rather than written out here.
+// Hard-coding it made this assertion silently pin an old release: every
+// CACHE_VERSION bump left the literal behind, and the migration check below
+// then failed on main for a cache name that was in fact correct.
+const CACHE_VERSION = (await readFile(resolve(root, 'sw.js'), 'utf8'))
+  .match(/^const CACHE_VERSION = '([^']+)';$/m)?.[1];
+assert.ok(CACHE_VERSION, 'could not read CACHE_VERSION from sw.js');
 const browser = await chromium.launch({ headless: true, ...(process.env.BROWSER_EXE ? { executablePath: process.env.BROWSER_EXE } : {}) });
 const errors = [];
 let oldRef = null;
@@ -140,14 +147,14 @@ try {
         keys: await caches.keys(),
       }));
       assert.equal(state.schema, 2); assert.equal(state.ownership, 'function');
-      assert.ok(state.keys.every(k => k.endsWith('820-v36')), JSON.stringify(state));
+      assert.ok(state.keys.every(k => k.endsWith(CACHE_VERSION)), JSON.stringify(state));
     }
     assert.equal(new URL(second.url()).searchParams.get('ref'), 'migration');
     await ctx.setOffline(true);
     await first.reload();
     await first.locator('#app button').first().waitFor();
     assert.equal(await first.evaluate(async () => typeof (await import('/js/ui/events.js')).ensureRunOwner), 'function');
-    console.log(`Both ${ref} tabs refreshed to v36`);
+    console.log(`Both ${ref} tabs refreshed to ${CACHE_VERSION}`);
     await ctx.close();
   }
   assert.deepEqual(errors, []);

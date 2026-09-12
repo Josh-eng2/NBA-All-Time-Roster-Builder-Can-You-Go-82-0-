@@ -1,5 +1,5 @@
 /**
- * js/utils/auth.js — Firebase Authentication (email + password, Google, Apple, phone)
+ * js/utils/auth.js — Firebase Authentication (email + password, Google, phone)
  *
  * The ONLY module in this project that touches the Firebase Auth SDK. Consumed
  * by js/ui/authModal.js (the account modal) and js/ui/events.js (the session
@@ -51,11 +51,11 @@
  *   deleteAccount()              — delete the signed-in account
  *   providerEnabled(id)          — is this sign-in method switched on
  *   enabledProviders()           — the ids to offer, in display order
- *   signInWithProvider(id, opts) — Google / Apple, via popup
+ *   signInWithProvider(id, opts) — Google, via popup
  *   startPhoneSignIn(phone, el)  — send the SMS code
  *   confirmPhoneCode(code)       — finish the phone sign-in
  *   cancelPhoneSignIn()          — tear down the reCAPTCHA and drop the attempt
- *   linkProvider(id)             — attach Google / Apple to the CURRENT account
+ *   linkProvider(id)             — attach Google to the CURRENT account
  *   normalizePhone(raw)          — E.164 or null, exported for tests
  *
  * ONE ACCOUNT, SEVERAL DOORS
@@ -105,14 +105,6 @@
  *                   support email. No external account needed; the project is
  *                   already a Google Cloud project. Then publish
  *                   auth_google_enabled = true.
- *   Apple           Needs a PAID Apple Developer membership. Create an App ID
- *                   and a Services ID with Sign in with Apple, generate a .p8
- *                   key, then fill Services ID / Team ID / Key ID / private key
- *                   into Authentication → Sign-in method → Apple. Add
- *                   basketball-gm-sim-c33ed.firebaseapp.com to Apple's Domains
- *                   and Return URLs, and
- *                   https://basketball-gm-sim-c33ed.firebaseapp.com/__/auth/handler
- *                   as the return URL. Then publish auth_apple_enabled = true.
  *   Phone           Authentication → Sign-in method → Phone → enable. COSTS
  *                   MONEY past a small daily free allowance and needs the Blaze
  *                   plan for real volume — this project is otherwise entirely
@@ -192,7 +184,7 @@ let getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
     firebaseSignOut, sendEmailVerification, sendPasswordResetEmail,
     onAuthStateChanged, deleteUser,
     setPersistence, browserLocalPersistence, browserSessionPersistence,
-    GoogleAuthProvider, OAuthProvider, signInWithPopup, linkWithPopup,
+    GoogleAuthProvider, signInWithPopup, linkWithPopup,
     RecaptchaVerifier, signInWithPhoneNumber, linkWithPhoneNumber;
 
 // Same retry policy as firebase.js loadSdk(): a failed load is retried rather
@@ -233,7 +225,6 @@ function ensureAuth() {
         browserLocalPersistence,
         browserSessionPersistence,
         GoogleAuthProvider,
-        OAuthProvider,
         signInWithPopup,
         linkWithPopup,
         RecaptchaVerifier,
@@ -269,7 +260,7 @@ export function currentUserSync() {
  * The plain, SDK-free shape every caller sees.
  *
  * `providers` is the list of provider ids already attached to this account
- * ('password', 'google.com', 'apple.com', 'phone'). It is what lets the account
+ * ('password', 'google.com', 'phone'). It is what lets the account
  * view offer only the doors this account does not already have, and what keeps
  * rule 5 true now that there is more than one way in.
  *
@@ -442,19 +433,18 @@ async function applyPersistence(auth, remember) {
  *
  * `id` is ours and is what the UI and the Remote Config keys use; `providerId`
  * is Firebase's, and is what comes back in a user's providerData — the two are
- * kept apart deliberately, because 'apple.com' is a string the Console owns and
- * 'apple' is a string this codebase owns.
+ * kept apart deliberately, because 'google.com' is a string the Console owns
+ * and 'google' is a string this codebase owns.
  *
  * Order is display order: Google first because it is the one most players
  * already have, phone last because it is the one that costs money to send.
  */
 export const PROVIDERS = {
   google: { id: 'google', providerId: 'google.com', label: 'Google', flag: 'auth_google_enabled', kind: 'oauth' },
-  apple:  { id: 'apple',  providerId: 'apple.com',  label: 'Apple',  flag: 'auth_apple_enabled',  kind: 'oauth' },
   phone:  { id: 'phone',  providerId: 'phone',      label: 'phone',  flag: 'auth_phone_enabled',  kind: 'phone' },
 };
 
-const PROVIDER_ORDER = ['google', 'apple', 'phone'];
+const PROVIDER_ORDER = ['google', 'phone'];
 
 /**
  * Whether one method may be offered right now.
@@ -487,25 +477,14 @@ export function enabledProviders() {
  * which is the precise failure the cloud-save ownership rule spends a whole
  * section defending against. Making the chooser unconditional costs one tap.
  */
-function buildProvider(id) {
-  if (id === 'google') {
-    const provider = new GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: 'select_account' });
-    return provider;
-  }
-  // Apple has no dedicated class — it is a generic OIDC provider keyed by id.
-  // Both scopes are needed for a display name, and Apple returns the name only
-  // on the FIRST authorisation ever, so a player who has used Sign in with
-  // Apple here before comes back with an email and nothing else. That is Apple's
-  // design, not a bug to work around.
-  const provider = new OAuthProvider('apple.com');
-  provider.addScope('email');
-  provider.addScope('name');
+function buildProvider() {
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
   return provider;
 }
 
 /**
- * Google / Apple sign-in, via popup.
+ * Google sign-in, via popup.
  *
  * MUST be reached from a click with ensureAuth() already warm — see the
  * "POPUP, NOT REDIRECT" note in the file header. auth/popup-blocked and
@@ -518,7 +497,7 @@ function buildProvider(id) {
  * retry — the answer is to sign in the original way and then linkProvider(),
  * which keeps the uid and therefore keeps the device's save.
  *
- * @param {'google'|'apple'} id
+ * @param {'google'} id
  * @param {{ remember?: boolean }} [opts]
  */
 export async function signInWithProvider(id, { remember = true } = {}) {
@@ -529,7 +508,7 @@ export async function signInWithProvider(id, { remember = true } = {}) {
   if (!auth) return fail(null, UNAVAILABLE);
   await applyPersistence(auth, remember);
   try {
-    const cred = await signInWithPopup(auth, buildProvider(id));
+    const cred = await signInWithPopup(auth, buildProvider());
     return { ok: true, user: userSnapshot(cred.user) };
   } catch (err) {
     return fail(err, 'auth/sign-in-failed');
@@ -546,12 +525,12 @@ export async function signInWithProvider(id, { remember = true } = {}) {
  * the door to the account they already have, so the uid never changes and
  * nothing is parked.
  *
- * auth/credential-already-in-use means that Google or Apple identity is already
+ * auth/credential-already-in-use means that Google identity is already
  * its own separate account. Merging two existing accounts is not something this
  * can do — there is no server to reconcile two saves — so the caller reports it
  * rather than pretending.
  *
- * @param {'google'|'apple'} id
+ * @param {'google'} id
  */
 export async function linkProvider(id) {
   const spec = PROVIDERS[id];
@@ -562,7 +541,7 @@ export async function linkProvider(id) {
   const user = auth.currentUser;
   if (!user) return fail(null, 'auth/no-current-user');
   try {
-    const cred = await linkWithPopup(user, buildProvider(id));
+    const cred = await linkWithPopup(user, buildProvider());
     return { ok: true, user: userSnapshot(cred.user) };
   } catch (err) {
     return fail(err, 'auth/link-failed');
