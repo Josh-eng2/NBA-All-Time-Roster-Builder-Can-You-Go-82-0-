@@ -2,13 +2,12 @@
  * The federated sign-in methods (Google, Apple, phone), and the two rules that
  * keep adding them from costing anyone their progress.
  *
- *   1. THEY SHIP OFF. Each provider needs Console configuration this repo
- *      cannot carry out — Google a toggle, Apple a paid Developer membership
- *      and a signing key, phone a billed SMS allowance. A button for a
- *      provider the Console has not enabled does not degrade gracefully: it
- *      fails every single tap with auth/operation-not-allowed, which a player
- *      reads as a broken game. So the shipped build renders no provider block
- *      at all, and each key is published true only once its provider works.
+ *   1. A BUTTON IS SHOWN ONLY FOR A PROVIDER THE CONSOLE HAS ENABLED. A
+ *      button for one it has not does not degrade gracefully: it fails every
+ *      single tap with auth/operation-not-allowed, which a player reads as a
+ *      broken game. All three are enabled there now, so all three render; each
+ *      stays behind its Remote Config key, which is what hides one again
+ *      without a deploy.
  *
  *   2. A SECOND SIGN-IN METHOD MUST NOT MEAN A SECOND ACCOUNT. Every distinct
  *      method mints a distinct uid unless it is linked, and a second uid on a
@@ -34,23 +33,24 @@ const clickOn = action => ({ target: { closest: () => ({ dataset: { auth: action
 
 // ── Shipped state ─────────────────────────────────────────────────────────────
 
-test('every provider ships switched off', () => {
-  assert.deepEqual(auth.enabledProviders(), [],
-    'a provider is offered in the shipped build — every tap of it would fail');
+test('every provider ships switched on, in display order', () => {
+  assert.deepEqual(auth.enabledProviders(), ['google', 'apple', 'phone'],
+    'a provider the Console has enabled is not being offered');
   for (const id of Object.keys(auth.PROVIDERS)) {
-    assert.equal(auth.providerEnabled(id), false, `${id} is enabled by default`);
+    assert.equal(auth.providerEnabled(id), true, `${id} is switched off by default`);
   }
 });
 
-test('each provider has a Remote Config key, and that key defaults to false', () => {
+test('each provider has a Remote Config key, and that key is a boolean', () => {
   // Catches a provider added to PROVIDERS without the switch that gates it —
   // providerEnabled() would then read an unknown key, get undefined, and the
-  // provider would stay dark with no way to turn it on.
+  // provider would stay dark with no way to turn it on. The key is also what
+  // hides one again without a deploy, by publishing it false.
   for (const spec of Object.values(auth.PROVIDERS)) {
     const key = DEFAULTS[spec.flag];
     assert.ok(key, `${spec.id} names a Remote Config key (${spec.flag}) that does not exist`);
     assert.equal(key.type, 'boolean');
-    assert.equal(key.value, false, `${spec.flag} ships true — it would fail every tap until the Console matches`);
+    assert.equal(key.value, true, `${spec.flag} ships false — its button would not render`);
   }
 });
 
@@ -63,19 +63,20 @@ test('an unfetched or malformed flag leaves a provider off, never on', () => {
   assert.equal(auth.providerEnabled(undefined), false);
 });
 
-test('a disabled provider refuses at the API, not only in the markup', async () => {
-  // Hiding the button is the first line; a caller that reaches the function
-  // anyway (a stale view, a hand-typed action) must still be refused rather
-  // than opening a popup that can only fail.
+test('a provider call with no SDK fails as a result, never as a throw', async () => {
+  // Under Node there is no Firebase app, which is the same shape as a blocked
+  // or offline CDN in a browser: every entry point must resolve to a
+  // structured failure rather than throw, or an auth problem interrupts a run.
   for (const id of ['google', 'apple']) {
     const res = await auth.signInWithProvider(id);
     assert.equal(res.ok, false);
-    assert.equal(res.code, 'auth/operation-not-allowed', `${id} attempted a popup while switched off`);
+    assert.equal(res.code, 'auth/unavailable', `${id} did not degrade to "accounts unavailable"`);
   }
   const link = await auth.linkProvider('google');
-  assert.equal(link.code, 'auth/operation-not-allowed');
-  const sms = await auth.startPhoneSignIn('+14155550132', 'auth-recaptcha');
-  assert.equal(sms.code, 'auth/operation-not-allowed', 'an SMS would have been sent, and billed');
+  assert.equal(link.code, 'auth/unavailable');
+  // The number is checked before anything is sent, so a typo cannot be billed.
+  const sms = await auth.startPhoneSignIn('4155550132', 'auth-recaptcha');
+  assert.equal(sms.code, 'auth/invalid-phone-number', 'an SMS would have been sent, and billed');
 });
 
 test('an unknown provider id is rejected before anything else', async () => {
@@ -121,12 +122,15 @@ test('a code cannot be confirmed without an attempt in flight', async () => {
 
 // ── The modal ─────────────────────────────────────────────────────────────────
 
-test('the shipped sign-in view renders no provider block and no stray divider', async () => {
+test('the shipped sign-in view renders every enabled provider above the email form', async () => {
   await showAuthModal('signin');
   const html = modalRoot().innerHTML;
-  assert.ok(!html.includes('auth-provider'), 'a provider button rendered while every provider is off');
-  assert.ok(!html.includes('auth-divider'),
-    'an "or" rule rendered with nothing above it, which reads as a rendering fault');
+  for (const id of auth.enabledProviders()) {
+    assert.ok(html.includes(`auth-provider--${id}`), `the ${id} button is missing`);
+  }
+  assert.ok(html.includes('auth-divider'), 'the "or" rule between the buttons and the form is missing');
+  assert.ok(html.indexOf('auth-provider') < html.indexOf('auth-email'),
+    'the provider block must sit above the email form');
   assert.ok(html.includes('auth-email'), 'the email form is missing');
   closeAuthModal();
 });

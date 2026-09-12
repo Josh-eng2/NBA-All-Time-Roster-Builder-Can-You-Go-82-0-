@@ -95,12 +95,20 @@ export const DEFAULTS = {
   // player as a broken game.
   //
   // So the code ships complete and the button appears the moment the matching
-  // key is published true, with no deploy and no cache roll. Turn one on only
-  // AFTER its provider is enabled in Firebase Console → Authentication →
-  // Sign-in method, and after signing in with it once yourself.
-  auth_google_enabled: { value: false, type: 'boolean' },
-  auth_apple_enabled:  { value: false, type: 'boolean' },
-  auth_phone_enabled:  { value: false, type: 'boolean' },
+  // key is true, with no deploy and no cache roll. Turn one on only AFTER its
+  // provider is enabled in Firebase Console → Authentication → Sign-in method,
+  // and after signing in with it once yourself.
+  //
+  // All three now read Enabled in the Console under Authentication → Sign-in
+  // method, so the defaults here are true and the buttons are part of the
+  // shipped build. Publishing a key false in Remote Config still hides that one
+  // provider with no deploy, which stays the rollback if one misbehaves — and
+  // note a key published false in the Console beats the default here, so a
+  // provider still hidden after this change is one whose Remote Config
+  // parameter is published false.
+  auth_google_enabled: { value: true, type: 'boolean' },
+  auth_apple_enabled:  { value: true, type: 'boolean' },
+  auth_phone_enabled:  { value: true, type: 'boolean' },
 
   // Sim curve — see the measured anchors and method at the top of
   // js/logic/simulation.js. Bounds are roughly ±30 % around the calibrated

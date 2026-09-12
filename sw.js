@@ -266,7 +266,14 @@
 //       provider is switched on by publishing its key, with no deploy and no
 //       further cache roll — and a returning player on the cached v33 bundle
 //       would not have the code to honour it.
-const CACHE_VERSION = '820-v36';
+//
+//   v37 Google, Apple and phone sign-in switched ON. Changed precached file:
+//       js/utils/remoteConfig.js — auth_google_enabled / auth_apple_enabled /
+//       auth_phone_enabled now default true, so the buttons v34 put in place
+//       appear on the sign-in and create-account views. No other code changed;
+//       a returning player on the cached v36 bundle would keep the old
+//       defaults and see none of them, which is what this bump is for.
+const CACHE_VERSION = '820-v37';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 
