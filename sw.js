@@ -293,7 +293,19 @@
 //       so a parameter left in the Console is inert) and css/styles.css. The
 //       provider was never usable — see v39 — and no account can hold an
 //       apple.com credential, so nothing a player has is affected.
-const CACHE_VERSION = '820-v40';
+//
+//   v41 Firebase Performance Monitoring. Changed precached files:
+//       js/utils/firebase.js (loads firebase-performance.js as a FIFTH
+//       optional module alongside analytics and App Check — same blocklist
+//       exposure as analytics, so it joins the same Promise.allSettled and the
+//       same "absent, not faked" handling rather than becoming a second
+//       required import; plus the new measure() trace wrapper) and
+//       js/ui/events.js (traces around simulateSeason, the spin resolve and
+//       buildDraftBoard). events.js now imports measure() from firebase.js, so
+//       the two must ship together: a returning player served the new
+//       events.js against the old cached firebase.js fails to boot on a
+//       missing export, which is exactly what this bump exists to prevent.
+const CACHE_VERSION = '820-v41';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 
