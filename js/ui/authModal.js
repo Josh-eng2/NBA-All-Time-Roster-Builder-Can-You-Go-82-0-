@@ -27,10 +27,10 @@
  *     generic "something went wrong" that would leave them creating a second
  *     account and losing a Trophy Room to it.
  *
- * Nothing is shown for a provider whose Remote Config key is not published
- * true: enabledProviders() is empty in the shipped build, and the whole block
- * — buttons, divider and all — is absent rather than disabled. A button that
- * fails every tap is worse than no button.
+ * Nothing is shown for a provider whose Remote Config key is not true: if
+ * enabledProviders() is empty the whole block — buttons, divider and all — is
+ * absent rather than disabled. A button that fails every tap is worse than no
+ * button.
  *
  * WHAT THIS MODAL WILL NOT DO
  * ───────────────────────────
