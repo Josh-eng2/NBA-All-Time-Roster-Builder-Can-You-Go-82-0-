@@ -273,7 +273,12 @@
 //       appear on the sign-in and create-account views. No other code changed;
 //       a returning player on the cached v36 bundle would keep the old
 //       defaults and see none of them, which is what this bump is for.
-const CACHE_VERSION = '820-v37';
+//
+//   v38 the account pill shows the GM level as a crest instead of the first
+//       letter of the player's email. Changed precached files: js/ui/render.js
+//       and css/styles.css. The initial remains the fallback for a progression
+//       that cannot be read, so the pill never paints empty.
+const CACHE_VERSION = '820-v38';
 const PRECACHE = `precache-${CACHE_VERSION}`;
 const RUNTIME  = `runtime-${CACHE_VERSION}`;
 

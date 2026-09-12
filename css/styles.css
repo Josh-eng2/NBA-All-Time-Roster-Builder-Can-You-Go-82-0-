@@ -2841,6 +2841,36 @@ button.autopsy-strip:hover {
 }
 .account-pill--pending { opacity: 0.35; }
 
+/* The GM level the signed-in pill carries, as a crest.
+   A clip-path shield on a child element rather than a shaped button: from
+   1024px up css/desktop.css sizes every button in this tray to a 34px square
+   with `border-radius: 9px !important`, so a crest made out of the button
+   itself could not keep its shape there. */
+.account-crest {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 22px;
+  /* Flat top, straight shoulders, tapering to a point. */
+  clip-path: polygon(0 0, 100% 0, 100% 62%, 50% 100%, 0 62%);
+  background: var(--primary);
+  color: var(--primary-fg);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  /* A shield's visual centre sits above its geometric one, so the number has
+     to ride high or it reads as sunk into the taper. */
+  padding-bottom: 5px;
+}
+/* Three digits and up. The crest's width is fixed by the tray around it, so
+   it is the number that gives way. */
+.account-crest--wide {
+  font-size: 9px;
+  letter-spacing: -0.02em;
+}
+
 /* The signed-out state is the only account control with a text label, and it
    sits in a row otherwise made of single-glyph buttons. Below the desktop
    breakpoint it keeps the row's rounded-full shape and just gives the words
