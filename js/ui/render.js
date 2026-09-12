@@ -1599,7 +1599,11 @@ function renderDraftCard(p, index) {
   const isSelected      = !unavailable && S.selectedPlayer?.id === p.id;
   const cardBorder      = unavailable ? 'var(--border)' : isSelected ? 'var(--primary)' : 'var(--border)';
   const cardBg          = unavailable ? 'var(--card3)' : isSelected ? 'var(--card2)' : 'var(--card)';
-  const cardOpacity     = unavailable ? 'opacity:0.5;' : '';
+  // A class, not inline `opacity:0.5` on the card: opacity makes a stacking
+  // context children cannot escape, and the one thing a locked card must keep
+  // readable is the sentence saying why it is locked. The class dims every
+  // part EXCEPT that sentence (see .draft-card--locked in css/styles.css).
+  const cardLocked      = unavailable ? ' draft-card--locked' : '';
   // The selected state must always say what to do next. Mobile used to read a
   // bare "✓ Selected" while desktop said "✓ Selected — Tap a Roster Slot": the
   // narrow viewport — the one where the roster slots sit below the fold — got
@@ -1613,17 +1617,38 @@ function renderDraftCard(p, index) {
     ? (isSelected ? '✓ Tap a Slot Below' : 'Draft → Slot')
     : (isSelected ? '✓ Selected — Tap a Roster Slot' : 'Draft → Tap Slot');
 
+  // A locked card has to SAY why it is locked. The reason used to live only in
+  // a `title`, which a phone cannot show at all — and on a Boos Only day five
+  // of six cards lock at once, all reading the same "Off-Limits Today". The
+  // budget lookahead ("leaves no room to fill the last 2 spots") is the rule
+  // players most need to see: a pick that fits the total today can still be
+  // refused, which reads as a broken button until you know the rule.
+  // The button stays short; the sentence goes in the card and in the button's
+  // accessible name, where a screen reader will actually reach it.
+  const lockLabel  = alreadyOnRoster ? 'Already on Roster' : '🚫 Off-Limits Today';
+  const lockReason = dailyBlock || (alreadyOnRoster ? 'Already on your roster' : '');
+  const lockedBtn  = `<button disabled aria-label="${esc(p.name)} — ${esc(lockReason || lockLabel)}"
+            class="w-full py-2 rounded-lg font-bold text-xs draft-card-btn"
+            style="background:var(--card2);color:var(--muted);border:1.5px solid var(--border);cursor:not-allowed"
+            ${dailyBlock ? `title="${esc(dailyBlock)}"` : ''}>${lockLabel}</button>`;
+  // Stands in for the stat line, not on top of it: a card you cannot draft has
+  // no use for its PPG, and the swap keeps a locked card the same height as a
+  // draftable one so the board's density is unchanged.
+  const lockNote   = dailyBlock
+    ? `<p class="draft-card__locked-why">${esc(dailyBlock)}</p>`
+    : '';
+
   // HoopIQ — name only, no stats or position hints
   if (isBlindDraft()) {
     return `
-  <div class="rounded-xl border-2 flex flex-col overflow-hidden transition-all card-shadow draft-card draft-card--blind"
-    style="border-color:${cardBorder};background:${cardBg};${cardOpacity}">
+  <div class="rounded-xl border-2 flex flex-col overflow-hidden transition-all card-shadow draft-card draft-card--blind${cardLocked}"
+    style="border-color:${cardBorder};background:${cardBg}">
     <div class="p-3 flex-1 flex items-center justify-center draft-card-body draft-card-body--blind">
       <p class="font-bold text-sm text-foreground leading-tight text-center draft-card__name">${p.name}</p>
     </div>
     <div class="px-3 pb-3 draft-card__actions">
       ${unavailable
-        ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs draft-card-btn" style="background:var(--card2);color:var(--muted);border:1.5px solid var(--border);cursor:not-allowed" ${dailyBlock ? `title="${dailyBlock}"` : ''}>${alreadyOnRoster ? 'Already on Roster' : '🚫 Off-Limits Today'}</button>`
+        ? lockedBtn
         : `<button data-action="draft-pick-${index}"
             class="w-full py-2 rounded-lg font-bold text-xs transition-all cursor-pointer draft-card-btn"
             style="background:${isSelected ? 'var(--primary)' : 'var(--card2)'};color:${isSelected ? 'var(--primary-fg)' : 'var(--primary)'};border:1.5px solid ${isSelected ? 'var(--primary)' : '#bfdbfe'}">
@@ -1635,14 +1660,15 @@ function renderDraftCard(p, index) {
   }
 
   return `
-  <div class="rounded-xl border-2 flex flex-col overflow-hidden transition-all card-shadow draft-card"
-    style="border-color:${cardBorder};background:${cardBg};${cardOpacity}">
+  <div class="rounded-xl border-2 flex flex-col overflow-hidden transition-all card-shadow draft-card${cardLocked}"
+    style="border-color:${cardBorder};background:${cardBg}">
     <div class="p-3 flex-1 draft-card-body">
       <div class="flex items-center gap-1.5 mb-2 draft-card__head">
         <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full border border-border bg-card2 text-muted-fg draft-card__pos">${p.secondaryPos?.length ? `${p.pos} / ${p.secondaryPos[0]}` : p.pos}</span>
         <span class="draft-card__arch">${archetypeBadge(p.archetype)}</span>
       </div>
       <p class="font-bold text-sm text-foreground leading-tight mb-1.5 draft-card__name">${p.name}</p>
+      ${lockNote ? lockNote : `
       <div class="flex flex-wrap gap-x-2 gap-y-0.5 draft-card__stats">
         ${[['PPG', p.ppg], ['RPG', p.rpg], ['APG', p.apg], ['SPG', p.spg], ['BPG', p.bpg]].map(([l, v]) =>
           `<span class="text-[10px] text-muted-fg"><span class="font-semibold text-foreground">${fmtPG(v)}</span> ${l}</span>`
@@ -1651,11 +1677,11 @@ function renderDraftCard(p, index) {
       ${p.traits && p.traits.length ? `
         <div class="flex flex-wrap gap-1 mt-1.5 draft-card-traits">
           ${p.traits.map(t => `<span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">${t}</span>`).join('')}
-        </div>` : ''}
+        </div>` : ''}`}
     </div>
     <div class="px-3 pb-3 draft-card__actions">
       ${unavailable
-        ? `<button disabled class="w-full py-2 rounded-lg font-bold text-xs draft-card-btn" style="background:var(--card2);color:var(--muted);border:1.5px solid var(--border);cursor:not-allowed" ${dailyBlock ? `title="${dailyBlock}"` : ''}>${alreadyOnRoster ? 'Already on Roster' : '🚫 Off-Limits Today'}</button>`
+        ? lockedBtn
         : `<button data-action="draft-pick-${index}"
             class="w-full py-2 rounded-lg font-bold text-xs transition-all cursor-pointer draft-card-btn"
             style="background:${isSelected ? 'var(--primary)' : 'var(--card2)'};color:${isSelected ? 'var(--primary-fg)' : 'var(--primary)'};border:1.5px solid ${isSelected ? 'var(--primary)' : '#bfdbfe'}">

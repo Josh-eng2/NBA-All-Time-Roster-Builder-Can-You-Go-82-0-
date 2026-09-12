@@ -2872,6 +2872,32 @@ button.autopsy-strip:hover {
 #app[data-phase="drafting"][data-accent="violet"] { border-top: 4px solid #8b5cf6; }
 .earned-badge { display:inline-block; padding:3px 7px; border:1px solid currentColor; border-radius:12px; font-size:11px; }
 .save-warning { padding:12px; border:2px solid #d97706; border-radius:12px; background:var(--card); color:var(--fg); }
+/* Why a Daily card is locked, on the card itself.
+   Deliberately NOT .draft-card-traits: the trait chips are traded away for
+   height on a phone and on a short desktop, and this line is the one thing a
+   locked card has to keep — it is the only place the fans-budget lookahead
+   ("leaves no room to fill the last 2 spots") is ever explained, and a title
+   tooltip cannot be reached by touch at all. */
+/* Dim the parts of a locked card, never the card itself: `opacity` on the root
+   opens a stacking context its children cannot climb out of, which pushed the
+   reason line to 2.1:1. Everything fades except that line. */
+.draft-card--locked > .draft-card-body > *:not(.draft-card__locked-why),
+.draft-card--locked > .draft-card-body--blind > *,
+.draft-card--locked > .draft-card__actions {
+  opacity: 0.5;
+}
+
+.draft-card__locked-why {
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.35;
+  font-weight: 600;
+  color: var(--amber-strong);
+  background: var(--surface-amber);
+  border-radius: 5px;
+  padding: 4px 6px;
+}
+
 .update-ready { position:fixed; bottom:max(16px,env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%); z-index:10000; max-width:90vw; padding:14px 20px; border-radius:14px; background:var(--primary); color:var(--primary-fg); border:2px solid var(--border); cursor:pointer; }
 
 .earned-decor { display:flex; flex-wrap:wrap; gap:12px; }
