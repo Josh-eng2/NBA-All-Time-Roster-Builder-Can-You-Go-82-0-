@@ -149,6 +149,27 @@ test('a flawless five is rewarded and a logjam is punished', () => {
     'three players at one position must either be flagged or be slidable elsewhere');
 });
 
+test('exact stat thresholds cannot change bonuses when a roster is reversed', () => {
+  const ids = ['egan_68', 'west_68', 'lebron_18', 'gasol_09', 'okafor_e_05'];
+  const five = ids.map(id => all.find(p => p.id === id));
+  assert.ok(five.every(Boolean));
+  // 8.16 + 9.38 + 10.46 is exactly 28; binary summation can exceed 28.
+  for (const roster of [five, [...five].reverse()]) {
+    const result = calculateChemistry(roster, 'jackson');
+    assert.ok(!result.chemEntries.some(e => e.id === 'board-crashers'));
+    assert.equal(result.chemScore, calculateChemistry(five, 'jackson').chemScore);
+  }
+  const boundary = five.map((p, i) => ({ ...p, archetype: 'Sharpshooter',
+    spg: i === 0 ? 1.9 : i === 1 ? 1.7 : p.spg,
+    rpg: i === 2 ? 6.1 : i === 3 ? 6.2 : i === 4 ? 5.7 : p.rpg,
+  }));
+  for (const roster of [boundary, [...boundary].reverse()]) {
+    const ids = calculateChemistry(roster, null).chemEntries.map(e => e.id);
+    assert.ok(ids.includes('perimeter-clamps'), 'exactly 3.6 SPG qualifies');
+    assert.ok(!ids.includes('rebounding-crisis'), 'exactly 18 RPG is not below 18');
+  }
+});
+
 test('coaches only ever amplify their own systems, never break the score', () => {
   const five = bestFive(all);
   const base = calculateChemistry(five, null);
